@@ -1,4 +1,4 @@
-// Capture the production #237 phase selector with the authored private model.
+
 import { join, resolve } from "node:path";
 import { DrawnModel, capture, sheet } from "../../ts/scripts/wisp/hurtboxView";
 import { advanceFighterPose, createFighterPose } from "../../ts/src/game/presentation/fighterPose";

@@ -1,6 +1,6 @@
-// Combo trees (#83): finite attacker menus and defender scripts played through
-// the interaction graph's Timeline. The report states the search bounds; a
-// missing sampled path is never a claim that no player can make one.
+
+
+
 import { Action } from "../src/game/input/actions";
 import type { Direction } from "../src/game/input/inputRow";
 import { AttackStyle, Character, DownState, GrabAction } from "../src/game/sim/codes";
@@ -11,7 +11,7 @@ import { fighterAt } from "../src/game/sim/roster";
 import { Timeline, type Held, type Option, type Situation } from "./interactions";
 import { airborne } from "../src/game/match/padScene";
 
-/** Any selectable fighter: the graph's three and, for throw roles, every hero. */
+
 export interface FighterEntry { readonly character: Character; readonly name: string; readonly slug: string }
 
 const COMBO_PERCENTS = [0, 30, 60, 90, 120] as const;
@@ -93,7 +93,7 @@ function matchesMove(move: Move, self: Fighter): boolean {
   return self.attack.style === move.style;
 }
 
-/** One committed move, approaching and trying on alternating frames; no move chosen from the defender's script. */
+
 export function moveOption(move: Move, opening: boolean): Option {
   return {
     name: move.name, kind: "none",
@@ -111,15 +111,15 @@ export function moveOption(move: Move, opening: boolean): Option {
 }
 
 function victimButtons(choice: VictimChoice, n: number, self: Fighter): Held {
-  // DI is held while the hit owns the victim; a completed choice does not
-  // become a walk off the stage that the report could mistake for a combo KO.
+
+
   const held = self.launch.hitlag > 0 || self.launch.hitstun > 0 ? stick(choice.di.x, choice.di.z) : [];
   switch (choice.response) {
     case "jump": return n % 2 === 1 ? [...held, Action.jump] : held;
     case "air dodge": return n % 2 === 1 && canAttack(self) && !self.motion.grounded ? [...held, Action.rightTrigger] : held;
     case "mash": return n % 2 === 1 ? [...held, Action.attack, Action.special, Action.jump, Action.grab] : held;
     case "tech in place": case "tech left": case "tech right": {
-      // Falling counts the launch too, so a fighter still carried upward does not spend its tech press early.
+
       if (self.down.state === DownState.tumble && self.motion.z < 90 && self.motion.vz + self.launch.knockbackZ < 0) {
         const direction = choice.response === "tech left" ? [Action.moveLeft] : choice.response === "tech right" ? [Action.moveRight] : [];
         if (self.tech.pressAge > 40) return [Action.rightTrigger, ...direction];
@@ -149,7 +149,7 @@ function placements(entry: FighterEntry, back = false): Situation["placements"] 
   return [{ character: entry.character, x: 0, facing: back ? -1 : 1 }, { character: entry.character, x: 40, facing: -1 }];
 }
 
-/** One defender script, with a fresh SDI pulse every other hitlag frame and a legal tech press while descending near the floor. */
+
 function situation(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Situation {
   return {
     placements: placements(entry), initial: start.state, previous: start.previous,
@@ -193,7 +193,7 @@ export function openingState(entry: FighterEntry, move: Move, percent: number, t
   return result;
 }
 
-/** Tests all committed follow-up moves from one exact state against one victim script. */
+
 export function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Link[] {
   const line = new Timeline(situation(entry, start, choice), HORIZON, "first");
   const old = fighterAt(start.state.world, 1);
@@ -284,7 +284,7 @@ function guaranteedString(entry: FighterEntry, opening: Move, percent: number, i
 }
 
 interface SearchNode { readonly at: Checkpoint; readonly path: Path }
-/** A read needs an observed escape; acting before a hit does not by itself establish a read. */
+
 export function comboExtension(outcomes: readonly ({ readonly trueLink: boolean } | undefined)[]): "guaranteed" | "read" | "unclassified" | "miss" {
   if (outcomes.length === 0 || outcomes.every((outcome) => outcome === undefined)) return "miss";
   if (outcomes.every((outcome) => outcome?.trueLink === true)) return "guaranteed";
@@ -305,8 +305,8 @@ function stockPath(entry: FighterEntry, opening: Move, initial: Checkpoint, firs
         const victim = VICTIM_CHOICES[index];
         if (victim === undefined) throw new Error("missing victim choice");
         for (const link of rows) {
-          // Every sampled script gets hit after becoming free: neither a proven
-          // true link nor a read with an observed escaping choice.
+
+
           if (classifications.get(link.move) === "unclassified") continue;
           const reads = node.path.reads + (classifications.get(link.move) === "guaranteed" ? 0 : 1);
           if (reads > PATH_READS) continue;
@@ -320,7 +320,7 @@ function stockPath(entry: FighterEntry, opening: Move, initial: Checkpoint, firs
         }
       }
     }
-    // A fixed-width beam is the named sampled search, not exhaustive absence proof.
+
     next.sort((a, b) => b.path.damage - a.path.damage || a.path.reads - b.path.reads || a.path.moves.join().localeCompare(b.path.moves.join()) || a.path.victimChoices.join().localeCompare(b.path.victimChoices.join()));
     frontier = next.filter((node, index, all) => all.findIndex((other) => other.path.moves.join() === node.path.moves.join() && other.path.reads === node.path.reads) === index).slice(0, BEAM);
     if (found?.reads === 0) break;

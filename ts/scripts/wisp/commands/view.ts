@@ -1,8 +1,8 @@
-// `wisp view scene DATA_DIR...` checks each client's latest scene report;
-// `wisp view frame FRAME.ppm...` measures captured or recorded frames. Both
-// apply the expectations fresh and the native gates use (../playerView.ts)
-// and fail with what a player would see wrong. `wisp view models ...`
-// rewrites the model facts those expectations read.
+
+
+
+
+
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -44,7 +44,7 @@ const scenes = (directories: readonly string[]) => Effect.forEach(directories, (
   if (problems.length > 0) return yield* new PlayerViewFailure({ client: directory, source: newest.path, problems });
 }), { discard: true }).pipe(Effect.provide(gameFilesLayer));
 
-/** Every frame's measurements; fails after all are printed when any frame lacks a feature. */
+
 const frames = (paths: readonly string[]) => Effect.gen(function*() {
   const absent = new Map<string, string[]>();
   for (const path of paths) {
@@ -66,15 +66,15 @@ import { DEFINITIVE_CUE_EMITTERS } from "../../../src/game/presentation/cueEmitt
 const MODEL_TABLE = join(import.meta.dir, "../modelFacts.ts");
 
 
-/** Facts rounded to thousandths, so a table changes only when a model does. */
+
 const tableLine = (model: string, facts: ModelFacts) =>
   `  ${JSON.stringify(model)}: ${JSON.stringify(facts, (_key, value: unknown) => (typeof value === "number" ? Math.round(value * 1000) / 1000 : value))},`;
 
-/**
- * Reads every model a scene kind names, imported ones from the build's inputs
- * and the rest from the game's archives through the CascLib extractor that
- * tools/animations/extract.sh builds, and rewrites the model facts table.
- */
+
+
+
+
+
 const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   if (args.length === 1 && args[0] === "--prune") {
     const named = new Set(SMASHCRAFT_SCENE.kinds.flatMap(kind => kind.models).filter(model => model !== ""));
@@ -158,11 +158,11 @@ const models = (args: readonly string[]) => Effect.scoped(Effect.gen(function*()
 
 const AERIALS: readonly AttackStyle[] = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir];
 
-/**
- * Writes side-view sheets of every shipped fighter's hurt volumes over its
- * drawn pose: the standing and crouching bodies, each sampled move facing
- * right, and its first active frames facing left (smashcraft:docs/hurtboxes.md).
- */
+
+
+
+
+
 const hurtboxes = (args: readonly string[]) => Effect.gen(function*() {
   const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
   const { assets, out } = options;
@@ -193,10 +193,10 @@ const hurtboxes = (args: readonly string[]) => Effect.gen(function*() {
 
 const STRIKE_TABLE = join(import.meta.dir, "../../../src/game/presentation/heroStrikeMomentInfo.ts");
 
-/**
- * Measures the models supplied by the build, or extracts stock models when
- * no assets directory is supplied, and rewrites the strike moment table.
- */
+
+
+
+
 const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const options = Object.fromEntries(args.flatMap((arg, index) => (arg.startsWith("--") && args[index + 1] !== undefined ? [[arg.slice(2), args[index + 1]]] : [])));
   const { extractor, storage, assets } = options;
@@ -230,11 +230,11 @@ const strikes = (args: readonly string[]) => Effect.scoped(Effect.gen(function*(
 
 const REACH_TABLE = join(import.meta.dir, "../drawnReachInfo.ts");
 
-/**
- * Measures how far each checked swing draws toward its strike (#156) on a
- * build's packaged fighter models and the heroes' stock models under its
- * hero-models, and rewrites the table ts/test/drawn-reach.test.ts checks.
- */
+
+
+
+
+
 const reach = (args: readonly string[]) => Effect.gen(function*() {
   const assets = args[0] === "--assets" ? args[1] : undefined;
   const character = args[2] === "--character" ? Number(args[3]) : undefined;
@@ -276,7 +276,7 @@ const reach = (args: readonly string[]) => Effect.gen(function*() {
   yield* Effect.tryPromise({ try: () => Bun.write(REACH_TABLE, drawnReachSource(rows)), catch: (cause) => new MapBuildFailure({ operation: "write drawn reach", path: REACH_TABLE, cause }) });
 });
 
-/** Regenerates cadence facts and the all-fighter state audit from one private asset view. */
+
 const motion = (args: readonly string[]) => Effect.gen(function*() {
   const assets = args[0] === "--assets" ? args[1] : undefined;
   const selected = args[2] === "--character" ? Number(args[3]) : undefined;
@@ -305,7 +305,7 @@ const motion = (args: readonly string[]) => Effect.gen(function*() {
       const strideSource = drawnStrideSource(strides.sort((a, b) => a.character - b.character));
       if (!await Bun.file(stridePath).exists() || await Bun.file(stridePath).text() !== strideSource) {
         await Bun.write(stridePath, strideSource);
-        // A fresh process reads the regenerated cadence before sampling production pose times.
+
         return { changed: true, rows };
       }
       for (const { character, drawn, model } of models) for (const state of MOTION_STATES) rows.push(measureDrawnMotion(drawn, character, state, model));

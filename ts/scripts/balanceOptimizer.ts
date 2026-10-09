@@ -8,11 +8,11 @@ export interface TuningField {
   readonly seeds: readonly number[];
   readonly computerCode: string;
   readonly computerProfiles: string;
-  /** Every seed must cover every unordered pair; pairs aggregate at least 400 matches. */
+
   readonly seedPairs: Readonly<Record<number, Readonly<Record<string, number>>>>;
   readonly fighters: readonly Measured[];
   readonly kits: Readonly<Record<string, FighterBaseline>>;
-  /** Independent complete-field samples on the same seed batches, never a sampled matchup estimate. */
+
   readonly samples: Readonly<Record<number, readonly Measured[]>>;
 }
 export interface FrozenPlay { readonly phase: "kit"; readonly computerCode: string; readonly computerProfiles: string; readonly play: Readonly<Record<string, string>> }
@@ -66,7 +66,7 @@ export function completeFieldFailures(field: TuningField, roster: readonly strin
   return failures;
 }
 
-/** Profile calibration precedes kit tuning and never optimizes win rate. */
+
 export function freezePlay(field: TuningField, profiles: ReadonlyMap<string, PlayStyleProfile>, roster: readonly string[]): FrozenPlay {
   const failures = completeFieldFailures(field, roster);
   for (const fighter of field.fighters) {
@@ -78,7 +78,7 @@ export function freezePlay(field: TuningField, profiles: ReadonlyMap<string, Pla
   return { phase: "kit", computerCode: field.computerCode, computerProfiles: field.computerProfiles, play: Object.fromEntries(roster.map(name => [name, field.kits[name]?.play ?? "missing"])) };
 }
 
-/** The same five rules guard recorded fields and candidate acceptance. */
+
 export function tuningVerdict(field: TuningField, baseline: Baseline, frozen: FrozenPlay, profiles: ReadonlyMap<string, PlayStyleProfile>, usedSeeds: ReadonlySet<number>, confirmation = false): string[] {
   const roster = Object.keys(baseline);
   const failures = completeFieldFailures(field, roster);
@@ -117,7 +117,7 @@ export interface KeptChange {
   readonly before: KitValues; readonly after: KitValues;
 }
 export interface Candidate { readonly field: TuningField; readonly before: TuningField }
-/** A paired 95% interval on complete-field score samples, not a caller-supplied claim. */
+
 export function acceptCandidate(fighter: string, candidates: readonly Candidate[], baseline: Baseline, frozen: FrozenPlay, profiles: ReadonlyMap<string, PlayStyleProfile>, usedSeeds: ReadonlySet<number>): KeptChange | undefined {
   const reference = baseline[fighter];
   if (reference === undefined) return undefined;
@@ -149,7 +149,7 @@ export function acceptCandidate(fighter: string, candidates: readonly Candidate[
   return accepted[0]?.record;
 }
 
-/** Finite-difference coordinate descent offers only one real kit scalar at a time. */
+
 export function kitCandidates(current: KitValues, baseline: KitValues): KitValues[] {
   const candidates: KitValues[] = [];
   for (const [path, value] of Object.entries(current)) {
@@ -169,7 +169,7 @@ export function kitCandidates(current: KitValues, baseline: KitValues): KitValue
 export class BalanceFailure extends Schema.TaggedError<BalanceFailure>()("BalanceFailure", { problem: Schema.String }) {}
 
 export interface RoundResult { readonly kept?: KeptChange; readonly trainingFields: number; readonly record: string }
-/** Callers supply the real whole-field runner; no rate can be extrapolated from a subset. */
+
 export function optimizeRound(options: {
   readonly fighter: string; readonly current: TuningField; readonly baseline: Baseline;
   readonly frozen: FrozenPlay; readonly profiles: ReadonlyMap<string, PlayStyleProfile>;

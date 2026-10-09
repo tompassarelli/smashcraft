@@ -1,7 +1,7 @@
-// `bun wisp anim score|judge` (#367): the animation scorecard. Lines 1–4 are
-// measured from the exported bodies (scripts/wisp/animScore.ts); line 5 is a
-// separate judge's side-by-side reading against a Smash reference, recorded
-// in tools/move-data/anim-score/judge.jsonl. smashcraft:docs/animation-scorecard.md.
+
+
+
+
 import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, relative, resolve } from "node:path";
@@ -30,11 +30,11 @@ const REFERENCE_STORE = join(homedir(), ".local/share/smashcraft-animation-refer
 const REFERENCE_DIRECTORY = join(REFERENCE_STORE, "scorecard-references");
 const REFERENCE_MANIFEST = join(REFERENCE_DIRECTORY, "manifest.json");
 
-/**
- * The Melee fighter each fighter's moves are read against: the timing
- * reference (smashcraft:references/melee-frame-data/) and the judge's
- * side-by-side. A starting choice by build and weapon; Tom tunes it.
- */
+
+
+
+
+
 export const REFERENCE_FIGHTERS: Readonly<Record<string, string>> = {
   rifleman: "falco", illidan: "captain_falcon", blademaster: "marth", "mountain-king": "donkey_kong", warden: "sheik",
   lich: "mewtwo", "forsaken-paladin": "roy", dreadlord: "ganondorf", "shadow-hunter": "link", "pit-lord": "bowser",
@@ -42,7 +42,7 @@ export const REFERENCE_FIGHTERS: Readonly<Record<string, string>> = {
   "chen-stormstout": "captain_falcon", peon: "ness", "goblin-tinker": "samus", "kael'thas-sunstrider": "zelda", murloc: "kirby", "grom-hellscream": "roy", kobold: "young_link",
   "malfurion-stormrage": "link", medivh: "mewtwo", "anub'arak": "bowser",
 };
-/** Each scored move's Melee action (records.jsonl) and SmashWiki hitbox-animation name. */
+
 export const REFERENCE_ACTIONS: Readonly<Record<string, { readonly action: string; readonly wiki: string }>> = {
   jab: { action: "jab1", wiki: "jab" }, jab2: { action: "jab2", wiki: "jab" }, jab3: { action: "jab2", wiki: "jab" },
   "forward-tilt": { action: "ftilt", wiki: "forward tilt" }, "forward-tilt-up": { action: "ftilt", wiki: "forward tilt" }, "forward-tilt-down": { action: "ftilt", wiki: "forward tilt" },
@@ -67,7 +67,7 @@ export const JudgeScore = Schema.Struct({
 });
 export type JudgeScore = typeof JudgeScore.Type;
 const JUDGE_LINES = ["readability", "weight", "anticipation", "followThrough", "character"] as const;
-/** A move passes line 5 at 4 or higher on every judged line (#367). */
+
 export const JUDGE_PASS = 4;
 
 const MeleeRecord = Schema.Struct({ character: Schema.String, action: Schema.NullOr(Schema.String), values: Schema.Struct({ start: Schema.optional(Schema.NullOr(Schema.Finite)), total: Schema.optional(Schema.NullOr(Schema.Finite)) }) });
@@ -75,7 +75,7 @@ const MeleeRecord = Schema.Struct({ character: Schema.String, action: Schema.Nul
 const decodeLines = <S extends Schema.Top>(schema: S, path: string) => attempt(`read ${path}`, async () => (await Bun.file(path).exists()) ? (await Bun.file(path).text()).split("\n").filter((line) => line.trim() !== "") : []).pipe(
   Effect.flatMap((lines) => Effect.forEach(lines, (line) => Schema.decodeEffect(Schema.fromJsonString(schema))(line).pipe(Effect.mapError((cause) => new AnimFailure({ problem: `${path}: ${cause.message}` }))))));
 
-/** Melee's first active frame and total for a fighter's move, one-based, as the reference records give them. */
+
 const meleeTiming = (records: readonly (typeof MeleeRecord.Type)[], fighter: string, move: string) => {
   const action = REFERENCE_ACTIONS[move]?.action, character = REFERENCE_FIGHTERS[fighter];
   const found = records.find((record) => record.character === character && record.action === action);
@@ -95,7 +95,7 @@ interface Row {
 const passCount = (row: Row) => [row.score.line1.pass, row.score.line2.pass, row.score.line3.pass, row.score.line4.pass].filter(Boolean).length
   + (row.judged !== undefined && row.judged.lowest >= JUDGE_PASS ? 1 : 0);
 const lines = (row: Row) => row.judged === undefined ? 4 : 5;
-/** Worst first: most failed lines, then the largest measured shortfall. */
+
 const worstFirst = (a: Row, b: Row) => (lines(b) - passCount(b)) - (lines(a) - passCount(a)) || b.score.shortfall - a.score.shortfall || a.fighter.localeCompare(b.fighter) || a.move.localeCompare(b.move);
 const mark = (pass: boolean) => (pass ? "pass" : "FAIL");
 const n = (value: number) => value.toFixed(2);
@@ -130,7 +130,7 @@ const selectFighters = (names: readonly string[] | undefined) => Effect.gen(func
   return chosen.flatMap((character) => (character === undefined ? [] : [character]));
 });
 
-/** Every scored row for the chosen fighters and look, with stored judgements. */
+
 const measure = (fighters: readonly Character[], look: Look, assets: string) => Effect.gen(function*() {
   const judged = yield* decodeLines(JudgeScore, JUDGE_FILE);
   const records = yield* decodeLines(MeleeRecord, join(projectRoot, "references/melee-frame-data/records.jsonl"));
@@ -163,7 +163,7 @@ const score: Command = (args) => Effect.gen(function*() {
   const fighters = yield* selectFighters(flags.get("--fighter"));
   const assets = flags.get("--assets")?.[0] ?? assetsView(yield* readManifest());
   const { rows } = yield* measure(fighters, look, assets);
-  // A partial run replaces only its fighters' rows in the stored table.
+
   const table = join(SCORE_DIRECTORY, `${look}.tsv`);
   const kept = yield* attempt(`read ${table}`, async () => (await Bun.file(table).exists()) ? (await Bun.file(table).text()).trim().split("\n").slice(1) : []);
   const chosen = new Set(fighters.map(fighterSlug));
@@ -189,10 +189,10 @@ const score: Command = (args) => Effect.gen(function*() {
   yield* Console.log(`${rows.length} rows; ${relative(projectRoot, table)}`);
 }).pipe(Effect.provide(BunServices.layer));
 
-/** Moves per judge batch: one fresh judge reads one batch. */
+
 const JUDGE_BATCH = 6;
 
-/** Frames a judge sees: start, windup extreme, contact, last active, recovery key, end. */
+
 const keyFrames = (row: Row) => [...new Set([0, row.score.keys.windup, row.score.keys.contact, row.frames.lastActive, row.score.keys.recovery, row.frames.end])].sort((a, b) => a - b);
 
 const ReferenceEntry = Schema.Struct({ file: Schema.String, source: Schema.String, character: Schema.String, move: Schema.String });
@@ -200,7 +200,7 @@ const ReferenceManifest = Schema.fromJsonString(Schema.Record(Schema.String, Ref
 const readReferences = attempt(`read ${REFERENCE_MANIFEST}`, async () => (await Bun.file(REFERENCE_MANIFEST).exists()) ? await Bun.file(REFERENCE_MANIFEST).text() : "{}").pipe(
   Effect.flatMap(Schema.decodeEffect(ReferenceManifest)), Effect.mapError((cause) => new AnimFailure({ problem: `reference manifest: ${cause.message}` })));
 
-/** The fighter's own reference move, else the same move from the best-covered reference fighters. */
+
 const referenceFor = (references: Readonly<Record<string, typeof ReferenceEntry.Type>>, fighter: string, move: string) =>
   [REFERENCE_FIGHTERS[fighter] ?? "", "falco", "marth", "sheik", ...Object.values(REFERENCE_FIGHTERS)].map((character) => references[`${character}/${move}`]).find((entry) => entry !== undefined);
 
@@ -212,7 +212,7 @@ const httpGet = (url: string) => attempt(`fetch ${url}`, async () => {
   return response;
 });
 
-/** Downloads each reference fighter's Melee hitbox animations from SmashWiki into the private reference store. */
+
 const fetchReferences = Effect.gen(function*() {
   const manifest: Record<string, typeof ReferenceEntry.Type> = { ...(yield* readReferences) };
   const characters = [...new Set(Object.values(REFERENCE_FIGHTERS))];
@@ -254,7 +254,7 @@ const fetchReferences = Effect.gen(function*() {
   yield* Console.log(`${Object.keys(manifest).length} references in ${REFERENCE_DIRECTORY}`);
 });
 
-/** Renders each chosen move's key frames at gameplay zoom beside its reference and writes the judges' batch. */
+
 const prepare = (args: readonly string[]) => Effect.gen(function*() {
   const flags = parseFlags(args, ["--fighter", "--move", "--graphics", "--out", "--assets"]);
   const out = flags?.get("--out")?.[0], look = flags?.get("--graphics")?.[0] ?? "classic";
@@ -268,7 +268,7 @@ const prepare = (args: readonly string[]) => Effect.gen(function*() {
   const chosen = rows.filter((row) => wanted === undefined || wanted.includes(`${row.fighter}:${row.move}`));
   if (chosen.length === 0) return yield* new UsageFailure({ problem: "no scored move matches" });
   const references = yield* readReferences;
-  // One match's scene supplies the camera, light and sky; each frame draws only the fighter's body.
+
   const session = yield* Effect.acquireRelease(attempt("start the scene session", () => createStandaloneSession({ presentation: "pool-confirmed", script: "#! chat -dev quick" })), (open) => Effect.sync(() => open.close()));
   for (let frame = 0; frame < 60; frame++) session.step(NEUTRAL_INPUT);
   const base = captureScene(session.client, { visibleOnly: true });
@@ -307,7 +307,7 @@ const prepare = (args: readonly string[]) => Effect.gen(function*() {
     const crops = ids.map((id) => join(output, "frames", `p${base.client}-frame-${id}.png`));
     const ours = join(output, "moves", `${row.fighter}-${row.move}-ours.png`);
     mkdirSync(join(output, "moves"), { recursive: true });
-    // 480x360 around the fighter at the far camera's native pixels: gameplay zoom, uncropped by scaling.
+
     yield* runProcess(ChildProcess.make("magick", [...crops.flatMap((crop) => ["(", crop, "-gravity", "center", "-crop", "480x360+0-60", "+repage", ")"]), "+append", ours]));
     const reference = referenceFor(references, row.fighter, row.move);
     const side = join(output, "moves", `${row.fighter}-${row.move}.png`);
@@ -336,7 +336,7 @@ const prepare = (args: readonly string[]) => Effect.gen(function*() {
   yield* Console.log(`${chosen.length} moves in ${batches.length} batches: ${output}/batch-N.md; record with: bun wisp anim judge record ${output}/scores-*.jsonl`);
 }).pipe(Effect.scoped, Effect.provide(BunServices.layer));
 
-/** Validates judges' score files and appends them to the stored judgements. */
+
 const record = (files: readonly string[]) => Effect.gen(function*() {
   if (files.length === 0) return yield* new UsageFailure({ problem: "anim judge record SCORES.jsonl..." });
   const entries: JudgeScore[] = [];

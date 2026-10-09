@@ -1,9 +1,9 @@
-// Running a program to completion from a host tool (docs/typescript.md, "Host
-// tools"). Start long-lived children with `ChildProcess.make(...)` directly.
+
+
 import { Effect, Schema, Stream } from "effect";
 import type { ChildProcess } from "effect/process";
 
-/** Resume a stopped child so cancellation also reaps a producer paused for a cut. */
+
 export const stopBunProcess = (child: Pick<Bun.Subprocess, "exitCode" | "kill" | "exited">) => Effect.gen(function*() {
   if (child.exitCode !== null) return;
   child.kill("SIGCONT");
@@ -15,7 +15,7 @@ export const stopBunProcess = (child: Pick<Bun.Subprocess, "exitCode" | "kill" |
   }
 });
 
-/** Bun's rusage includes waited-for children; the platform handle has no rusage. */
+
 export const runMeasuredProcess = (command: readonly string[], cwd: string, env: Record<string, string | undefined>) =>
   Effect.acquireUseRelease(
     Effect.try({
@@ -29,7 +29,7 @@ export const runMeasuredProcess = (command: readonly string[], cwd: string, env:
     stopBunProcess,
   );
 
-/** A program that couldn't start, was killed, or exited nonzero. */
+
 export class ProcessFailure extends Schema.TaggedError<ProcessFailure>()("ProcessFailure", {
   command: Schema.String,
   problem: Schema.String,
@@ -39,7 +39,7 @@ export class ProcessFailure extends Schema.TaggedError<ProcessFailure>()("Proces
   }
 }
 
-/** A line-fed producer stays owned while its input is written and outputs are collected. */
+
 export const startInputProcess = (command: readonly string[], options: {
   readonly env: Record<string, string | undefined>;
   readonly stdout?: string;
@@ -60,10 +60,10 @@ export const startInputProcess = (command: readonly string[], options: {
   }),
 })));
 
-/**
- * Runs `command` in its own scope and returns its trimmed stdout.
- * Effect's spawner returns output without failing on a nonzero exit; host tools need that failure.
- */
+
+
+
+
 export const runProcess = (command: ChildProcess.StandardCommand) => {
   const name = [command.command, ...command.args].slice(0, 3).join(" ");
   return Effect.scoped(Effect.gen(function*() {

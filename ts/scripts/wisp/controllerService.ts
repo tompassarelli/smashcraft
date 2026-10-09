@@ -1,9 +1,9 @@
-// The always-on controller service (smashcraft:companion/README.md, "Always-on
-// controller service"): `wc3-journal --service` finds Warcraft III on :0, the
-// pad and the map's session by itself. The systemd user unit
-// smashcraft-controller.service (nixos-config) starts it at login through the
-// launcher link below; `bun wisp controller` and `play` point that link at
-// main's helper and restart the service when it changes.
+
+
+
+
+
+
 import { spawn } from "node:child_process";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync } from "node:fs";
 import { homedir } from "node:os";
@@ -17,7 +17,7 @@ export const CONTROLLER_UNIT = "smashcraft-controller.service";
 export const CONTROLLER_STATUS = join(homedir(), ".local/state/smashcraft/controller-service.txt");
 export const CONTROLLER_LOG = join(homedir(), ".local/state/smashcraft/controller-service.log");
 
-/** The service's status file: one `key=value` per line. */
+
 export type ServiceStatus = Readonly<Record<string, string>>;
 
 export function parseStatus(text: string): ServiceStatus {
@@ -27,7 +27,7 @@ export function parseStatus(text: string): ServiceStatus {
   }));
 }
 
-/** Whether the service's helper is ready for this game's Smashcraft session of `build`. */
+
 export function servesGame(status: ServiceStatus, pid: number, build: string): boolean {
   return status.state === "serving" && status.game_pid === String(pid) && (status.session ?? "").startsWith(`${build}/`);
 }
@@ -40,15 +40,15 @@ export function readStatus(path = CONTROLLER_STATUS): ServiceStatus {
   }
 }
 
-/** Points the launcher at `helper`; true when it changed. */
+
 export function pointLauncher(helper: string, launcher = CONTROLLER_LAUNCHER): boolean {
   try {
     if (readlinkSync(launcher) === helper) return false;
   } catch {
-    // No launcher yet.
+
   }
   mkdirSync(dirname(launcher), { recursive: true });
-  // A link of this process's own: two plays pointing the launcher at once never share one.
+
   const next = `${launcher}.${process.pid}.next`;
   rmSync(next, { force: true });
   symlinkSync(helper, next);
@@ -63,7 +63,7 @@ const alive = (pid: string | undefined) => pid !== undefined && /^\d+$/.test(pid
 
 const fail = (problem: string) => new PlayProblem({ problem });
 
-/** Starts or refreshes the service on `helper`; says how it runs. */
+
 export const ensureService = (helper: string) => Effect.gen(function*() {
   const changed = pointLauncher(helper);
   if (unitInstalled()) {
@@ -73,13 +73,13 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
     }
     return `${CONTROLLER_UNIT} (journalctl --user -u ${CONTROLLER_UNIT})`;
   }
-  // Before the login unit is installed: a service in its own session. Its
-  // lock refuses a second copy; one on an older helper is replaced.
+
+
   const running = readStatus().service_pid;
   if (alive(running) && !changed) return `the controller service (pid ${running}), log ${CONTROLLER_LOG}`;
   if (alive(running)) {
     process.kill(Number(running), "SIGTERM");
-    // Its lock would refuse the new copy, so an old service that outlives SIGTERM is a failure.
+
     yield* pollUntil(Effect.sync(() => alive(running) ? undefined : true), {
       every: "50 millis",
       within: "2 seconds",
@@ -107,10 +107,10 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
   return `the controller service (pid ${pid}), log ${CONTROLLER_LOG}`;
 });
 
-/** Seconds the service has to serve a game whose map shows its first screen. */
+
 export const SERVE_SECONDS = 15;
 
-/** Waits until the service serves this game's session of `build`; fails at once when it found the game but no controller. */
+
 export const awaitService = (pid: number, build: string, runs: string, statusFile = CONTROLLER_STATUS) =>
   pollUntil(
     Effect.gen(function*() {
@@ -130,10 +130,10 @@ export const awaitService = (pid: number, build: string, runs: string, statusFil
     },
   );
 
-/**
- * The controller is optional: the keyboard always plays. Starts or refreshes
- * the service and says whether a controller serves this game; never fails.
- */
+
+
+
+
 export const optionalController = (helper: string, pid: number, build: string, statusFile = CONTROLLER_STATUS) =>
   ensureService(helper).pipe(
     Effect.flatMap((runs) => awaitService(pid, build, runs, statusFile)),

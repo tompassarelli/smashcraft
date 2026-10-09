@@ -1,13 +1,13 @@
-// The computer against the field (#105): every ordered pair of selectable
-// fighters, both computers, on every soak stage, played in process through
-// the game's frame capture and execution as the tape runner plays them. Each
-// match is read from outside after every frame: moves started (attack serials
-// and special starts), hits and damage landed, stocks lost and the frames
-// since the loser last took a hit. The computer draws every choice under the
-// match seed, so each seed of a setup is another sample; a variant also
-// shifts both spawn points sideways. Both computers play at --opponents and --tiers (wren,wren and expert,expert by
-// default). Mirrors are left out of the field.
-// Usage (from ts/): bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N] [--tiers A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b,...] [--pairs a:b,c:d] [--merge a.json,b.json]
+
+
+
+
+
+
+
+
+
+
 import { readFileSync, writeFileSync } from "node:fs";
 import { f32 } from "wisp/src/sim/f32";
 import { parseArgs } from "node:util";
@@ -37,28 +37,28 @@ import { currentFeel } from "./balanceFeel";
 import { kitFailures, feelFailures, type Baseline, type TuningField } from "./balanceOptimizer";
 import { BALANCE_SPEC, DISADVANTAGE_FRAMES, PUNISH_RESET_FRAMES, type Measured, type PlayStyleProfile, balanceGate, balanceScore, readProfiles, archetypeFailures, matchupFailures } from "./balance";
 
-/** The soak's stages by the game's stage numbers (test/soak/game.ts). */
+
 export const FIELD_STAGES: Readonly<Record<string, number>> = {
   "sky-deck": 0, "three-bridges": 1, "frozen-throne": 2, "drifting-deck": 3, "patterned-decks": 4,
   "wind": 10, "carried": 11, "cannon": 12, "timed-lift": 13, "hellfire": 14, "stratholme": 6, "tomb-of-sargeras": 7,
 };
-/** A stock lost this long after the last hit taken, or with none, was lost without the opponent (#105 box 3). */
+
 const NO_HIT_FRAMES = 3 * MATCH_TICKS_PER_SECOND;
-// A self-destruct (#105 box 3) is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge.
-// The 3 s count above is kept as fall time: a far launch that takes longer than 3 s to finish counts there.
-/**
- * The balance gate (Tom, 7 Oct; smashcraft:docs/design/roster.md, "Balance
- * gate"): every fighter's win rate against the field lies in [fieldLow,
- * fieldHigh], with both computers playing Wren Expert and at least `perPair` matches
- * a pair. The doc states these numbers; cpuField.tests.ts pins both together.
- */
+
+
+
+
+
+
+
+
 export const BALANCE_GATE = { fieldLow: 0.45, fieldHigh: 0.55, opponent: "wren", tier: "expert", perPair: 400 } as const;
-/** The hard matchup gate is independent of the field-average win band. */
+
 const MATCHUP_LOW = BALANCE_SPEC.matchupLow;
 const MATCHUP_HIGH = BALANCE_SPEC.matchupHigh;
-/** Specials as gameplans and the computer's options number them: neutral, side, up, down. */
+
 export const SPECIAL_MOVE = GameplanSpecial;
-/** Spawn shifts, in order, for each variant of a setup. */
+
 const SHIFTS = [0.0, -60.0, 60.0, -120.0, 120.0, -30.0, 30.0, -90.0, 90.0] as const;
 
 const MOVE_NAMES: Readonly<Record<number, string>> = {
@@ -71,13 +71,13 @@ const MOVE_NAMES: Readonly<Record<number, string>> = {
   [SPECIAL_MOVE.neutral]: "neutral-special", [SPECIAL_MOVE.side]: "side-special", [SPECIAL_MOVE.up]: "up-special", [SPECIAL_MOVE.down]: "down-special",
 };
 export const moveName = (move: number): string => MOVE_NAMES[move] ?? `move-${move}`;
-/** A move as the balance report counts it: jab strings are the jab, angled forward tilts the forward tilt, Illidan's dash attack the dash attack. */
+
 export const reportedMove = (move: number): number =>
   move === AttackStyle.jab2 || move === AttackStyle.jab3 ? AttackStyle.jab
     : move === AttackStyle.forwardTiltUp || move === AttackStyle.forwardTiltDown ? AttackStyle.forwardTilt
       : move === AttackStyle.demonHunterDashAttack ? AttackStyle.dashAttack : move;
 
-/** The special slot a running special action belongs to. */
+
 function specialMove(action: number): number | undefined {
   switch (action) { case SpecialAction.riflemanBlaster: case SpecialAction.demonHunterManaBurn: case SpecialAction.heroNeutral:
       return SPECIAL_MOVE.neutral; case SpecialAction.riflemanBear: case SpecialAction.demonHunterFelRush: case SpecialAction.heroSide:
@@ -91,52 +91,52 @@ function specialMove(action: number): number | undefined {
 
 interface SideRecord {
   readonly fighter: string;
-  /** Moves started, by move number (AttackStyle, or SPECIAL_MOVE for specials). */
+
   readonly moves: Record<number, number>;
   hitsLanded: number;
   damageDealt: number;
-  /** Mana paid for specials and their branches (sim/mana.ts). */
+
   manaSpent: number;
   specialsStarted: number;
-  /** Special presses refused for want of mana. */
+
   specialsRefused: number;
-  /** Stocks lost plus the one still standing at the end. */
+
   stocksPlayed: number;
   readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean }[];
-  /** Damage dealt, by reported move: the move the body was striking with, or the last move started for a hit it wasn't (a projectile, summon or placed object). */
+
   readonly damageByMove: Record<number, number>;
-  /** Opponent stocks taken (self-destructs excluded), by the reported move of the last hit. */
+
   readonly kosByMove: Record<number, number>;
-  /** Damage dealt while its body struck nothing. */
+
   rangedDamage: number;
-  /** Frames moving toward or away from the opponent, while able to act. */
+
   approachFrames: number;
   retreatFrames: number;
   readonly punishes: PunishTotals;
 }
 
-/**
- * Its punishes of the opponent, Slippi's conversions (balance.md, "Openings
- * and punishes"): a punish starts with a hit and lasts until the opponent has
- * spent PUNISH_RESET_FRAMES frames in control (grounded and actionable) or
- * loses the stock. One with a second hit or a disadvantage state is an
- * opening; the rest are pokes. Slippi's count is both.
- */
+
+
+
+
+
+
+
 export interface PunishTotals {
   openings: number;
-  /** Openings started while the opponent wasn't punishing it. */
+
   neutralWins: number;
-  /** Neutral-win openings with a second hit. */
+
   neutralConverted: number;
   pokes: number;
   pokeDamage: number;
-  /** Punishes of one hit, pokes included. */
+
   oneHit: number;
-  /** Openings that took a stock. */
+
   kills: number;
-  /** Stocks taken by one opening that started at the stock's first hit. */
+
   zeroToDeaths: number;
-  /** Hits and damage over openings, and the largest opening. */
+
   hits: number;
   damage: number;
   maxHits: number;
@@ -148,11 +148,11 @@ export interface MatchRecord {
   readonly stage: string;
   readonly variant: number;
   readonly seed: number;
-  /** Each slot's named opponent and difficulty. */
+
   readonly opponents: readonly [CpuOpponentId, CpuOpponentId];
   readonly tiers: readonly [CpuTier, CpuTier];
   readonly fighters: readonly [string, string];
-  /** The winning slot, or null for a tie. */
+
   readonly winner: number | null;
   readonly timedOut: boolean;
   readonly frames: number;
@@ -165,18 +165,18 @@ export interface FieldOptions {
   readonly stocks?: number;
   readonly minutes?: number;
   readonly fighters?: readonly Character[];
-  /** Only these pairs of fighters, each in both orders, instead of every pair of `fighters`. */
+
   readonly pairs?: readonly (readonly [Character, Character])[];
   readonly stages?: readonly string[];
-  /** Plays spawn variants and seeds, both orders on every stage, until each pair of fighters has this many matches (at most every variant and seed). */
+
   readonly perPair?: number;
-  /** Match seeds each variant plays, from 0 (1 by default). */
+
   readonly seeds?: number;
   readonly seedOffset?: number;
-  /** The named profiles slots 0 and 1 play (Wren Expert by default). */
+
   readonly opponents?: readonly [CpuOpponentId, CpuOpponentId];
   readonly tiers?: readonly [CpuTier, CpuTier];
-  /** The spam probe: a fighter named here attacks only with this move (spamPolicy.ts). */
+
   readonly spam?: Readonly<Partial<Record<string, number>>>;
 }
 
@@ -191,15 +191,15 @@ interface Watch {
   damage: number;
   out: boolean;
   lastHit: number | undefined;
-  /** The last frame it stood on a deck or held the ledge. */
+
   lastSafe: number | undefined;
-  /** The reported move it last started. */
+
   lastStarted: number | undefined;
-  /** The reported move of the last hit it took. */
+
   lastHitMove: number | undefined;
-  /** The opponent's punish of it, if one runs. */
+
   punish: Punish | undefined;
-  /** Damage when its stock began or the last punish of it ended, for zero-to-death. */
+
   stockFirstHit: boolean;
 }
 
@@ -209,7 +209,7 @@ interface Punish {
   quiet: number;
   neutral: boolean;
   disadvantage: boolean;
-  /** Frames since the first hit it couldn't act. */
+
   stunned: number;
   fromStockStart: boolean;
 }
@@ -218,7 +218,7 @@ const watchOf = (f: Readonly<Fighter>): Watch => ({
   serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined, lastStarted: undefined, lastHitMove: undefined, punish: undefined, stockFirstHit: true,
 });
 
-/** The reported move a fighter's body strikes with now, if any. */
+
 function strikingMove(f: Readonly<Fighter>): number | undefined {
   if (f.grab.target !== undefined || (f.grab.action >= GrabAction.hold && f.grab.action <= GrabAction.throwDown)) return AttackStyle.grab;
   const special = specialMove(f.special.action);
@@ -226,13 +226,13 @@ function strikingMove(f: Readonly<Fighter>): number | undefined {
   return f.attack.style === undefined ? undefined : reportedMove(f.attack.style);
 }
 
-/** Whether a fighter can't act now: in hitlag, hitstun, a hold, tumble or on the floor. */
+
 const unactionable = (f: Readonly<Fighter>): boolean =>
   f.launch.hitlag > 0 || f.launch.hitstun > 0 || f.grab.owner !== undefined || f.down.state !== DownState.none;
 
 const emptyPunishes = (): PunishTotals => ({ openings: 0, neutralWins: 0, neutralConverted: 0, pokes: 0, pokeDamage: 0, oneHit: 0, kills: 0, zeroToDeaths: 0, hits: 0, damage: 0, maxHits: 0, maxDamage: 0 });
 
-/** Closes a punish into its attacker's totals: an opening, or a poke when it was one hit that left no disadvantage. */
+
 function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void {
   if (punish.hits < 2) totals.oneHit++;
   if (punish.hits < 2 && !punish.disadvantage && !kill) {
@@ -257,13 +257,13 @@ function closePunish(totals: PunishTotals, punish: Punish, kill: boolean): void 
 
 const NEUTRAL = neutralControls();
 
-/** One computer-against-computer match under `seed`: slot 0 plays `a`, slot 1 plays `b`. */
+
 export function playCpuMatch(a: Character, b: Character, stageName: string, variant: number, options: FieldOptions = {}, seed = 0): MatchRecord | undefined {
   const stage = FIELD_STAGES[stageName];
   if (stage === undefined) throw new Error(`no stage named ${stageName}`);
   const shift = SHIFTS[variant % SHIFTS.length] ?? 0.0;
   const xs = [f32(matchSpawnX(0) + shift), f32(matchSpawnX(1) + shift)] as const;
-  // A shift that would spawn a fighter off the main deck makes no match.
+
   if (xs.some((x) => x <= mainDeckLeft(stage) + 40 || x >= mainDeckRight(stage) - 40)) return undefined;
   const match = createMatchState();
   setParticipants(match, 0, 3);
@@ -357,7 +357,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         seen.punish.quiet = 0;
       } else if (seen.punish !== undefined && other !== undefined) {
         const punish = seen.punish;
-        // Slippi's reset: damaged or held restarts the count, in control on the ground counts, actionable in the air waits.
+
         if (unactionable(f)) {
           punish.quiet = 0;
           if (punish.hits === 1 && ++punish.stunned >= DISADVANTAGE_FRAMES) punish.disadvantage = true;
@@ -366,9 +366,9 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
           seen.punish = undefined;
         }
       }
-      // Knocked to the floor, onto the ledge or off the deck: the hit made a disadvantage state.
+
       if (seen.punish !== undefined && (f.down.state !== DownState.none || f.ledge.state !== LedgeState.none || f.motion.x < mainDeckLeft(stage) || f.motion.x > mainDeckRight(stage) || f.motion.z < 0.0)) seen.punish.disadvantage = true;
-      // Standing in hitlag or hitstun isn't standing: the hit that put it there still counts.
+
       if (!f.status.out && f.launch.hitlag <= 0 && f.launch.hitstun <= 0 && (f.motion.grounded || f.ledge.state !== LedgeState.none)) seen.lastSafe = frame;
       if (f.status.out && !seen.out) {
         const selfDestruct = seen.lastHit === undefined || (seen.lastSafe !== undefined && seen.lastHit < seen.lastSafe);
@@ -402,11 +402,11 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   };
 }
 
-/**
- * Every pair of different fighters, both orders, on every stage, `variants`
- * times over; with `perPair`, as many variants as each pair needs to reach
- * that many matches (spawn shifts that leave a deck make none).
- */
+
+
+
+
+
 export function playCpuField(options: FieldOptions = {}, progress?: (done: number, total: number) => void): MatchRecord[] {
   const fighters = options.fighters ?? SELECTABLE_CHARACTERS;
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
@@ -447,25 +447,25 @@ export interface FighterSummary {
   readonly losses: number;
   readonly ties: number;
   readonly timeOuts: number;
-  /** Wins over decisive matches. */
+
   readonly winRate: number;
-  /** Win rate against each opponent, over decisive matches. */
+
   readonly against: Readonly<Record<string, number>>;
-  /** Matches played against each opponent. */
+
   readonly played: Readonly<Record<string, number>>;
-  /** Decisive matches against each opponent. */
+
   readonly decisive: Readonly<Record<string, number>>;
   readonly stockLosses: number;
-  /** Stock losses with no hit taken since the fighter last stood on a deck or held the ledge. */
+
   readonly selfDestructs: number;
   readonly selfDestructShare: number;
-  /** Fall time: stock losses with no hit taken in the previous NO_HIT_FRAMES. */
+
   readonly noHitLosses: number;
   readonly noHitShare: number;
   readonly damagePerHit: number;
-  /** Mana paid for specials per stock played. */
+
   readonly manaPerStock: number;
-  /** Special presses refused for want of mana, over special presses (started plus refused). */
+
   readonly refusedShare: number;
   readonly moves: readonly MoveUse[];
   readonly style: StyleSummary;
@@ -478,34 +478,34 @@ export interface MoveDamage {
   readonly share: number;
 }
 
-/** How a fighter played and converted (smashcraft:docs/design/balance.md): the play-style profile's and the score's inputs. */
+
 export interface StyleSummary {
-  /** Damage dealt by reported move, most first, and stocks taken by move. */
+
   readonly damage: readonly MoveDamage[];
   readonly kos: readonly MoveDamage[];
   readonly topDamageShare: number;
   readonly top2DamageShare: number;
-  /** Each aerial's share of aerials started, by name (neutral-air ...). */
+
   readonly aerials: Readonly<Record<string, number>>;
-  /** Aerials over normals started (specials apart). */
+
   readonly airShare: number;
-  /** Frames moving toward the opponent over frames moving. */
+
   readonly approachShare: number;
-  /** Damage dealt while the body struck nothing (projectiles, summons, placed objects) over damage dealt. */
+
   readonly rangedShare: number;
-  /** Each special slot's share of moves started, by name (neutral-special ...). */
+
   readonly specials: Readonly<Record<string, number>>;
-  /** Normalized entropy of moves started over the report's REPORTED_MOVES kit: 1 every move alike, 0 one move. */
+
   readonly variety: number;
-  /** Stocks taken by an opening: the kills ending one. */
+
   readonly kills: number;
-  /** Slippi's count: every punish, pokes included, over kills. */
+
   readonly slippiOpeningsPerKill: number;
-  /** Punishes of one hit over every punish. */
+
   readonly oneHitShare: number;
-  /** Openings, pokes excluded, over kills. */
+
   readonly openingsPerKill: number;
-  /** Average damage of an opening: the average combo's damage. */
+
   readonly damagePerOpening: number;
   readonly neutralConversion: number;
   readonly averageComboHits: number;
@@ -518,19 +518,19 @@ export interface StyleSummary {
 
 const AERIAL_MOVES = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir] as const;
 const SPECIAL_MOVES: readonly number[] = [SPECIAL_MOVE.neutral, SPECIAL_MOVE.side, SPECIAL_MOVE.up, SPECIAL_MOVE.down];
-/**
- * The kit the variety score spreads over: nine ground moves (jab or shot,
- * three tilts, three smashes, dash attack, grab), five aerials and four
- * specials. Get-up and ledge attacks are situational and left out.
- */
+
+
+
+
+
 export const REPORTED_MOVES: readonly number[] = [
   AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
   AttackStyle.dashAttack, AttackStyle.grab, ...AERIAL_MOVES, ...SPECIAL_MOVES,
 ];
-/** Rifleman's shot is his jab slot. */
+
 const varietyMove = (move: number): number => (move === AttackStyle.shot ? AttackStyle.jab : reportedMove(move));
 
-/** Normalized Shannon entropy of `counts` over `kit` moves. */
+
 export function moveVariety(counts: ReadonlyMap<number, number>, kit = REPORTED_MOVES.length): number {
   const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
   if (total === 0 || kit < 2) return 0;
@@ -547,7 +547,7 @@ function shares(totals: ReadonlyMap<number, number>): MoveDamage[] {
     .sort((x, y) => y.damage - x.damage || x.move - y.move);
 }
 
-/** A fighter's StyleSummary over its sides in `records`. */
+
 export function styleSummary(records: readonly MatchRecord[], fighter: string): StyleSummary {
   const damage = new Map<number, number>();
   const kos = new Map<number, number>();
@@ -610,7 +610,7 @@ export function styleSummary(records: readonly MatchRecord[], fighter: string): 
   };
 }
 
-/** Moves a fighter started across `records`, most-used first. */
+
 function moveUsage(records: readonly MatchRecord[], fighter: string): MoveUse[] {
   const counts = new Map<number, number>();
   for (const record of records) for (const side of record.sides) {
@@ -623,18 +623,18 @@ function moveUsage(records: readonly MatchRecord[], fighter: string): MoveUse[] 
     .sort((x, y) => y.count - x.count || x.move - y.move);
 }
 
-/**
- * A per-fighter test's view (#105 box 2): the fighter's moves by use, most
- * used first, over its computer matches against every other fighter on
- * `stages` (all soak stages by default). Moves are AttackStyle numbers and
- * SPECIAL_MOVE for specials, as the computer's options number them.
- */
+
+
+
+
+
+
 export function fighterMoveUsage(character: Character, options: FieldOptions = {}): MoveUse[] {
   const fighters = options.fighters ?? SELECTABLE_CHARACTERS;
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
   const records: MatchRecord[] = [];
   for (const other of fighters) {
-    // A mirror plays only when asked for alone; its two orders are the same match.
+
     if (other === character && fighters.length > 1) continue;
     for (const stage of stages) for (let variant = 0; variant < (options.variants ?? 1); variant++) {
       for (const pair of other === character ? [[character, other] as const] : [[character, other], [other, character]] as const) {
@@ -646,27 +646,27 @@ export function fighterMoveUsage(character: Character, options: FieldOptions = {
   return moveUsage(records, fighterSlug(character));
 }
 
-/** Whether every move in `key` is among the fighter's `top` most-used moves. */
+
 export function keyMovesAmongMostUsed(usage: readonly MoveUse[], key: readonly number[], top: number): { readonly ok: boolean; readonly missing: readonly number[] } {
   const leading = new Set(usage.slice(0, top).map((use) => use.move));
   const missing = key.filter((move) => !leading.has(move));
   return { ok: missing.length === 0, missing };
 }
 
-/** A gameplan move as fighterMoveUsage counts it: a throw starts with the grab. */
+
 const countedAs = (move: number): number => (move >= GameplanThrow.forward && move <= GameplanThrow.down ? AttackStyle.grab : move);
-/** A started move as a gameplan names it: Illidan's dash attack is the dash attack, angled forward tilts the forward tilt. */
+
 const namedAs = (move: number): number =>
   move === AttackStyle.demonHunterDashAttack ? AttackStyle.dashAttack
     : move === AttackStyle.forwardTiltUp || move === AttackStyle.forwardTiltDown ? AttackStyle.forwardTilt : move;
 
-/**
- * The per-fighter gameplan test (#105 box 2): whether the fighter's declared
- * key moves (its spacing tools unless `key` names others) are among its
- * `top` (8) most-used moves in its computer matches: by default its mirror
- * on every stage at 3 stocks and 4 minutes, about a second a fighter, so the
- * check depends only on its own kit and gameplan, never another lane's.
- */
+
+
+
+
+
+
+
 export function gameplanKeyMovesCheck(character: Character, { top = 8, key, options = {} }: { top?: number; key?: readonly GameplanMove[]; options?: FieldOptions } = {}) {
   const plan = gameplanOf(character);
   if (plan === undefined) throw new Error(`${fighterSlug(character)} declares no gameplan`);
@@ -684,18 +684,18 @@ export function gameplanKeyMovesCheck(character: Character, { top = 8, key, opti
 
 export interface MatchupReport {
   readonly matchups: number;
-  /** Matchups whose win rate lies inside 45-55%. */
+
   readonly inside: number;
-  /** Matchups whose 95% interval (normal approximation over decisive matches) overlaps 45-55%. */
+
   readonly overlapping: number;
-  /** Median over matchups of the distance between the row's win rate and 50%. */
+
   readonly medianDeviation: number;
   readonly smallestPlayed: number;
-  /** Matchups whose interval misses the band, as "row-column rate". */
+
   readonly missing: readonly string[];
 }
 
-/** The matchup spread over each unordered pair once, from the earlier fighter's row: reported, not gated. */
+
 export function matchupReport(summaries: readonly Pick<FighterSummary, "fighter" | "against" | "played" | "decisive">[]): MatchupReport {
   const names = summaries.map((s) => s.fighter);
   const deviations: number[] = [];
@@ -703,7 +703,7 @@ export function matchupReport(summaries: readonly Pick<FighterSummary, "fighter"
   let inside = 0, overlapping = 0, smallestPlayed = Number.POSITIVE_INFINITY;
   summaries.forEach((s, row) => {
     for (const name of names.slice(row + 1)) {
-      // A pair this run never played (a --pairs shard) is no matchup.
+
       if ((s.played[name] ?? 0) === 0) continue;
       const rate = s.against[name] ?? Number.NaN;
       const n = s.decisive[name] ?? 0;
@@ -722,14 +722,14 @@ export function matchupReport(summaries: readonly Pick<FighterSummary, "fighter"
 }
 
 export interface BalanceVerdict {
-  /** Fighters whose win rate against the field lies outside the gate's band, as "fighter rate". */
+
   readonly outside: readonly string[];
-  /** Whether the run measured what the gate names: its level for both computers and its matches a pair. */
+
   readonly gateRun: boolean;
   readonly passes: boolean;
 }
 
-/** The balance gate's verdict on a field: every fighter inside the band, on a run at the gate's named profile and matches a pair. */
+
 export function balanceVerdict(summaries: readonly Pick<FighterSummary, "fighter" | "winRate">[], profiles: readonly { readonly opponent: CpuOpponentId; readonly tier: CpuTier }[], smallestPlayed: number): BalanceVerdict {
   const outside = summaries.filter((s) => !(s.winRate >= BALANCE_GATE.fieldLow && s.winRate <= BALANCE_GATE.fieldHigh)).map((s) => `${s.fighter} ${percent(s.winRate)}`);
   const gateRun = profiles.length > 0 && profiles.every((profile) => profile.opponent === BALANCE_GATE.opponent && profile.tier === BALANCE_GATE.tier) && smallestPlayed >= BALANCE_GATE.perPair;
@@ -824,14 +824,14 @@ function fieldTable(summaries: readonly FighterSummary[], records: readonly Matc
 const share = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).toFixed(0)}%`);
 const fixed = (value: number, digits = 1) => (Number.isNaN(value) ? "-" : value.toFixed(digits));
 
-/** A fighter's moves by name: the report's names back to move numbers (dash-attack is the dash attack). */
+
 export function moveNamed(name: string): number | undefined {
   if (name === "dash-attack") return AttackStyle.dashAttack;
   const found = Object.entries(MOVE_NAMES).find(([, known]) => known === name);
   return found === undefined ? undefined : Number(found[0]);
 }
 
-/** The field's measures the balance score and gate read, with the spam probe's win rate where it ran. */
+
 export function measuredOf(summary: FighterSummary, spamWinRate: number | undefined): Measured {
   const s = summary.style;
   return {
@@ -841,7 +841,7 @@ export function measuredOf(summary: FighterSummary, spamWinRate: number | undefi
   };
 }
 
-/** Optimizer evidence is summarized from real records, including every seed's full pair matrix. */
+
 export function tuningFieldOf(records: readonly MatchRecord[], kits: TuningField["kits"], probes: ReadonlyMap<string, number>): TuningField {
   const seeds = [...new Set(records.map(record => record.seed))].sort((a,b) => a-b);
   const measured = (rows: readonly MatchRecord[]) => summarizeField(rows).map(summary => measuredOf(summary, probes.get(summary.fighter)));
@@ -856,7 +856,7 @@ export function tuningFieldOf(records: readonly MatchRecord[], kits: TuningField
   return { seeds, computerCode: currentComputerCode(), computerProfiles: JSON.stringify([...new Set(records.map(record => JSON.stringify([record.opponents,record.tiers,record.skillOverrides ?? []])))].sort()), seedPairs, fighters: measured(records), kits, samples: Object.fromEntries(seeds.map(seed => [seed, measured(records.filter(record => record.seed === seed))])) };
 }
 
-/** The style, conversion and balance tables (smashcraft:docs/design/balance.md). */
+
 export function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap<string, { readonly move: string; readonly winRate: number; readonly matches: number }>, profiles: ReadonlyMap<string, PlayStyleProfile>): string {
   const lines = [
     "",
@@ -925,7 +925,7 @@ export function balanceTables(summaries: readonly FighterSummary[], probes: Read
   return lines.join("\n");
 }
 
-/** Each spam-probe run's fighter, move and win rate, from cpuField --json files written with --probe-fighter. */
+
 function probeResults(files: readonly string[]): Map<string, { move: string; winRate: number; matches: number }> {
   const out = new Map<string, { move: string; winRate: number; matches: number }>();
   for (const file of files) {
@@ -941,18 +941,18 @@ function probeResults(files: readonly string[]): Map<string, { move: string; win
   return out;
 }
 
-/** Whether a parsed --json file looks like this script's options and summaries. */
+
 function isFieldFile(value: unknown): value is { readonly options: FieldOptions; readonly summaries: FighterSummary[] } {
   return typeof value === "object" && value !== null && "options" in value && typeof value.options === "object" && value.options !== null
     && "summaries" in value && Array.isArray(value.summaries) && value.summaries.every((s: unknown) => typeof s === "object" && s !== null && "fighter" in s && "style" in s);
 }
 
-/** Whether a parsed --json file's records look like this script's match records. */
+
 function isMatchRecords(value: unknown): value is MatchRecord[] {
   return Array.isArray(value) && value.every((record: unknown) => typeof record === "object" && record !== null && "fighters" in record && "sides" in record && "winner" in record);
 }
 
-/** The match records an earlier `--json` run wrote. */
+
 function shardRecords(file: string): MatchRecord[] {
   const parsed: unknown = JSON.parse(readFileSync(file, "utf8"));
   const records = typeof parsed === "object" && parsed !== null && "records" in parsed ? parsed.records : undefined;
@@ -973,7 +973,7 @@ if (import.meta.main) {
     return character;
   };
   const fighters = values.fighters?.split(",").map(fighterNamed);
-  // The spam probe (balance.md): the fighter, attacking only with its top damage move in --from's field, against every other fighter.
+
   const probeFighter = values["probe-fighter"] === undefined ? undefined : fighterNamed(values["probe-fighter"]);
   let spam: Record<string, number> | undefined;
   if (probeFighter !== undefined) {
@@ -1021,7 +1021,7 @@ if (import.meta.main) {
   }
   const started = performance.now();
   let reported = 0;
-  // --merge a.json,b.json: summarize the records of earlier --json runs (shards of one field) instead of playing.
+
   const merged = values.merge?.split(",").flatMap(shardRecords);
   const records = merged ?? playCpuField(options, (done, total) => {
     const now = performance.now();

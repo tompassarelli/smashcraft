@@ -1,14 +1,14 @@
-// `bun wisp perf census [--fighter NAME ...] [--stage ID ...] [--rise-ms MS] [--jobs N] [--functions] [--out FILE]`:
-// the spike census (#168). Every move, special and follow-up of every
-// selectable fighter (scripts/wisp/census.ts), and every stage's hazards,
-// played in the playable build in 32-bit Lua; each entry's worst frame is
-// predicted in Warcraft (wisp's nativeFrameCost: Lua instructions, native
-// calls, allocation) and reported above its baseline, the median of the
-// standing frames just before it (a stage: its own median). It fails when
-// any entry rises more than --rise-ms ms (2 by default). --functions then replays
-// the runs of the entries over it (or the five worst) with a sampling
-// profiler on each one's worst frame and baseline, and prints the map
-// functions that frame spent most in beyond a baseline frame.
+
+
+
+
+
+
+
+
+
+
+
 import { join } from "node:path";
 import { BunServices } from "@effect/platform-bun";
 import { Console, Effect, Stream } from "effect";
@@ -23,7 +23,7 @@ import { CENSUS_STAGE } from "./census";
 import { stockLua } from "./luaRuntimes";
 import { tsDirectory } from "./project";
 
-/** An entry may rise this much above its baseline, in ms (#168). */
+
 export const CENSUS_LIMIT_MS = 2;
 
 interface FrameSample {
@@ -35,17 +35,17 @@ interface FrameSample {
 export interface CensusEntry {
   readonly group: string;
   readonly name: string;
-  /** Median predicted ms of the baseline frames. */
+
   readonly baselineMs: number;
-  /** Worst predicted ms of the entry's frames. */
+
   readonly worstMs: number;
-  /** The worst frame, counted from the entry's first. */
+
   readonly worstAt: number;
-  /** The worst frame's number in its run, and the baseline's first and last. */
+
   readonly worstFrame: number;
   readonly baseFrames: readonly [number, number];
   readonly spikeMs: number;
-  /** The worst frame's work above the baseline frames' medians. */
+
   readonly instructions: number;
   readonly natives: number;
   readonly allocatedKb: number;
@@ -62,7 +62,7 @@ function median(values: readonly number[]): number {
   return order.length % 2 === 1 ? upper : ((order[middle - 1] ?? upper) + upper) / 2;
 }
 
-/** The census entries a census run printed: its `census` lines read against its p0 frame samples. */
+
 export function censusEntries(output: string): CensusEntry[] {
   let current: { frames: Map<number, FrameSample>; marks: string[][] } = { frames: new Map(), marks: [] };
   const runs = [current];
@@ -70,8 +70,8 @@ export function censusEntries(output: string): CensusEntry[] {
     const sample = SAMPLE.exec(line);
     if (sample !== null) current.frames.set(Number(sample[1]), { instructions: Number(sample[2]), natives: Number(sample[3]), allocatedKb: Number(sample[4]) / 1024 });
     else if (line.startsWith("census\t")) {
-      // Each Lua run prints its marks, then its samples. The next run starts
-      // its frame numbers over; those samples belong only to its own marks.
+
+
       if (current.frames.size > 0) {
         current = { frames: new Map<number, FrameSample>(), marks: [] };
         runs.push(current);
@@ -124,7 +124,7 @@ export function censusLines(entries: readonly CensusEntry[], limitMs: number): s
   return lines;
 }
 
-/** A name for the map function starting on each line of the bundle: its module and the name its line gives it. */
+
 export function functionNamer(bundle: string): (line: number) => string {
   const lines = bundle.split("\n");
   const modules: [number, string][] = [];
@@ -143,7 +143,7 @@ export function functionNamer(bundle: string): (line: number) => string {
   };
 }
 
-/** Per function line: [self, inclusive] samples of the frames listed, summed. */
+
 function profileOf(output: string, frames: ReadonlySet<number>): Map<number, [number, number]> {
   const totals = new Map<number, [number, number]>();
   for (const text of output.split("\n")) {
@@ -158,7 +158,7 @@ function profileOf(output: string, frames: ReadonlySet<number>): Map<number, [nu
   return totals;
 }
 
-/** The functions frame `worstFrame` spent most in beyond a mean frame of `baseFrames`, in thousands of instructions. */
+
 export function frameProfileLines(heading: string, worstFrame: number, baseFrames: ReadonlySet<number>, output: string, name: (line: number) => string, top = 12): string[] {
   const base = profileOf(output, baseFrames);
   const worst = profileOf(output, new Set([worstFrame]));
@@ -171,7 +171,7 @@ export function frameProfileLines(heading: string, worstFrame: number, baseFrame
   return lines;
 }
 
-/** A census entry's worst frame against its standing baseline. */
+
 export function profileLines(entry: CensusEntry, output: string, name: (line: number) => string, top = 12): string[] {
   const baseFrames = new Set<number>();
   for (let frame = entry.baseFrames[0]; frame <= entry.baseFrames[1]; frame++) baseFrames.add(frame);
@@ -188,13 +188,13 @@ export interface CensusProject {
   readonly program: { readonly config: string; readonly bundle: string };
 }
 
-/** The run that played an entry. */
+
 const runOf = (entry: CensusEntry) => (entry.group === "stage" ? `census-stage-${entry.name}` : `census-${entry.group}`);
 
-/** Plays `run` of the perf program in 32-bit Lua with `bundle`'s map; with `profileFrames`, sampled on those frames instead of measured (censusProfile.ts). */
+
 export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[], phases = false) => stockLua.pipe(
   Effect.mapError((problem) => new PerfFailure({ problem })),
-  // Each child belongs to its own scope, so an interrupted census stops every run in flight.
+
   Effect.flatMap((lua) => Effect.scoped(Effect.gen(function*() {
     const env = profileFrames === undefined ? undefined : { PERF_PROFILE_FRAMES: profileFrames.join(","), PERF_PROFILE_PHASES: phases ? "1" : "0" };
     const child = yield* ChildProcess.make(lua, [program, bundle, join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts"), run, String(frames), "samples"], { env, extendEnv: true, stdin: "ignore" });
@@ -207,7 +207,7 @@ export const runLua = (program: string, bundle: string, run: string, frames: num
   )),
 );
 
-/** The text of a compiled bundle. */
+
 const bundleText = (bundle: string) => Effect.tryPromise({ try: () => Bun.file(bundle).text(), catch: (cause) => new PerfFailure({ problem: `reading ${bundle}: ${describeCause(cause)}` }) });
 
 const runOne = (project: CensusProject, run: string, profileFrames?: readonly number[]) => runLua(project.program.bundle, project.map.bundle, run, 0, profileFrames);
@@ -260,12 +260,12 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   if (over.length > 0) return yield* new PerfFailure({ problem: `${over.length} census entries rise more than ${limit} ms: ${over.map((entry) => `${entry.group} ${entry.name} ${entry.spikeMs.toFixed(2)} ms`).join(", ")}` });
 });
 
-/**
- * `perf profile RUN [--worst-frames N] [--frames N] [--top N]`: plays a perf run measured, then
- * again sampled on its N worst frames of p0 (3 by default) and on the 30
- * frames nearest its median, and prints what each worst frame spent beyond a
- * median frame, its `--top` functions (12 by default).
- */
+
+
+
+
+
+
 export const profile = (project: PerfProject): Command => (args) => Effect.gen(function*() {
   const [worstText = "3"] = flagValues(args, "worst-frames");
   const [framesText = "1800"] = flagValues(args, "frames");

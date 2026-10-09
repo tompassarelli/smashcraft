@@ -1,7 +1,7 @@
-// `wisp parity`: numeric Lua parity and issue #26 native capture/result, or
-// its capture and result through the real helper into headless clients.
-// Capture and reconciliation call the harness APIs directly so they remain
-// part of Wisp's traced Effect program.
+
+
+
+
 import { BunServices } from "@effect/platform-bun";
 import { Effect, Schema } from "effect";
 import { runNumericParity } from "../../numericParity";
@@ -38,7 +38,7 @@ const reconciled = (directory: string) =>
 export const parity: Command = ([mode, ...args]) => {
   switch (mode) {
     case "numeric": {
-      // Supplied native results need no Lua; otherwise the corpus runs in a stock and a toward-zero Lua32.
+
       const luas: Effect.Effect<readonly (readonly [string, string])[], string> = args.length > 0
         ? Effect.succeed([])
         : luaRuntimes.pipe(Effect.map(({ nearest, towardZero }) => [["stock Lua32", nearest], ["toward-zero Lua32", towardZero]]));
@@ -71,8 +71,8 @@ export const integrity: Command = ([mode, ...args]) => {
         try: () => parseCaptureArguments(args),
         catch: (cause) => new IntegrityFailure({ operation: "parse capture arguments", path: "wisp integrity capture", cause: describeCause(cause) }),
       }).pipe(
-        // Doctor heals the clients before a capture (bot sessions included) and once after a
-        // failure; a capture writes its own folder, so its failure stands (wisp:docs/doctor.md).
+
+
         Effect.flatMap((options) => onHealthyClients(captureMatches(options), { retry: false, ...(options.clients === undefined ? {} : { clientsFile: options.clients }) })),
         step("native input-integrity capture"),
       );

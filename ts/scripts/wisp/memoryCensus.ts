@@ -1,7 +1,7 @@
-// What a headless client's map holds, for `bun wisp soak memory`'s program
-// (memoryLua.ts) in 32-bit Lua: the Warcraft handles it created and has not
-// destroyed, by kind, and the tables, functions, entries and strings its
-// globals reach. Plain TypeScript and Lua's own library, so it compiles to Lua.
+
+
+
+
 import type { HeadlessClient } from "wisp/src/headless/client";
 
 interface Handle {
@@ -18,22 +18,22 @@ const isNative = (value: unknown): value is Native => typeof value === "function
 const isKey = (value: unknown): value is AnyNotNil => value !== undefined && value !== null;
 const isLuaTable = (value: unknown): value is LuaValues => type(value) === "table";
 
-/** Natives that make a handle Warcraft keeps until the map destroys it. */
+
 const creates = (name: string) => name.startsWith("Create") || name.startsWith("BlzCreate") || name.startsWith("Add");
-/** Natives that attach an event or action to their first argument, a trigger, and go with it. */
+
 const attaches = (name: string) => name.startsWith("TriggerRegister") || name.startsWith("BlzTriggerRegister") || name.startsWith("TriggerAdd");
-/** Natives that release their first argument. RemoveSaved* take a hashtable they keep. */
+
 const releases = (name: string) => name.startsWith("Destroy") || name.startsWith("BlzDestroy") || name === "KillSoundWhenDone" || (name.startsWith("Remove") && !name.startsWith("RemoveSaved"));
 
-/** One client's live handles: wraps its natives before the map starts. */
+
 export class HandleCensus {
-  /** Live handles by kind, each by id. */
+
   private readonly live = new Map<string, Map<number, Handle>>();
-  /** A trigger's events and actions, by the trigger's id. */
+
   private readonly attached = new Map<number, Handle[]>();
-  /** A created frame's parent frame, by id: destroying a frame destroys its children. */
+
   private readonly parents = new Map<number, number>();
-  /** Ids destroyed since the last `takeReleased`. */
+
   private released = new Set<number>();
 
   constructor(client: HeadlessClient, functions: readonly (readonly [string, string, number])[]) {
@@ -42,7 +42,7 @@ export class HandleCensus {
       const call = natives[name];
       if (!isNative(call)) continue;
       if (creates(name)) {
-        // BlzCreateFrame(name, owner, ...), BlzCreateSimpleFrame(name, owner, ...), BlzCreateFrameByType(type, name, owner, ...).
+
         const owner = name === "BlzCreateFrameByType" ? 2 : name === "BlzCreateFrame" || name === "BlzCreateSimpleFrame" ? 1 : -1;
         natives[name] = (...args: unknown[]) => {
           const made = call(...args);
@@ -101,7 +101,7 @@ export class HandleCensus {
     for (const child of children) this.release(child);
   }
 
-  /** Live handles by kind, sorted by kind. */
+
   counts(): (readonly [string, number])[] {
     const counts: (readonly [string, number])[] = [];
     for (const [kind, handles] of this.live) counts.push([kind, handles.size]);
@@ -109,14 +109,14 @@ export class HandleCensus {
     return counts;
   }
 
-  /** Native handles are opaque in Warcraft; their emulated records belong to the client. */
+
   liveHandles(): readonly Handle[] {
     const handles: Handle[] = [];
     for (const [, kind] of this.live) for (const [, handle] of kind) handles.push(handle);
     return handles;
   }
 
-  /** Ids of the handles destroyed since the last call. */
+
   takeReleased(): ReadonlySet<number> {
     const released = this.released;
     this.released = new Set();
@@ -124,7 +124,7 @@ export class HandleCensus {
   }
 }
 
-/** Keeps the items of a list the emulator holds, in place. */
+
 function keepIn(owner: unknown, field: string, kept: (item: unknown) => boolean): void {
   const list = isLuaTable(owner) ? owner.get(field) : undefined;
   if (!Array.isArray(list)) throw new Error(`the headless client keeps no ${field} list now: update compactEmulator`);
@@ -135,13 +135,13 @@ function keepIn(owner: unknown, field: string, kept: (item: unknown) => boolean)
 
 const triggerOf = (registration: unknown): unknown => (typeof registration === "object" && registration !== null && "trigger" in registration ? registration.trigger : undefined);
 
-/**
- * Drops what the emulated client keeps after Warcraft would have freed it:
- * its destroyed timers, the registrations of destroyed triggers and
- * destroyed frames (wisp:src/headless/client.ts marks them and keeps them
- * listed), and the files, messages and logged calls it accumulated, which
- * Warcraft keeps on disk, on screen or nowhere. Returns the error reports.
- */
+
+
+
+
+
+
+
 export function compactEmulator(client: HeadlessClient, released: ReadonlySet<number>): string[] {
   if (released.size > 0) {
     const live = (item: unknown) => !isHandle(item) || !released.has(item.id);
@@ -159,24 +159,24 @@ export function compactEmulator(client: HeadlessClient, released: ReadonlySet<nu
   return errors;
 }
 
-/** What the map's globals reach: tables, functions, table entries and string bytes, and the entries by the global that reached them first. */
+
 export interface Reach {
   readonly tables: number;
   readonly functions: number;
   readonly entries: number;
   readonly stringBytes: number;
   readonly byGlobal: (readonly [string, number])[];
-  /** Optional table field shapes, their counts and representative reference paths. */
+
   readonly tableShapes: (readonly [string, number, readonly string[]])[];
 }
 
-/**
- * Walks every table, function and string the client's environment reaches
- * through keys, values, metatables and upvalues, from the globals the map
- * set (not the emulator's natives and opaque native handles in `emulator`,
- * which the walk treats as seen by identity). A table's entries are its key-value pairs: an array that grows
- * holds no more tables, only more entries.
- */
+
+
+
+
+
+
+
 export function reach(environment: unknown, emulator: readonly unknown[], traceTables = false): Reach {
   const seen = new LuaTable<AnyNotNil, boolean>();
   if (!isLuaTable(environment)) return { tables: 0, functions: 0, entries: 0, stringBytes: 0, byGlobal: [], tableShapes: [] };

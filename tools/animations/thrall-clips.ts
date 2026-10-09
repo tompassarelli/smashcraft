@@ -1,5 +1,5 @@
-// Stock Thrall's mounted rig; original geometry and textures remain private.
-// Usage: bun tools/animations/thrall-clips.ts STOCK_THRALL.mdx PRIVATE_OUTPUT
+
+
 import { mkdirSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
 import { generateMDX, ModelRenderer, model as mdx } from "war3-model";
@@ -91,7 +91,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
   }
  });
  tracks(model,track=>{if(!onGlobalClock(track))track.Keys.sort((a,b)=>a.Frame-b.Frame);});
- // Root translation grounds the articulated mount; airborne actions retain their authored pose.
+
  const center=model.Nodes.find(b=>b.Name==="Bone Center");ensure(center,"No mount root");
  if(!center.Translation)center.Translation={LineType:1,GlobalSeqId:null,Keys:source.Sequences.flatMap(s=>Array.from(s.Interval).map(Frame=>({Frame,Vector:new Float32Array([0,0,0])})))};
  if (["jab","jab2","forwardTilt","forwardTiltUp","forwardTiltDown","upTilt","downTilt","dashAttack","forwardSmash","upSmash","downSmash","neutralAir","forwardAir","backAir","upAir","downAir","throwForward","throwBack","throwUp","throwDown"].includes(action.pose)) {
@@ -129,7 +129,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  if(ordinal<actions.length)bindings.push(`  ${action.pose}: ${binding},`);else damageBindings.push(`  ${binding},`);
  records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
 }
-// Victims share the holder's half-second contact; their other poses keep their original clocks.
+
 for(const [ordinal,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
  const index=source.Sequences.length+ordinal,sequence=model.Sequences[index]!,[first,last]=sequence.Interval;
  const contact=first!+Math.round(action.contact*1000/60),previous=retained?.Sequences[index];

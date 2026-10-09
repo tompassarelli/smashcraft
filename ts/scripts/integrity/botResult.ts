@@ -1,16 +1,16 @@
-// `bun scripts/integrity/botResult.ts CAPTURE_DIR [CUSTOM_MAP_DATA ...]`: a bot
-// session capture (`integrity capture --bot`) reduced to numbers. Input delay is
-// how many frames a helper has journaled by its own clock beyond the last
-// frame its client admitted, read at each of the helper's edit-box receipts;
-// a stall has recovered at the first receipt after the game continued from
-// which the delay stays within the most it was in the 4 s before the stall
-// for a second (recovery_ms: the first receipt back within it). Confirmed checksums
-// come from both clients' input traces; moments saved during the capture are
-// copied from the given CustomMapData folders into CAPTURE_DIR/moments, and
-// every moment there replays headlessly in two simulated clients of this
-// source, as `bun wisp repro` does, to the checksum Warcraft recorded
-// (moment_replays). A --bot-four or --bot-perf rematch's overlay readings are
-// reduced to frame_cost_overlay. Run it from the source the captured build was made from.
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
@@ -32,7 +32,7 @@ if (given === undefined) throw new Error("usage: bun scripts/integrity/botResult
 const directory: string = given;
 const events = readEvents(directory);
 
-/** Each epoch's receipts on one helper: time and input delay in frames. */
+
 function receipts(slot: number): Map<number, Receipt[]> {
   const byEpoch = new Map<number, Receipt[]>();
   let epoch = 0;
@@ -70,7 +70,7 @@ function receipts(slot: number): Map<number, Receipt[]> {
   return byEpoch;
 }
 
-/** Confirmed frame → state, from one client's archived input trace of an epoch. */
+
 function confirmed(epochLabel: string, client: number): Map<number, string> {
   const path = join(directory, `epoch-${epochLabel}`, `${client}-wc3-melee-input-trace.txt`);
   if (!existsSync(path)) return new Map();
@@ -92,7 +92,7 @@ const trials = stalls.map((stall) => {
     const back = after.find((receipt) => receipt.lag <= baseline);
     const recoveryMs = back === undefined ? undefined : Math.round((back.ns - stall.continued_monotonic_ns) / 1e6);
     const following = back === undefined ? [] : after.filter((receipt) => receipt.ns > back.ns && receipt.ns <= back.ns + 1e9);
-    // Settled: back within the pre-stall range and staying there for the next second.
+
     const settled = after.find((receipt) => after.every((later) => later.ns < receipt.ns || later.ns > receipt.ns + 1e9 || later.lag <= baseline));
     return {
       slot,
@@ -142,7 +142,7 @@ const starts = events.filter((event) => event.event === "start");
 const startedNs = Math.min(...starts.flatMap((event) => (event.publications ?? []).map((publication) => publication.publication_monotonic_estimate_ns)));
 const momentsDirectory = join(directory, "moments");
 const moments: string[] = [];
-// Moments saved after the first match started belong to this capture.
+
 const firstWrite = Math.min(...starts.flatMap((event) => (event.publications ?? []).map((publication) => publication.mtime_realtime_ns / 1e6)));
 for (const folder of dataFolders) {
   for (const name of readdirSync(folder).filter((entry) => /^smashcraft-repro-p\d+-f\d+-\d+\.txt$/.test(entry))) {
@@ -154,7 +154,7 @@ for (const folder of dataFolders) {
   }
 }
 
-// Map code loads only now, after the capture's own numbers are read.
+
 const { replayRepro } = await import("../../src/game/replay/moment");
 const momentFiles = existsSync(momentsDirectory) ? readdirSync(momentsDirectory).filter((entry) => /^smashcraft-repro-p\d+-f\d+-\d+\.txt$/.test(entry)).sort() : [];
 const momentReplays = momentFiles.map((name) => {
@@ -176,7 +176,7 @@ const summary = {
   trials_passed: `${trials.filter((trial) => trial.passed).length}/${trials.length}`,
   matches,
   moments,
-  // A --bot-four or --bot-perf rematch: client A's frame-cost overlay, read every 2 s.
+
   frame_cost_overlay: frameCostOverlay(events),
   moment_replays_passed: `${momentReplays.filter(({ passed }) => passed).length}/${momentReplays.length}`,
   moment_replays: momentReplays,

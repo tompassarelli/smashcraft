@@ -1,4 +1,4 @@
-// Headless journeys and optional frames drawn from the map's actual assets.
+
 import { type Command } from "wisp/scripts/wisp/command";
 import { makeHeadless } from "wisp/scripts/wisp/commands/headless";
 import { SMASHCRAFT_PERF } from "./perf";

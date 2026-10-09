@@ -1,17 +1,17 @@
-// `bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N]`:
-// many pad scripts in ONE game per client pair (smashcraft:docs/native-bot-session.md,
-// "Many scripts in one game"). A pair starts the map once; between scripts
-// it types `-dev reset`, which puts every client back at fighter selection
-// exactly as the map started it (test/dev-reset.test.ts), so each script's
-// `-dev quick` match equals a new game's first match. A new game is started
-// only after an invalid run (desync, crash, early results) or a run that
-// broke. Every script's headless run starts at once in the background, a few
-// at a time, so the native runs never wait for them; each compare runs as
-// soon as both sides of its script exist. `--pairs N` shards the scripts
-// over the first N pairs of Wisp's offline LAN pool (`wisp lan pool`).
-// `--hot` publishes the current TypeScript into the pair's clients (wisp hot)
-// before every script, after a new game and before each reset, so one game
-// serves a batch of TypeScript-only changes (#312).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
@@ -38,25 +38,25 @@ import { parsePadScript } from "../integrity/padScript";
 import { onHealthyClients } from "./doctor";
 import { type PadOptions, type NativeSession, headlessScript, headlessSession, nativeChat, nativeScript, nativeSession } from "./commands/pad";
 
-/** A pair of clients one share of the batch plays on. */
+
 export interface PadPair {
   readonly name: string;
-  /** A clients file in the schema of ~/.local/state/smashcraft/clients.json. */
+
   readonly clients: string;
   readonly appIds: ReadonlyMap<string, string>;
-  /** The pair's index in the LAN pool; undefined for the signed-in clients A and B. */
+
   readonly lan?: number;
 }
 
-/** Where `wisp lan pool` writes pool.json: {pairs:[{id, clients, appIds:{a,b}}]}. */
+
 export const LAN_POOL_FILE = join(process.env.XDG_STATE_HOME ?? join(homedir(), ".local/state"), "wisp/lan/pool.json");
 
 const LanPool = Schema.Struct({ pairs: Schema.Array(Schema.Struct({ id: Schema.Finite, clients: Schema.String, appIds: Schema.optional(Schema.Record(Schema.String, Schema.String)) })) });
 
-/**
- * The pool's pairs a batch plays on: the first `count`, or the pairs `ids` names
- * (`--pair K`, for a share of the pool other runners also use).
- */
+
+
+
+
 export function lanPairs(poolFile: string, select: { readonly count: number } | { readonly ids: readonly number[] }): PadPair[] {
   const pool = Schema.decodeSync(Schema.fromJsonString(LanPool))(readFileSync(poolFile, "utf8"));
   const parsed = pool.pairs.map((pair): PadPair => ({ name: `lan-${pair.id}`, clients: pair.clients, appIds: new Map(Object.entries(pair.appIds ?? {})), lan: pair.id }));
@@ -71,10 +71,10 @@ export function lanPairs(poolFile: string, select: { readonly count: number } | 
 
 const ToolsOnly = Schema.Struct({ tools: Schema.Record(Schema.String, Schema.String) });
 
-/**
- * A pool pair's clients file with the desktop tools Wisp's client driver needs,
- * taken from `toolsFrom` (Smashcraft's clients.json) when the pair's file has none.
- */
+
+
+
+
 export function withTools(pair: PadPair, toolsFrom: string, dir: string): PadPair {
   const clients = Schema.decodeSync(Schema.fromJsonString(Schema.Unknown))(readFileSync(pair.clients, "utf8"));
   if (typeof clients === "object" && clients !== null && "tools" in clients) return pair;
@@ -85,19 +85,19 @@ export function withTools(pair: PadPair, toolsFrom: string, dir: string): PadPai
   return { ...pair, clients: path };
 }
 
-/** The .pad files the arguments name: files as given, directories' own .pad files in name order. */
+
 export function batchScripts(paths: readonly string[]): string[] {
   return paths.flatMap((path) => statSync(path).isDirectory()
     ? readdirSync(path).filter((name) => name.endsWith(".pad")).sort().map((name) => join(path, name))
     : [path]);
 }
 
-/**
- * Whether a pair starts a new game before its next script. Only the first
- * script of a session, the rerun after an invalid run and the script after a
- * run that broke get one: a valid run's match ends with `-dev reset`.
- * `freshEach` is the old one-game-per-script loop, kept for measuring it.
- */
+
+
+
+
+
+
 export function needsNewGame(previous: "none" | "valid" | "failed" | "invalid" | "broken", freshEach: boolean): boolean {
   return freshEach || previous === "none" || previous === "invalid" || previous === "broken";
 }
@@ -114,7 +114,7 @@ export class BatchProcessFailure extends Schema.TaggedError<BatchProcessFailure>
 
 class BatchRetry extends Schema.TaggedError<BatchRetry>()("BatchRetry", { script: Schema.String }) {}
 
-/** The batch's logged child, stopped and reaped when its step is interrupted. */
+
 export const runBatchProcess = (command: string, args: readonly string[], log: string) => Effect.scoped(Effect.gen(function*() {
   const { handle, written } = yield* spawnLogged(ChildProcess.make(command, args, { cwd: join(import.meta.dir, "../.."), stdin: "ignore", forceKillAfter: "1 second" }), { stdout: log, stderr: `${log}.err` });
   const code = yield* handle.exitCode;
@@ -127,7 +127,7 @@ export const runBatchProcess = (command: string, args: readonly string[], log: s
 
 const wisp = (args: readonly string[], log: string) => runBatchProcess(process.execPath, [wispProgram, ...args], log);
 
-/** A new game on the pair, stopped at fighter selection: `bun wisp fresh MAP --no-quick`, or `bun wisp lan fresh MAP --pair K`. */
+
 const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function*() {
   const args = pair.lan === undefined ? ["fresh", map, "--no-quick", "--clients-file", pair.clients] : ["lan", "fresh", map, "--pair", String(pair.lan)];
   let attempt = 0;
@@ -140,14 +140,14 @@ const newGame = (pair: PadPair, map: string, log: string) => Effect.gen(function
 });
 
 
-/** Waits until every receipt file was written since `sinceMs` and shows fighter selection, the `-dev reset` receipt. */
+
 const atSelection = (receipts: readonly string[], sinceMs: number) => Effect.gen(function*() {
   const reset = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs
     && (preloadLines(readFileSync(path, "latin1")) ?? []).some((line) => line.startsWith("SETUP phase=0 "));
   yield* pollUntil(Effect.try({ try: () => receipts.every(reset) ? true : undefined, catch: (cause) => new IntegrityFailure({ operation: "reset", path: receipts.join(", "), cause }) }), { every: "50 millis", within: "8 seconds", orElse: () => Effect.fail(new IntegrityFailure({ operation: "reset", path: receipts.join(", "), cause: `no fighter-selection receipt from every client within 8 s of ${RESET_COMMAND}` })) });
 });
 
-/** Types `-dev reset` into the pair's client A and waits for both clients' receipts. */
+
 const reset = (session: NativeSession, build: string) => Effect.gen(function*() {
   const typedMs = Date.now();
   const received = yield* nativeChat(session, RESET_COMMAND);
@@ -155,10 +155,10 @@ const reset = (session: NativeSession, build: string) => Effect.gen(function*() 
   return { command: RESET_COMMAND, clients: received, confirmed_monotonic_ns: monotonicNs() };
 });
 
-/** The integrity map's compiler, kept warm for a pair's whole batch, and the files and source maps a reload writes. */
+
 const hotServices = Layer.build(MapBuild.layer(buildProject("integrity")).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provideMerge(gameFilesLayer)));
 
-/** A reloader into one game's clients; versions continue from the manifests already in their hot folders. */
+
 const hotReloader = (services: Effect.Success<typeof hotServices>, data: readonly [string, string]) =>
   Layer.build(HotReload.layer(data, "smashcraft").pipe(Layer.provide(Layer.succeedContext(services)))).pipe(Effect.map((context) => Context.get(context, HotReload)));
 
@@ -167,9 +167,9 @@ export interface BatchOptions {
   readonly helper: string;
   readonly build: string;
   readonly out: string;
-  /** Headless runs at once; each is two real-time clients and two helpers. */
+
   readonly headlessJobs: number;
-  /** Reruns of a script whose run was invalid or slipped. */
+
   readonly retries: number;
 }
 
@@ -177,24 +177,24 @@ export interface NativeBatchOptions extends BatchOptions {
   readonly pairs: readonly PadPair[];
   readonly map: string;
   readonly freshEach: boolean;
-  /** Hot-reload the current TypeScript into the game before every script. */
+
   readonly hot: boolean;
 }
 
-/** Seconds of each phase of one script, and its verdict. */
+
 interface ScriptReport {
   readonly label: string;
   readonly script: string;
   readonly pair: string;
   game: number;
   reset: number;
-  /** Seconds publishing the current TypeScript until both clients ran it (`--hot`). */
+
   reload: number;
-  /** The script's own run: native, or the headless session's. */
+
   run: number;
   attempts: number;
   headless: number;
-  /** Seconds the compare waited for the headless run after the script's run ended. */
+
   waited: number;
   compare: number;
   verdict: "PASS" | "FAIL" | "INVALID";
@@ -218,11 +218,11 @@ const label = (script: string, taken: Set<string>) => {
   return name;
 };
 
-/**
- * The batch's scripts, each with its folder, and the reference headless run
- * of each (`pad SCRIPT --headless`, new clients), all started now a few at a
- * time: they need nothing from the side they are compared with.
- */
+
+
+
+
+
 const prepare = (options: BatchOptions, native = false) => Effect.gen(function*() {
   const batchScope = yield* Effect.scope;
   const taken = new Set<string>();
@@ -240,8 +240,8 @@ const prepare = (options: BatchOptions, native = false) => Effect.gen(function*(
     catch: (cause) => new UsageFailure({ problem: describeCause(cause) }),
   });
   if (native) yield* requireCaptureLease(timingCheck(runs.map(({ steps }) => steps)));
-  // A reference that slipped (an edge written late on a loaded host, a helper that
-  // saw the match late) proves nothing about the other side: it runs again, twice at most.
+
+
   const references = new Map<string, Deferred.Deferred<{ code: number; seconds: number; ended: number }, IntegrityFailure>>();
   for (const run of runs) references.set(run.label, yield* Deferred.make<{ code: number; seconds: number; ended: number }, IntegrityFailure>());
   yield* Effect.forkScoped(Effect.forEach(runs, (run) => Effect.gen(function*() {
@@ -263,7 +263,7 @@ const prepare = (options: BatchOptions, native = false) => Effect.gen(function*(
     reports.push(made);
     return made;
   };
-  /** Compares `side` with the script's reference run once that has ended, in the background. */
+
   const compareLater = (run: ScriptRun, made: ScriptReport, side: string, valid: boolean) => Effect.gen(function*() {
     const ended = performance.now();
     compares.push(yield* Effect.forkScoped(Effect.gen(function*() {
@@ -287,7 +287,7 @@ const prepare = (options: BatchOptions, native = false) => Effect.gen(function*(
   return { runs, report, compareLater, reports, compares };
 });
 
-/** Writes batch.tsv and batch.json, prints a line a script and the totals; fails unless every script passed. */
+
 const summarize = (out: string, runs: readonly ScriptRun[], reports: ScriptReport[], pairs: readonly string[], started: number, extra: Record<string, unknown>) => Effect.gen(function*() {
   const total = seconds(started);
   const order = new Map(runs.map((run, index) => [run.label, index]));
@@ -306,7 +306,7 @@ const summarize = (out: string, runs: readonly ScriptRun[], reports: ScriptRepor
   if (count("PASS") !== reports.length) return yield* new IntegrityFailure({ operation: "pad batch", path: out, cause: "not every script passed" });
 });
 
-/** Native scripts on every pair at once, each pair taking the next script when it is free. */
+
 export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() {
   const { pairs, build, map, retries, freshEach, hot } = options;
   if (hot && build !== INTEGRITY_BUILD.id) return yield* new UsageFailure({ problem: `--hot reloads the integrity map's TypeScript; --build ${build} is another map` });
@@ -321,17 +321,17 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
     let gameScope: Scope.Closeable | undefined;
     let gameNumber = 0;
     const services = hot ? yield* hotServices : undefined;
-    // The first compile (about a minute on a loaded host) runs while the pair's first game loads.
+
     const warm = services === undefined ? undefined : yield* Effect.forkScoped(Context.get(services, MapBuild).compile.pipe(Effect.ignore));
     let reloader: HotReload["Service"] | undefined;
-    /** The pair's game, with its helpers, started once its new game is at fighter selection. */
+
     const ensureSession = Effect.gen(function*() {
       if (session !== undefined) return session;
       if (gameScope === undefined) return yield* new IntegrityFailure({ operation: "start native session", path: pair.name, cause: "no game scope" });
       session = yield* nativeSession(join(options.out, `${pair.name}-session-${gameNumber++}`), options.helper, build, pair.appIds, pair.clients).pipe(Scope.provide(gameScope));
       return session;
     });
-    /** Publishes the current TypeScript into the game and waits until both clients run it; returns its version. */
+
     const reload = Effect.gen(function*() {
       if (services === undefined) return 0;
       if (warm !== undefined) yield* Fiber.join(warm);
@@ -363,13 +363,13 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
       yield* Effect.suspend(() => Effect.gen(function*() {
         const attempt = made.attempts++;
         if (!needsNewGame(previous, freshEach)) {
-          // The reset runs in the reloaded code, as the next script's match will.
+
           if (!(yield* timedReload(made, run.dir))) previous = "broken";
           else {
             const at = performance.now();
             const done = yield* Effect.exit(session === undefined ? Effect.fail(new IntegrityFailure({ operation: "reset", path: pair.name, cause: "no native session" })) : reset(session, build));
             made.reset += seconds(at);
-            // A pair that didn't reset gets a new game for the same attempt.
+
             if (done._tag === "Failure") previous = "broken";
             else writeFileSync(join(run.dir, "reset.json"), `${JSON.stringify(done.value, null, 2)}\n`);
           }
@@ -392,7 +392,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
           }
           gameScope = yield* Effect.acquireRelease(Scope.make(), (scope) => Scope.close(scope, Exit.void));
         }
-        // A new game runs the map's own bundle; the current TypeScript replaces it before the script.
+
         if (freshGame && !(yield* timedReload(made, run.dir))) {
           outcome = "broken";
           previous = "broken";
@@ -404,7 +404,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
         });
         const ran = yield* Effect.exit(pair.lan === undefined ? onHealthyClients(play, { retry: false, clientsFile: pair.clients }) : play);
         made.run += seconds(at);
-        // An edge off its frame or a stopped helper still leaves a match the next script can reset; anything else may not.
+
         outcome = ran._tag === "Success" ? ran.value : replayFailure(ran.cause) ? "failed" : "broken";
         if (outcome === "broken" && ran._tag === "Failure") made.summary = Cause.pretty(ran.cause);
         previous = outcome;
@@ -416,7 +416,7 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
             return;
           }
         }
-        // Edges written late are the harness's slip on a loaded host, not the game's: reset and play the script again.
+
         if (outcome === "invalid" || (outcome === "failed" && (yield* slipped(padOptions.out)) && attempt < retries)) return yield* new BatchRetry({ script: run.script });
       })).pipe(Effect.retry({ schedule: Schedule.recurs(retries), while: (failure) => failure._tag === "BatchRetry" }), Effect.catchTag("BatchRetry", () => Effect.void));
       if (outcome === "invalid" || outcome === "broken") {
@@ -434,22 +434,22 @@ export const padBatch = (options: NativeBatchOptions) => Effect.gen(function*() 
   yield* summarize(options.out, runs, reports, pairs.map((pair) => pair.name), started, { fresh_each: freshEach, hot, ...quietWindow });
 }).pipe(Effect.scoped);
 
-/**
- * `pad --batch --headless`: the native batch's flow in headless clients. One
- * session of two integrity-build clients and their real helpers plays every
- * script, with `-dev reset` between them, and each script is compared with
- * its reference run in new clients, as a native run would be.
- */
+
+
+
+
+
+
 export const headlessBatch = (options: BatchOptions) => Effect.gen(function*() {
   const started = performance.now();
   mkdirSync(options.out, { recursive: true });
   const { runs, report, compareLater, reports, compares } = yield* prepare(options);
   const made = runs.map((run) => report(run, "session"));
-  /**
-   * One session from script `start`: its first script needs no reset. Returns
-   * the script the next session starts at, after a helper stopped (its journal
-   * ends for every later match) or a run broke the session.
-   */
+
+
+
+
+
   const session = (start: number, number: number) => Effect.scoped(Effect.gen(function*() {
     const clients = yield* headlessSession(join(options.out, `session-${number}`), options.helper, options.build);
     for (let index = start; index < runs.length; index++) {
@@ -496,10 +496,10 @@ export const headlessBatch = (options: BatchOptions) => Effect.gen(function*() {
   yield* summarize(options.out, runs, reports, ["session"], started, { headless_session: true });
 }).pipe(Effect.scoped);
 
-/** Whether a helper's journal stopped during the run (result.json helpers_stopped): it plays no later match. */
+
 const helperStopped = (dir: string) => readResult(join(dir, "result.json")).pipe(Effect.map((result) => (result?.helpers_stopped?.length ?? 0) > 0));
 
-/** Whether a run's off-frame edges were all written late: the producer slipped on a loaded host, not the game. */
+
 const slipped = (dir: string) => readResult(join(dir, "result.json")).pipe(Effect.map((result) => result?.written_late !== undefined && result.written_late > 0 && result.written_late === result.off_frame));
 
 const BatchResult = Schema.Struct({

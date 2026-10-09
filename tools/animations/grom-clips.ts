@@ -1,4 +1,4 @@
-// Usage: bun tools/animations/grom-clips.ts STOCK_GROM.mdx PRIVATE_OUTPUT
+
 import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -198,7 +198,7 @@ for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
     const heavy = ["forwardSmash", "forwardAir", "downSpecial", "downSpecialAir"].includes(action.pose);
     const close = ["jab", "jab2", "downTilt"].includes(action.pose);
     const donorSequence = source.Sequences[overhead || heavy ? 2 : action.pose === "neutralAir" ? 11 : close ? 1 : 7]!;
-    // The stock Attack's hand snaps out at 35% of its length; a jab lands that pose on its first active frame, not after it.
+
     const jab = action.pose === "jab" || action.pose === "jab2";
     const donorContact = overhead ? 0.4 : heavy ? 0.7 : jab ? 0.35 : close ? 0.4 : 0.5;
     const donorDuration = donorSequence.Interval[1] - donorSequence.Interval[0];
@@ -212,7 +212,7 @@ for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
         const frame = fraction <= donorContact ? fraction / donorContact * action.contact
           : action.contact + (fraction - donorContact) / (1 - donorContact) * (action.frames - action.contact);
         const next = { ...key, Frame: start + Math.round(frame * 1000 / 60), Vector: key.Vector.slice(), ...(key.InTan ? { InTan: key.InTan.slice(), OutTan: key.OutTan!.slice() } : {}) };
-        // Stock tangents span the stock key gaps; across a jab's stretched follow-through they overshoot past the contact pose.
+
         if (jab && frame > action.contact && next.InTan) { next.InTan = flatTangent(track, next.Vector, path); next.OutTan = next.InTan.slice(); }
         if (path === `.Helpers.${source.Helpers.findIndex(node => node.Name === "Bone_Root")}.Rotation` && action.pose === "backAir") {
           next.Vector = rotated(next.Vector, 0, 180); if (next.InTan) { next.InTan = next.Vector.slice(); next.OutTan = next.Vector.slice(); }
@@ -239,7 +239,7 @@ for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
   if (ordinal < actions.length) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
   records.push({ pose: name, index, frames: action.frames, contact: action.contact });
 }
-// Fresh intervals let captive gestures share contact time without moving any other sequence's keys.
+
 for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.test(action.pose)) {
   const sequence = model.Sequences[source.Sequences.length + ordinal]!;
   const [first, last] = sequence.Interval, contact = first! + Math.round(action.contact * 1000 / 60), start = cursor;
@@ -276,7 +276,7 @@ for (const style of [AttackStyle.upTilt]) {
     }
   };
   let selected: ReturnType<typeof measureDrawnReach> | undefined;
-  // Prefer a pose that peaks inside the active frames; allow the two-frame slack only when none does.
+
   selection: for (const slack of [0]) for (const activeRoot of [0, 20, -20, 40, -40])
     for (const activeChest of [action.gesture.chest ?? 0, 20, -20, 40, -40])
       for (const recoilRoot of [60, -60, 30, -30, 0]) {

@@ -1,9 +1,9 @@
-// The stage decks' palette and the main deck's model, which
-// tools/stage/package.ts writes. The main deck is drawn from its collision:
-// the walking line, then the walls and underside of
-// smashcraft:ts/src/game/sim/stage.ts, as one outline extruded through the
-// deck's depth. Plain data and MDL text, so the logic tests check the model
-// against the collision lines without the model compiler.
+
+
+
+
+
+
 import { type DeckPalette, NEUTRAL_DECK_PALETTE } from "../src/game/assets/stagePalette";
 import { SurfaceContact } from "../src/game/sim/codes";
 import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckZ, surfaceLine, solidSurfaceAt, solidSurfaceCount } from "../src/game/sim/stage";
@@ -13,12 +13,12 @@ export type OutlinePoint = readonly [x: number, z: number];
 
 const hash = (bytes: Uint8Array | string) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
 
-/** Material order of the palette texels: walking surface, lip, body, recessed underside. */
+
 const DeckMaterial = { slate: 0, brass: 1, charcoal: 2, steel: 3 } as const;
 type DeckMaterial = (typeof DeckMaterial)[keyof typeof DeckMaterial];
 const MATERIALS = 4;
 
-/** A deck palette's texture, an uncompressed TGA, its content-addressed name, and the texture coordinate of each material's texel. */
+
 export function paletteTexture(palette: DeckPalette) {
   const colors = [palette.top, palette.lip, palette.body, palette.underside];
   const bytes = new Uint8Array(18 + MATERIALS * 4);
@@ -32,12 +32,12 @@ export function paletteTexture(palette: DeckPalette) {
   return { bytes, name: `StagePalette-${hash(bytes)}.tga`, coordinate };
 }
 
-/** The neutral palette's texture. */
+
 export const STAGE_PALETTE_TEXTURE = paletteTexture(NEUTRAL_DECK_PALETTE);
 
 type OutlineKind = "floor" | "wall" | "ceiling";
 
-/** One line of the deck's outline, the solid behind its outward normal. */
+
 interface OutlineLine {
   readonly kind: OutlineKind;
   readonly start: OutlinePoint;
@@ -45,12 +45,12 @@ interface OutlineLine {
   readonly normal: OutlinePoint;
 }
 
-/**
- * The main deck's collision outline on `stage`, in model units: arena x and z
- * from the deck's center at floor height. The walking line runs from the left
- * ledge to the right one, then the walls and underside follow in the stage's
- * order, back to the left ledge.
- */
+
+
+
+
+
+
 function mainDeckOutline(stage: number): OutlineLine[] {
   const left = mainDeckLeft(stage);
   const right = mainDeckRight(stage);
@@ -79,22 +79,22 @@ function mainDeckOutline(stage: number): OutlineLine[] {
   return lines;
 }
 
-/** A flat polygon of the model, counter-clockwise seen from outside, so `normal` faces out. */
+
 export interface DeckFace {
   readonly material: DeckMaterial;
   readonly normal: Vector3;
   readonly corners: readonly Vector3[];
 }
 
-/** Half the deck's depth, as the walking surface of the raised decks' model. */
+
 export const MAIN_DECK_HALF_DEPTH = 60;
-/** The front face's slate walking edge and brass lip, as the raised decks' model draws them. */
+
 const LIP_TOP = -7;
 const LIP_BOTTOM = -11;
 
 const materialOf: Readonly<Record<OutlineKind, DeckMaterial>> = { floor: DeckMaterial.slate, wall: DeckMaterial.charcoal, ceiling: DeckMaterial.steel };
 
-/** Where a line that spans height `z` crosses it; its own ends exactly. */
+
 function crossing(line: OutlineLine, z: number): number {
   const [startX, startZ] = line.start;
   const [endX, endZ] = line.end;
@@ -103,12 +103,12 @@ function crossing(line: OutlineLine, z: number): number {
   return startX + ((endX - startX) * (z - startZ)) / (endZ - startZ);
 }
 
-/**
- * The deck's front and back faces: the outline cut into level bands at each
- * of its corners and the lip's edges. Each band runs between the two lines
- * that span it, so the outline must cross every height between the floor
- * and the underside exactly twice.
- */
+
+
+
+
+
+
 function frontAndBack(outline: readonly OutlineLine[]): DeckFace[] {
   const heights = outline.map(({ start }) => start[1]);
   const top = Math.max(...heights);
@@ -134,10 +134,10 @@ function frontAndBack(outline: readonly OutlineLine[]): DeckFace[] {
   return faces;
 }
 
-/** The stage whose outline draws `stage`'s main deck: its own, or stage 0's when its main deck has no body. */
+
 export const mainDeckOutlineStage = (stage: number): number => (solidSurfaceCount(stage) >= MAIN_DECK_BODY_SURFACES ? stage : 0);
 
-/** The main deck: its outline's front and back faces, and each outline line drawn through the depth facing out along its normal. */
+
 export function mainDeckFaces(stage: number): DeckFace[] {
   const outline = mainDeckOutline(stage);
   outline.forEach((line, index) => {
@@ -157,7 +157,7 @@ export function mainDeckFaces(stage: number): DeckFace[] {
   return [...frontAndBack(outline), ...sides];
 }
 
-/** A number as MDL text writes it; MDL has no exponents. */
+// MDL numbers cannot use exponent notation.
 function mdlNumber(value: number): string {
   const text = String(value);
   if (!/^-?\d+(\.\d+)?$/.test(text)) throw new Error(`${text} has no plain MDL form`);
@@ -166,7 +166,7 @@ function mdlNumber(value: number): string {
 
 const vector = (values: readonly number[]) => `{ ${values.map(mdlNumber).join(", ")} }`;
 
-/** The main deck's MDL text: one geoset holding every face, each corner its own vertex. */
+
 export function mainDeckMdl(faces: readonly DeckFace[], textureName: string): string {
   const corners = faces.flatMap((face) => face.corners.map((corner) => ({ corner, face })));
   const triangles: number[] = [];
@@ -202,9 +202,9 @@ PivotPoints 1 { { 0, 0, 0 }, }
 `;
 }
 
-/**
- * The main deck's model file. It is named after its MDL text rather than the
- * compiled model, so a test can tell from the collision alone whether the
- * shipped model is the one drawn from it.
- */
+
+
+
+
+
 export const mainDeckModelFile = (mdl: string) => `StageMainDeck-${hash(mdl)}.mdx`;

@@ -1,9 +1,9 @@
-// The map's download size (#264, docs/commands/map.md): the bytes each archive
-// entry occupies in the built .w3x, read from its MPQ block table, and the
-// committed baseline a default build may not outgrow by more than GROWTH.
+
+
+
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
-/** A default build fails when the map exceeds its baseline by more than this share. */
+
 export const GROWTH = 0.1;
 
 const CRYPT = (() => {
@@ -43,13 +43,13 @@ function decrypt(words: Uint32Array, key: number): void {
 }
 
 export interface ArchiveTables {
-  /** Where the MPQ archive starts in the file. */
+
   readonly offset: number;
   readonly hashes: Uint32Array;
   readonly blocks: Uint32Array;
 }
 
-/** The archive's decrypted hash and block tables; `read(start, length)` returns that slice of the map file. */
+
 export function readTables(read: (start: number, length: number) => Uint8Array, fileSize: number): ArchiveTables {
   for (let offset = 0; offset + 32 <= fileSize; offset += 512) {
     const header = new DataView(read(offset, 32).slice().buffer);
@@ -68,7 +68,7 @@ export function readTables(read: (start: number, length: number) => Uint8Array, 
   throw new Error("no MPQ archive header");
 }
 
-/** The bytes `name` occupies in the archive, or undefined when the archive lacks it. */
+
 export function storedBytes(tables: ArchiveTables, name: string): number | undefined {
   const size = tables.hashes.length / 4;
   const a = hashString(name, 1);
@@ -85,7 +85,7 @@ export function storedBytes(tables: ArchiveTables, name: string): number | undef
 
 export interface MapSize {
   readonly total: number;
-  /** Each declared import's archive entry and its stored bytes. */
+
   readonly imports: ReadonlyMap<string, number>;
 }
 
@@ -93,7 +93,7 @@ export const importedBytes = (size: MapSize) => [...size.imports.values()].reduc
 
 const mb = (bytes: number) => `${(bytes / 1e6).toFixed(1)} MB`;
 
-/** Both aliases occupy download bytes when the archive carries both. */
+
 export function definitiveBodyBytes(size: MapSize): number {
   let bytes = 0;
   for (const [entry, stored] of size.imports) {
@@ -114,7 +114,7 @@ export function describeMapSize(size: MapSize): string {
   return `map ${mb(size.total)}, imports ${mb(imported)} (${((100 * imported) / size.total).toFixed(0)}%) in ${size.imports.size} files`;
 }
 
-/** The largest imports, biggest first. */
+
 export const largest = (imports: ReadonlyMap<string, number>, count: number) =>
   [...imports].sort(([, a], [, b]) => b - a).slice(0, count);
 
@@ -139,7 +139,7 @@ export function writeMapBaseline(path: string, size: MapSize): void {
   writeFileSync(path, `${[HEADER, `${TOTAL}\t${size.total}`, ...rows].join("\n")}\n`);
 }
 
-/** Why the map outgrew its baseline, naming the largest new or grown imports, or undefined when it fits. */
+
 export function mapGrowthProblem(size: MapSize, baseline: MapSize): string | undefined {
   const limit = baseline.total * (1 + GROWTH);
   if (size.total <= limit) return undefined;

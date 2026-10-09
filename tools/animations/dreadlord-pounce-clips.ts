@@ -1,4 +1,4 @@
-// Author #237's horizontal roll, healing bite and exposed recovery.
+
 import { chmodSync, cpSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";

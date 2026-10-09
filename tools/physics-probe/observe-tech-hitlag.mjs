@@ -1,4 +1,4 @@
-// Independently authored foreign-executable loader; original bytes stay private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/tech-hitlag-runner';
@@ -19,7 +19,7 @@ const roots=32+dat.readUInt32BE(4)+4*dat.readUInt32BE(8);
 const commonOffset=32+dat.readUInt32BE(32+dat.readUInt32BE(roots));
 const entry=0x81000000,common=entry+0x29000,data=entry+0x30000,stack=entry+0xff000;
 original.writeUInt32BE(common,r13-20812-base);
-// The CPU/item gate is supplied as false; the original timer gate is unchanged.
+
 original.writeUInt32BE(0x38600000,0x800c5240-base);
 original.writeUInt32BE(0x4e800020,0x800c5244-base);
 const stubs=[0x800a2040,0x8016b41c,0x8016b0fc,0x801a45e8,0x800df0d0,0x8008031c,0x8006abec,0x800c37a0,0x800819a8];

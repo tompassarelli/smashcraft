@@ -1,14 +1,14 @@
-// How busy the match camera is (#110, smashcraft:docs/melee-camera.md): fixed
-// computer-against-computer matches, played in process as
-// scripts/cpuField.ts plays them, read the canonical camera after every frame.
-// The same fighter paths also drive a reference port of Melee's gameplay
-// camera (melee:src/melee/cm/camera.c `Camera_8002B3D4`) in Melee units (world
-// / 6), so each run reports ours beside Melee's. Movement is what the viewer
-// sees: pan as a fraction of the visible width or height a frame, zoom as the
-// relative change of eye distance a frame, travel as their sum a second, and
-// reversals a second (a delta whose sign flips while both exceed 0.05% of the
-// view).
-// Usage (from ts/): bun scripts/cameraFeel.ts [--json FILE]
+
+
+
+
+
+
+
+
+
+
+
 import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { f32 } from "wisp/src/sim/f32";
@@ -26,7 +26,7 @@ import { MATCH_CAMERA_ASPECT } from "../src/game/sim/matchCamera";
 import { copyControls, createRoster, fighterAt, isActive, neutralControls, type Roster } from "../src/game/sim/roster";
 import { stageBounds } from "../src/game/sim/stageBounds";
 
-/** The fixed scenario set: fighter pairs on the main deck, the bridges and Frozen Throne. */
+
 export const CAMERA_SCENARIOS: readonly { readonly a: string; readonly b: string; readonly stage: number; readonly shift: number }[] = [
   { a: "illidan", b: "blademaster", stage: 0, shift: 0.0 },
   { a: "rifleman", b: "mountain-king", stage: 0, shift: -60.0 },
@@ -40,18 +40,18 @@ const NEUTRAL = neutralControls();
 const REVERSAL_FLOOR = 0.0005;
 const radians = (degrees: number) => (degrees * Math.PI) / 180.0;
 
-/** One frame of a camera as the viewer sees it: centre, eye distance and the visible size at the fighters' plane. */
+
 interface View { readonly x: number; readonly z: number; readonly distance: number; readonly width: number; readonly height: number }
 
 const box = () => ({ left: -1.0, right: 1.0, top: 1.0, bottom: -1.0 });
 
-/**
- * Melee's standard camera on our fighter paths, in Melee units: subject boxes
- * (ftcamera.c, ftData +0x3C for Fox/Falco/Falcon), `Camera_800293E0` extent
- * easing, `Camera_8002958C` bounds, `Camera_80029CF8` fit with Final
- * Destination's angles, a corner clamp standing in for `Camera_8002A768`, and
- * `Camera_80029AAC`/`Camera_80029C88` easing, with cm_803BCCA0's constants.
- */
+
+
+
+
+
+
+
 class MeleeCamera {
   private readonly ext: Slots<{ left: number; right: number; top: number; bottom: number }> = [box(), box(), box(), box()];
   private interest = { x: 0.0, y: 0.0 };
@@ -102,7 +102,7 @@ class MeleeCamera {
     const distanceX = (maxX - minX) / (right + left);
     const offsetX = 1.2173333 * distanceX * Math.tan(pan);
     const target = { x: maxX - distanceX * right - offsetX, y: offsetY + (maxY - distanceY * up), z: Math.min(1000.0, Math.max(83.0, Math.max(distanceX, distanceY))) };
-    // The view's corners stay inside the camera range, centred when both opposite sides overflow.
+
     const halfHeight = target.z * Math.tan(radians(38.0) * 0.5);
     const halfWidth = halfHeight * 1.2173333;
     const shift = (low: number, high: number, min: number, max: number) => {
@@ -129,7 +129,7 @@ class MeleeCamera {
 interface Samples { pan: number[]; zoom: number[]; jerk: number[]; reversals: [number, number, number]; frames: number }
 const samples = (): Samples => ({ pan: [], zoom: [], jerk: [], reversals: [0, 0, 0], frames: 0 });
 
-/** Adds one frame's movement from `before` to `now`; `last` holds each axis's last delta above the floor. */
+
 function observe(into: Samples, before: View, now: View, last: [number, number, number], velocity: [number, number, number]): void {
   const deltas = [(now.x - before.x) / now.width, (now.z - before.z) / now.height, (now.distance - before.distance) / before.distance] as const;
   if (into.frames > 0) into.jerk.push(Math.hypot(deltas[0] - velocity[0], deltas[1] - velocity[1], deltas[2] - velocity[2]));
@@ -214,7 +214,7 @@ function summarize(from: Samples) {
   };
 }
 
-/** Ours and Melee's reference camera over the fixed scenarios. */
+
 export function measureCameraFeel() {
   const ours = samples();
   const melee = samples();

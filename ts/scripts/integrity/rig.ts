@@ -1,7 +1,7 @@
-// The Rig on real clients: virtual pads and their observers, the persistent
-// helpers, both clients' CustomMapData folders, and their screens and input
-// through the desktop driver. Headless clients (headless.ts) share everything
-// but the screens and the game process.
+
+
+
+
 import { appendFileSync, copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, utimesSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import type { Subprocess } from "bun";
@@ -19,9 +19,9 @@ import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../wi
 import { smashcraftPlayerView } from "../wisp/playerView";
 import { gameFilesLayer } from "../wisp/project";
 
-/** What a capture drives the same way whatever runs the game. */
+
 interface FileRigParts {
-  /** Each client's CustomMapData folder. */
+
   readonly data: readonly [string, string];
   readonly out: string;
   readonly build: string;
@@ -29,16 +29,16 @@ interface FileRigParts {
   readonly pads: readonly [Pad, Pad];
   readonly observers: readonly Observer[];
   readonly helpers: readonly [Subprocess, Subprocess];
-  /** producer.jsonl, open for writing. */
+
   readonly producerLog: number;
   readonly events: JourneyRecord[];
-  /** Why the game stopped, if it did; the capture fails at its next check. */
+
   readonly gameFailure?: () => IntegrityFailure | undefined;
 }
 
 interface LiveRigParts extends FileRigParts {
   readonly clients: readonly [Client, Client];
-  /** The desktop driver's clients file the clients were loaded from. */
+
   readonly clientsFile: string;
   readonly gamePids: readonly [number, number];
 }
@@ -48,11 +48,11 @@ const POLL_MILLIS = 20;
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
-/**
- * Copies the files this capture's game wrote (journal receipts, response
- * pages, error reports and the input trace) from both clients into OUT/epoch-LABEL/, with
- * each name prefixed by its client's slot and with its times kept.
- */
+
+
+
+
+
 export const archiveFiles = (parts: Pick<FileRigParts, "data" | "out" | "build" | "startedNs">, label: string) =>
   Effect.forEach(SLOTS, (client) =>
     tryIntegrity("archive", parts.data[client], () => {
@@ -72,14 +72,14 @@ export const archiveFiles = (parts: Pick<FileRigParts, "data" | "out" | "build" 
       }
     }), { concurrency: 2, discard: true });
 
-/** Reads of the realtime clock bracketed by the monotonic one; the tightest bracket wins. */
+
 const CLOCK_SAMPLES = 8;
 
-/**
- * The realtime clock placed on the monotonic one: a busy thread can pause
- * between the reads and widen the bracket, which offsets every edge's
- * expected frame by up to half its width, so the narrowest of several is kept.
- */
+
+
+
+
+
 function clockSample(): { readonly before: number; readonly wall: bigint; readonly after: number } {
   let best = { before: 0, wall: 0n, after: Number.MAX_SAFE_INTEGER };
   for (let sample = 0; sample < CLOCK_SAMPLES; sample++) {
@@ -91,14 +91,14 @@ function clockSample(): { readonly before: number; readonly wall: bigint; readon
   return best;
 }
 
-/** Appends a client's screen operation to ui.txt. */
+
 export const uiLogger = (out: string, names: readonly [string, string]) => {
   const uiLog = join(out, "ui.txt");
   return (client: Slot, operation: string, detail: string) =>
     tryIntegrity("log screen operation", uiLog, () => appendFileSync(uiLog, `${names[client]} ${operation} ${detail}\n`));
 };
 
-/** The pads, helpers, clocks, game files and journey record a capture shares whatever runs the game. */
+
 export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" | "waitText" | "readText" | "click" | "key" | "type" | "playerView"> {
   const { data, out, startedNs } = parts;
 
@@ -120,8 +120,8 @@ export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" |
         throw error;
       }
     }).pipe(Effect.tap((stored) => {
-      // A concurrent PreloadGenEnd write may still be incomplete. Completed
-      // records enter the capture only after boundary decoding succeeds.
+
+
       if (stored === undefined || stored.mtimeNs < startedNs || !stored.text.trimEnd().endsWith("endfunction")) return Effect.void;
       return decodeWrittenGameFile(name, join(data[client], name), stored.text).pipe(
         Effect.mapError((cause) => new IntegrityFailure({ operation: "decode game file", path: join(data[client], name), cause })),
@@ -131,7 +131,7 @@ export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" |
   return {
     send: ({ slot, edge, phase }) =>
       tryIntegrity("send pad edge", phase, () => {
-        // Logged after the write, so logging never delays the edge.
+
         const injection = inject(parts.pads[slot], edge);
         writeSync(parts.producerLog, producerLine(phase, slot, edge, injection));
       }),
@@ -181,7 +181,7 @@ export function fileRig(parts: FileRigParts): Omit<RigShape, "stop" | "resume" |
   };
 }
 
-/** Stops a slot's helper process, as both capture kinds stall it. */
+
 export const stopHelperProcess = (helpers: readonly [Subprocess, Subprocess], target: StallTarget & { readonly kind: "helper" }) =>
   stopProcess(helpers[target.slot].pid).pipe(Effect.as({ target, pid: helpers[target.slot].pid } satisfies Stopped));
 
@@ -196,7 +196,7 @@ export function liveRig(parts: LiveRigParts): RigShape {
     resume: ({ pid }) => continueProcess(pid),
     waitText: (client, pattern, region) =>
       Effect.gen(function*() {
-        // Light labels and the gold menu labels each read only after separating their ink.
+
         const screen = Effect.all([read(clients[client], region, "light"), read(clients[client], region, "gold")], { concurrency: 2 }).pipe(
           Effect.map(([light, gold]) => `${light}\n${gold}`),
         );

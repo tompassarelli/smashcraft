@@ -1,9 +1,9 @@
-// The one-time setup direct play needs on a player's Warcraft III (#142), done
-// by the client after the player agrees: Wisp's menu page in the game's
-// _retail_ folder and the game's "Allow Local Files" switch, which makes the
-// game serve that page (wisp:docs/driving-warcraft.md, "Setup and undo").
-// Under Wine the switch lives in the prefix's user.reg, which may be edited
-// only while no wineserver uses the prefix.
+
+
+
+
+
+
 import { copyFileSync, existsSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
@@ -16,10 +16,10 @@ export const retailFolder = (prefix: string) => join(prefix, "drive_c/Program Fi
 const KEY = "[Software\\\\Blizzard Entertainment\\\\Warcraft III]";
 const VALUE = `"Allow Local Files"=dword:00000001`;
 
-/**
- * user.reg with Warcraft III's "Allow Local Files" set to 1, or undefined
- * when it already is. `now` is seconds since the epoch, as Wine stamps keys.
- */
+
+
+
+
 export function allowLocalFiles(userReg: string, now: number): string | undefined {
   const lines = userReg.split("\n");
   const header = lines.findIndex((line) => line.toLowerCase().startsWith(KEY.toLowerCase()));
@@ -34,7 +34,7 @@ export function allowLocalFiles(userReg: string, now: number): string | undefine
     if (lines[header + 1 + existing] === VALUE) return undefined;
     lines[header + 1 + existing] = VALUE;
   } else {
-    // Values follow the key's own #time and #class lines.
+
     let at = header + 1;
     while (at < end && lines[at]?.startsWith("#") === true) at++;
     lines.splice(at, 0, VALUE);
@@ -42,7 +42,7 @@ export function allowLocalFiles(userReg: string, now: number): string | undefine
   return lines.join("\n");
 }
 
-/** Whether a Wine runtime uses the prefix now. */
+
 const prefixInUse = (prefix: string) => {
   const stats = statSync(prefix, { bigint: true });
   return prefixUse(listProcesses(), prefix, serverDirectoryName(stats.dev, stats.ino)).runtimes.length > 0;
@@ -50,11 +50,11 @@ const prefixInUse = (prefix: string) => {
 
 export type SetupResult = "ready" | "page written; close Warcraft III and Battle.net once to finish";
 
-/**
- * Installs (or repairs, after a game update) the menu page reporting to
- * `reportPort`, then sets the switch while the prefix is unused. A user.reg
- * changed for the first time keeps its old copy beside it.
- */
+
+
+
+
+
 export const setUpMenuPage = (prefix: string, reportPort: number) => Effect.gen(function*() {
   yield* installMenuPage(retailFolder(prefix), reportPort);
   const userReg = join(prefix, "user.reg");

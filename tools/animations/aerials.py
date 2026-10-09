@@ -1,7 +1,7 @@
 """Blender boundary: distinct in-place aerial strikes on the existing rigs."""
 
-# Source frames map one-to-one to Simulation's move ticks via generated duration.
-# Weapon poses stay with each rig's existing author rather than retargeting bones.
+
+
 AERIALS = (
     ('Neutral', 3, 28, 41),
     ('Forward', 5, 2, 31),
@@ -22,8 +22,8 @@ def author_rifleman_aerials(author):
         'Neutral': dict(leg_r=63.502, knee_r=55.643, leg_l=-65.921, knee_l=-43.790,
                         neutral_kick=1, weapon_lift=14, lean=5, strike=.1),
         'Forward': dict(leg_r=42, knee_r=-75, leg_l=25, knee_l=-65, lean=-15, strike=1),
-        # Right leg is nearest the stage camera. Its rest knee is already bent;
-        # positive knee rotation straightens the backward extension.
+
+
         'Back': dict(leg_r=-100, knee_r=40, leg_l=60, knee_l=-85, lean=25, strike=-.15,
                      cape_lift=125),
         'Up': dict(leg_r=155, knee_r=-12, leg_l=45, knee_l=-90, lean=28, strike=.25, elevation=65),

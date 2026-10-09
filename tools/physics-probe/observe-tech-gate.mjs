@@ -1,4 +1,4 @@
-// Independently authored foreign-executable loader; original bytes stay private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/tech-gate-runner';
@@ -19,7 +19,7 @@ const roots=32+dat.readUInt32BE(4)+4*dat.readUInt32BE(8);
 const commonOffset=32+dat.readUInt32BE(32+dat.readUInt32BE(roots));
 const entry=0x81000000,common=entry+0x29000,data=entry+0x30000,stack=entry+0xff000;
 original.writeUInt32BE(common,r13-20812-base);
-// The CPU/item gate is supplied as false; the original timer gate is unchanged.
+
 original.writeUInt32BE(0x38600000,0x800c5240-base);
 original.writeUInt32BE(0x4e800020,0x800c5244-base);
 const rows=[[0,255],[19,40],[20,40],[19,39],[0,39],[0,40],[255,255]];

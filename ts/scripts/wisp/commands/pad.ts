@@ -1,23 +1,23 @@
-// `bun wisp pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID --app-id b=ID [--chat=TEXT]`:
-// a virtual pad and the real helper for each client, as the integrity
-// capture runs them; `--chat` types a developer command into client A (such
-// as `-dev quick hero lich`); each script edge is written a fifth into its
-// frame on the helper's own clock, and result.json gives the frame each one
-// landed on. Script syntax: smashcraft:ts/scripts/integrity/padScript.ts.
-// The clients' input traces and saved moments (integrity build) are copied
-// beside the result, with their scene reports (scene-a.txt, scene-b.txt).
-//
-// `bun wisp pad SCRIPT --headless --helper BINARY --out DIR [--chat=TEXT] [--compare NATIVE_DIR]`
-// plays the same script through the same helper into two headless clients
-// of the integrity build, and with --compare checks a native run's folder
-// against it (smashcraft:ts/scripts/integrity/padParity.ts); without --compare
-// it checks the script's own `#!` expectations against the headless run.
-// `--replay-arrivals NATIVE_DIR` replays that native run's measured pause and
-// resume control-message arrivals (smashcraft:ts/scripts/integrity/pauseArrivals.ts).
-//
-// Several scripts, or a folder of them, run as one batch: one game per client
-// pair with `-dev reset` between scripts, the headless runs alongside, and
-// `--pairs N` sharding over the LAN pool (smashcraft:ts/scripts/wisp/padBatch.ts).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, writeSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -66,7 +66,7 @@ import { pauseDraws } from "../pauseDraws";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 
-/** The existing setup state identifies quick commands without a second receipt protocol. */
+
 export function requestedSetup(command: string, receipt: DevReceipt): boolean {
   const original = command.split(" |capture ")[0] ?? command;
   if (original === "-dev reset") return receipt.phase === Phase.characterMenu;
@@ -76,11 +76,11 @@ export function requestedSetup(command: string, receipt: DevReceipt): boolean {
   return stage === undefined || receipt.phase === Phase.match && receipt.stage === stage;
 }
 
-/**
- * A client's setup receipt, written since `sinceMs`. An older one is absent:
- * it belongs to another session, or to an install the client's prefix was
- * copied from, and may be in an older format.
- */
+
+
+
+
+
 export const setupReceipt = (path: string, clientName: string, sinceMs: number) =>
   tryIntegrity("read setup receipt", clientName, () => existsSync(path) && statSync(path).mtimeMs >= sinceMs ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.succeed(undefined) : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: clientName, cause })))));
 
@@ -101,22 +101,22 @@ const USAGE = "pad SCRIPT --helper BINARY --build BUILD --out DIR --app-id a=ID 
   + "       bun wisp pad SCRIPT|DIR... --helper BINARY --out DIR --map MAP.w3x [--pairs N | --pair K... | --app-id a=ID --app-id b=ID] [--headless-jobs N] [--fresh-each] [--hot] [--clients-file FILE]\n"
   + "       bun wisp pad SCRIPT|DIR... --headless --helper BINARY --out DIR [--headless-jobs N]";
 
-/** How long a capture waits for its client to draw its frame: about 3 s behind the helper's clock, past #156's worst lag (88 frames). */
+
 const CAPTURE_WAIT_MS = 10_000;
 
-/** A short script can finish before the integrity trace, so collection allows its full recording plus delivery time. */
+
 const TRACE_WAIT_MS = RESPONSE_TRACE_CALLBACKS * 1000 / 60 + 25_000;
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
-/** Sleeps to `targetNs` on CLOCK_MONOTONIC: a coarse sleep, then a spin for the last 5 ms. */
+
 const until = (targetNs: number) => Effect.gen(function*() {
   const coarse = (targetNs - monotonicNs()) / 1e6 - 5;
   if (coarse > 0) yield* Effect.sleep(coarse);
-  while (monotonicNs() < targetNs) { /* spin */ }
+  while (monotonicNs() < targetNs) {   }
 });
 
-/** Both helpers' match start, written after this run began. */
+
 const matchEpochs = (logs: () => [string, string], startedNs: number, out: string) => Effect.gen(function*() {
   return yield* pollUntil(tryIntegrity("wait for match start", out, () => {
     const starts = logs().map(matchStart);
@@ -134,7 +134,7 @@ export class PadReplayFailure extends Schema.TaggedError<PadReplayFailure>()("Pa
   override get message(): string { return `${this.operation} failed for ${this.path}: ${this.cause}`; }
 }
 
-/** The helpers report the match a few frames after it starts: an edge meant for an earlier frame can't land on it. */
+
 const checkFirstEdge = (steps: readonly PadStep[], epochs: readonly [number, number], scriptPath: string) => Effect.gen(function*() {
   const first = steps.find((item) => item.kind === "edge");
   const seen = Math.max(...epochs.map((epoch) => ruleFrame(epoch, monotonicNs())));
@@ -143,14 +143,14 @@ const checkFirstEdge = (steps: readonly PadStep[], epochs: readonly [number, num
   }
 });
 
-/** result.json and the per-edge lines; fails when an edge landed off its frame or a helper stopped. */
+
 const finish = (out: string, scriptPath: string, build: string, epochs: readonly [number, number], sent: readonly SentEdge[], final: [string, string]) => Effect.gen(function*() {
   const results = landEdges(sent, final).map((edge) => ({
     ...edge,
-    // Stick and trigger edges have no event line; the helper's frame rule places them.
+
     frame: edge.landed ?? ruleFrame(at(epochs, edge.slot), edge.injectedNs),
     confirmedBy: edge.landed === undefined ? "frame rule" : "helper event",
-    // The frame the write itself fell in: a late write is the producer's slip, not the helper's.
+
     written: ruleFrame(at(epochs, edge.slot), edge.injectedNs),
   }));
   const stopped = final.flatMap((log, slot) => (/late kernel event|journal stopped/.test(log) ? [`helper ${slot}: ${/^wc3-journal: .*$/m.exec(log)?.[0] ?? "stopped"}`] : []));
@@ -162,11 +162,11 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
   if (off.length > 0 || stopped.length > 0) return yield* new PadReplayFailure({ operation: "replay pad script", path: out, cause: `${off.length} edges off their frame, ${stopped.length} helpers stopped`, offFrame: off.length, helpersStopped: stopped.length });
 });
 
-/**
- * Copies each client's input trace (trace-a.txt, trace-b.txt) and the moments
- * it saved since `sinceMs` beside the result, waiting for the traces the
- * integrity build writes after its complete recording.
- */
+
+
+
+
+
 export const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
   const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
   const waited = yield* Effect.exit(pollUntil(tryIntegrity("collect traces and moments", out, () => data.every((dir) => fresh(join(dir, TRACE_FILE))) ? true : undefined), {
@@ -207,11 +207,11 @@ export interface PadOptions {
   readonly render?: string | undefined;
   readonly renderFrames?: readonly number[] | undefined;
   readonly graphics?: readonly Graphics[] | undefined;
-  /** Headless: replay this native run's measured pause-control arrivals (--replay-arrivals NATIVE_DIR). */
+
   readonly arrivals?: PauseArrivals | undefined;
 }
 
-/** Helpers and virtual pads belong to one game, across all of its scripted matches. */
+
 export const nativeSession = (out: string, helper: string, build: string, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.gen(function*() {
   const startedMs = Date.now();
   const loaded = yield* loadClients(clientsFile).pipe(Effect.mapError(fromDesktop));
@@ -241,14 +241,14 @@ export type NativeSession = Effect.Success<ReturnType<typeof nativeSession>>;
 
 const ChatReceipt = Schema.Struct({ epoch: Schema.FiniteFromString, revision: Schema.FiniteFromString, chat: Schema.FiniteFromString, chatState: Schema.FiniteFromString });
 
-/** Only complete game receipts may advance a keyboard hand-off. */
+
 export function nativeChatReceipt(text: string) {
   const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT TEXT ACK v=1 "));
   if (line === undefined) return undefined;
   return Option.getOrUndefined(Schema.decodeUnknownOption(ChatReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
 }
 
-/** Selection has no journal epoch: observe Warcraft's own chat entry before sending any text. */
+
 const selectionChat = (session: NativeSession, text: string, timing: boolean) => setupCommand(session, text, Effect.gen(function*() {
   const path = join(session.data[0], nativeChatFile(session.build, 0));
   const receipt = () => existsSync(path) ? nativeChatEntryReceipt(readFileSync(path, "latin1")) : undefined;
@@ -260,7 +260,7 @@ const selectionChat = (session: NativeSession, text: string, timing: boolean) =>
   yield* batch(session.clients[0], [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
-/** Return requests chat in the journal box; the helper opens chat after its quiescence handshake. */
+
 export const nativeChat = (session: NativeSession, text: string) => setupCommand(session, text, Effect.gen(function*() {
   const host = session.clients[0];
   const epoch = matchStart(session.logs()[0])?.epoch;
@@ -277,7 +277,7 @@ export const nativeChat = (session: NativeSession, text: string) => setupCommand
   yield* batch(host, [{ kind: "text", text, delayMillis: 35 }, { kind: "keys", keys: ["Return"], settleMillis: 0 }]).pipe(Effect.provide(ClientWatch.layer({ filePrefix: "smashcraft" })), Effect.mapError(fromDesktop));
 }));
 
-/** One script in the persistent native session's next match. */
+
 export const nativeScript = (session: NativeSession, options: PadOptions) => Effect.scoped(Effect.gen(function*() {
   const { scriptPath, steps, build, out, chat } = options;
   const { clients, data, pads } = session;
@@ -318,7 +318,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   for (const item of deadlineOrder(steps, epochs)) {
     yield* until(frameWriteNs(at(epochs, item.slot), item.frame));
     if (item.kind === "capture") {
-      // Taken once the client has drawn the frame (scripts/integrity/drawnCapture.ts), named by the frame it showed.
+
       const client = clients[item.slot];
       const shot = captureWhenDrawn(drawnFrom(join(at(data, item.slot), drawnFrameFile(build, item.slot))), at(matchIds, item.slot), item.frame, CAPTURE_WAIT_MS, capture(client).pipe(Effect.mapError(fromDesktop)), out).pipe(
         Effect.flatMap(({ shot: frame, before, after, waitedMs }) => tryIntegrity("save frame", out, () => {
@@ -371,18 +371,18 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
   return "valid" as const;
 }));
 
-/** A standalone script owns and closes its one-game session. */
+
 export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.scoped(Effect.gen(function*() {
   const session = yield* nativeSession(join(options.out, "session"), options.helper, options.build, appIds, clientsFile);
   return yield* nativeScript(session, options);
 }));
 
-/** A native run that proves nothing either way: the game desynced, a client crashed, or the match ended early. */
+
 const INVALID_RUN = "invalid native run";
 
 class InvalidNativeRun extends Schema.TaggedError<InvalidNativeRun>()("InvalidNativeRun", { attempts: Schema.Int }) {}
 
-/** Why a native run is invalid: a desync report or crash in a client's Errors folder, or a match record (the match reached its results) since `sinceMs`. */
+
 function invalidRun(names: readonly string[], documents: readonly string[], data: readonly string[], sinceMs: number): string[] {
   const reasons: string[] = [];
   const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
@@ -396,7 +396,7 @@ function invalidRun(names: readonly string[], documents: readonly string[], data
   return reasons;
 }
 
-/** `bun wisp fresh MAP --no-quick`: a new game at fighter selection after a desynced run. */
+
 export const freshGame = (map: string, clientsFile: string) => Effect.scoped(Effect.gen(function*() {
   console.log(`starting a new game of ${map} for the rerun`);
   const child = yield* ChildProcess.make("bun", [join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick", "--clients-file", clientsFile], { stdout: "inherit", stderr: "inherit", forceKillAfter: "1 second" });
@@ -404,13 +404,13 @@ export const freshGame = (map: string, clientsFile: string) => Effect.scoped(Eff
   if (code !== 0) return yield* new IntegrityFailure({ operation: "start a new game", path: map, cause: `bun wisp fresh exited ${code}` });
 })).pipe(Effect.catchTag("PlatformError", (cause) => Effect.fail(new IntegrityFailure({ operation: "start a new game", path: map, cause }))), Effect.provide(BunServices.layer));
 
-/** The thread padScheduleWorker.ts runs in, started before the match so its module has loaded by the first edge. */
+
 const scheduleThread = Effect.acquireRelease(
   Effect.sync(() => new Worker(join(import.meta.dir, "../../integrity/padScheduleWorker.ts"))),
   (worker) => Effect.sync(() => worker.terminate()),
 );
 
-/** Writes the schedule from that thread, so the headless clients' frames keep their time. */
+
 const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readonly SentEdge[], IntegrityFailure>((resume) => {
   const sent: SentEdge[] = [];
   worker.onmessage = (event: MessageEvent<ScheduleReply>) => {
@@ -421,11 +421,11 @@ const scheduled = (worker: Worker, schedule: Schedule) => Effect.callback<readon
   worker.postMessage(schedule);
 });
 
-/**
- * Two headless clients of the integrity build with their real helpers, run
- * in real time until the scope closes. The helpers follow every match, so a
- * session can play one script after another (`pad SCRIPT SCRIPT... --headless`).
- */
+
+
+
+
+
 export const headlessSession = (dir: string, helper: string, build: string, afterDraw?: (clients: readonly HeadlessClient[]) => void, arrivals?: PauseArrivals) => Effect.gen(function*() {
   yield* tryIntegrity("create pad directory", dir, () => mkdirSync(dir, { recursive: true }));
   const entry = yield* loadEntry;
@@ -443,7 +443,7 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
     ], Bun.env, join(dir, `helper-${slot}.log`));
   }
   const worker = yield* scheduleThread;
-  // The script's Start presses, planned before it runs, for arrivals a native run measured from its presses.
+
   const startPressesMs: number[] = [];
   const network = syncDelivery(MEASURED_BATTLE_NET, 1);
   let replayed: { readonly presses: number; readonly arrivals: readonly ReplayedArrival[] } = { presses: 0, arrivals: [] };
@@ -470,14 +470,14 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
 
 export type HeadlessSession = Effect.Success<ReturnType<typeof headlessSession>>;
 
-/** One script in a session's next match: its chat starts the match, the result and traces go to options.out. */
+
 export const headlessScript = (session: HeadlessSession, options: PadOptions) => Effect.gen(function*() {
   const { scriptPath, steps, build, out, chat } = options;
   yield* tryIntegrity("create pad directory", out, () => mkdirSync(out, { recursive: true }));
   const { clients, pads, worker, data } = session;
   const startedMs = Date.now();
   const startedNs = monotonicNs();
-  // This script's part of each helper log: the session's helpers log every match.
+
   const from = session.logs().map((text) => text.length);
   const logs = (): [string, string] => {
     const [a, b] = session.logs();
@@ -551,7 +551,7 @@ export const pad: Command = (args) => Effect.gen(function*() {
   if (parsed.values.graphics !== undefined && parsed.values.render === undefined) return yield* new UsageFailure({ problem: "--graphics chooses what --render draws" });
   if (renderFrames !== undefined && (parsed.values.render === undefined || renderFrames.length === 0 || renderFrames.some((frame) => !Number.isInteger(frame) || frame < 0))) return yield* new UsageFailure({ problem: "--frames takes comma-separated whole frame numbers and needs --render DIR" });
   if (parsed.values.render !== undefined && (parsed.values.headless !== true || parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length !== 1 || parsed.positionals[0] === undefined || !existsSync(parsed.positionals[0]) || statSync(parsed.positionals[0]).isDirectory())) return yield* new UsageFailure({ problem: "pad --render DIR takes one existing script with --headless" });
-  // Several scripts, or a folder of them, are one batch: one game per pair (scripts/wisp/padBatch.ts).
+
   if (parsed.values.pairs !== undefined || (parsed.values.pair?.length ?? 0) > 0 || parsed.positionals.length > 1 || (parsed.positionals[0] !== undefined && existsSync(parsed.positionals[0]) && statSync(parsed.positionals[0]).isDirectory())) return yield* scriptBatch(parsed.values, parsed.positionals);
   const isHeadless = parsed.values.headless === true;
   const build = parsed.values.build ?? (isHeadless ? INTEGRITY_BUILD.id : undefined);
@@ -597,13 +597,13 @@ export const pad: Command = (args) => Effect.gen(function*() {
     return yield* ran;
   }
   yield* ran;
-  // Alone, the headless run holds the script's own expectations (bun wisp farm pads).
+
   const report = yield* tryIntegrity("check the script's expectations", out, () => checkHeadlessRun(out, script));
   for (const line of report.lines) console.log(line);
   if (!report.passed) return yield* new IntegrityFailure({ operation: "pad expectations", path: out, cause: "the script's expectations don't hold headless" });
 });
 
-/** `pad SCRIPT|DIR...`: many scripts in one game per pair (scripts/wisp/padBatch.ts). */
+
 const scriptBatch = (values: { readonly [name: string]: string | boolean | readonly string[] | undefined }, positionals: readonly string[]) => Effect.gen(function*() {
   const text = (name: string) => (typeof values[name] === "string" ? values[name] : undefined);
   const { padBatch, headlessBatch, batchScripts, lanPairs, withTools, LAN_POOL_FILE } = yield* Effect.promise(() => import("../padBatch"));

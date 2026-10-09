@@ -1,13 +1,13 @@
-// The source version a map and a replay viewer are stamped with
-// (smashcraft:ts/src/game/shell/sourceVersion.ts): the first 12 hex digits of
-// a SHA-256 over every source file under src/ but tests (path and text, line
-// endings as LF) and the pinned Wisp revision. Same source, same version, on
-// every platform; a replay plays on the version that recorded it.
+
+
+
+
+
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-/** The quoted placeholder a build replaces with the quoted version (smashcraft:ts/src/game/shell/sourceVersion.ts). */
+
 export const SOURCE_STAMP_TEXT = '"%%SOURCE%%%%"';
 
 const isSource = (path: string) => path.endsWith(".ts") && !/\.(tests|soak|test)\.ts$/.test(path);

@@ -1,4 +1,4 @@
-// Movement legibility (#171), measured from the models at production pose times.
+
 import { parseModelMDX } from "wisp/scripts/wisp/models";
 import { Character, DownState, LedgeState } from "../../src/game/sim/codes";
 import { createFighter } from "../../src/game/sim/fighter";
@@ -14,7 +14,7 @@ import { type PoseFrame, DrawnModel, capture } from "./hurtboxView";
 export const MOTION_STATES = ["walk", "dash", "run", "turn", "brake", "jump-squat", "roll-forward", "roll-back", "spot-dodge", "air-dodge", "tech", "tech-forward", "tech-back", "get-up", "get-up-forward", "get-up-back", "get-up-attack", "ledge-get-up", "ledge-roll", "ledge-attack"] as const;
 export type MotionState = (typeof MOTION_STATES)[number];
 
-/** State entry and each completed frame go through the game's pose selector. */
+
 export function sampleMotion(character: Character, state: MotionState): PoseFrame[] {
   const f = createFighter(character, 0.0, 1);
   const world = createRoster(1, [f]);
@@ -24,7 +24,7 @@ export function sampleMotion(character: Character, state: MotionState): PoseFram
   if (moving) {
     input.direction = 1;
     input.walking = state === "walk";
-    // Run, turn and brake enter after the initial dash.
+
     if (state !== "walk" && state !== "dash") {
       for (let tick = 0; tick < 15; tick++) {
         f.motion.x = 0.0;
@@ -62,7 +62,7 @@ export function sampleMotion(character: Character, state: MotionState): PoseFram
   const frames: PoseFrame[] = [];
   for (let tick = 0; tick < ticks; tick++) {
     if (moving) {
-      // Keep the sample on the deck; the model's local deformation is the measure.
+
       f.motion.x = 0.0;
       advanceFighter(world, 0, 0, input, 0.0);
     } else {
@@ -83,12 +83,12 @@ export interface DrawnMotionRow {
   readonly model: string;
   readonly clips: readonly number[];
   readonly names: readonly string[];
-  /** Greatest local displacement of a visible vertex from its state-entry pose. */
+
   readonly motion: number;
-  /** Mean of each vertex's greatest local displacement; a lone weapon tip cannot pass alone. */
+
   readonly body: number;
   readonly direction: "forward" | "back" | "up" | "down" | "both" | "in place";
-  /** Greatest local vertex travel toward the action's direction and against it. */
+
   readonly toward: number;
   readonly against: number;
 }
@@ -109,7 +109,7 @@ export function measureDrawnMotion(drawn: DrawnModel, character: Character, stat
   for (const frame of frames) {
     if (frame.clip === undefined) throw new Error(`${character}/${state}: no clip`);
     const vertices = drawn.triangles(frame.clip, frame.seconds, frame.facing);
-    // Changing visibility may add/remove triangles; compare stable corresponding geometry only.
+
     for (let index = 0; index < Math.min(initial.length, vertices.length); index += 2) {
       distances[index / 2] = Math.max(distances[index / 2] ?? 0, Math.hypot((vertices[index] ?? 0) - (initial[index] ?? 0), (vertices[index + 1] ?? 0) - (initial[index + 1] ?? 0)));
       const projected = sign * ((vertices[index + axis] ?? 0) - (initial[index + axis] ?? 0));
@@ -126,11 +126,11 @@ export interface DrawnStride {
   readonly motion: "walk" | "run";
   readonly clip: number;
   readonly model: string;
-  /** World units covered per second by the feet at 1x; floating models use their authored movement speed. */
+
   readonly speed: number;
 }
 
-/** Grounded vertices' horizontal excursion over a full cycle, twice per cycle (one stride per leg). */
+
 export function measureDrawnStride(bytes: ArrayBuffer, drawn: DrawnModel, character: Character, motion: "walk" | "run", model: string): DrawnStride {
   const clip = groundLocomotionClip(character, motion === "walk" ? IllidanLocomotion.walk : IllidanLocomotion.run);
   const sequence = clip === undefined ? undefined : parseModelMDX(bytes).Sequences[clip.index];
@@ -154,7 +154,7 @@ export function measureDrawnStride(bytes: ArrayBuffer, drawn: DrawnModel, charac
     if (low > 10) { sum += 2 * (right - left) / seconds; count++; }
   }
   const stride = sum / Math.max(1, count);
-  // The Lich floats: his gait is a moving cloak rather than ground contacts.
+
   const speed = character === Character.lich ? sequence.MoveSpeed : stride;
   if (!Number.isFinite(speed) || speed <= 0) throw new Error(`${character}/${motion}: no drawn stride`);
   return { character, motion, clip: clip.index, model, speed };

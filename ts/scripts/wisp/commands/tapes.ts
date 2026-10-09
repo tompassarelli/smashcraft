@@ -1,13 +1,13 @@
-// `wisp parity tapes`, the replay acceptance oracle: recorded tapes must give
-// identical canonical replay states, hence identical checksums, after every
-// frame in TypeScript under Bun and TypeScript under two 32-bit Luas: a
-// stock one, whose raw float + - * round to nearest, and one rounding them
-// toward zero (scripts/wisp/luaRuntimes.ts). Agreement in both shows no raw
-// float + - * leaked past the exact helpers.
-// Prints the totals, or each runtime pair's first divergent frame and field.
-// smashcraft:ts/scripts/wisp/acceptanceTapes.ts records the tapes fresh
-// each run; every runtime then replays the same recorded rows.
-// Environment: LUA and TOWARD_ZERO_LUA, optional (scripts/wisp/luaRuntimes.ts).
+
+
+
+
+
+
+
+
+
+
 import "../../../test/host-natives";
 import { join } from "node:path";
 import { BunServices } from "@effect/platform-bun";
@@ -25,9 +25,9 @@ import { runProcess } from "../../hostProcess";
 const ts = join(import.meta.dir, "../../..");
 const build = join(ts, "build", "tapes");
 
-// ---------------------------------------------------------------- runtimes
 
-/** One runtime's records for one tape: "LINE OPERATION RESULT CANONICAL-STATE". */
+
+
 interface Run {
   readonly records: string[];
   readonly error: string | undefined;
@@ -53,7 +53,7 @@ async function inputsHash(paths: readonly string[], extra: string): Promise<stri
   return hasher.digest("hex");
 }
 
-/** Rebuilds `output` with `buildIt` only when the hash of its inputs changed. Returns build seconds, 0 when cached. */
+
 const cachedBuild = <E, R>(output: string, hash: string, buildIt: Effect.Effect<unknown, E, R>) => Effect.gen(function*() {
   const stamp = Bun.file(`${output}.inputs`);
   if (yield* attempt("read the build stamp", async () => await Bun.file(output).exists() && await stamp.exists() && await stamp.text() === hash)) return 0;
@@ -77,7 +77,7 @@ const compileTypeScriptLua = Effect.gen(function*() {
       Effect.mapError((failure) => new TapesFailure({ problem: `compile TypeScript Lua: ${failure.message}` }))));
 });
 
-/** Two replay children bound pipe buffers while Bun replays on this thread. */
+
 export const replayInLua = (files: readonly string[], executable: string) =>
   Effect.forEach(files, (file) =>
     captureProcess("replay in 32-bit Lua", file, [executable, tapesLua], { env: { ...process.env, TAPE_FILE: file } }).pipe(
@@ -87,19 +87,19 @@ export const replayInLua = (files: readonly string[], executable: string) =>
       Effect.mapError((cause) => new TapesFailure({ problem: describeCause(cause) })),
     ), { concurrency: 2 });
 
-// ---------------------------------------------------------------- comparison
+
 
 type RuntimeName = "bun" | "ts-lua32" | "ts-lua32-toward-zero";
 const RUNTIMES: readonly RuntimeName[] = ["bun", "ts-lua32", "ts-lua32-toward-zero"];
 const PAIRS: readonly (readonly [RuntimeName, RuntimeName])[] = [["bun", "ts-lua32"], ["bun", "ts-lua32-toward-zero"]];
 
-/** Splits a record into its label ("LINE OPERATION RESULT") and its canonical fields. */
+
 function parseRecord(record: string | undefined): { label: string; fields: string[] } {
   const words = (record ?? "").split(" ");
   return { label: words.slice(0, 3).join(" "), fields: words.slice(3).join(" ").split("|") };
 }
 
-/** The first canonical field that differs, with both values, and how many differ. */
+
 function describeDivergence(a: string | undefined, b: string | undefined, names: readonly [RuntimeName, RuntimeName]): string {
   const left = parseRecord(a);
   const right = parseRecord(b);
@@ -114,9 +114,9 @@ function describeDivergence(a: string | undefined, b: string | undefined, names:
   return `${first ?? "no field"} (${count} fields differ)`;
 }
 
-// ---------------------------------------------------------------- command
 
-/** The runtimes disagree, one stopped, or the check couldn't run. */
+
+
 class TapesFailure extends Schema.TaggedError<TapesFailure>()("TapesFailure", {
   problem: Schema.String,
 }) {
@@ -128,7 +128,7 @@ class TapesFailure extends Schema.TaggedError<TapesFailure>()("TapesFailure", {
 const attempt = <A>(what: string, run: () => A | PromiseLike<A>) =>
   Effect.tryPromise({ try: async () => run(), catch: (cause) => new TapesFailure({ problem: `${what}: ${describeCause(cause)}` }) });
 
-/** Executed frames, run on recorded or on predicted rows. */
+
 const isFrame = (operation: string | undefined) => operation === "frame" || operation === "predict";
 const frameCount = (run: Run) => run.records.filter(record => isFrame(record.split(" ", 2)[1])).length;
 
@@ -142,7 +142,7 @@ export const tapes: Command = (args) => Effect.gen(function*() {
     return recorded;
   }).pipe(step("record tapes"));
   yield* compileTypeScriptLua.pipe(Effect.provide(BunServices.layer), step("compile TypeScript Lua"));
-  // Lua processes start before the in-process Bun runs occupy this thread.
+
   const files = tapes.map(({ file }) => file);
   const replays = yield* Effect.all({
     "ts-lua32": replayInLua(files, luas.nearest).pipe(step("replay in ts-lua32")),

@@ -27,7 +27,7 @@ while :; do
   remaining_time
   ((count+=1))
   frame="$frames/$count.png"
-  # Unique absent paths and synchronous completion prevent stale capture reuse.
+
   [[ ! -e "$frame" ]]
   status=0
   timeout "$duration" "$launcher" capture "$run_dir" "$frame" >/dev/null 2>&1 || status=$?
@@ -46,7 +46,7 @@ while :; do
     exit 0
   fi
   case "$state" in main-menu|single-player|create-game) ;; *) echo "observation-failed: $state"; exit 1 ;; esac
-  # Periodic observation, not a native event callback.
+
   sleep 0.1
 done
 expired

@@ -5,7 +5,7 @@ import { captureScene, type RenderScene } from "wisp/scripts/wisp/headlessRender
 import { FIGHTER_OBJECTS } from "../../src/game/objectData";
 type HeadlessClient = Parameters<typeof captureScene>[0];
 
-/** Reads the actual pause menu and model poses after a rendered callback batch. */
+
 export function pauseDraws(directory: string) {
   const held = new Map<number, { timing: DrawTiming; scene: RenderScene }>();
   const boundaries: RenderScene[] = [];

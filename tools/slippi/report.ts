@@ -1,11 +1,11 @@
-// Pools extract.ts events per rank group and prints the measured tables as Markdown.
-// Usage: bun report.ts > report.md
+
+
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { RANKS, ROOT } from "./fetch.ts";
 
 const DI_DEADZONE = 0.2875;
-const KILL_SPEED = 3.0; // launch speed of knockback 100 (speed = 0.03 x knockback)
+const KILL_SPEED = 3.0;
 const KILL_PERCENT = 100;
 const pct = (xs: number[], p: number) => { if (!xs.length) return NaN; const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * (s.length - 1) + 0.5))]!; };
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
@@ -28,15 +28,15 @@ for (const rank of RANKS) {
   counts[rank] = { games: new Set(lines.map((l) => l.file)).size, players: lines.length, minutes: lines.reduce((a, l) => a + l.minutes, 0) };
   const minutes = counts[rank]!.minutes;
 
-  // 1. Dash dance.
+
   const dd = lines.flatMap((l) => l.ddIntervals);
   r.dd = dist(dd); r.ddN = `${dd.length}`; r.ddMeanSd = `${f1(mean(dd))} ± ${f1(sd(dd))}`;
   r.ddUnder4 = share(dd.filter((x) => x < 4).length, dd.length); r.ddP1 = `${pct(dd, 0.01)} / ${pct(dd, 0.05)}`;
-  // 2. Unintended runs.
+
   const runs = lines.reduce((a, l) => a + l.runs, 0), regrets = lines.reduce((a, l) => a + l.runRegrets, 0);
   r.runRegretsPerMin = f2(regrets / minutes); r.runRegretShare = share(regrets, runs); r.runsPerMin = f2(runs / minutes);
 
-  // 3. DI.
+
   const di = lines.flatMap((l) => l.di).filter((h: number[]) => h[0]! >= 1.0);
   const cls = { none: 0, in: 0, away: 0, perp: 0 };
   let killN = 0, killNone = 0, killWrong = 0, killFlat = 0, diedN = 0, diedSlip = 0;
@@ -51,11 +51,11 @@ for (const rank of RANKS) {
     cls[kind]++;
     if (speed >= KILL_SPEED && percent >= KILL_PERCENT && ly > 0) {
       killN++;
-      // Survival DI proxy: launches below 60 deg want rotation toward vertical,
-      // steeper ones toward horizontal. perp > 0 rotates the launch counter-clockwise.
+
+
       const perp = mag >= DI_DEADZONE ? (lx * sy - ly * sx) : 0;
       const folded = Math.atan2(ly, Math.abs(lx)) * 180 / Math.PI;
-      const up = perp * Math.sign(lx || 1); // > 0 rotates toward vertical
+      const up = perp * Math.sign(lx || 1);
       let slip = false;
       if (mag < DI_DEADZONE) { killNone++; slip = true; }
       else if (Math.abs(perp) < 0.3) killFlat++;
@@ -68,14 +68,14 @@ for (const rank of RANKS) {
   r.killN = `${killN}`; r.killSlip = share(killNone + killWrong, killN); r.killNone = share(killNone, killN); r.killWrong = share(killWrong, killN); r.killFlat = share(killFlat, killN);
   r.diedSlip = `${share(diedSlip, diedN)} of ${diedN}`;
 
-  // 4. SDI.
+
   const sdi = lines.flatMap((l) => l.sdi);
   const strong = sdi.filter((h: number[]) => h[0]! >= 9), multi = sdi.filter((h: number[]) => h[1] === 1 && h[0]! >= 3);
   r.sdiStrong = `${share(strong.filter((h: number[]) => h[2]! > 0).length, strong.length)} of ${strong.length}`;
   r.sdiMulti = `${share(multi.filter((h: number[]) => h[2]! > 0).length, multi.length)} of ${multi.length}`;
   r.sdiStrongMean = f2(mean(strong.map((h: number[]) => h[2]!)));
 
-  // 5. Hops: [hold, deadline, aerialDelay, aerialId].
+
   const hops = lines.flatMap((l) => l.hops);
   const sh = hops.filter((h: number[]) => h[0]! < h[1]!);
   r.hopN = `${hops.length}`; r.shShare = share(sh.length, hops.length);
@@ -89,7 +89,7 @@ for (const rank of RANKS) {
   const excess = Math.max(0, over(0) - (over(1) + over(2)) / 2);
   r.accFh = `${share(excess, quickAerial.length)} of ${quickAerial.length}`;
 
-  // 6a. L-cancel: [status, framesBeforeLanding of last press or -1].
+
   const lc = lines.flatMap((l) => l.lcancel).filter((x: number[]) => x[0] === 1 || x[0] === 2);
   const lcOk = lc.filter((x: number[]) => x[0] === 1).length;
   r.lcN = `${lc.length}`; r.lcRate = share(lcOk, lc.length);
@@ -98,7 +98,7 @@ for (const rank of RANKS) {
   r.lcTiming = `${f1(mean(pressed))} ± ${f1(sd(pressed))}`;
   r.lcEarly = share(lc.filter((x: number[]) => x[0] === 2 && x[1]! >= 7).length, lc.length);
 
-  // 6b. Late aerials against the player's own median per aerial.
+
   const devs: number[] = [];
   for (const l of lines) for (const xs of Object.values(l.aerialDelays) as number[][]) {
     if (xs.length < 5) continue; const m = pct(xs, 0.5); for (const x of xs) devs.push(x - m);
@@ -106,12 +106,12 @@ for (const rank of RANKS) {
   r.aerN = `${devs.length}`; r.aerLate3 = share(devs.filter((d) => d >= 3).length, devs.length); r.aerSd = f2(sd(devs));
   r.aerAbs1 = share(devs.filter((d) => Math.abs(d) <= 1).length, devs.length);
 
-  // 6c. Out-of-shield rolls among players who usually wavedash out of shield.
+
   let wdUsers = 0, ooRoll = 0, ooWd = 0;
   for (const l of lines) { const { roll, wd } = l.oos; if (wd >= 3 && wd / (wd + roll) >= 0.6) { wdUsers++; ooRoll += roll; ooWd += wd; } }
   r.oosSub = `${share(ooRoll, ooRoll + ooWd)} of ${ooRoll + ooWd} (${wdUsers} players)`;
 
-  // Wavedash: [delayFromTakeoff, x, y, outOfShield].
+
   const wd = lines.flatMap((l) => l.wavedash);
   const delays = wd.map((w: number[]) => w[0]!);
   r.wdN = `${wd.length}`; r.wdPerfect = share(delays.filter((d) => d <= 0).length, delays.length);
@@ -125,14 +125,14 @@ for (const rank of RANKS) {
   for (const l of lines) { const a = l.wavedash.filter((w: number[]) => Math.abs(w[1]!) >= 0.3 && w[2]! < 0).map(angleOf); if (a.length >= 5) playerSds.push(sd(a)); }
   r.wdAngleSd = `${f1(pct(playerSds, 0.5))} (${playerSds.length} players)`;
 
-  // Tech on landing from hitstun or tumble.
+
   const tech = lines.flatMap((l) => l.tech ?? []);
   const techPress = tech.filter((t: number[]) => t[1]! >= 0).map((t: number[]) => t[1]!);
   r.techN = `${tech.length}`; r.techRate = share(tech.filter((t: number[]) => t[0] === 1).length, tech.length);
   r.techTiming = `${f1(mean(techPress))} ± ${f1(sd(techPress))}`;
   r.techNoPress = share(tech.length - techPress.length, tech.length);
 
-  // 7. Tech-chase reactions. Responses under 12 frames come before the roll could be seen.
+
   const tc = lines.flatMap((l) => l.techChase);
   const tcCens = lines.reduce((a, l) => a + l.techChaseCensored, 0);
   const seen = tc.filter((x) => x >= 12);

@@ -1,5 +1,5 @@
-// A pad's physical 60 Hz deadlines through the existing SDL keyboard helper.
-// This measures playable pixels; journal parity stays in `bun wisp pad`.
+
+
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
@@ -23,7 +23,7 @@ export function keyboardPadPlan(script: string) {
   });
 }
 
-/** Bad arguments, a stimulus that missed its deadlines, or a helper that failed. */
+
 class KeyboardPadFailure extends Schema.TaggedError<KeyboardPadFailure>()("KeyboardPadFailure", { problem: Schema.String }) {
   override get message(): string {
     return this.problem;
@@ -35,7 +35,7 @@ const failure = (cause: unknown) => cause instanceof KeyboardPadFailure ? cause
 
 type Helper = Bun.Subprocess<"pipe", "pipe", "pipe">;
 
-/** The helper belongs to the run's scope: whatever ends the run, a helper still running is killed and reaped. */
+
 const startHelper = (helperArgs: readonly string[], environment: Record<string, string | undefined>) => Effect.acquireRelease(
   Effect.try({ try: (): Helper => Bun.spawn([...helperArgs], { env: environment, stdin: "pipe", stdout: "pipe", stderr: "pipe" }), catch: failure }),
   (helper) => helper.exitCode !== null ? Effect.void : Effect.promise(async () => {
@@ -72,7 +72,7 @@ const run = (args: readonly string[]) => Effect.gen(function*() {
   const frameOne = values["frame-one-ns"] === undefined ? monotonicNs() + 1_000_000_000 : Number(values["frame-one-ns"]);
   if (!Number.isSafeInteger(frameOne) || frameOne <= monotonicNs()) return yield* new KeyboardPadFailure({ problem: "--frame-one-ns must be a future CLOCK_MONOTONIC timestamp" });
   const sent: (ReturnType<typeof keyboardPadPlan>[number] & { targetNs: number; beforeNs: number; afterNs: number; writtenFrame: number })[] = [];
-  // The timing loop stays plain: the same coarse sleep and final 5 ms spin as the pad scheduler.
+
   const stimulus = yield* Effect.promise(async () => {
     let problem: unknown;
     try {
@@ -80,7 +80,7 @@ const run = (args: readonly string[]) => Effect.gen(function*() {
         const targetNs = frameWriteNs(frameOne, item.frame);
         const coarse = (targetNs - monotonicNs()) / 1e6 - 5;
         if (coarse > 0) await Bun.sleep(coarse);
-        while (monotonicNs() < targetNs) { /* same final 5 ms as the pad scheduler */ }
+        while (monotonicNs() < targetNs) {   }
         if (helper.exitCode !== null) throw Error("keyboard helper exited during stimulus");
         const beforeNs = monotonicNs();
         helper.stdin.write(item.command + "\n");
@@ -88,7 +88,7 @@ const run = (args: readonly string[]) => Effect.gen(function*() {
         const afterNs = monotonicNs();
         sent.push({ ...item, targetNs, beforeNs, afterNs, writtenFrame: ruleFrame(frameOne, beforeNs) });
       }
-      // Keep the helper alive through the two seconds after Start resumes at 348.
+
       const end = frameWriteNs(frameOne, Math.max(...plan.map(item => item.frame)) + 20);
       const leftMs = (end - monotonicNs()) / 1e6;
       if (leftMs > 0) await Bun.sleep(leftMs);
@@ -114,5 +114,5 @@ const run = (args: readonly string[]) => Effect.gen(function*() {
   console.log(`${sent.length} unchanged pad edges; ${late} missed physical deadlines; ${out}`);
 });
 
-// One runtime boundary: SIGINT or SIGTERM kills the helper before exit.
+
 if (import.meta.main) BunRuntime.runMain(Effect.scoped(run(Bun.argv.slice(2))));

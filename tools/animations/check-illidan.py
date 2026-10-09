@@ -55,8 +55,8 @@ for clip in json.loads((out/'clips.json').read_text()):
   if not a.name.startswith('Special Up'):assert visible==0,('Wing visible outside ascent',a.name)
  bpy.context.scene.frame_set(clip['frames']);assert wing[wing.name]['visibility']==0,('Wing interruption endpoint',a.name)
 print('ILLIDAN_SCENE_PASS',len(stock),'stock actions exactly preserved;',len(geometry),'source geosets exactly preserved;',len(authored)-len(stock),'authored actions;',fps,'FPS')
-# The installed model uses source-version light chunks unsupported by the
-# package encoder's decoder. Use the importing add-on's texture reader.
+
+
 from export_mdl.import_stuff.mdx_parser.parse_textures import parse_textures
 source=(project/'build/illidan-assets/demonhunter.mdx').read_bytes()
 assert source[:4]==b'MDLX'

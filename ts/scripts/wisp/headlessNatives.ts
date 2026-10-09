@@ -2,7 +2,7 @@ import type { IntentionalNoops } from "wisp/src/headless/client";
 
 declare const SetCameraPosition: (x: number, y: number) => void;
 
-/** Assumptions shared by the Bun journey and emitted-Lua journey. */
+
 export const SMASHCRAFT_NOOPS: IntentionalNoops = {
   GetPlayableMapRect: "stage initialization only uses this rectangle to obtain the declared zero-centered map origin",
   GetRectCenter: "stage initialization uses the declared zero-centered map origin supplied by location getters",
@@ -52,13 +52,13 @@ export const SMASHCRAFT_NOOPS: IntentionalNoops = {
 
 export const smashcraftNativeBehavior = () => ({
   GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? "classic" : key,
-  // Headless frames retain the requested target; only native capture measures the transition.
+
   PanCameraToTimed: (x: number, y: number) => SetCameraPosition(x, y),
-  // Smashcraft's authored stage origin is (0, 0, 0).
+
   GetLocationX: () => 0,
   GetLocationY: () => 0,
   GetLocationZ: () => 0,
-  // Journey key events provide input; there is no physical mouse in either runtime.
+
   BlzGetMouseScreenPosX: () => 0,
   BlzGetMouseScreenPosY: () => 0,
   BlzIsMouseButtonPressed: () => false,

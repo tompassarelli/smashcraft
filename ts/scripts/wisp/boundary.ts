@@ -1,11 +1,11 @@
-// Smashcraft's selection, developer-command and input-trace records.
+
 import { Effect, Option, Schema } from "effect";
 import { preloadLines, preloadRecord, Count, Seconds, type GameFileKind } from "wisp/scripts/wisp/boundary";
 import { MAX_BATCH } from "../../src/game/netcode/journal/transport";
 import * as files from "../../src/runtime/gameFiles";
 export * from "../../src/runtime/gameFiles";
 
-/** wc3-melee-ready.txt: the build and match setup when the local player reaches character selection. */
+
 export const MeleeReady = preloadRecord(
   {
     head: ["BUILD {build}", "INPUT {input} PRESENTATION {presentation}", "SCENARIO {scenario}", "BINDINGS {bindings}", "HUMANS {humans} FIGHTERS {fighters}"],
@@ -19,12 +19,12 @@ export const MeleeReady = preloadRecord(
     bindings: Schema.NonEmptyString,
     humans: Count,
     fighters: Count,
-    /** `BINDINGSn KEYS` or `BINDINGSn BOT` for each active slot n. */
+
     slotBindings: Schema.Array(Schema.String.check(Schema.isPattern(/^BINDINGS\d+ \S+$/))),
   }),
 );
 
-/** smashcraft-dev-BUILD-pN.txt: confirmation a client handled a developer chat command. */
+
 export const DevCommandReceipt = preloadRecord(
   {
     head: [
@@ -43,7 +43,7 @@ export const DevCommandReceipt = preloadRecord(
     phase: Count,
     humanFighters: Count,
     computers: Count,
-    /** Each slot's fighter, comma-separated. */
+
     characters: Schema.String.check(Schema.isPattern(/^\d+,\d+,\d+,\d+$/)),
     stocks: Count,
     minutes: Count,
@@ -52,22 +52,22 @@ export const DevCommandReceipt = preloadRecord(
   }),
 );
 
-/** smashcraft-stage-BUILD-pN.txt: the stage a client drew at a match start. */
+
 export const StageReceipt = preloadRecord(
   { head: ["SMASHCRAFT STAGE v=1 build={build} epoch={epoch} stage={stage} decks={decks} "] },
   Schema.Struct({ build: Schema.NonEmptyString, epoch: Count, stage: Count, decks: Count.check(Schema.isGreaterThanOrEqualTo(1)) }),
 );
 
-/** wc3-melee-input-start.txt: the developer input trace started. */
+
 export const InputTraceStart = preloadRecord(
   { head: ["TRACE START {build}"] },
   Schema.Struct({ build: Schema.NonEmptyString }),
 );
 
-/**
- * wc3-melee-input-trace.txt: the developer input trace. Its lines stay text
- * for the tools that read particular ones; the summary is decoded.
- */
+
+
+
+
 export const InputTrace = preloadRecord(
   { rest: "lines", tail: ["dropped {dropped}", "{ticks} {seconds} end"] },
   Schema.Struct({ lines: Schema.Array(Schema.String), dropped: Count, ticks: Count, seconds: Seconds }),
@@ -75,11 +75,11 @@ export const InputTrace = preloadRecord(
 
 const Identity = { build: Schema.NonEmptyString, epoch: Count, slot: Count };
 
-/**
- * Sequenced pause/resume requests and the start/end receipts share this
- * record. An end receipt names the match's winner (P1-P4 or none); end
- * receipts of builds before 0.0.46 have no winner field.
- */
+
+
+
+
+
 export const JournalControl = preloadRecord(
   { head: ["SMASHCRAFT JOURNAL CONTROL v=1 build={build} epoch={epoch} slot={slot} sequence={sequence} state={state} frame={frame} winner={winner}"] },
   Schema.Struct({
@@ -91,7 +91,7 @@ export const JournalControl = preloadRecord(
   }),
 );
 
-/** smashcraft-journal-menu-BUILD-sN.txt: the menu phase and slot modes the map last showed. */
+
 export const JournalMenu = preloadRecord(
   { head: ["SMASHCRAFT JOURNAL MENU v=1 build={build} epoch={epoch} slot={slot} phase={phase}", "connected={connected} human-fighters={humanFighters} computers={computers} fighters={fighters}"] },
   Schema.Struct({ ...Identity, phase: Schema.Literals(["CHARACTER", "STAGE", "RESULT", "BLOCKED"]), connected: Count, humanFighters: Count, computers: Count, fighters: Count }),
@@ -114,14 +114,14 @@ const JournalFailure = preloadRecord(
 
 const integer = "[+-]?\\d+";
 const real = "[+-]?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?";
-/** Object fields read back from the retained native handles after a bundle install. */
+
 const ObjectDataReceipt = preloadRecord(
   { head: ["object-data frame {frame} objects {objects} state {state}"], rest: "units" },
   Schema.Struct({ frame: Count, objects: Schema.String.check(Schema.isPattern(/^\d+:\d+$/)), state: Schema.String.check(Schema.isPattern(/^\d+:\d+$/)),
     units: Schema.Array(Schema.String.check(Schema.isPattern(new RegExp(`^slot \\d+ unit \\d+ handle \\d+ speed ${real} cooldown ${real}$`)))) }),
 );
-// Response pages retain their text for the pure reconciler, after checking
-// the numeric fields and column counts of every exported row here.
+
+
 const ResponseLine = Schema.String.check(Schema.isPattern(new RegExp(
   `^(?:clock=.+|[ABCDPQ] (?:row|epoch) .+|A(?: ${real}){6}(?: ${integer}){6}|B(?: ${integer}){10}|C(?: ${integer}){3} ${real} ${integer} ${real}|D(?: ${integer}){2}(?: ${real}){3}|P(?: ${integer}){3}(?: ${real}){2}|Q ${integer}(?: ${real}){12}|I ${integer} (?:(?:capture|receive|confirmed|predict)(?: ${integer}){7}|(?:action|legal)(?: ${integer}){6}|rollback(?: ${integer}){2}|(?:stall|held)(?: ${integer}){3}|checksum(?: ${integer}){2} \\d+:\\d+ ${integer}|pause-boundary (?:paused|resumed) ${integer}))$`,
 )));
@@ -144,7 +144,7 @@ const waitingResponsePage = preloadRecord(
   Schema.Struct({ ...responseFields, waitingCallbacks: Count, waitingOwnCallbacks: Count }),
 );
 
-// Retained recordings from before the waiting probe contain no waiting measurement.
+
 export const ResponsePage: GameFileKind<typeof recordedResponseSchema.Type & { readonly waitingCallbacks?: number; readonly waitingOwnCallbacks?: number }> = {
   decode: (file, text) => (preloadLines(text)?.[3]?.startsWith("waiting ") ? waitingResponsePage : recordedResponsePage).decode(file, text),
 };
@@ -171,7 +171,7 @@ const PhysicsReport = preloadRecord(
   Schema.Struct({ source: Schema.NonEmptyString, messages: Count, result: Schema.Literals(["NATIVE_PHYSICS_COMPLETED", "NATIVE_PHYSICS_FAIL"]), lines: Schema.Array(Schema.NonEmptyString) }),
 );
 
-/** Selects a game's written-file kind; companion input files are a separate boundary. */
+
 export function writtenGameFileKind(name: string): GameFileKind<unknown> | undefined {
   if (name === files.MELEE_READY_FILE) return MeleeReady;
   if (name === files.INPUT_START_FILE) return InputTraceStart;
@@ -192,7 +192,7 @@ export function writtenGameFileKind(name: string): GameFileKind<unknown> | undef
   return undefined;
 }
 
-/** Checks complete live records before their text enters capture algorithms. */
+
 export const decodeWrittenGameFile = (name: string, path: string, text: string) => {
   const kind = writtenGameFileKind(name);
   return kind === undefined ? Effect.void : kind.decode(path, text).pipe(Effect.asVoid);

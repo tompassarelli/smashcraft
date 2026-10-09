@@ -1,8 +1,8 @@
-// Direct play (#142): one player's Warcraft III hosts a private Battle.net
-// game of Smashcraft through Wisp's menu page and shows a join code; the
-// other's joins by that code. No server of ours is involved: the code names
-// the game and carries its password (joinCode.ts). The steps are Wisp's
-// hostLobby, joinLobby and startLobby (wisp:docs/driving-warcraft.md).
+
+
+
+
+
 import { join } from "node:path";
 import { Clock, Effect, Schedule } from "effect";
 import { dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
@@ -13,26 +13,26 @@ import { MeleeReady } from "./boundary";
 import { type JoinCode, newJoinCode } from "./joinCode";
 
 export interface OnlineTimes {
-  /** How long a host waits for its opponent. */
+
   readonly opponentSeconds: number;
-  /** How long a lobby may take to start: a guest without this build downloads it from the host first. */
+
   readonly startSeconds: number;
-  /** How long a guest waits for the host to start. */
+
   readonly hostStartSeconds: number;
-  /** From the loading screen to fighter selection. */
+
   readonly loadSeconds: number;
 }
 
 export const ONLINE_TIMES: OnlineTimes = { opponentSeconds: 30 * 60, startSeconds: 5 * 60, hostStartSeconds: 30 * 60, loadSeconds: 5 * 60 };
 
-/** What a player reads; each line is one step. */
+
 export type Say = (line: string) => Effect.Effect<void>;
 
 const record = (value: unknown): Readonly<Record<string, unknown>> => (typeof value === "object" && value !== null ? Object.fromEntries(Object.entries(value)) : {});
 const screen = (event: MenuEvent) => (event.messageType === "SetGlueScreen" ? record(event.payload)["screen"] : undefined);
 const CREATE_TRIES = 3;
 
-/** Hosts a lobby of the map under a new code; a refused name (another game has it) gets a new code. */
+
 export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode, password?: string) =>
   Effect.suspend(() => {
     const generated = makeCode();
@@ -40,24 +40,24 @@ export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; 
     return hostLobby(menus, { folder: map.folder, file: map.file, gameName: code.gameName, password: code.password }).pipe(Effect.as(code));
   }).pipe(Effect.retry({ times: CREATE_TRIES - 1, while: (failure) => failure._tag === "MenuFailure" && failure.problem.includes("refused") }));
 
-/**
- * Starting the game in Warcraft III itself counts too; the lobby closing
- * ends the wait. Readiness never sends or depends on Battle.net chat.
- */
+
+
+
+
 export const hostLoading = (event: MenuEvent): Outcome<"loading"> => {
   if (screen(event) === "LOADING_SCREEN") return { done: "loading" };
   if (event.messageType === "MultiplayerGameLeave") return { failed: "the lobby closed" };
   return undefined;
 };
 
-/**
- * Starts the hosted lobby. The game ignores a start while a player is still
- * downloading the map, so it is asked again until the loading screen shows.
- */
+
+
+
+
 export const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) =>
   Effect.suspend(() => {
     let refusals = 0;
-    // Asked again until `seconds` have passed; then the last refusal is the failure.
+
     return startLobby(menus).pipe(Effect.retry({
       schedule: Schedule.during(`${seconds} seconds`),
       while: (failure) => {
@@ -67,7 +67,7 @@ export const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) =>
     }));
   });
 
-/** Waits until this player's Smashcraft writes its ready file after `since`: fighter selection. */
+
 export const reachMatch = (documents: string, since: number, seconds: number) => {
   const path = join(dataDirectory(documents), MELEE_READY_FILE);
   return pollUntil(
@@ -83,16 +83,16 @@ export const reachMatch = (documents: string, since: number, seconds: number) =>
   ).pipe(Effect.asVoid);
 };
 
-/**
- * The host's whole flow: a lobby under a new code, the code shown, then the
- * match when the player asks to start now or starts it in Warcraft III.
- */
+
+
+
+
 export const hostMatch = (options: {
   readonly menus: MenuSocket;
   readonly map: { readonly folder: string; readonly file: string };
   readonly documents: string;
   readonly say: Say;
-  /** Succeeds when the player asks to start after their opponent has joined. */
+
   readonly startNow: Effect.Effect<void>;
   readonly times?: OnlineTimes;
   readonly makeCode?: () => JoinCode;
@@ -118,7 +118,7 @@ export const hostMatch = (options: {
   return code;
 });
 
-/** The guest's whole flow: into the lobby by its code, then the match the host starts. */
+
 export const joinMatch = (options: {
   readonly menus: MenuSocket;
   readonly code: JoinCode;

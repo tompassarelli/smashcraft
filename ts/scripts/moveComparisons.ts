@@ -1,4 +1,4 @@
-// Fixed offline contact-state comparison fixtures over production simulation.
+
 import { AttackPhase, AttackStyle, Character } from "../src/game/sim/codes";
 import { type Fighter, createFighter, SHIELD_MAX } from "../src/game/sim/fighter";
 import { beginFighterAttack, resolveAttacks } from "../src/game/sim/attacks";

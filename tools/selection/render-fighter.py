@@ -28,7 +28,7 @@ prefs.resourceFolder = resources
 prefs.textureExtension = "png"
 
 RESOLUTION = 1024
-# Three-quarter view from the fighter's front right, slightly above; Warcraft models face +X.
+
 VIEW = Vector((0.82, -0.52, 0.24)).normalized()
 POSES = ("Stand Ready", "Stand Victory", "Stand")
 
@@ -65,7 +65,7 @@ scene.frame_set(int(action.frame_range[0]))
 bpy.context.view_layer.update()
 visible = []
 for obj in meshes:
-    # Hidden geometry stays hidden; the hero glow ring under the feet is not the fighter.
+
     glow = any(material is not None and material.name.startswith("TeamGlow") for material in obj.data.materials)
     obj.hide_render = glow or obj.get(obj.name, {}).get("visibility", 1) < 0.5
     if not obj.hide_render:
@@ -93,7 +93,7 @@ camera.data.type = "ORTHO"
 camera.data.clip_end = radius * 10
 scene.camera = camera
 bpy.context.view_layer.update()
-# Fit the silhouette, not the bounding sphere: the projected extent sets the ortho scale.
+
 view = camera.matrix_world.inverted()
 projected = [view @ p for p in points]
 width = max(p.x for p in projected) - min(p.x for p in projected)
@@ -116,7 +116,7 @@ scene.world.use_nodes = True
 background = scene.world.node_tree.nodes.get("Background")
 background.inputs["Color"].default_value = (0.8, 0.85, 1.0, 1.0)
 background.inputs["Strength"].default_value = 0.7
-# Key from the camera side, fill from the left, warm rim from behind; scaled to the model.
+
 for direction, power, size in [((0.6, -0.9, 1.1), 2.4, 1.0), ((-0.9, -0.5, 0.4), 1.0, 0.7), ((0.2, 1.0, 1.0), 2.8, 0.7)]:
     position = center + Vector(direction).normalized() * radius * 3
     bpy.ops.object.light_add(type="AREA", location=position)
@@ -145,7 +145,7 @@ def team_texture(index):
 
 variants = [(index, str(Path(output).with_name(Path(output).stem + "P%d.png" % (index + 1))))
             for index in range(4)] if slots else [(int(team), output)]
-# Retain the beauty scene before the diagnostic changes its material graph.
+
 bpy.ops.wm.save_as_mainfile(filepath=str(Path(output).with_suffix(".blend")))
 for index, path in variants:
     team_texture(index)
@@ -154,10 +154,10 @@ for index, path in variants:
         bpy.ops.render.render(write_still=True)
     print("RENDER_DONE", path)
 
-# Isolate the team-colour contribution using the same material blend graph.
-# Painted skin and trim retain their alpha but contribute no RGB. Checking a
-# lit red comparison alone mistakes those pigments for team colour where the
-# team base shines through the Rifleman's partially transparent texture.
+
+
+
+
 for material in bpy.data.materials:
     if not material.use_nodes:
         continue
@@ -199,7 +199,7 @@ scene.view_settings.exposure = 0
 for index, path in variants:
     team_texture(index)
     scene.render.filepath = str(Path(path).with_name(Path(path).stem + "-team.png"))
-    # Keep this exact pass available without importing the fighter's clip pool again.
+
     bpy.ops.wm.save_as_mainfile(filepath=str(Path(path).with_name(Path(path).stem + "-team.blend")))
     if not reuse or not Path(scene.render.filepath).exists():
         bpy.ops.render.render(write_still=True)

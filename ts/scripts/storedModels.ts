@@ -1,8 +1,8 @@
-// Checks that the stored families build-inputs.json names hold every generated
-// model the script draws (GENERATED_MODELS), so regenerated art can't land
-// without its stored family, and that no white-flash body keeps a ground plane
-// (#346). The pre-push gate runs it when model inputs change.
-// Usage: bun scripts/storedModels.ts [STORE]
+
+
+
+
+
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { Console, Effect } from "effect";
@@ -33,7 +33,7 @@ const program = Effect.gen(function*() {
     if (unlisted !== undefined) problems.push(`${family} ${manifest[family]}: ${unlisted}; ${remedy}`);
     else if (absent.length > 0) problems.push(`${family} ${manifest[family]}: ${absent.join(", ")} missing; ${remedy}`);
   }
-  // The waterfall replacements are kept in the family by hand; the packager doesn't write them.
+
   const stage = join(store, "stage-assets", manifest["stage-assets"]);
   const waterfalls = TOMB_WATERFALL_IMPORTS.map(({ file }) => file).filter((file) => !existsSync(join(stage, file)));
   if (waterfalls.length > 0) problems.push(`stage-assets ${manifest["stage-assets"]}: ${waterfalls.join(", ")} missing; add the new deck files to a copy of the stored family instead of storing build/stage-assets alone`);

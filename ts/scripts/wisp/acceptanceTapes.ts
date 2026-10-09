@@ -1,7 +1,7 @@
-// The acceptance tapes for `wisp parity tapes`, recorded fresh each run by two
-// scripted keyboard players reacting to the TypeScript simulation. Between
-// them the tapes press every bound source, replay rollbacks and corrected
-// predictions, and play a rematch.
+
+
+
+
 import "../../test/host-natives";
 import { adaptInput } from "../../src/game/input/adapter";
 import { ACTION_COUNT, Action, bit } from "../../src/game/input/actions";
@@ -17,7 +17,7 @@ import { windPush } from "../../src/game/sim/stageHazards";
 import { stageClock } from "../../src/game/match/rules";
 
 const bindings = presetBindings("standard");
-/** Every bound key of the standard layout, by label, plus the controller stick's jump. */
+
 const SOURCES = new Map<string, Action>();
 for (const key of bindings.keys) {
   const action = actionFor(bindings, key);
@@ -30,15 +30,15 @@ const LEFT = "W", RIGHT = "R", DOWN = "E", UP = "SPACE", JUMP = "I", JUMP_ALT = 
   GRAB = "O", SHIELD_LEFT = "Q", SHIELD_RIGHT = "7", LIGHT_SHIELD = "9", LIGHT_SHIELD_ALT = "T", C_LEFT = "B", C_LEFT_ALT = "/", C_RIGHT = "M", C_UP = "J",
   C_DOWN = "H", WALK = "P", SHORT_HOP = "Z";
 
-/** Pseudo-sources: the direction key toward or away from the opponent on this frame. */
+
 const TOWARD = "toward", AWAY = "away";
 
-/** Hold these sources from frame `at` for `frames` frames. */
+
 type Hold = readonly [at: number, frames: number, ...sources: string[]];
-/**
- * From frame `at`, close on the opponent until within `within` units, for at
- * most APPROACH_FRAMES: dashing while far, walking for the last WALK_RANGE.
- */
+
+
+
+
 type Approach = readonly [at: number, within: number];
 const APPROACH_FRAMES = 40;
 const WALK_RANGE = 120;
@@ -52,22 +52,22 @@ interface MatchScript {
   readonly frames: number;
   readonly holds: readonly [readonly Hold[], readonly Hold[]];
   readonly approaches: readonly [readonly Approach[], readonly Approach[]];
-  /** Replay `[first, last]` after frame `last`. */
+
   readonly rollbacks: readonly (readonly [number, number])[];
-  /**
-   * Run `[first, last]` as predictions that slot 1 is idle, then correct each
-   * frame with the inputs actually recorded, oldest first, after frame `last`.
-   */
+
+
+
+
   readonly predictions?: readonly (readonly [number, number])[];
-  /** Slot 1 is the game's computer, which plays from the match in each runtime: the tape gives it no input. */
+
   readonly computer?: boolean;
-  /** Plays with stage hazards off, set at stage selection. */
+
   readonly hazardsOff?: boolean;
-  /** The stage element the tape must exercise on some frame, or recording fails. */
+
   readonly exercise?: "pushed" | "carried" | "shieldPush";
 }
 
-/** Whether a stage element moved a fighter on the frame just run: the wind pushed one, or a moving deck carried one. */
+
 function exercised(session: TapeSession, exercise: "pushed" | "carried" | "shieldPush"): boolean {
   const { world, match } = session.live;
   const frame = stageClock(match);
@@ -103,21 +103,21 @@ function menuLines(script: MatchScript): string[] {
   ];
 }
 
-/**
- * Plays one match as two keyboard players reacting to the TypeScript
- * simulation: each frame samples the held keys and adapts them for the
- * fighter as it stands, as the game does with network rows. The recorded
- * rows are what every runtime replays.
- */
+
+
+
+
+
+
 function playMatch(script: MatchScript, session: TapeSession, play: (...lines: string[]) => void, pressed: Set<string>[]): void {
   const players = (script.computer === true ? [0] as const : [0, 1] as const).map(slot => ({
     slot, capture: keyboardCapture(), controls: neutralControls(), attacks: attackBuffer(0), held: new Set<string>(),
     approaches: script.approaches[slot].map(([at, within]) => ({ at, within, done: false })), holds: script.holds[slot],
   }));
   const rollbacks = new Map(script.rollbacks.map(([first, last]) => [last, first]));
-  /** Recorded input lines of the predicted frames still to correct. */
+
   const actual: string[][] = [];
-  // A competitive match holds its fighters for the countdown: the script's frame 1 is GO!.
+
   const hold = session.live.match.startHold;
   let moved = false;
   for (let at = 1; at <= hold; at++) play(`frame ${at}`);
@@ -167,7 +167,7 @@ function playMatch(script: MatchScript, session: TapeSession, play: (...lines: s
   if (script.exercise !== undefined && !moved) throw new Error(`no fighter was ${script.exercise} by the stage on stage ${script.stage}`);
 }
 
-/** Records a tape by playing its matches, a rematch between consecutive ones. */
+
 function recordTape(title: string, scripts: readonly MatchScript[], pressed: Set<string>[] = []): string {
   const session = createTapeSession();
   const lines = [TAPE_HEADER, `# ${title}`];
@@ -202,7 +202,7 @@ const every = (from: number, to: number, stride: number, length: number) => {
   return windows;
 };
 
-/** Each slot presses every bound source, the three jump sources overlapping, mostly within reach of the other. */
+
 const ACTIONS: MatchScript = {
   characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 3, minutes: 0, frames: 410,
   holds: [[
@@ -229,7 +229,7 @@ const ACTIONS: MatchScript = {
   rollbacks: [...every(40, 400, 40, 6), [347, 410]],
 };
 
-/** Close combat, replayed one frame every frame, in short windows and over the whole retained history. */
+
 const ROLLBACK: MatchScript = {
   characters: [Character.rifleman, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 220,
   holds: [[
@@ -247,7 +247,7 @@ const ROLLBACK: MatchScript = {
   predictions: [[24, 45], [140, 151], [196, 214]],
 };
 
-/** A one-stock match ends when the Rifleman runs off the stage; one replay crosses the end. */
+
 const FIRST_MATCH: MatchScript = {
   characters: [Character.demonHunter, Character.rifleman], stage: 0, stocks: 1, minutes: 0, frames: 110,
   holds: [[[20, 2, ATTACK], [40, 3, JUMP], [60, 2, SPECIAL]], [[1, 110, RIGHT]]],
@@ -255,7 +255,7 @@ const FIRST_MATCH: MatchScript = {
   rollbacks: [[80, 100]],
 };
 
-/** The rematch, configured through the menus: other fighters, the raised decks, two stocks and a clock. */
+
 const SECOND_MATCH: MatchScript = {
   characters: [Character.demonHunter, Character.demonHunter], stage: 1, stocks: 2, minutes: 1, frames: 140,
   holds: [[
@@ -268,10 +268,10 @@ const SECOND_MATCH: MatchScript = {
   rollbacks: [[30, 34], [77, 140]],
 };
 
-/**
- * A player against the computer on the raised decks, with replays that reach
- * back over the computer's choices: each runtime makes them from the match.
- */
+
+
+
+
 const COMPUTER: MatchScript = {
   characters: [Character.demonHunter, Character.rifleman], stage: 1, stocks: 3, minutes: 0, frames: 900, computer: true,
   holds: [[
@@ -284,7 +284,7 @@ const COMPUTER: MatchScript = {
   rollbacks: [...every(120, 840, 120, 8), [837, 900]],
 };
 
-/** Lich's four specials, its free recovery and its frost normals near the Illidan, replayed across each. */
+
 const LICH: MatchScript = {
   characters: [Character.lich, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 480,
   holds: [[
@@ -300,7 +300,7 @@ const LICH: MatchScript = {
   predictions: [[150, 162], [380, 392]],
 };
 
-/** Mountain King spends his mana through all four specials into the free Thunder Leap, then his normals and a throw. */
+
 const MOUNTAIN_KING: MatchScript = {
   characters: [Character.mountainKing, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 600,
   holds: [[
@@ -317,7 +317,7 @@ const MOUNTAIN_KING: MatchScript = {
   predictions: [[150, 162], [400, 412]],
 };
 
-/** Shadow Hunter's glaive, a ward that fires and is struck, Hex, the ward's recall, Loa Vault and his normals, replayed across each. */
+
 const SHADOW_HUNTER: MatchScript = {
   characters: [Character.shadowHunter, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
@@ -333,11 +333,11 @@ const SHADOW_HUNTER: MatchScript = {
   predictions: [[140, 152], [430, 442]],
 };
 
-/**
- * Beastmaster summons his bear, commands a lunge as the Illidan closes, calls
- * it back, throws an axe, rises on Hawk Lift, then axe normals, a grab and a
- * throw, a down air and a second command, with the bear followed throughout.
- */
+
+
+
+
+
 const BEASTMASTER: MatchScript = {
   characters: [Character.beastmaster, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 640,
   holds: [[
@@ -353,11 +353,11 @@ const BEASTMASTER: MatchScript = {
   predictions: [[100, 112], [580, 592]],
 };
 
-/**
- * The Lich King's Howling Blast, a jab chain that banks souls, a soul-spent
- * Val'kyr that carries the Illidan while she mashes, Defile under her
- * approach, Ascension, a Harvest Soul down throw and a Quake down smash.
- */
+
+
+
+
+
 const LICH_KING: MatchScript = {
   characters: [Character.lichKing, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 640,
   holds: [[
@@ -373,11 +373,11 @@ const LICH_KING: MatchScript = {
   predictions: [[150, 162], [480, 492]],
 };
 
-/**
- * Pit Lord's Fel Spit arcs at the Illidan, Ruin Charge runs in on its armor,
- * Howl of Terror roars and the terrified Illidan jabs back, Abyssal Leap
- * rises, then the cleaver normals, a grab and a back throw, and a down air.
- */
+
+
+
+
+
 const PIT_LORD: MatchScript = {
   characters: [Character.pitLord, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 600,
   holds: [[
@@ -393,11 +393,11 @@ const PIT_LORD: MatchScript = {
   predictions: [[90, 102], [440, 452]],
 };
 
-/**
- * Dreadlord's Carrion Swarm hits, a Sleep meets a shield and a second one
- * sleeps the Illidan, Vampiric Pounce catches and bites, a second whiffs, the free
- * Bat Ascension rises on the 5 mana left, then normals and a grab and throw.
- */
+
+
+
+
+
 const DREADLORD: MatchScript = {
   characters: [Character.dreadlord, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 640,
   holds: [[
@@ -414,7 +414,7 @@ const DREADLORD: MatchScript = {
   predictions: [[150, 162], [384, 396]],
 };
 
-/** Forsaken Paladin's four specials (three rushes drain his mana to the free Ascension), Divine Shield against the Illidan's jab, and his hammer normals and throw, replayed across each. */
+
 const FORSAKEN_PALADIN: MatchScript = {
   characters: [Character.forsakenPaladin, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
@@ -430,7 +430,7 @@ const FORSAKEN_PALADIN: MatchScript = {
   predictions: [[140, 152], [440, 452]],
 };
 
-/** Warden's Shadow Strike and its poison, Pursuit Lunge, Fan of Knives, an aimed Blink and her blade normals and a throw against the Illidan, replayed across each. */
+
 const WARDEN: MatchScript = {
   characters: [Character.warden, Character.demonHunter], stage: 0, stocks: 3, minutes: 0, frames: 540,
   holds: [[
@@ -446,7 +446,7 @@ const WARDEN: MatchScript = {
   predictions: [[150, 162], [340, 352]],
 };
 
-/** Records the acceptance tapes by name, and checks they press every bound source. */
+
 export function generateTapes(): Map<string, string> {
   const pressed = [new Set<string>(), new Set<string>()];
   const tapes = new Map([
@@ -521,7 +521,7 @@ export function generateTapes(): Map<string, string> {
       holds: [[[30, 1, ATTACK], [300, 1, SPECIAL]], []], approaches: [[], []],
       rollbacks: [[37, 100], [337, 400]], predictions: [[120, 130]],
     }])] as const),
-    // Hazards off: the carried platform rests at the centre, the first gust's time passes calm, and the cannon's spot is empty.
+
     ...([
       ["hazards-off-carried", 11, 500, "test-air 0 0 125"],
       ["hazards-off-wind", 10, 700, undefined],

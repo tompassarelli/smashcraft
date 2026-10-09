@@ -1,7 +1,7 @@
-// Renders the selection and HUD textures from the SVG art in tools/selection/art.
-// The player chips, cards and HUD plates take each slot's Warcraft player colour
-// (ts/src/game/ui/slotColors.ts), the colour its fighter's model shows.
-// Usage: bun tools/selection/build-art.ts [--out DIR]   (default: build/selection-assets)
+
+
+
+
 import { mkdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { PLAYER_COLORS } from '../../ts/src/game/ui/slotColors';
@@ -20,13 +20,13 @@ function run(command: string[]): string {
 }
 
 const hex = (rgb: number) => `#${rgb.toString(16).padStart(6, '0')}`;
-/** `rgb` moved `amount` of the way to `target`. */
+
 const mix = (rgb: number, target: number, amount: number) => [16, 8, 0].reduce((sum, shift) => {
   const from = (rgb >> shift) & 255;
   return sum + (Math.round(from + (((target >> shift) & 255) - from) * amount) << shift);
 }, 0);
 
-/** Writes `svg` with its placeholders replaced, as a TGA beside it; keeps the SVG when `keep`. */
+
 async function render(name: string, svg: string, replacements: { readonly [placeholder: string]: string }, keep: boolean): Promise<void> {
   let text = await Bun.file(join(source, svg)).text();
   for (const [placeholder, value] of Object.entries(replacements)) text = text.replaceAll(placeholder, value);

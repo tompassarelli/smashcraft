@@ -1,5 +1,5 @@
-// Tinker's two stock rigs retain their geometry; authored actions append local
-// joint motion and sequence-local visibility, with simulation owning travel.
+
+
 import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
@@ -169,8 +169,8 @@ for(const action of actions) {
   bindings.push(`  ${action.pose}: { index: ${index}, seconds: ${seconds(victimContact?1:(end-start)/1000)}, aligned: true${action.contact===undefined?"":`, contact: ${seconds(victimContact?0.5:action.contact/60)}`} },`);
   records.push({pose:action.pose,index,frames:victimContact?60:action.frames});
 }
-// Local articulation can lift feet or rotate a shoulder below the stage.
-// A sequence-only parent plants the rendered support without changing physics.
+
+
 const unplanted=new DrawnModel(generateMDX(model),1);
 for(const [offset,action]of actions.entries()){
   if (/Air$|^(jump|doubleJump|fall|airDodge|wallJump|wallTech|upSpecial|ledgeHang|ledgeClimb|ledgeAttack)/.test(action.pose))continue;
@@ -182,7 +182,7 @@ for(const [offset,action]of actions.entries()){
     motion.Translation!.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,-lowest])});
   }
 }
-// Victims share the holder's half-second contact without changing the contact mesh.
+
 for(const [offset,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
   ensure(action.contact!==undefined,`${action.pose}: missing authored contact`);
   const sequence=model.Sequences[23+offset]!,[first,last]=sequence.Interval;

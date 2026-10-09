@@ -65,7 +65,7 @@ def limb(side, kind, target, pole):
 
 def foot(phase, span, lift, side):
     phase %= 1
-    # The stance foot moves steadily back; the returning foot clears the floor.
+
     x = span*(1 - 4*phase) if phase < .5 else -span*cos((phase - .5)*2*pi)
     z = 23 + (lift*sin((phase - .5)*2*pi) if phase >= .5 else 0)
     return Vector((x, -15 if side == 'R' else 15, z))

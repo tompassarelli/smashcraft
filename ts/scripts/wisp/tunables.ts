@@ -1,10 +1,10 @@
-// The values `bun wisp tune` changes in a running match (wisp:docs/tune.md):
-// movement and jump values of each fighter and the ordinary hit's knockback.
-// Each names its literal in the map's source; Keep writes there. Movement
-// values are in Melee units, as melee() takes them, except the Demon
-// Hunter's jump speeds, which are world units per frame. The input helper's
-// stick deadzone is no tunable: it is a constant compiled into the helper
-// (smashcraft:companion/src/stick.rs), outside the match a reload changes.
+
+
+
+
+
+
+
 import type { Tunable } from "wisp/scripts/wisp/tune";
 
 const TUNING = "src/game/sim/tuning.ts";

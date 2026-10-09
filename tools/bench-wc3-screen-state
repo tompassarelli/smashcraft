@@ -6,7 +6,7 @@ observer="$(dirname "$0")/wc3-screen-state"
 files=(a-before a-after-key a-after-custom-click a-relative-click)
 expected=(main-menu single-player create-game disconnected)
 printf 'sample\tfixture\tmode\telapsed_ms\tstate\n'
-# Alternate order to avoid giving either mode all first reads.
+
 for sample in 1 2 3; do
   modes=(full compact)
   (( sample % 2 )) || modes=(compact full)

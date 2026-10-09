@@ -1,9 +1,9 @@
-// `bun scripts/integrity/pad49Result.ts CAPTURE_DIR [EPOCH]`: checks #49's pad
-// script (`integrity capture --bot --pad49`) against the rows slot 0's helper
-// typed into its client, which the client's receipts show it consumed. Each
-// scripted step's frames come from the edges' injection times on the helper's
-// frame rule (including the match start's first_frame); a step's first
-// two frames and its last are left to the transition.
+
+
+
+
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Action, bit } from "../../src/game/input/actions";
@@ -49,7 +49,7 @@ if (epochNs === undefined) throw new Error(`no match_start for epoch ${epoch} in
 const startNs = epochNs;
 const frameAt = (ns: number) => ruleFrame(startNs, ns);
 
-/** Each pad49 phase's first edge, in order. */
+
 const phases: { readonly phase: string; readonly frame: number }[] = [];
 for (const edge of readEdges(directory)) {
   if (!edge.phase.startsWith("pad49-") || edge.event !== "slot-0") continue;
@@ -66,7 +66,7 @@ const HOLDS: Readonly<Record<string, Check>> = {
   rest: neutral, "drift-a": neutral, "drift-b": neutral, "rest-b": neutral, "rest-c": neutral, "rest-d": neutral, "rest-e": neutral,
   "down-below": noDown, "down-past": down, "right-hold": right,
 };
-/** A tap's press must reach the rows within this many frames, as its action and not the other. */
+
 const TAP_FRAMES = 10;
 const TAPS: Readonly<Record<string, { readonly want: number; readonly not: number }>> = {
   x: { want: bit(Action.special), not: bit(Action.jump) },

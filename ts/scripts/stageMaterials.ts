@@ -4,7 +4,7 @@ import type { DeckFace } from "./stageDeck";
 const parts = ["top", "lip", "body", "underside"] as const;
 const vec = (values: readonly number[]) => `{ ${values.join(", ")} }`;
 
-/** Cut into 128-unit cells before mapping a crop: wrapping an atlas repeats neighbouring tiles. */
+
 function tileFace(face: DeckFace): { corners: number[][]; uv: number[][] }[] {
   const axes = Math.abs(face.normal[2]) > 0.5 ? [0, 1] : Math.abs(face.normal[1]) > 0.5 ? [0, 2] : [1, 2];
   const a = axes[0] ?? 0, b = axes[1] ?? 2;
@@ -38,7 +38,7 @@ function tileFace(face: DeckFace): { corners: number[][]; uv: number[][] }[] {
   return cells;
 }
 
-/** Stock texture faces with static tint, keeping the collision silhouette and winding. */
+
 export function texturedDeckMdl(faces: readonly DeckFace[], materials: PlatformMaterialSet, palette: DeckPalette): string {
   const textures = parts.map(part => materials[part]);
   const points = faces.flatMap(face => face.corners);
@@ -82,7 +82,7 @@ PivotPoints 1 { { 0, 0, 0 }, }
 `;
 }
 
-/** Thin pass-through deck, with a lip and tapered frame under the walking line. */
+
 export function platformDeckFaces(): DeckFace[] {
   const faces: DeckFace[]=[];
   for(const [top,bottom,width,lower,material] of [[0,-3,50,50,0],[-3,-6,50,50,1],[-6,-14,50,42,2],[-14,-17,42,38,3]] as const){

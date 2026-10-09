@@ -17,7 +17,7 @@ function visibility(model: mdx.Model) {
     };
 }
 
-/** A timeline keeps the source's visible body parts at the same pose, including authored form changes. */
+
 export function checkTimelineGeosets(source: mdx.Model, body: mdx.Model, sequences: readonly mdx.Sequence[]) {
     for (const [index, geoset] of source.Geosets.entries()) {
         const actual = body.Geosets[index];

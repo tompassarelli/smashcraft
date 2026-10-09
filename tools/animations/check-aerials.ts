@@ -1,4 +1,4 @@
-// Foreign asset check: compare the packaged clips and preserve pre-existing motion.
+
 import {parseMDX, parseMDL, generateMDL} from 'war3-model';
 import {join} from 'node:path';
 import {checkGroundClips} from './ground-check';
@@ -25,8 +25,8 @@ function sameQuaternion(a:number[],b:number[],epsilon=0.001) {
 for(const fighter of ['Rifleman']) {
  const model=parseMDX(await Bun.file(join(assets,`${fighter}Fighter.mdx`)).arrayBuffer());
  checkGroundClips(model, fighter);
- // Compare unchanged source scenes through the same repaired exporter. The old
- // MDX used globally selected interpolation and is retained as defect evidence.
+
+
  const prior=parseMDL(await Bun.file(join(assets,`${fighter.toLowerCase()}-before-aerial-repaired.mdl`)).text());
  const root=[...model.Bones,...model.Helpers].find(b=>b.Name==='Bone_Root')!;
  for(const name of groundedRecovery) {
@@ -52,8 +52,8 @@ for(const fighter of ['Rifleman']) {
   ensure(keys(root.Translation).length===0,`${name} root translation`);
   for(const bone of [...model.Bones,...model.Helpers]) ensure(keys(bone.Rotation).length>0,`${name} missing bone ${bone.Name}`);
 
- // Compare track values relative to their owning sequence, since new clips
- // change the exporter's global sequence offsets.
+
+
  function tracks(m:any,s:any) {
   const result:any={};
   for(const collection of ['Bones','Helpers','GeosetAnims']) for(const node of m[collection]??[]) {
@@ -69,7 +69,7 @@ for(const fighter of ['Rifleman']) {
  for(const s of prior.Sequences) {
   const next=model.Sequences.find(n=>n.Name===s.Name)!;
   ensure(next && next.NonLooping===s.NonLooping,`${fighter} lost ${s.Name}`);
-  // Grounded recovery and spot-dodge duration are deliberate source changes.
+
   if(changedSourceClips(fighter).has(s.Name)) continue;
   if(Math.abs(next.Interval[1]-next.Interval[0]-s.Interval[1]+s.Interval[0])>1) preservationFailures.push(`${fighter} ${s.Name}: exported duration differs by more than 1ms`);
   const before=tracks(prior,s), after=tracks(model,next);

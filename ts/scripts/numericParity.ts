@@ -1,4 +1,4 @@
-// Numeric Lua parity implementation used by the Wisp parity command.
+
 import { Effect, Schema } from "effect";
 import { ChildProcess } from "effect/process";
 import { evaluateCase } from "../src/parity/corpus";
@@ -25,14 +25,14 @@ function parseLuaNumber(text: string): number {
   return Number(text);
 }
 
-/** Results per corpus case (src/parity/corpus.ts). */
+
 const RESULTS = 11;
 
 function sameValue(a: number, b: number): boolean {
   return Object.is(a, b) || (a !== a && b !== b);
 }
 
-/** One output's results against Bun's: prints its mismatches, returns whether it has cases and none. */
+
 function compareOutput(name: string, output: string): boolean {
   let cases = 0;
   let mismatches = 0;
@@ -58,7 +58,7 @@ function compareOutput(name: string, output: string): boolean {
   return cases > 0 && mismatches === 0;
 }
 
-/** A corpus step that couldn't run: an unreadable result file, or TypeScriptToLua or a Lua that failed. */
+
 export class NumericParityFailure extends Schema.TaggedError<NumericParityFailure>()("NumericParityFailure", {
   operation: Schema.String,
   problem: Schema.String,
@@ -68,17 +68,17 @@ export class NumericParityFailure extends Schema.TaggedError<NumericParityFailur
   }
 }
 
-/**
- * Runs the emitted Lua corpus in each named Lua, or reads the supplied native
- * result files, against Bun; succeeds with false for an empty or divergent result.
- */
+
+
+
+
 export const runNumericParity = (supplied: readonly string[], luas: readonly (readonly [name: string, executable: string])[]) => Effect.gen(function*() {
   if (supplied.length > 0) {
     const texts = yield* Effect.tryPromise({
       try: () => Promise.all(supplied.map((path) => Bun.file(path).text())),
       catch: (cause) => new NumericParityFailure({ operation: "read native results", problem: String(cause) }),
     });
-    // Preload files wrap each line as: call Preload( "..." )
+
     return compareOutput("native", texts.join("\n").replace(/call Preload\( "([^"]*)" \)/g, "$1"));
   }
   yield* runProcess(ChildProcess.make(process.execPath, ["--bun", "node_modules/typescript-to-lua/dist/tstl.js", "-p", "tsconfig.lua.json"], { stdout: "inherit", stderr: "inherit" })).pipe(

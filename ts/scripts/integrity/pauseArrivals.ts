@@ -1,8 +1,8 @@
-// Native pause-control arrivals, measured from a native pad run's helper
-// journals and replayed through a headless run's real map and helpers
-// (wisp#86, wisp:docs/network-model.md "Replayed arrivals"). Times are taken
-// from each Start press the producer injected, so the headless run replays
-// them from its own presses.
+
+
+
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Schema } from "effect";
@@ -13,17 +13,17 @@ const START = 315;
 
 const decodeProducerEvent = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Struct({ type: Schema.Number, code: Schema.Number, value: Schema.Number, producer_injected_monotonic_ns: Schema.Number })));
 
-/** Milliseconds after the Start press at which every client had the message the helpers then acted on. */
+
 export interface PauseArrivals {
-  /** The pause request: the first helper reading PREPARE. */
+
   readonly pauseRequestMs: number;
-  /** Both PREPARE acknowledgments: the first helper reading PAUSE_COMMIT. */
+
   readonly prepareAcksMs: number;
-  /** The resume request, after the second Start press: the first helper reading RESUME. */
+
   readonly resumeRequestMs: number;
 }
 
-/** Start presses in the order the producer injected them, in monotonic nanoseconds. */
+
 export function startPresses(producerJsonl: string): number[] {
   return producerJsonl.split("\n").filter((line) => line.trim() !== "").map((line) => decodeProducerEvent(line))
     .filter((event) => event.type === 1 && event.code === START && event.value === 1).map((event) => event.producer_injected_monotonic_ns);
@@ -47,10 +47,10 @@ export function measuredPauseArrivals(nativeDir: string): PauseArrivals {
   };
 }
 
-/** A pause acknowledgment's stage code (wire from pauseBarrier.encodeControlAck). */
+
 const ackStage = (data: string) => data.length === 35 && data.startsWith("JC1") ? data.charAt(24) : undefined;
 
-/** The replayed arrivals once the headless run's Start presses (monotonic ms) went in. */
+
 export function replayedPauseArrivals(measured: PauseArrivals, pressesMs: readonly number[]): ReplayedArrival[] {
   const [pause, resume] = pressesMs;
   if (pause === undefined) return [];

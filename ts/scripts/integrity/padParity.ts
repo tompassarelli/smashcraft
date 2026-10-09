@@ -1,16 +1,16 @@
-// `bun wisp pad --headless --compare NATIVE`: a native `bun wisp pad` run
-// and a headless run of the same script through the same real helper agree.
-// The integrity build's input trace (smashcraft:ts/src/platform/shell/diagnostics.ts)
-// records a confirmed-state checksum about once a second and a frame-tagged
-// line whenever a fighter starts a special, an attack or a jump, is hit or
-// recovers. The headless run's moment (View held a second, so the script
-// asks for it) replays its rows to the native checksums, the confirmed
-// fighter lines of both traces are equal, and each `#! expect` line in the
-// script holds on both sides. Scripts state what must happen in comments:
-//   #! expect CLIENT FRAME TEXT    a line for that fighter on that frame starts with TEXT (CLIENT a-d: slots 0-3, so c is a computer)
-//   #! absent CLIENT FROM-TO TEXT  no line for that fighter in those frames starts with TEXT
-//   #! scene CLIENT MODEL         that client's scene report had an effect whose model path contains MODEL in view
-//   #! chat TEXT                  the developer command that starts the match, when --chat gives none
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
@@ -22,7 +22,7 @@ import { readReplay } from "../wisp/replayFiles";
 import { BTN_SELECT, EV_KEY } from "./linuxInput";
 import { parsePadScript, type PadStep } from "./padScript";
 
-/** Comparison needs the consumer's existing View-hold export before either session starts. */
+
 export function comparisonSteps(script: string, path = "pad script"): readonly PadStep[] {
   const steps = parsePadScript(script);
   const held: [number | undefined, number | undefined] = [undefined, undefined];
@@ -48,7 +48,7 @@ export const MATCH_REPLAY_NAME = /^smashcraft-replay-p[01]-\d+\.txt$/;
 interface TraceEvent {
   readonly slot: number;
   readonly frame: number;
-  /** The line after `frame F `: its phase and what happened. */
+
   readonly text: string;
 }
 
@@ -57,7 +57,7 @@ interface Trace {
   readonly events: readonly TraceEvent[];
 }
 
-/** Confirmed-state changes the shell traces the same way on every client; presentation lines are left out. */
+
 const COMPARED = /^phase \d+ (special |special-form |applied attack |applied jump |damage \d|recovery |grab action |grab-hold |shield-break |shield tilt |ledge |di |ground action )/;
 
 export function parseTrace(lines: readonly string[]): Trace {
@@ -81,7 +81,7 @@ interface Expectation {
   readonly line: number;
 }
 
-/** A `#! scene CLIENT MODEL` line: that client's scene report shows an effect whose model path contains MODEL in view. */
+
 interface SceneExpectation {
   readonly slot: number;
   readonly model: string;
@@ -97,7 +97,7 @@ function parseSceneExpectations(script: string): readonly SceneExpectation[] {
   return found;
 }
 
-/** What each scene expectation found wrong in a client's scene report (smashcraft:docs/player-view.md). */
+
 function unmetSceneExpectations(reports: readonly (readonly string[] | undefined)[], expectations: readonly SceneExpectation[], side: string): string[] {
   return expectations.flatMap((expectation) => {
     const where = `${side} script line ${expectation.line} (scene ${"ab"[expectation.slot]} ${expectation.model})`;
@@ -110,7 +110,7 @@ function unmetSceneExpectations(reports: readonly (readonly string[] | undefined
   });
 }
 
-/** The script's `#! expect` and `#! absent` lines. */
+
 export function parseExpectations(script: string): readonly Expectation[] {
   const found: Expectation[] = [];
   script.split("\n").forEach((raw, index) => {
@@ -125,7 +125,7 @@ export function parseExpectations(script: string): readonly Expectation[] {
   return found;
 }
 
-/** What each expectation found wrong in a trace; empty when all hold. */
+
 export function unmetExpectations(trace: Trace, expectations: readonly Expectation[], side: string): string[] {
   const problems: string[] = [];
   const last = Math.max(0, ...trace.events.map((event) => event.frame), ...trace.checksums.keys());
@@ -142,7 +142,7 @@ export function unmetExpectations(trace: Trace, expectations: readonly Expectati
   return problems;
 }
 
-/** A pad run's folder: client-N/CustomMapData (headless) or the files `bun wisp pad` collected beside its result. */
+
 function readLines(path: string): string[] | undefined {
   try {
     return preloadLines(readFileSync(path, "latin1"));
@@ -152,13 +152,13 @@ function readLines(path: string): string[] | undefined {
 }
 
 interface ParityReport {
-  /** The native run proves nothing either way: rerun it. */
+
   readonly invalid?: boolean;
   readonly passed: boolean;
   readonly lines: readonly string[];
 }
 
-/** Equal fighter lines on the frames both traces cover; the first difference otherwise. */
+
 function eventDifference(native: Trace, headless: Trace, through: number): string | undefined {
   const key = (event: TraceEvent) => `${event.slot} ${event.frame} ${event.text}`;
   const a = native.events.filter((event) => event.frame <= through).map(key);
@@ -173,7 +173,7 @@ interface RunResult {
   readonly off_frame?: number;
   readonly helpers_stopped?: readonly string[];
   readonly build?: string;
-  /** Why the native run proves nothing: a desync, a crash or an early end (pad.ts). */
+
   readonly invalid?: readonly string[];
 }
 
@@ -184,7 +184,7 @@ const isRunResult = (value: unknown): value is RunResult => typeof value === "ob
   && ("invalid" in value ? isStrings(value.invalid) && (!("off_frame" in value) || typeof value.off_frame === "number")
     : "off_frame" in value && typeof value.off_frame === "number" && "helpers_stopped" in value && isStrings(value.helpers_stopped));
 
-/** Compares a native pad run's folder with a headless one's, both written by `bun wisp pad`. */
+
 export function compareRuns(nativeDir: string, headlessDir: string, script: string): ParityReport {
   const lines: string[] = [];
   const problems: string[] = [];
@@ -218,7 +218,7 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
     if (headlessMoments.length === 0) problems.push("headless: no moment saved (hold View a second in the script)");
     const checked = new Set<number>();
     for (const moment of headlessMoments) {
-      // Each moment, saved by a View hold, replays to the native checksums of its frames.
+
       const start = Number(/^start (\d+) /m.exec(moment.lines.join("\n"))?.[1] ?? Number.NaN);
       const checkpoints = new Map<number, string>();
       for (const [frame, checksum] of nativeTrace.checksums) if (frame > start && frame <= moment.frame) checkpoints.set(frame, checksum);
@@ -250,12 +250,12 @@ export function compareRuns(nativeDir: string, headlessDir: string, script: stri
   return { passed: problems.length === 0, lines };
 }
 
-/**
- * A headless pad run alone, with no native run to compare (`bun wisp farm
- * pads`): its edges landed on their frames and the script's `#! expect`,
- * `#! absent` and `#! scene` lines hold in its trace and scene reports,
- * and every saved moment and completed match replays to its recorded checksums.
- */
+
+
+
+
+
+
 export function checkHeadlessRun(headlessDir: string, script: string): ParityReport {
   const lines: string[] = [];
   const problems: string[] = [];
@@ -315,12 +315,12 @@ export function checkHeadlessRun(headlessDir: string, script: string): ParityRep
   return { passed: problems.length === 0, lines };
 }
 
-/** The script's `#! chat TEXT` line: the developer command that starts its match, such as `-dev quick hero rifleman`. */
+
 export function scriptChat(script: string): string | undefined {
   return /^\s*#!\s*chat\s+(.+?)\s*$/m.exec(script)?.[1];
 }
 
-/** Fields where two decoded states differ, as `path: a vs b`, at most `limit`. */
+
 function stateDifferences(a: unknown, b: unknown, limit = 12): string[] {
   const found: string[] = [];
   const walk = (x: unknown, y: unknown, path: string) => {
@@ -333,12 +333,12 @@ function stateDifferences(a: unknown, b: unknown, limit = 12): string[] {
   return found;
 }
 
-/**
- * Native moments against headless moments that start on the same frame: the
- * rows each match ran on every frame both hold (the intended presses as the
- * helper made them, against what the native match ran), and the starting
- * states field by field, which names what a checksum difference is in.
- */
+
+
+
+
+
+
 function momentDifferences(native: readonly Repro[], headless: readonly Repro[]): { lines: string[]; problems: string[] } {
   const lines: string[] = [];
   const problems: string[] = [];

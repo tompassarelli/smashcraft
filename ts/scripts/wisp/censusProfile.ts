@@ -1,16 +1,16 @@
-// `bun wisp perf census --functions` and `perf profile`'s Lua side: replays a
-// perf run with a sampling hook on the frames PERF_PROFILE_FRAMES names (a
-// run is deterministic, so its frame numbers repeat) and prints, per frame, the map
-// functions the samples landed in: `prof FRAME LINE SELF INCLUSIVE`, LINE
-// being where the function starts in the map bundle. Only the map's own code
-// is sampled: a sample taken inside an emulated native is dropped.
+
+
+
+
+
+
 import type { ClientScope } from "wisp/src/headless/client";
 import { luaLockstep, readFile } from "wisp/src/headless/lua";
 import type { LuaHeadlessMap } from "wisp/src/headless/lua";
 import type { Lockstep, SyncDelivery } from "wisp/src/headless/lockstep";
 import type { PerfMeasure } from "wisp/src/headless/luaPerf";
 
-/** Instructions between samples. */
+
 const SAMPLE_STEP = 1000;
 
 export function profileRun(
@@ -33,7 +33,7 @@ export function profileRun(
   }
   const phaseCounts = new Map<number, Map<number, number[]>>();
   let phaseRow: number[] | undefined;
-  // Exclusive sample groups: repair, confirmed, prediction, presentation, other.
+
   const stack = (first: number): [number, boolean] => {
     let phase = 4;
     let simulation = false;
@@ -50,7 +50,7 @@ export function profileRun(
     }
     return [phase, simulation];
   };
-  /** By frame, then by function start line: [self, inclusive] samples. */
+
   const counts = new Map<number, Map<number, [number, number]>>();
   let current: Map<number, [number, number]> | undefined;
   const sample = (event: string) => {

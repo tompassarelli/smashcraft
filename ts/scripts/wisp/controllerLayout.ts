@@ -21,7 +21,7 @@ export const controllerSettingsPath = () => join(process.env.XDG_CONFIG_HOME ?? 
 const fail = (problem: string) => new PlayProblem({ problem });
 const readJsonLine = Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Unknown));
 
-/** Sends `layout` to the service and waits for its status to report it; false when no service listens. */
+
 const sendLive = (layout: Layout, port: number) =>
   Effect.acquireRelease(Effect.sync(() => connect({ host: "127.0.0.1", port })), (socket) => Effect.sync(() => socket.destroy())).pipe(
     Effect.flatMap((socket) => Effect.callback<boolean, PlayProblem>((resume) => {
@@ -45,7 +45,7 @@ const sendLive = (layout: Layout, port: number) =>
     Effect.scoped,
   );
 
-/** Sends a live choice and waits for the service to report it; a stopped service saves it for next start. */
+
 export const setControllerLayout = (layout: Layout, path = controllerSettingsPath(), port = Number(process.env.WC3_CONTROLLER_PORT ?? 47631)) =>
   Effect.gen(function*() {
     if (yield* sendLive(layout, port)) return "live" as const;

@@ -1,12 +1,12 @@
-// `bun wisp soak memory`'s program (commands/soak.ts): the playable build in
-// two headless clients in 32-bit Lua, with Warcraft's measured sync latency,
-// playing match after match for MINUTES game minutes: every fighter and every
-// stage in turn, four fighters a match (the two players press the native bot
-// session's beat, two computers), one stock and a one-minute clock, back to
-// fighter selection after each result and every third match an automatic
-// rematch. Each game minute and each result it prints what the clients'
-// maps hold (memoryCensus.ts) for the slope check (memorySoak.ts).
-// Usage: lua build/memory.lua MAP_LUA WARCRAFT_D_TS [MINUTES]
+
+
+
+
+
+
+
+
+
 import { parseNativeDeclarations } from "wisp/src/headless/declarations";
 import { type HeadlessClient } from "wisp/src/headless/client";
 import { luaLockstep, readFile } from "wisp/src/headless/lua";
@@ -34,7 +34,7 @@ const { functions } = parseNativeDeclarations(declarationsText);
 const clients = luaLockstep({ filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES, intentionalNoops: SMASHCRAFT_NOOPS, natives: smashcraftNativeBehavior }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
 const host = clients.client(0);
 const censuses = clients.clients.map((client) => new HandleCensus(client, functions));
-// What the emulator and the census put in each environment before the map ran: natives, constants and globals.
+
 const emulator = clients.clients.map((client) => {
   const owned: unknown[] = [client];
   for (const [, value] of pairs(client.natives)) owned.push(value);
@@ -68,16 +68,16 @@ const census = (heading: string) => {
     const live = handles === undefined ? "" : handles.counts().map(([kind, count]) => `${kind}=${count}`).join(",");
     const models = new Map<string, number>();
     for (const pose of client.effectPoses()) models.set(pose.model, (models.get(pose.model) ?? 0) + 1);
-    // Every model at fighter selection, to tell which effects a match left behind; the most used elsewhere.
+
     const byModel = [...models].sort((a, b) => b[1] - a[1]).slice(0, heading.startsWith("kind=menu") ? models.size : 8).map(([model, count]) => `${model.replaceAll(" ", "_")}:${count}`).join(",");
     parts.push(`p${client.slot} tables=${found.tables} functions=${found.functions} entries=${found.entries} string-bytes=${found.stringBytes} live=${live} top=${found.byGlobal.slice(0, 6).map(([name, count]) => `${name}:${count}`).join(",")} models=${byModel}`);
   });
   print(parts.join(" | "));
 };
 
-/** One frame: the players' beat while a match runs, every key let go outside it, a census at each game minute. */
+
 const frame = () => {
-  // The shell starts at the first timer, after the first frame.
+
   const inMatch = clients.frame > 0 && gameOf(host).phase === Phase.match;
   const [tap, hold] = inMatch && releaseMatches === undefined ? botBeatKeys(++beat) : [0, 0];
   for (const player of clients.clients) {
@@ -88,7 +88,7 @@ const frame = () => {
   held = hold;
   clients.frames(1);
   if (tap !== 0) for (const player of clients.clients) for (const client of clients.clients) client.key(player.slot, tap, 0, false);
-  // Each frame's logged calls fold into the checksum at once: a log kept for a minute would grow the heap by its own array.
+
   for (const client of clients.clients) client.forget(client.log.length);
   if (releaseMatches === undefined && floorMod(clients.frame, FRAMES_PER_MINUTE) === 0) census(`kind=minute minute=${floorDiv(clients.frame, FRAMES_PER_MINUTE)}`);
 };
@@ -101,7 +101,7 @@ const until = (what: string, limit: number, done: () => boolean, each?: (index: 
   if (!done()) throw new Error(`${what} not reached at frame ${clients.frame}`);
 };
 
-/** The same choices in every client keep them synchronized, as the native bot session's setup does (botMatch.ts). */
+
 const choose = (lineup: number, automaticRematch: boolean) => {
   const stage = STAGE_CATALOG[floorMod(lineup, STAGE_CATALOG.length)]?.id ?? 0;
   for (const client of clients.clients) {
@@ -127,7 +127,7 @@ let lineup = Number(firstText);
 let rematchNext = false;
 while (releaseMatches === undefined ? clients.frame < totalFrames : matches < releaseMatches) {
   const rematch: boolean = rematchNext;
-  // Every third match is the automatic rematch of the one before.
+
   rematchNext = !rematch && floorMod(matches, 3) === 1;
   if (!rematch) {
     choose(lineup, rematchNext);
@@ -137,7 +137,7 @@ while (releaseMatches === undefined ? clients.frame < totalFrames : matches < re
     clients.press(0, Key.y);
     until("the match", 600, () => gameOf(host).phase === Phase.match);
   }
-  // One stock and a one-minute clock end every match within its minute, its start hold and the sudden death.
+
   until("the result", 3 * FRAMES_PER_MINUTE, () => gameOf(host).phase === Phase.result);
   matches++;
   for (let index = 0; index < 60; index++) frame();
@@ -152,9 +152,9 @@ while (releaseMatches === undefined ? clients.frame < totalFrames : matches < re
   if (releaseMatches !== undefined && matches >= releaseMatches) break;
   if (rematchNext) until("the rematch", 20 * 60, () => gameOf(host).phase === Phase.match);
   else {
-    // A press stops a rematch countdown; then each player's readies them for fighter selection.
+
     until("fighter selection", 20 * 60, () => gameOf(host).phase === Phase.characterMenu, (index) => {
-      // One press at a time: a second player's press on the frame the last one readies would confirm fighter selection too.
+
       if (floorMod(index, 30) === 0) clients.press(floorMod(floorDiv(index, 30), 2), Key.y);
     });
     for (let index = 0; index < 60; index++) frame();

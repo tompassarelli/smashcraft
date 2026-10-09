@@ -1,6 +1,6 @@
-// Object data (war3map.w3u and war3map.w3a, format 2) for fighter units
-// and the channel ability that FileIO
-// (WurstStdlib2 e3714f629113, Apache-2.0) generates for '$wsl'.
+
+
+
 import { FILE_IO_OBJECT, FIGHTER_OBJECT_ORDER, FIGHTER_OBJECTS, type FighterObject } from "../src/game/objectData";
 
 type Value =
@@ -11,7 +11,7 @@ type Value =
 interface Modification {
   readonly field: string;
   readonly value: Value;
-  /** Ability data is per level; unit data has no levels. */
+
   readonly level?: number;
 }
 
@@ -22,7 +22,7 @@ interface ObjectDefinition {
 }
 
 const VALUE_TYPES = { int: 0, real: 1, string: 3 } as const;
-/** Marks objects the Wurst compiler generated; kept so the output matches the Wurst build byte for byte. */
+
 const WURST_MARKER: Modification = { field: "wurs", value: { kind: "int", value: 42 } };
 
 function encodeObjectData(definitions: readonly ObjectDefinition[], levels: boolean): Uint8Array {
@@ -38,7 +38,7 @@ function encodeObjectData(definitions: readonly ObjectDefinition[], levels: bool
     text(value);
   };
   int32(2);
-  int32(0); // No changed original objects.
+  int32(0);
   int32(definitions.length);
   for (const definition of definitions) {
     id(definition.base);
@@ -50,7 +50,7 @@ function encodeObjectData(definitions: readonly ObjectDefinition[], levels: bool
       int32(VALUE_TYPES[value.kind]);
       if (levels) {
         int32(level);
-        int32(0); // Data column.
+        int32(0);
       }
       if (value.kind === "int") int32(value.value);
       else if (value.kind === "real") {
@@ -84,12 +84,12 @@ function fighter(definition: FighterObject): ObjectDefinition {
   };
 }
 
-/** war3map.w3u: the three fighter unit types. */
+
 export function fighterUnits(): Uint8Array {
   return encodeObjectData(FIGHTER_OBJECT_ORDER.map(character => fighter(FIGHTER_OBJECTS[character])), false);
 }
 
-/** war3map.w3a: FileIO's channel ability, whose 64 tooltips carry file contents into the game. */
+
 export function fileIoAbility(): Uint8Array {
   const { base, id, levels, tooltip } = FILE_IO_OBJECT;
   return encodeObjectData([{

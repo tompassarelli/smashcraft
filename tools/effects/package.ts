@@ -1,4 +1,4 @@
-// Foreign MDX/texture boundary; gameplay events and lifetimes are game-owned.
+
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
 
@@ -62,7 +62,7 @@ for (let i = 0; i < 24; i++) {
 }
 const models: [string,Shape[]][] = [["Hit",rays(16,47,44)], ["Tech",rays(8,60,22)], ["Miss",miss], ["Dust",dust], ["Roll",rays(8,33,30)],
     ["Electric",electric], ["Shield",rays(10,38,38)], ["Jump",ring], ["KO",rays(20,85,85)], ["Respawn",rays(8,45,65)]];
-// A floor-plane disk stays above the deck at the gameplay camera's downward angle.
+
 const defile: Shape[] = [{ points: Array.from({length:64}, (_,i) => {
     const angle = i * Math.PI / 32;
     return [.89 * Math.cos(angle), .54 * Math.sin(angle)] as Point;
@@ -73,11 +73,11 @@ for (let i = 0; i < 64; i++) {
         [Math.cos(b),.60*Math.sin(b)],[.89*Math.cos(b),.54*Math.sin(b)]],tile:0});
 }
 models.push(["Defile",defile]);
-/**
- * HD modes draw a model's omni lights without a cap (3.0); Classic keeps the
- * spark geometry alone. Each light fades out within its spark's pooled
- * lifetime (tech 15 frames, a contact spark 9), so a parked spark is unlit.
- */
+
+
+
+
+
 type ContactLight = { radius: number, peak: number, mid: number, fadeMs: number, color: [number, number, number] };
 const contactLights: Record<string, ContactLight | undefined> = {
     Tech: { radius: 320, peak: 0.55, mid: 0.25, fadeMs: 180, color: [.65, .8, 1] },

@@ -4,7 +4,7 @@ import { type Command, UsageFailure, flagValues } from "wisp/scripts/wisp/comman
 import { doctorForClients, signOutForClients } from "../clientDoctorCommand";
 import { clientState } from "../project";
 
-/** An explicit selector never falls back to the signed-in clients. */
+
 export function clientArguments(args: readonly string[]): { readonly clientsFile: string; readonly args: readonly string[] } {
   const values = flagValues(args, "clients-file");
   const flags = args.filter(arg => arg === "--clients-file" || arg.startsWith("--clients-file="));
@@ -23,11 +23,11 @@ interface ClientFactories {
   readonly signOut: typeof signOutForClients;
 }
 
-/** Bind observation, input and recovery to one selected clients file before any driver runs. */
+
 export const clientWith = (factories: ClientFactories): Command => (args) => Effect.gen(function*() {
   const selected = yield* Effect.try({ try: () => clientArguments(args), catch: cause => cause instanceof UsageFailure ? cause : new UsageFailure({ problem: String(cause) }) });
   return yield* factories.make(selected.clientsFile, { filePrefix: "smashcraft" }, factories.doctor(selected.clientsFile), factories.signOut(selected.clientsFile))(selected.args);
 });
 
-// Match receipts let `client chat` and Return reach a running match (wisp:docs/watch.md, "Typing only into a match").
+
 export const client = clientWith({ make: makeClient, doctor: doctorForClients, signOut: signOutForClients });

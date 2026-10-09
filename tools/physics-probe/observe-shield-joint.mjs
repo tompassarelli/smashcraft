@@ -1,4 +1,4 @@
-// Independently authored loader; original executable bytes remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/shield-joint-runner';
@@ -46,8 +46,8 @@ wrapper.writeUInt32BE(attributes,ftData-entry+8);
 wrapper.writeUInt8(0,attributes-entry+0x11);
 wrapper.writeUInt32BE(bones,state-entry+0x5e8);
 wrapper.writeUInt32BE(joint,bones-entry);
-// Static synthetic joint: skip downstream dirty-matrix propagation, without
-// changing the original scale routine or its descriptor/bone lookup.
+
+
 wrapper.writeUInt32BE(0x02000000,joint-entry+0x14);
 wrapper.writeInt32BE(60,descriptor-entry+4);
 wrapper.writeFloatBE(dat.readFloatBE(commonFileOffset+0x2a8),descriptor-entry+0x14);

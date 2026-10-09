@@ -1,4 +1,4 @@
-// Foreign model boundary: contact timing and required ground-attack tracks.
+
 
 export function checkGroundClips(model: any, fighter: string) {
     const require = (ok: unknown, message: string) => { if (!ok) throw new Error(`${fighter}: ${message}`); };

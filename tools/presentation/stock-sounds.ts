@@ -1,10 +1,10 @@
-// Checks every sound and track the match presentation names, and every sound
-// label hit presentation plays (resolved through the game's AnimSounds.slk and
-// AbilitySounds.slk to its files), against the installed game's storage and
-// records the verified paths, so headless tests can hold the presentation to
-// sounds that exist. Only paths are written; the audio stays in the game.
-// Usage: bun tools/presentation/stock-sounds.ts --extract CASC_EXTRACT [--storage WARCRAFT_DIR]
-// (tools/animations/extract.sh builds CASC_EXTRACT into build/animation-assets/.)
+
+
+
+
+
+
+
 import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
@@ -21,7 +21,7 @@ const storage = option('--storage') ?? `${process.env.HOME}/.local/share/Steam/s
 const project = resolve(import.meta.dir, '../..');
 const scratch = mkdtempSync(join(tmpdir(), 'smashcraft-sounds.'));
 
-/** The game resolves a script's sound path to whichever encoding and locale it stores. */
+
 function storedNames(path: string): string[] {
   const stem = path.toLowerCase().replace(/\.[a-z0-9]+$/, '');
   const names: string[] = [];
@@ -40,7 +40,7 @@ async function stored(path: string, index: number): Promise<string | undefined> 
   return undefined;
 }
 
-/** SoundName to FileNames (script paths) in one of the game's SoundInfo tables (SYLK). */
+
 function soundTable(text: string): Map<string, string[]> {
   const rows = new Map<number, Map<number, string>>();
   let y = 0;
@@ -73,7 +73,7 @@ for (const table of ['AnimSounds', 'AbilitySounds']) {
   for (const [label, files] of soundTable(await Bun.file(output).text())) if (!labelFiles.has(label)) labelFiles.set(label, files);
 }
 const labels = hitPresentationSoundLabels();
-// A sound given by script path is its own file.
+
 for (const label of labels) if (label.includes('\\')) labelFiles.set(label, [label]);
 const unknownLabels = labels.filter(label => !labelFiles.has(label));
 if (unknownLabels.length > 0) throw new Error(`not in the game's sound tables: ${unknownLabels.join(', ')}`);

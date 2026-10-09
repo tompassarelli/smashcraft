@@ -1,10 +1,10 @@
-// CI reports and gates the measured development loops; it runs each check and
-// returns the first child failure so one slow check cannot hide later results.
-// Other work on a shared machine only adds time, so a passing check that runs
-// over its target is timed again, up to TIMED_ATTEMPTS samples, and gated on
-// its fastest sample. A failing child is never retried. The targets describe
-// the development machine, so CI_TIMING=report (set by hosted CI, whose runners
-// are smaller) reports one sample without gating its timing.
+
+
+
+
+
+
+
 import { resolve } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Cause, Effect, Exit, Schema } from "effect";
@@ -16,7 +16,7 @@ const bun = process.execPath;
 const TIMED_ATTEMPTS = 3;
 const gateTiming = process.env.CI_TIMING !== "report";
 
-/** A check's child exited nonzero (its code), couldn't start, or stayed over its timing target. */
+
 class CheckFailure extends Schema.TaggedError<CheckFailure>()("CheckFailure", { problem: Schema.String, exitCode: Schema.Int }) {
   override get message(): string {
     return this.problem;
@@ -30,7 +30,7 @@ const check = (
   env: Record<string, string | undefined> = process.env,
 ) => Effect.gen(function*() {
   const samples: number[] = [];
-  // The child belongs to this scope, so a cancelled CI run stops it.
+
   const sample = Effect.scoped(Effect.gen(function*() {
     const started = performance.now();
     const child = yield* ChildProcess.make(bun, args, { cwd: project, env, stdin: "ignore", stdout: "inherit", stderr: "inherit" });
@@ -42,7 +42,7 @@ const check = (
     return elapsedMs;
   })).pipe(Effect.catchTag("PlatformError", (cause) => Effect.fail(new CheckFailure({ problem: `${name}: ${cause.message}`, exitCode: 1 }))));
   const overTarget = (elapsedMs: number) => targetMs !== undefined && elapsedMs > targetMs;
-  // A failing child is never retried: a failure ends the repeat.
+
   const last = yield* Effect.repeat(sample, { while: elapsedMs => gateTiming && overTarget(elapsedMs), times: TIMED_ATTEMPTS - 1 });
   if (!overTarget(last)) return;
   const summary = `${name} exceeded ${targetMs} ms in ${samples.length} samples: ${samples.map((ms) => ms.toFixed(0)).join(", ")} ms`;
@@ -71,7 +71,7 @@ const checks = [
   ),
 ];
 
-/** Every check runs; the exit code is the first failure's. */
+
 const program = Effect.gen(function*() {
   const failures: CheckFailure[] = [];
   for (const run of checks) {
@@ -84,7 +84,7 @@ const program = Effect.gen(function*() {
   return failures[0]?.exitCode ?? 0;
 });
 
-// One runtime boundary: SIGINT or SIGTERM (a cancelled CI run) stops the running check's child.
+
 BunRuntime.runMain(program.pipe(Effect.provide(BunServices.layer)), {
   disableErrorReporting: true,
   teardown: (exit) => {

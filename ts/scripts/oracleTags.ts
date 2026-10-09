@@ -1,7 +1,7 @@
-// Every test names its oracle: where its expected value comes from, outside
-// the code under test (#243). The suite runners (scripts/test.ts,
-// scripts/lua-tests.ts) read each test's title from the source and refuse to
-// run when one has no tag. Titles must be literal text so the tag is visible.
+
+
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
@@ -22,10 +22,10 @@ export const ORACLE_TAGS = [
 ].join("\n");
 
 const REGISTRARS = new Set(["test", "it", "sweep"]);
-/** `test.each(rows)` and `test.if(condition)` return the function that takes the title. */
+
 const CURRIED = new Set(["each", "if", "skipIf", "todoIf"]);
 
-/** `test(...)`, `test.skip(...)`, `test.each(rows)(...)`, `sweep(...)`: the call that takes a title. */
+
 function registersTest(call: ts.CallExpression): boolean {
   const callee = call.expression;
   if (ts.isIdentifier(callee)) return REGISTRARS.has(callee.text);
@@ -37,7 +37,7 @@ function registersTest(call: ts.CallExpression): boolean {
   return false;
 }
 
-/** The title's literal text, `${…}` for substitutions; undefined when the title isn't literal. */
+
 function titleText(node: ts.Expression | undefined): string | undefined {
   if (node === undefined) return undefined;
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
@@ -47,7 +47,7 @@ function titleText(node: ts.Expression | undefined): string | undefined {
 
 export type Untagged = { readonly file: string; readonly line: number; readonly title: string };
 
-/** Every test in FILES (relative to ROOT) whose title has no oracle tag. */
+
 export function untaggedTests(root: string, files: readonly string[]): Untagged[] {
   const found: Untagged[] = [];
   for (const file of files) {
@@ -66,7 +66,7 @@ export function untaggedTests(root: string, files: readonly string[]): Untagged[
   return found;
 }
 
-/** Exits 1, naming each untagged test and the tags, before any test runs. */
+
 export function refuseUntagged(root: string, files: readonly string[]): void {
   const untagged = untaggedTests(root, files);
   if (untagged.length === 0) return;

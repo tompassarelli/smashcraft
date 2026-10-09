@@ -1,10 +1,10 @@
-// Foreign MDX/texture boundary: original sphere, baked rim and gloss; no emitters or lights.
+
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
 
 const output = join(import.meta.dir, "../../build/impact-assets");
 const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
-const colors = [[216,44,62], [40,123,213], [231,191,50], [53,167,91]]; // Match HUD palette.
+const colors = [[216,44,62], [40,123,213], [231,191,50], [53,167,91]];
 const size = 512, radius = 72, segments = 64, rings = 16;
 const vector = (v: number[]) => `{ ${v.map(n => +n.toFixed(6)).join(", ")} }`;
 const extent = `MinimumExtent { -72, -72, -72 }, MaximumExtent { 72, 72, 72 }, BoundsRadius 72,`;
@@ -16,7 +16,7 @@ for (const side of [-1, 1]) {
     function vertex(theta: number, phi: number) {
         const x = Math.sin(theta) * Math.cos(phi), up = Math.sin(theta) * Math.sin(phi);
         const depth = side * Math.cos(theta), angle = Math.PI / 18;
-        // The arena camera looks down ten degrees. Both hemispheres are real geometry.
+
         const normal = [x, -depth * Math.cos(angle) + up * Math.sin(angle), depth * Math.sin(angle) + up * Math.cos(angle)];
         vertices.push(normal.map(n => n * radius)); normals.push(normal); uvs.push([.5 + x / 2, .5 - up / 2]);
     }

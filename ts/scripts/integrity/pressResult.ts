@@ -1,13 +1,13 @@
-// `bun scripts/integrity/pressResult.ts OUT.json CAPTURE_DIR ...`: #60's claim
-// over integrity-build captures (#26's capture and `integrity capture --bot` on a
-// diagnostic build): every scripted press counted against both clients'
-// confirmed rows, the share applied on the frame its injection time implies,
-// and each legal press's local start (callbacks from capture to the presser's
-// first prediction). Presses made while a capture had stopped the presser's
-// own game or helper, and presses the presser's client captured while a remote
-// row R frames behind held its prediction back, are reported apart from the
-// gate; presses made while the other player's process was stopped are listed
-// apart from presses with no stall.
+
+
+
+
+
+
+
+
+
+
 import { writeFileSync } from "node:fs";
 import { Effect } from "effect";
 import { readEvidence, readMetadata } from "./evidence";
@@ -17,7 +17,7 @@ const [out, ...directories] = process.argv.slice(2);
 if (out === undefined || directories.length === 0) throw new Error("usage: bun scripts/integrity/pressResult.ts OUT.json CAPTURE_DIR ...");
 
 const MIN_PRESSES = 1000;
-/** #60's actions, each satisfied by any of these workload binding names. */
+
 const ACTIONS: Readonly<Record<string, readonly string[]>> = {
   attack: ["attack"],
   jump: ["jump", "jump-b", "jump-y"],
@@ -29,7 +29,7 @@ const ACTIONS: Readonly<Record<string, readonly string[]>> = {
   move: ["move-left", "move-right", "move-down", "move-up"],
 };
 const SIDES: readonly StallSide[] = ["none", "opponent", "own"];
-/** #48's recovery bound: a second at 60 frames a second. */
+
 const RECOVERY_FRAMES = 60;
 
 const measured = (starts: readonly LocalStart[]) => starts.flatMap((start) => (start.delay === undefined ? [] : [start.delay]));
@@ -99,12 +99,12 @@ const summary = {
     all: distribution(measured(all)),
     by_stall: bySide(all),
     prediction_held: { ...distribution(measured(held)), missing_first_prediction: held.filter((start) => start.delay === undefined).length },
-    // Diagnosis of the gated presses: those in the second after a stop ended, while the clients catch up, and the rest.
+
     gated_within_1s_after_stop: distribution(measured(gated.filter((start) => start.afterStall !== undefined && start.afterStall <= RECOVERY_FRAMES))),
     gated_clear_of_stops: distribution(measured(gated.filter((start) => start.stall === "none" && (start.afterStall === undefined || start.afterStall > RECOVERY_FRAMES)))),
   },
   gated_local_start: { n: gatedDelays.length, max: gatedMax, missing_first_prediction: gatedMissing },
-  // Gated presses whose first prediction did not start the action: callbacks from capture until the confirmed frame did.
+
   gated_shown_only_when_confirmed: distribution(gated.flatMap((start) => (start.confirmedAfter === undefined ? [] : [start.confirmedAfter]))),
   worst_gated_presses: gated.filter((start) => start.delay !== undefined && start.delay > 1).sort((a, b) => (b.delay ?? 0) - (a.delay ?? 0)),
   gated_without_first_prediction: gated.filter((start) => start.delay === undefined),

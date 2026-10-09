@@ -10,7 +10,7 @@ import { onGlobalClock } from "./original-clips";
 import { originalClipNamed } from "../../ts/src/game/assets/fighterOriginalClipInfo";
 
 export function flashableSequences(character: number, sequences: readonly mdx.Sequence[]): mdx.Sequence[] {
-  // Frozen fighters can flash while holding any previously selected gameplay pose.
+
   const indices = new Set(namedClips(characterClips(character)).map(clip => clip.index));
   for (const clip of contactDamageClips(character) ?? []) indices.add(clip.index);
   const fallback = heroDefinition(character)?.presentation.fallback;
@@ -30,7 +30,7 @@ export function flashableSequences(character: number, sequences: readonly mdx.Se
       const attack = originalClipNamed(character, "attack");
       if (attack !== undefined) indices.add(attack);
     } else {
-      // fighterPose selects these outside the combined clip table, including KO.
+
       for (const index of [
         illidan.DEMON_HUNTER_KO_INDEX, illidan.DEMON_HUNTER_LEDGE_CATCH_INDEX,
         illidan.DEMON_HUNTER_SHIELD_BREAK_INDEX, illidan.DEMON_HUNTER_DOWN_WAIT_INDEX,
@@ -72,15 +72,15 @@ export function keepFlashableKeys(track: mdx.AnimVector, sequences: readonly mdx
   });
 }
 
-/**
- * Trims every animated track to the flashable clips. A track left with no keys
- * is removed, so the channel holds its static default: Warcraft 3.0.1 crashes
- * loading a model with an empty track (#284).
- */
+// Warcraft 3.0.1 crashes when loading an empty animation track (#284).
+
+
+
+
 export function trimFlashTracks(value: unknown, sequences: readonly mdx.Sequence[]): void {
   if (typeof value !== "object" || value === null || ArrayBuffer.isView(value)) return;
   const owner = value as Record<string, unknown>;
-  // Nodes aliases Bones, Helpers and the rest; visiting it would trim each node twice.
+
   for (const [name, child] of Object.entries(owner)) {
     if (name === "Nodes" || typeof child !== "object" || child === null) continue;
     if (!("Keys" in child) || !Array.isArray(child.Keys)) {

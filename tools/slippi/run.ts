@@ -1,5 +1,5 @@
-// Runs extract.ts over every rank group in SHARDS parallel processes.
-// Run it inside a capacity lease sized to SHARDS (README.md).
+
+
 import { RANKS } from "./fetch.ts";
 
 const shards = Number(process.env.SHARDS ?? 6);

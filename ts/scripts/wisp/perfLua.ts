@@ -1,14 +1,14 @@
-// `bun wisp perf`'s program (commands/perf.ts): one of Smashcraft's runs in
-// simulated clients in 32-bit Lua, each frame measured
-// (wisp:docs/frame-cost.md#headless). quick-match is the development build's
-// quick match; bot and bot-four are the native bot session's match with the
-// integrity build (botMatch.ts), counted from its first match frame; bot-NAME
-// plays that match against one computer of the named selectable fighter;
-// playable-bot-four plays bot-four with the playable build; playable-duel is
-// two players and playable-human-four four players on their own clients, with
-// staggered beats and no computers, in the playable build; census-FIGHTER and
-// census-stage-ID play the spike census (census.ts).
-// Usage: lua build/perf.lua MAP_LUA WARCRAFT_D_TS [RUN [FRAMES [samples]]]
+
+
+
+
+
+
+
+
+
+
+
 import { type PerfMeasure, runLuaPerf, runLuaPerfWith } from "wisp/src/headless/luaPerf";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -34,7 +34,7 @@ const humans = run === "playable-duel" ? HUMAN_DUEL : run === "playable-human-fo
 const bot = humans ?? (run === "bot" ? BOT_THREE : run === "bot-four" || run === "playable-bot-four" ? BOT_FOUR : computer !== undefined ? botMatchAgainst(computer) : undefined);
 const censusFighter = SELECTABLE_CHARACTERS.find((character) => run === `census-${fighterSlug(character)}`);
 const censusStage = run.startsWith("census-stage-") ? Number(run.substring("census-stage-".length)) : undefined;
-// With PERF_PROFILE_FRAMES, a run is sampled on the frames it lists instead of measured (censusProfile.ts).
+
 const profileText = os.getenv("PERF_PROFILE_FRAMES");
 const measured = (headless: LuaHeadlessMap, play: (this: void, clients: Lockstep, measure: PerfMeasure) => { readonly problems: number; readonly lines: readonly string[] }, delivery?: SyncDelivery) => {
   if (profileText === undefined) return runLuaPerfWith(headless, bundle, declarations, play, delivery === undefined ? options : { ...options, delivery });
@@ -44,13 +44,13 @@ const measured = (headless: LuaHeadlessMap, play: (this: void, clients: Lockstep
 };
 let problems: number;
 if (censusFighter !== undefined || censusStage !== undefined) {
-  // One client, no sync latency: each frame is one simulated frame and its presentation.
+
   const census = { ...map, players: [0] };
   const play = (clients: Lockstep, measure: PerfMeasure) => censusFighter !== undefined ? playFighterCensus(clients, measure, censusFighter, fighterSlug(censusFighter)) : playStageCensus(clients, measure, censusStage ?? 0, `${censusStage}`);
   problems = measured(census, play);
 } else if (run === "quick-match") problems = runLuaPerf(map, QUICK_MATCH, bundle, declarations, options);
 else if (bot !== undefined) {
-  // The integrity build poses effects and frames its camera from each client's own prediction.
+
   const predicted = { ...map, localNatives: PREDICTED_LOCAL_NATIVES, players: run === "playable-human-four" ? [0, 1, 2, 3] : [0, 1] };
   const build = run.startsWith("playable-") ? PLAYABLE_BUILD : undefined;
   problems = measured(predicted, (clients, measure) => playBotMatch(clients, bot, Number(framesText), measure, build), syncDelivery(MEASURED_BATTLE_NET, 7));

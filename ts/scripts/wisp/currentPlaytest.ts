@@ -1,8 +1,8 @@
-// The owner's play command consumes main. Experiments use fresh/accept instead.
-// Every builder of a revision takes that revision's lock, builds in a private
-// staging folder and publishes the finished folder by one rename, so
-// concurrent plays of one revision wait and reuse one build
-// (smashcraft:docs/build-inputs.md).
+
+
+
+
+
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
@@ -19,24 +19,24 @@ const inputsRoot = join(homedir(), ".local/share/smashcraft-build-inputs");
 const builds = join(inputsRoot, "play-current");
 const locks = join(inputsRoot, "locks");
 const playProblem = (cause: unknown) => new PlayProblem({ problem: String(cause) });
-// Children belong to the caller's scope, so an interrupted play stops them before the revision lock is released.
+
 const run = (cwd: string, [program = "", ...args]: readonly string[]) =>
   runProcess(ChildProcess.make(program, args, { cwd, stdin: "ignore", stdout: "inherit", stderr: "inherit" })).pipe(
     Effect.asVoid,
     Effect.mapError(() => playProblem(new Error(`${program} failed while preparing the current build`))),
   );
-/** A program's trimmed stdout, or undefined when it fails. */
+
 const capture = (cwd: string, [program = "", ...args]: readonly string[]) =>
   runProcess(ChildProcess.make(program, args, { cwd, stdin: "ignore" })).pipe(Effect.orElseSucceed(() => undefined));
 const tryPlay = <A>(run: () => A) => Effect.try({ try: run, catch: playProblem });
 
-/** A revision's reserved version: `play-current/REVISION.version`. */
+
 const reservation = (directory: string, revision: string) => join(directory, `${revision}.version`);
 
-/**
- * Main's build keeps its number; a new build of main takes the next number
- * after every one built, reserved or in the owner's library.
- */
+
+
+
+
 export function playVersion(directory: string, library: string, revision: string): string {
   const parse = (text: string) => {
     const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(text.trim());
@@ -61,7 +61,7 @@ export function playVersion(directory: string, library: string, revision: string
   return `${major}.${minor}.${patch + 1}`;
 }
 
-/** Reserves `revision`'s version under the numbering lock, so two revisions built at once never share a number. */
+
 const reserveVersion = (library: string, revision: string) => withLock(join(locks, "play-version.lock"), "Waiting for another play build to number its map",
   tryPlay(() => {
     const version = playVersion(builds, library, revision);
@@ -74,7 +74,7 @@ const reserveVersion = (library: string, revision: string) => withLock(join(lock
     return version;
   }));
 
-/** Main's revision, its companion tree and the main checkout. */
+
 const resolveMain = Effect.gen(function*() {
   const resolved = yield* capture(projectRoot, ["git", "rev-parse", "main", "main:companion"]);
   const [revision, companion] = (resolved ?? "").split("\n");
@@ -86,13 +86,13 @@ const resolveMain = Effect.gen(function*() {
   return { mainCheckout, revision, companion };
 });
 
-/** The lock held by whoever uses `revision`'s build lane or builds its map. */
+
 const revisionLock = (revision: string) => join(locks, `play-${revision}.lock`);
 
-/**
- * The revision's build lane, outside main. Only the holder of the
- * revision's lock uses it; one left half-made by an interrupted run is replaced.
- */
+
+
+
+
 const buildLane = (mainCheckout: string, revision: string) => Effect.gen(function*() {
   const lane = join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`);
   if (existsSync(lane) && (yield* capture(lane, ["git", "rev-parse", "HEAD"])) !== revision) {
@@ -104,19 +104,19 @@ const buildLane = (mainCheckout: string, revision: string) => Effect.gen(functio
   return lane;
 });
 
-/** The lane is scratch: a finished build removes it. */
+
 const removeLane = (mainCheckout: string, revision: string) =>
   capture(projectRoot, ["git", "worktree", "remove", "--force", join(dirname(mainCheckout), "worktrees", `play-build-${revision.slice(0, 12)}`)]).pipe(Effect.asVoid);
 
 const helperPath = (companion: string) => join(inputsRoot, "play-helpers", companion, "wc3-journal");
 const helperTarget = join(inputsRoot, "play-helper-target");
 
-// Keep the shared binary unchanged until copied to this companion tree's delivery path.
+
 const buildHelper = (lane: string, helper: string) => withLock(join(locks, "play-helper-target.lock"), "Waiting for another controller helper build", Effect.gen(function*() {
   const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
   yield* run(join(lane, "companion"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",
     `PATH=${join(homedir(), ".rustup/toolchains/1.96.1-x86_64-unknown-linux-gnu/bin")}:$PATH bun '${capacity}' run --class moderate --owner smashcraft:play-helper --timeout-seconds 900 -- cargo build --release --locked --jobs 2 --target-dir '${helperTarget}' --bin wc3-journal`]);
-  // A helper another run installed meanwhile may be running: replace it by rename, never write over it (ETXTBSY).
+
   yield* tryPlay(() => {
     mkdirSync(dirname(helper), { recursive: true });
     const staged = `${helper}.${process.pid}.tmp`;
@@ -125,7 +125,7 @@ const buildHelper = (lane: string, helper: string) => withLock(join(locks, "play
   });
 }));
 
-/** Main's controller helper, built on first use. */
+
 export const currentHelper = Effect.gen(function*() {
   const { revision, companion, mainCheckout } = yield* resolveMain;
   const helper = helperPath(companion);
@@ -139,13 +139,13 @@ export const currentHelper = Effect.gen(function*() {
   }));
 }).pipe(Effect.provide(BunServices.layer));
 
-/**
- * Main's playable map, built once per revision into play-current/REVISION
- * from the inputs main's build-inputs.json names; `library` is the owner's
- * Smashcraft maps folder. The controller helper is optional (#166): a new
- * build tries it after the map, and a failed helper build leaves the keyboard
- * (`bun wisp controller` builds it on demand).
- */
+
+
+
+
+
+
+
 export const currentPlaytest = (library: string) => Effect.gen(function*() {
   const { revision, companion, mainCheckout } = yield* resolveMain;
   const title = `Smashcraft ${yield* reserveVersion(library, revision)}`;

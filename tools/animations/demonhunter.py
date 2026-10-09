@@ -14,7 +14,7 @@ bpy.ops.wm.open_mainfile(filepath=str(project/'build/illidan-assets/demonhunter.
 scene=bpy.context.scene
 rig=next(o for o in scene.objects if o.type=='ARMATURE')
 stock=list(bpy.data.actions)
-# Preserve the imported scene timebase for every stock action.
+
 ready=bpy.data.actions['Stand Ready']
 rig.animation_data_create()
 rig.animation_data.action=ready
@@ -24,8 +24,8 @@ bpy.context.view_layer.update()
 base={b.name:b.matrix_basis.copy() for b in rig.pose.bones}
 emitters=[o for o in scene.objects if o.particle_systems]
 meshes=[o for o in scene.objects if o.type=='MESH' and not o.particle_systems]
-# Mesh visibility has its own action slots; selecting only the skeleton leaves
-# alternate-body/death-effect values from the imported scene active.
+
+
 for mesh in meshes:
  slot=next((s for s in ready.slots if s.identifier[2:]==mesh.name),None)
  if slot:
@@ -33,8 +33,8 @@ for mesh in meshes:
 scene.frame_set(0)
 bpy.context.view_layer.update()
 visibility={m.name:float(m.get(m.name,{}).get('visibility',1)) for m in meshes}
-# The source demon's wings share a geoset with its body. Duplicate only the
-# existing wing triangles and weights; retain the complete source geoset.
+
+
 wing_roots=['Mesh30ss Alternate','Mesh31ee Alternate']
 wing_bones=set(wing_roots)
 for root in wing_roots:wing_bones.update(b.name for b in rig.data.bones[root].children_recursive)
@@ -75,7 +75,7 @@ def limb(side,kind,target,pole):
 def pose(p):
  for n,m in base.items():rig.pose.bones[n].matrix_basis=m
  bpy.context.view_layer.update()
- # Body translations deform the visual children; simulation owns travel.
+
  root=rig.pose.bones['Bone_Root'];root.location=(0,0,0)
  bpy.context.view_layer.update()
  rotate('Bone_Chest',p.get('lean',0))
@@ -92,8 +92,8 @@ def pose(p):
  bpy.context.view_layer.update()
  if p.get('spin',0):rotate('Bone_Root',p['spin'])
  for n in wing_roots:
-  # Source wing roots are positioned on the demon's shoulders; align them
-  # with the humanoid upper back, then flap their existing articulated span.
+
+
   b=rig.pose.bones[n];m=b.matrix.copy();m.translation+=Vector((0,0,30));b.matrix=m
   rotate(n,p.get('flap',0)*(1 if n==wing_roots[0] else -1),(1,0,0))
  bpy.context.view_layer.update()
@@ -129,7 +129,7 @@ def author(name,keys,loop=False,ground=False):
   settings.animation_data.action_slot=a.slots.new('PARTICLE',settings.name)
   settings.mdl_particle_sys.visibility=0
   for f in (0,last):settings.keyframe_insert(data_path='mdl_particle_sys.visibility',frame=f)
- # Imported stock curves are untouched; authored curves use linear samples.
+
  for layer in a.layers:
   for strip in layer.strips:
    for bag in strip.channelbags:
@@ -160,7 +160,7 @@ for suffix in ('',' Air'):
  author('Special Side'+suffix,{0:rest,3:{'hand_R':(30,-15,115),'hand_L':(20,15,108),'crouch':10},4:{'hand_R':(30,-15,115),'hand_L':(20,15,108),'lean':-25,'crouch':20},9:{'hand_R':(30,-15,115),'hand_L':(20,15,108),'lean':-25,'crouch':20},16:rest,22:rest})
  author('Special Up'+suffix,{0:rest,2:{'crouch':20,'wings':1,'flap':-40},5:{'hand_R':(25,-35,140),'hand_L':(-20,35,140),'foot_R':(30,-15,55),'foot_L':(-20,15,55),'wings':1,'flap':35},11:{'wings':1,'flap':-35,'lean':-15},17:{'wings':1,'flap':35,'lean':-10},24:{'wings':1,'flap':-20},28:{'wings':0}})
  attack('Special Down'+suffix,4,4,27,{'hand_R':(45,-40,100),'hand_L':(-45,40,100),'crouch':12 if not suffix else 0,'foot_R':(0,-15,20) if suffix else (30,-15,22),'lean':-10})
-# Shared motions use the same authored body/weapon solve.
+
 shield={'hand_R':(30,-15,117),'hand_L':(25,15,111),'crouch':8,'lean':-8}
 tuck={'foot_R':(20,-15,70),'foot_L':(-20,15,70),'hand_R':(10,-30,115),'hand_L':(-25,25,110)}
 for name,keys,loop in [
@@ -199,7 +199,7 @@ for name,key,target in [('Pummel','GRAB_PUMMEL',(40,-15,95)),('Throw Forward','T
  contact,duration=timing(key);hold={'hand_L':(50,15,100)}
  author(name,{0:hold,max(1,contact-3):{**hold,'lean':-15},contact-1:{'hand_L':target,'hand_R':target,'lean':20},contact+2:{'hand_L':target,'lean':15},duration:hold if name=='Pummel' else rest})
  author('Victim '+name,{0:{'lean':25},contact-1:{**tuck,'lean':-45 if name!='Throw Down' else 45},duration:{**tuck,'lean':-30}})
-# Ground the prone recovery geometry once using the existing evaluated-mesh solver.
+
 import importlib.util
 module_spec=importlib.util.spec_from_file_location('illidan_ground',project/'tools/animations/demonhunter-ground.py')
 ground_module=importlib.util.module_from_spec(module_spec);module_spec.loader.exec_module(ground_module)

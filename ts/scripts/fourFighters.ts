@@ -1,5 +1,5 @@
-// Issue #17's four-fighter gate uses the existing native capture files;
-// input timing and all-binding integrity remain issue #26's separate gate.
+
+
 import { join } from "node:path";
 import { Effect } from "effect";
 import { readEvidence, readMetadata, tryIntegrityPromise } from "./integrity/evidence";
@@ -13,7 +13,7 @@ interface FinalChecksum {
 const modesMatch = (modes: readonly SlotMode[], expected: readonly (readonly [number, number])[]) =>
   modes.length === expected.length && modes.every((mode, index) => mode.humanFighters === expected[index]?.[0] && mode.computers === expected[index]?.[1]);
 
-/** Answers only #17: four fighters finish both matches, change a slot, and agree at results. */
+
 export function fourFighterResult(evidence: CaptureEvidence) {
   const { metadata } = evidence;
   const pair = capturePair(metadata);
@@ -47,7 +47,7 @@ export function fourFighterResult(evidence: CaptureEvidence) {
   return { build: metadata.build, helper_sha256: metadata.helperSha256, epochs: pair, four_fighters: true, final_checksums: finalChecksums, failures, passed: failures.length === 0 };
 }
 
-/** Writes the native journey's #17 verdict without evaluating #26's timing gates. */
+
 export const reconcileFourFighters = (root: string) => Effect.gen(function*() {
   const metadata = yield* readMetadata(root);
   const result = fourFighterResult(yield* readEvidence(root, metadata));

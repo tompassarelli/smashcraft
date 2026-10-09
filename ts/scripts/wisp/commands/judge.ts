@@ -57,7 +57,7 @@ export const judge: Command = args => Effect.gen(function* () {
         }
         samples.push({ frame: frameNumber, value, stamped });
       }
-      // A transient cue needs to clear the threshold in any sampled frame.
+
       const value = Math.max(...samples.map(sample => sample.value)); const pass = valid && value >= (line.min ?? -Infinity) && value <= (line.max ?? Infinity);
       const margin = line.borderline ?? 0; const borderline = valid && margin > 0 && [line.min, line.max].some(limit => limit !== undefined && Math.abs(value - limit) <= margin); const crops = [];
       if (borderline) for (const sample of samples.filter(sample => sample.value === value)) {

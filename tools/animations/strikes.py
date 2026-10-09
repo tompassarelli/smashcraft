@@ -43,10 +43,10 @@ def update():
     bpy.context.view_layer.update()
 
 
-# Limb chains (upper, lower, end) and the elbow/knee pole side per fighter.
-# The rigs share Warcraft's humanoid bone names.
+
+
 WEAPON_TIPS = {'illidan': {'R': 'Plane36', 'L': 'Plane22'}, 'rifleman': {}}[fighter]
-# Camera-side lateral offset (the stage camera looks along +Y).
+
 SIDE = {'R': -1, 'L': 1}
 
 
@@ -123,7 +123,7 @@ def params_at(keys, frame):
         a, b = keys[left].get(k), keys[right].get(k)
         if a is None and b is None:
             continue
-        # A target present on one side only fades in or out of the base pose.
+
         p[k] = (Vector(lerp(a or b, b or a, t)), (1 - t if b is None else t if a is None else 1.))
     return p
 
@@ -176,9 +176,9 @@ def pose(p, base, standing, plant):
 
 
 def place_rifle(p, ride):
-    # Rifle01 is a separate root: carry it with the chest, pitch it about the
-    # two-hand grip (positive raises the muzzle), then solve both arms back to
-    # their original grip points.
+
+
+
     rifle = bones['Rifle01']
     weapon = ride @ rifle_base
     center = ride @ grip_center
@@ -195,13 +195,13 @@ def place_rifle(p, ride):
 
 
 def posed(name):
-    # Illidan's stock attachments and alternate (demon-form) bones only follow
-    # their parents; keying them every frame multiplies his export time.
+
+
     return fighter != 'illidan' or (name.startswith('Bone_') and 'Alternate' not in name)
 
 
 def retime(action, slot, old_last, last):
-    # Other channels (mesh visibility, particle gates) keep their place in the clip.
+
     for layer in action.layers:
         for strip in layer.strips:
             for bag in strip.channelbags:
@@ -264,7 +264,7 @@ def swing(startup, active, total, wind, strike, follow, wind_at=None, follow_at=
 
 if fighter == 'rifleman':
     def hold_rifle(action, frame=0):
-        # The rifle's chest-relative hold and both grips, from a reference pose.
+
         global rifle_base, hand_base, grips, grip_center
         sample(bpy.data.actions[action], frame)
         rifle_base = bones['Rifle01'].matrix.copy()
@@ -273,37 +273,37 @@ if fighter == 'rifleman':
         grip_center = (hand_base['R'].translation + hand_base['L'].translation) / 2
 
     hold_rifle('Aerial Up')
-    # Up air (5/3/34): he drives the bayonet straight overhead with both
-    # hands, arching back, and kicks one boot up beside it.
+
+
     author('Aerial Up', swing(5, 3, 34,
         wind={'rifle_pitch': -40, 'rifle_lift': (-4, -14), 'lean': 18, 'foot_R': (12, -10, 22), 'foot_L': (-4, 16, 20)},
         strike={'rifle_pitch': 82, 'rifle_lift': (-10, 22), 'lean': -18, 'foot_R': (16, -10, 62), 'foot_L': (-8, 16, 24)},
         follow={'rifle_pitch': 60, 'rifle_lift': (-6, 14), 'lean': -10, 'foot_R': (14, -10, 46)},
         settle=(22, {'rifle_pitch': 15, 'rifle_lift': (0, 4)})), plant=False)
-    # Neutral air (3/28/41): a level bayonet lunge with the legs split front
-    # and back, held through the long active window.
+
+
     author('Aerial Neutral', swing(3, 28, 41,
         wind={'rifle_pitch': 40, 'rifle_lift': (-14, 6), 'lean': -10, 'foot_R': (6, -10, 30), 'foot_L': (-6, 16, 30)},
         strike={'rifle_pitch': -4, 'rifle_lift': (16, 4), 'lean': 12, 'foot_R': (34, -10, 26), 'foot_L': (-30, 16, 22)},
         follow={'rifle_pitch': 10, 'rifle_lift': (4, 4), 'lean': 4, 'foot_R': (18, -10, 28), 'foot_L': (-14, 16, 26)},
         wind_at=1, follow_at=35), plant=False)
-    # Down air (7/3/38): both boots stamp down beside the rifle, driven
-    # muzzle-first below him.
+
+
     author('Aerial Down', swing(7, 3, 38,
         wind={'rifle_pitch': 50, 'rifle_lift': (-6, 14), 'lean': -8, 'foot_R': (10, -10, 40), 'foot_L': (-6, 16, 40)},
         strike={'rifle_pitch': -88, 'rifle_lift': (-10, -16), 'lean': 16, 'foot_R': (8, -10, 2), 'foot_L': (-8, 16, 4)},
         follow={'rifle_pitch': -60, 'rifle_lift': (-6, -8), 'lean': 10, 'foot_R': (8, -10, 12), 'foot_L': (-8, 16, 14)},
         wind_at=4), plant=False)
-    # Ground normals (#151's kit; first active frame, active frames, total).
-    # Each holds the rifle as his ready stance does.
+
+
     hold_rifle('Stand Ready')
-    # Jab (3/3/22): a two-handed shove of the rifle stock at chest height.
+
     author('Attack Jab', swing(3, 3, 22,
         wind={'rifle_lift': (-10, 2), 'lean': -6, 'step': (-3, 0)},
         strike={'rifle_lift': (22, 6), 'rifle_pitch': 6, 'lean': 14, 'step': (10, 0)},
         follow={'rifle_lift': (16, 4), 'rifle_pitch': 4, 'lean': 10, 'step': (8, 0)},
         settle=(14, {'rifle_lift': (4, 1), 'lean': 3, 'step': (2, 0)})))
-    # Forward tilts (6/3/30): a lunging bayonet thrust, level, rising or low.
+
     for name, pitch, lift, lean, step in [('Forward Tilt', 0, (26, 4), 18, (16, -2)),
                                           ('Forward Tilt Up', 34, (18, 16), 4, (12, 0)),
                                           ('Forward Tilt Down', -30, (22, -10), 24, (16, -12))]:
@@ -312,15 +312,15 @@ if fighter == 'rifleman':
             strike={'rifle_lift': lift, 'rifle_pitch': pitch, 'lean': lean, 'step': step},
             follow={'rifle_lift': (lift[0] * .7, lift[1] * .7), 'rifle_pitch': pitch * .8, 'lean': lean * .7, 'step': (step[0] * .8, step[1] * .7)},
             settle=(20, {'rifle_lift': (4, 1), 'lean': 3, 'step': (3, 0)})))
-    # Up tilt (5/3/30): the rifle swings up from his hip in an arc overhead
-    # and on behind him.
+
+
     author('Up Tilt', swing(5, 3, 30,
         wind={'rifle_lift': (-4, -6), 'rifle_pitch': -20, 'lean': 8, 'step': (0, -6)},
         strike={'rifle_lift': (6, 34), 'rifle_pitch': 80, 'lean': -6, 'step': (4, 6)},
         follow={'rifle_lift': (-14, 16), 'rifle_pitch': 150, 'lean': -16, 'step': (0, 2)},
         settle=(20, {'rifle_lift': (-2, 8), 'rifle_pitch': 30, 'lean': -4})))
-    # Down tilt (6/3/31): he drops to a crouch and sweeps the bayonet along
-    # the floor in front.
+
+
     author('Down Tilt', swing(6, 3, 31,
         wind={'rifle_lift': (-10, 4), 'rifle_pitch': 18, 'lean': 4, 'step': (-2, -8)},
         strike={'rifle_lift': (22, -14), 'rifle_pitch': -26, 'lean': 26, 'step': (8, -18)},
@@ -338,13 +338,13 @@ else:
         entry['seconds'] = max(keys) / fps
         entry['samples'] = sorted(keys)
 
-    # Jab (4/2/21): a straight thrust of the right warglaive, point first.
+
     illidan('Attack Jab', swing(4, 2, 21,
         wind={'step': (-4, 0), 'lean': -8, 'hand_R': (0, -28, 98), 'aim_R': (-30, -28, 140)},
         strike={'step': (12, 0), 'lean': 16, 'hand_R': (66, -18, 86), 'aim_R': (170, -18, 80), 'foot_R': (50, -15, 22)},
         follow={'step': (8, 0), 'lean': 10, 'hand_R': (56, -18, 84), 'aim_R': (150, -18, 100), 'foot_R': (46, -15, 22)}))
-    # Forward tilts (5/2/28): a lunging sweep of the right glaive, level,
-    # rising overhead, or cutting down to the floor in front.
+
+
     for name, hand, tip, lean, step in [('Forward Tilt', (72, -18, 82), (190, -18, 76), 22, (20, -4)),
                                         ('Forward Tilt Up', (50, -18, 146), (110, -18, 240), -12, (12, 0)),
                                         ('Forward Tilt Down', (76, -18, 38), (150, -18, -10), 40, (26, -24))]:
@@ -353,20 +353,20 @@ else:
             strike={'step': step, 'lean': lean, 'hand_R': hand, 'aim_R': tip, 'hand_L': (-46, 25, 84), 'foot_R': (34 + step[0], -15, 22)},
             follow={'step': (step[0] * .7, step[1] * .6), 'lean': lean * .6, 'hand_R': (hand[0] * .6, -18, hand[2] * .8 + 15),
                     'aim_R': (tip[0] * .6, -18, tip[2] * .5 + 40), 'foot_R': (34 + step[0] * .7, -15, 22)}))
-    # Down tilt (5/2/28): a low crouch with both glaives scything along the floor, front and back.
+
     illidan('Down Tilt', swing(5, 2, 28,
         wind={'step': (0, -18), 'lean': 14, 'hand_R': (10, -30, 70), 'hand_L': (-10, 30, 70)},
         strike={'step': (6, -30), 'lean': 26, 'hand_R': (64, -20, 32), 'aim_R': (150, -20, 8),
                 'hand_L': (-52, 22, 34), 'aim_L': (-150, 22, 10)},
         follow={'step': (4, -24), 'lean': 18, 'hand_R': (52, -20, 40), 'aim_R': (130, -20, 30), 'hand_L': (-44, 22, 40), 'aim_L': (-120, 22, 30)}))
-    # Down smash (8/9/42): both glaives sweep out to either side at the floor,
-    # the warglaives of Azzinoth thrown wide; the fire follows on them.
+
+
     down_wind = {'step': (0, -10), 'lean': -6, 'hand_R': (-6, -30, 128), 'aim_R': (20, -30, 190), 'hand_L': (6, 30, 128), 'aim_L': (-20, 30, 190)}
     down_strike = {'step': (0, -26), 'lean': 18, 'hand_R': (66, -24, 46), 'aim_R': (170, -24, 14),
                    'hand_L': (-62, 24, 46), 'aim_L': (-170, 24, 14), 'foot_R': (44, -18, 22), 'foot_L': (-40, 18, 23)}
     down_follow = {**down_strike, 'step': (0, -20), 'lean': 12, 'hand_R': (58, -24, 52), 'hand_L': (-56, 24, 52)}
     illidan('Down Smash', swing(8, 9, 42, wind=down_wind, strike=down_strike, follow=down_follow, wind_at=5))
-    # A released charge plays from the strike; the charge holds the wind-up.
+
     author('Down Smash Release', {0: down_strike, 8: down_strike, 14: down_follow, 28: {}, 34: {}}, base_from='Down Smash')
     author('Down Smash Charge', {0: down_wind, 24: down_wind}, base_from='Down Smash')
     clips_path.write_text(json.dumps(clips, indent=2))

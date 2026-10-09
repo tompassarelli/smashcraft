@@ -1,4 +1,4 @@
-// Original authored sky models; generation is the foreign MDX file boundary.
+
 import { join } from "node:path";
 import { parseMDL, generateMDX } from "../animations/node_modules/war3-model";
 import { STAGE_SKIES, stageSkyMdl, stageSkyModelFile, stageSkyTexture } from "../../ts/scripts/stageSky";

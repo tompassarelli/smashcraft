@@ -1,8 +1,8 @@
-// `bun wisp controller`: Tom's Xbox controller for any Smashcraft session on
-// his desktop. Points the always-on controller service at main's helper,
-// building it on first use, and restarts the login unit when it changed;
-// without the unit, runs the service here until Ctrl-C
-// (smashcraft:companion/README.md, "Always-on controller service").
+
+
+
+
+
 import { BunServices } from "@effect/platform-bun";
 import { Effect } from "effect";
 import { ChildProcess } from "effect/process";
@@ -28,7 +28,7 @@ export const controller: Command = (args) => Effect.gen(function*() {
   }
   pointLauncher(helper);
   console.log(`No ${CONTROLLER_UNIT} installed; running the controller service here until Ctrl-C.`);
-  // Scoped: Ctrl-C or a killed run stops the service with this command.
+
   const code = yield* Effect.scoped(Effect.gen(function*() {
     const child = yield* ChildProcess.make(CONTROLLER_LAUNCHER, ["--service"], { stdin: "inherit", stdout: "inherit", stderr: "inherit" });
     return yield* child.exitCode;

@@ -1,13 +1,13 @@
-// `bun wisp pad SCRIPT`: timed pad states for the two clients' virtual pads,
-// replayed through the real helpers on the helpers' own frame clock, and
-// each edge's landed frame read back from the helper's journal log.
-//
-// A script line is `FRAME CLIENT ACTION [ARGS]`:
-//   FRAME   the match frame the edge is meant for (the helper's frame), or +N after the previous line
-//   CLIENT  a | b (pad slot 0 | 1)
-//   ACTION  press BUTTON | release BUTTON | tap BUTTON [FRAMES] | stick X Y | cstick X Y | shield AMOUNT | capture
-// BUTTON is A, B, X, Y, LB (or TL), RB (or TR), START or VIEW; X and Y run -1..1 with up positive;
-// AMOUNT runs 0..1. `capture` saves that client's whole frame once it has drawn the line's frame (drawnCapture.ts). `#` starts a comment.
+
+
+
+
+
+
+
+
+
+
 import { ABS_RX, ABS_RY, ABS_X, ABS_Y, ABS_Z, BTN_A, BTN_B, BTN_SELECT, BTN_START, BTN_TL, BTN_TR, BTN_X, BTN_Y, EV_ABS, EV_KEY, type SourceEdge } from "./linuxInput";
 import type { Slot } from "./reconcile";
 
@@ -19,7 +19,7 @@ export type PadStep =
 
 const axis = (value: number) => Math.max(-32768, Math.min(32767, Math.round(value * 32767)));
 
-/** The script's steps in frame order (a tap becomes a press and a later release). Throws on the first malformed line. */
+
 export function parsePadScript(text: string): readonly PadStep[] {
   const steps: PadStep[] = [];
   let previous = 0;
@@ -69,7 +69,7 @@ export function parsePadScript(text: string): readonly PadStep[] {
   return steps.map((step, order) => ({ step, order })).sort((a, b) => a.step.frame - b.step.frame || a.order - b.order).map(({ step }) => step);
 }
 
-/** The helper's newest published frame in its log so far, or undefined before its first. */
+
 export function publishedFrame(log: string): number | undefined {
   const index = log.lastIndexOf("published_frame=");
   if (index < 0) return undefined;
@@ -77,7 +77,7 @@ export function publishedFrame(log: string): number | undefined {
   return Number.isInteger(frame) ? frame : undefined;
 }
 
-/** Each kernel event the helper journaled: its stamp and the frame it landed on. */
+
 export function helperEvents(log: string): ReadonlyMap<number, number> {
   const landed = new Map<number, number>();
   for (const match of log.matchAll(/^event mono_ns=(\d+) frame=(\d+)/gm)) landed.set(Number(match[1]), Number(match[2]));
@@ -93,21 +93,21 @@ export interface SentEdge {
 }
 
 export interface LandedEdge extends SentEdge {
-  /** The frame the helper journaled the edge on, or undefined when its log has no event with this stamp. */
+
   readonly landed: number | undefined;
 }
 
-/** Pairs each sent edge with the helper event carrying its exact stamp. */
+
 export function landEdges(sent: readonly SentEdge[], logs: readonly [string, string]): readonly LandedEdge[] {
   const events = [helperEvents(logs[0]), helperEvents(logs[1])] as const;
   return sent.map((edge) => ({ ...edge, landed: events[edge.slot].get(edge.injectedNs) }));
 }
 
-/**
- * The helper's newest match start. Its publication names firstFrame, which
- * is 3 for D2. frameOneNs converts simulation-frame deadlines without
- * replacing the original publication timestamp retained in epochNs.
- */
+
+
+
+
+
 export function matchStart(log: string): { readonly epoch: number; readonly epochNs: number; readonly firstFrame: number; readonly frameOneNs: number } | undefined {
   const starts = [...log.matchAll(/^match_start epoch=(\d+) epoch_ns=(\d+) first_frame=(\d+)/gm)];
   const last = starts.at(-1);
@@ -118,13 +118,13 @@ export function matchStart(log: string): { readonly epoch: number; readonly epoc
   return { epoch: Number(last[1]), epochNs, firstFrame, frameOneNs: epochNs - Math.round((firstFrame - 1) * 1e9 / 60) };
 }
 
-/** When to write an edge meant for `frame`: a fifth into that frame, using the clock's frame-one origin, clear of its start and leaving 13 ms for a late wake on a loaded host. */
+
 export const frameWriteNs = (epochNs: number, frame: number): number => epochNs + Math.round(((frame - 1) * 1e9 + 0.2e9) / 60);
 
-/** Each client's frame starts on its own clock; source order cannot order deadlines across clients. */
+
 export function deadlineOrder<T extends { readonly slot: 0 | 1; readonly frame: number }>(items: readonly T[], epochs: readonly [number, number]): T[] {
   return [...items].sort((a, b) => frameWriteNs(epochs[a.slot], a.frame) - frameWriteNs(epochs[b.slot], b.frame));
 }
 
-/** The frame the helper's rule gives a stamp (the helper's own event line confirms buttons). */
+
 export const ruleFrame = (epochNs: number, stampNs: number): number => 1 + Math.floor((stampNs - epochNs) * 60 / 1e9);

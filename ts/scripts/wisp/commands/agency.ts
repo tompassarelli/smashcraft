@@ -1,12 +1,12 @@
-// `wisp agency`: the false-agency sweep (#68, smashcraft:ts/scripts/agencySweep.ts).
-// Prints every stretch longer than REPORTED_FRAMES in which a fighter can't
-// act, every loop a repeating follow-up made with its escape window, and the
-// move comparisons' bounded true links replayed with every input class.
-// `--attacker NAME` sweeps one fighter's starters, so three runs can share
-// the machine; `--starter NAME` sweeps only that starter (an "up throw", say)
-// and skips the move comparisons' links; `--out FILE` keeps every result as
-// JSON lines. Fails when a loop leaves the victim at most a frame-tight input
-// to act on, whatever direction it holds.
+
+
+
+
+
+
+
+
+
 import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { Console, Effect, Schema } from "effect";
@@ -23,7 +23,7 @@ class AgencyFailure extends Schema.TaggedError<AgencyFailure>()("AgencyFailure",
 
 const group = <T>(items: readonly T[], key: (item: T) => string) => Map.groupBy(items, key);
 
-/** Each starter whose stretch passes REPORTED_FRAMES at some percent, with its length at each percent. */
+
 function stretchLines(results: readonly StarterResult[]): string[] {
   const lines: string[] = [];
   for (const [name, rows] of group(results, ({ attacker, victim, starter }) => `${attacker} ${starter} on ${victim}`)) {
@@ -35,7 +35,7 @@ function stretchLines(results: readonly StarterResult[]): string[] {
   return lines;
 }
 
-/** A loop holds against every held DI direction when some plan keeps it, leaving at most a frame-tight escape, for each. */
+
 const holdsAgainstEveryDi = ({ followUp }: StarterResult) =>
   followUp?.loop !== undefined && followUp.loop.escapeFrames <= TIGHT_ESCAPE && followUp.underDi.length > 0
   && followUp.underDi.every(({ loopEscapeFrames }) => loopEscapeFrames !== undefined && loopEscapeFrames <= TIGHT_ESCAPE);
@@ -59,7 +59,7 @@ function linkLines(links: readonly LinkResult[]): string[] {
   });
 }
 
-/** `agency [--attacker NAME]... [--starter NAME]... [--out FILE]`. */
+
 export const agency: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], options: { attacker: { type: "string", multiple: true }, starter: { type: "string", multiple: true }, out: { type: "string" } }, strict: true }).values,

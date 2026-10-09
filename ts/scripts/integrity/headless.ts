@@ -1,10 +1,10 @@
-// Runs #26's integrity capture without Warcraft (wisp#12): the integrity
-// build's TypeScript in two of Wisp's headless clients, run in real time, and
-// the real input path into them: one virtual pad, kernel observer and
-// persistent wc3-journal helper per player, each helper typing its journal
-// into its client's edit box through --text-out and reading the files its
-// client writes in a real CustomMapData folder. The journey and the
-// reconciler are the native capture's (journey.ts, reconcile.ts).
+
+
+
+
+
+
+
 import { appendFileSync, closeSync, mkdirSync, openSync, writeFileSync, writeSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
@@ -31,7 +31,7 @@ import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, fileRig, stopHelperProcess, uiLogger } from "./rig";
 
 interface HeadlessCaptureOptions {
-  /** The persistent controller helper binary, built with --text-out. */
+
   readonly helper: string;
   readonly out: string;
 }
@@ -49,12 +49,12 @@ export function parseHeadlessArguments(args: readonly string[]): HeadlessCapture
   return { helper: values.helper, out: values.out };
 }
 
-/** The native capture's desktop: 2560x1440 with Warcraft's 4:3 UI centered, 0.8 by 0.6 units high. */
+
 const DESKTOP_WIDTH = 2560;
 const DESKTOP_HEIGHT = 1440;
 const UI_PIXELS = (DESKTOP_HEIGHT * 4) / 3;
 
-/** A native desktop click's point in Warcraft's UI coordinates. */
+
 const uiPoint = (x: number, y: number): readonly [number, number] => [
   ((x - (DESKTOP_WIDTH - UI_PIXELS) / 2) / UI_PIXELS) * 0.8,
   ((DESKTOP_HEIGHT - y) / DESKTOP_HEIGHT) * 0.6,
@@ -62,7 +62,7 @@ const uiPoint = (x: number, y: number): readonly [number, number] => [
 
 const MODIFIERS: Readonly<Record<string, number>> = { shift: 1, ctrl: 2, alt: 4 };
 
-/** A desktop key chord, such as ctrl+g, as Warcraft's key code and modifiers. */
+
 function keyChord(chord: string): readonly [key: number, meta: number] | undefined {
   const parts = chord.toLowerCase().split("+");
   const key = parts.pop() ?? "";
@@ -77,14 +77,14 @@ function keyChord(chord: string): readonly [key: number, meta: number] | undefin
 
 const UI_WAIT_MILLIS = 25_000;
 const POLL_MILLIS = 20;
-/** Seeds the measured sync-message latency, so its delays repeat from run to run. */
+
 const DELIVERY_SEED = 1;
-/** Native calls each headless client keeps after the clients compared them: a desync's context. */
+
 const KEPT_CALLS = 64;
 
 type PadReply = { readonly injection: Injection } | { readonly error: string };
 
-/** Pad writes in padWorker.ts's thread, in order, each answered with its injection times. */
+
 const padThread = Effect.acquireRelease(
   Effect.sync(() => {
     const worker = new Worker(join(import.meta.dir, "padWorker.ts"));
@@ -101,7 +101,7 @@ const padThread = Effect.acquireRelease(
 );
 
 export const loadEntry = tryIntegrityPromise("load the integrity entry", "src/platform/integrityMain.ts", async (): Promise<MapEntry> => {
-  // Loaded at run time, so the host type check never reads map code.
+
   const module: unknown = await import(join(tsDirectory, "src/platform/integrityMain.ts"));
   if (typeof module !== "object" || module === null || !("start" in module) || !("install" in module)) throw new Error("no start() and install()");
   const { start, install } = module;
@@ -121,7 +121,7 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
     const startedNs = realtimeNs();
     const data = [join(out, "client-0", "CustomMapData"), join(out, "client-1", "CustomMapData")] as const;
     const events: JourneyRecord[] = [];
-    /** What each client shows at the end, kept in screens.txt as the native capture keeps ui.txt. */
+
     let screens = () => "";
     const entry = yield* loadEntry;
 
@@ -167,7 +167,7 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
       const producerLog = yield* Effect.acquireRelease(tryIntegrity("open producer log", producerPath, () => openSync(producerPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
       const names = ["headless-0", "headless-1"] as const;
       const logUi = uiLogger(out, names);
-      /** Warcraft's chat entry on each client: the line typed since Return opened it. */
+
       const chatting: (string | undefined)[] = [undefined, undefined];
       const helperPair = [at(helpers, 0), at(helpers, 1)] as const;
       const shared = fileRig({ data, out, build, startedNs, pads: padPair, observers, helpers: helperPair, producerLog, events, gameFailure });
@@ -204,7 +204,7 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
               ),
             },
           ),
-        // The headless screen is the client's whole shown text; a region narrows nothing.
+
         readText: (client, region) =>
           Effect.sync(() => screen(client)).pipe(
             Effect.tap((text) => logUi(client, "read", `${region.x},${region.y} ${region.width}x${region.height}\n${text}`)),
@@ -233,9 +233,9 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
             if (line === undefined) clients.type(client, text);
             else chatting[client] = line + text;
           }),
-        // Nothing is rendered, and what reaches the screen keeps its native
-        // check: the scene each client's map reports under emulated effects
-        // is kept in player-view-EPOCH.txt as a lead, not a capture result.
+
+
+
         playerView: (epoch, checks) =>
           Effect.forEach(SLOTS, (client) =>
             Effect.gen(function*() {
@@ -252,8 +252,8 @@ export const captureHeadless = (options: HeadlessCaptureOptions) =>
             }), { discard: true }),
       };
       yield* runJourney({ build, epochs, fourFighters: false, sweep: [] }).pipe(Effect.provideService(Rig, rig));
-      // Presentation and diagnostics may call natives on one client only; the
-      // table's confirmed checksums decide synchronization, so a difference is a lead.
+
+
       const divergence = clients.firstDivergence();
       if (divergence !== undefined) yield* shared.progress(`Headless clients' native calls differ ${divergence.split("\n")[0] ?? ""} (capture.json)`);
       const helperSha256 = new Bun.CryptoHasher("sha256").update(yield* tryIntegrityPromise("hash helper", options.helper, () => Bun.file(options.helper).bytes())).digest("hex");

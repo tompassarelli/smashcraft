@@ -1,15 +1,15 @@
-// The Melee behaviour oracle (#53): scripted situations for every fighter,
-// played through the frame executor from controller rows, compared with
-// values cited from the NTSC 1.02 decompilation and the retail reference
-// corpus. `bun wisp oracle` prints the table; meleeOracle.tests.ts keeps CI
-// to the known mismatches below. A row where Smashcraft departs from Melee by
-// decision names that decision and still shows Melee's value.
-//
-// Citations: melee: is ~/code/resources/melee at 0296f009f32f710495979d30772d8332af2d411a.
-// Fighter data is recorded in smashcraft:docs/smash-melee-reference/physics-parameters.json
-// and retail-action-lengths.json. Common values marked "PlCo" were read from the
-// owner's GALE01 revision 2 PlCo.dat (SHA-1 c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41);
-// the retail files stay private, only the cited numbers appear here.
+
+
+
+
+
+
+
+
+
+
+
+
 import { Action } from "../src/game/input/actions";
 import { AttackPhase, AttackStyle, Character, ContactKind, DownState, LedgeState, PlatformMove, SurfaceContact } from "../src/game/sim/codes";
 import { attackPhase, isIntangible } from "../src/game/sim/conditions";
@@ -30,9 +30,9 @@ import { LEDGE_REGRAB_FRAMES } from "../src/game/sim/transitions";
 
 const melee = (world: number): number => world / WORLD_UNITS_PER_MELEE_UNIT;
 
-// ------------------------------------------------------------------ reference data
 
-/** Melee fighter data borrowed by a Smashcraft fighter, from PlFx.dat / PlFc.dat via physics-parameters.json. */
+
+
 interface ReferenceFighter {
   readonly jumpSquat: number;
   readonly jumpVelocity: number;
@@ -56,21 +56,21 @@ const FALCO: ReferenceFighter = {
   dashInitialVelocity: 1.899999976158142, runVelocity: 1.5, walkVelocity: 1.399999976158142,
 };
 
-/** reference and Rifleman borrow Fox's and Falco's movement data; Illidan's is authored. */
+
 function referenceFighter(character: Character): ReferenceFighter | undefined {
   return character === Character.rifleman ? FALCO : undefined;
 }
 
-/** Ledge snap data, ftData x44 +0x10/+0x14/+0x18 (Melee units): reference = Fox, Rifleman = Falco, Illidan = Captain Falcon. */
+
 function ledgeSnap(character: Character): { readonly x: number; readonly y: number; readonly height: number } {
   return character === Character.demonHunter ? { x: 9.0, y: 17.0, height: 11.0 } : { x: 11.0, y: 13.0, height: 9.0 };
 }
-/** mpColl_LoadECB_JObj never makes the airborne collision box narrower than this half-width. */
+
 const LEDGE_BODY_HALF_WIDTH = 2.0;
 
 const f32 = Math.fround;
 
-/** Apex of a ground jump: the takeoff frame moves by the launch velocity, later frames subtract gravity first. */
+
 function groundJumpApex(velocity: number, gravity: number): number {
   let v = f32(velocity);
   let z = v;
@@ -81,7 +81,7 @@ function groundJumpApex(velocity: number, gravity: number): number {
   }
 }
 
-/** Apex of an aerial jump, which applies gravity on its first frame. */
+
 function aerialJumpApex(velocity: number, gravity: number): number {
   let v = f32(velocity);
   let z = 0.0;
@@ -92,11 +92,11 @@ function aerialJumpApex(velocity: number, gravity: number): number {
   }
 }
 
-/**
- * Ordinary knockback, melee:src/melee/ft/ftcoll.c with PlCo +0x0F4/+0x0F8
- * (weight 0.01, 2), +0x110/+0x114 (0.1, 0.05), +0x11C/+0x120 (1.4, 18) and
- * the +0x108 cap 2500. `percent` is after the hit, `power` the integer damage.
- */
+
+
+
+
+
 function meleeKnockback(percent: number, power: number, weight: number, growth: number, base: number): number {
   const p = f32(percent);
   const contribution = f32(f32(0.10000000149011612 * p) + f32(f32(p * power) * 0.05000000074505806));
@@ -106,7 +106,7 @@ function meleeKnockback(percent: number, power: number, weight: number, growth: 
   return Math.min(2500.0, f32(f32(f32(growth * 0.009999999776482582) * scaled) + base));
 }
 
-// ------------------------------------------------------------------ rows
+
 
 type Outcome = "pass" | "mismatch" | "departure" | "n/a";
 
@@ -123,7 +123,7 @@ interface OracleRow {
 interface Check {
   readonly expected: string | number | boolean;
   readonly actual: string | number | boolean;
-  /** Numbers compare within this; strings and booleans compare exactly. */
+
   readonly tolerance?: number;
 }
 
@@ -131,9 +131,9 @@ interface Scenario {
   readonly area: string;
   readonly name: string;
   readonly cite: string;
-  /** The check for one fighter; undefined where the fighter has no Melee reference for this value. */
+
   readonly run: (character: Character) => Check | undefined;
-  /** A difference from Melee: its row in smashcraft:docs/gameplay-design.md's deviations table, then the decision, its owner and date. */
+
   readonly departure?: string;
 }
 
@@ -154,22 +154,22 @@ function rowFor(scenario: Scenario, character: Character, name: string): OracleR
   return { ...base, expected: show(expected), actual: show(actual), outcome: pass ? "pass" : scenario.departure === undefined ? "mismatch" : "departure" };
 }
 
-/** Character-data checks: Illidan has no Melee movement profile. */
+
 function forReference(character: Character, check: (reference: ReferenceFighter) => Check): Check | undefined {
   const reference = referenceFighter(character);
   return reference === undefined ? undefined : check(reference);
 }
 
-// ------------------------------------------------------------------ jumps
 
-/** Frames on the ground from the jump press, including it, before takeoff. */
+
+
 function jumpSquatFrames(character: Character): number {
   const s = solo(0, character);
   const f = fighter(s);
   return (framesUntil(s, () => !f.motion.grounded, 30, () => [Action.jump]) ?? 99) - 1;
 }
 
-/** Highest rise in Melee units above the fighter's position, once it has left the ground and started down. */
+
 function apex(s: Scene, held: (frame: number) => readonly Action[]): number {
   const f = fighter(s);
   const start = f.motion.z;
@@ -215,7 +215,7 @@ const JUMPS: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ ground speeds
+
 
 function dashVelocity(character: Character): number {
   const s = solo(0, character);
@@ -223,7 +223,7 @@ function dashVelocity(character: Character): number {
   return melee(fighter(s).motion.vx);
 }
 
-/** Running from the left edge, then sliding 0.4 Melee units/frame over the run maximum. */
+
 function runSettles(character: Character, maximum: number): number {
   const s = solo(0, character, -560.0);
   const f = fighter(s);
@@ -233,7 +233,7 @@ function runSettles(character: Character, maximum: number): number {
   return melee(f.motion.vx);
 }
 
-/** Walking while sliding 0.4 Melee units/frame over the walk maximum. */
+
 function walkSettles(character: Character, maximum: number): number {
   const s = solo(0, character, -560.0);
   const f = fighter(s);
@@ -262,7 +262,7 @@ const GROUND: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ fast fall
+
 
 function fastFallVelocity(character: Character): number {
   const s = solo(0, character);
@@ -273,7 +273,7 @@ function fastFallVelocity(character: Character): number {
   return -melee(f.motion.vz);
 }
 
-/** Holds a full hop and presses down `early` frames before the first frame that starts descending. */
+
 function fastFallsWhenPressedEarly(character: Character, early: number): boolean {
   const base = solo(0, character);
   const probe = fighter(base);
@@ -307,9 +307,9 @@ const FAST_FALL: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ landing lag
 
-/** The least wait in 1..40 that `accepted` holds for, given it holds for every later wait too; 99 for none. */
+
+
 function firstAccepted(accepted: (wait: number) => boolean): number {
   let low = 1;
   let high = 41;
@@ -322,12 +322,12 @@ function firstAccepted(accepted: (wait: number) => boolean): number {
 }
 
 interface Fall {
-  /** Places the fighter before frame 1. */
+
   readonly setup: (f: Fighter) => void;
   readonly held: (frame: number) => readonly Action[];
 }
 
-/** Plays a fall until it lands and, when asked, until a jump pressed on `jumpAt` was or wasn't accepted. */
+
 function playFall(character: Character, { setup, held }: Fall, jumpAt?: number): { landing: number | undefined; jumped: boolean } {
   const s = solo(0, character);
   const f = fighter(s);
@@ -343,7 +343,7 @@ function playFall(character: Character, { setup, held }: Fall, jumpAt?: number):
   return { landing, jumped };
 }
 
-/** Frames after the landing frame until a jump is accepted. */
+
 function landingLag(character: Character, fall: Fall): number {
   const { landing } = playFall(character, fall);
   if (landing === undefined) throw new Error("the fall never landed");
@@ -351,7 +351,7 @@ function landingLag(character: Character, fall: Fall): number {
 }
 
 const emptyFall: Fall = { setup: (f) => airborne(f, 0.0, 120.0), held: () => [] };
-/** A neutral aerial started on frame 1 from 200 units up, with no other button. */
+
 const aerialFall: Fall = { setup: (f) => airborne(f, 0.0, 200.0), held: (n) => (n === 1 ? [Action.attack] : []) };
 
 const L_CANCEL = "an L/R press under PlCo +0x0E4 = 7 frames before landing (x67F, fighter.c Fighter_procInput) divides the lag by PlCo +0x0E8 = 2, at least 1: melee:src/melee/ft/kinds/ftCommon/ftCo_LandingAir.c";
@@ -376,7 +376,7 @@ const LANDING: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ floor techs
+
 
 function downName(f: Fighter): string {
   switch (f.down.state) {
@@ -388,7 +388,7 @@ function downName(f: Fighter): string {
   }
 }
 
-/** A tumbler falling from `z`; returns the landing frame and what it became, pressing tech on `presses`. */
+
 function tumbleLanding(character: Character, z: number, presses: readonly number[], stick: readonly Action[] = []): { landing: number; result: string } {
   const s = solo(0, character);
   const f = fighter(s);
@@ -405,7 +405,7 @@ function techBeforeLanding(character: Character, early: number | undefined, stic
   return tumbleLanding(character, 600.0, early === undefined ? [] : [landing - early], stick).result;
 }
 
-/** Two presses `gap` frames apart, the second on the frame before landing. */
+
 function techAfterRepeat(character: Character, gap: number): string {
   const { landing } = tumbleLanding(character, 740.0, []);
   return tumbleLanding(character, 740.0, [landing - 1 - gap, landing - 1]).result;
@@ -426,14 +426,14 @@ const TECHS: readonly Scenario[] = [
   { area: "tech", name: "second press 41 frames after the first", cite: TECH_GATE, run: (c) => ({ expected: "tech", actual: techAfterRepeat(c, 41) }) },
 ];
 
-// ------------------------------------------------------------------ getting up
+
 
 interface Knockdown {
-  /** Frames spent in each down state, in order of entry. */
+
   readonly states: { readonly state: DownState; frames: number }[];
 }
 
-/** A tumble landing on the main deck, then `frames` frames of `held(frame after landing)`. */
+
 function knockdown(character: Character, frames: number, held: (afterLanding: number) => readonly Action[]): Knockdown {
   const s = solo(0, character);
   const f = fighter(s);
@@ -460,7 +460,7 @@ const DOWN_NAMES: Record<number, string> = {
 };
 const downStateName = (state: DownState | undefined): string => (state === undefined ? "-" : DOWN_NAMES[state] ?? `state ${state}`);
 
-/** Frames in a get-up option chosen from the down wait by `choose`. */
+
 function getupFrames(character: Character, option: DownState, choose: readonly Action[]): number {
   return framesIn(knockdown(character, 120, (after) => (after === 40 ? choose : [])), option);
 }
@@ -517,11 +517,11 @@ const GETUPS: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ knockback and tumble
+
 
 const TEST_HIT = { damage: 10.0, growth: 100.0, base: 21.0, launchX: 0.7071067690849304, launchZ: 0.7071067690849304, electric: false };
 
-/** The test hit on a standing fighter at `percent`, resolved by the production contact batch. */
+
 function launchOutcome(character: Character, percent: number): string {
   const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character: Character.rifleman, x: -60.0, facing: 1 }]);
   const target = fighter(s, 0);
@@ -539,7 +539,7 @@ function expectedLaunch(weight: number, percent: number): { tumble: boolean; tex
   return { tumble, text: `${percent}%: ${tumble ? "tumble" : "no tumble"}, ${Math.max(1, Math.trunc(scaled))} hitstun` };
 }
 
-/** The lowest whole percent at which the test hit tumbles this fighter. */
+
 function tumblePercent(character: Character): number {
   const weight = createFighter(character, 0.0, 1).tuning.physics.weight;
   for (let percent = 0; percent <= 300; percent++) if (expectedLaunch(weight, percent).tumble) return percent;
@@ -554,7 +554,7 @@ function launchCheck(character: Character, offset: number): Check {
 
 const KNOCKBACK_RULE = "knockback: melee:src/melee/ft/ftcoll.c with PlCo +0x0F4..+0x120 (fighter's own weight); hitstun (int)(K x +0x154 0.4), tumble when K x 0.4 >= +0x160 32: melee:src/melee/ft/kinds/ftCommon/ftCo_Damage.c:285";
 
-/** The test hit landed `count` times in a row by the same attacker on a target put back to 0% each time; each hit's damage, knockback and hitstun. */
+
 function repeatedHits(character: Character, count: number): string[] {
   const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character: Character.rifleman, x: -60.0, facing: 1 }]);
   const target = fighter(s, 0);
@@ -588,14 +588,14 @@ const KNOCKBACK: readonly Scenario[] = [
   { area: "knockback", name: "10-damage hit (growth 100, base 21) at the tumble threshold", cite: KNOCKBACK_RULE, run: (c) => launchCheck(c, 0) },
 ];
 
-// ------------------------------------------------------------------ pass-through platforms
+
 
 function standing(f: Fighter): string {
   if (!f.motion.grounded) return "airborne";
   return f.motion.surface === 1 ? "raised deck" : f.motion.surface === 0 ? "main deck" : `surface ${String(f.motion.surface)}`;
 }
 
-/** Stage 1's left raised deck spans x -420..-110 at z 170. */
+
 const UNDER_DECK_X = -265.0;
 
 function fullHopUnderDeck(character: Character): string {
@@ -613,7 +613,7 @@ function downOnDeck(character: Character): string {
   return standing(f);
 }
 
-/** Falls onto the deck holding down from high above it; the stick is long past a fresh press on landing. */
+
 function landHoldingDown(character: Character, after: number): string {
   const s = solo(1, character, UNDER_DECK_X);
   const f = fighter(s);
@@ -624,7 +624,7 @@ function landHoldingDown(character: Character, after: number): string {
   return standing(f);
 }
 
-/** A full hop under the raised deck with an up air on its first airborne frame: the aerial once the body has met the deck. */
+
 function upAirIntoDeck(character: Character): string {
   const s = solo(1, character, UNDER_DECK_X);
   const f = fighter(s);
@@ -641,11 +641,11 @@ function upAirIntoDeck(character: Character): string {
   return "never met the deck";
 }
 
-/**
- * A full or short hop under the raised deck, a double jump on frame `doubleAt` and an
- * up air on frame `pressAt`, searched for the first that leaves the aerial's
- * active frames ending while the body straddles the deck: what follows them.
- */
+
+
+
+
+
 function upAirRecoveryInDeck(character: Character): string {
   for (const full of [true, false]) for (let doubleAt = 0; doubleAt <= 30; doubleAt++) for (let pressAt = 1; pressAt <= 40; pressAt++) {
     const s = solo(1, character, UNDER_DECK_X);
@@ -667,7 +667,7 @@ function upAirRecoveryInDeck(character: Character): string {
   return "never straddled the deck";
 }
 
-/** A fresh down on the raised deck: whether the fighter falls through at once or descends. */
+
 function downThroughDeck(character: Character): string {
   const s = solo(1, character, UNDER_DECK_X);
   const f = fighter(s);
@@ -745,26 +745,26 @@ const PLATFORMS: readonly Scenario[] = [
   { area: "platform", name: "still holding down 30 frames after that landing", cite: PLATFORM_PASS, run: (c) => ({ expected: "raised deck", actual: landHoldingDown(c, 30) }) },
 ];
 
-// ------------------------------------------------------------------ the main deck's walls and underside
 
-/**
- * Final Destination's right side below its ledge vertex, in Melee units: the
- * owner's GALE01 revision 2 GrNLa.dat (SHA-1 fa607d7bb7dd4072d2d3968e1e31fd458bc397f8,
- * grGroundParam scale 1), coll_data rightWall lines 9, 10, 7, 8, 6 and
- * ceiling line 5 (melee:src/melee/mp/types.h MapCollData, MapLine).
- */
+
+
+
+
+
+
+
 const REFERENCE_LEDGE_X = 85.5656967163086;
 const REFERENCE_RIGHT_SIDE: readonly (readonly [number, number])[] = [
   [85.5656967163086, 0.0], [85.5656967163086, -10.5], [65.79930114746094, -20.453800201416016], [65.83740234375, -31.34429931640625],
   [61.419498443603516, -47.36629867553711], [53.77360153198242, -54.258399963378906], [47.45600128173828, -55.38819885253906],
 ];
-/** Its level underside, ceiling line 4, from -47.456 to 47.456. */
+
 const REFERENCE_UNDERSIDE_Y = -55.38819885253906;
 const STAGE_COLLISION = "Final Destination's coll_data (GrNLa.dat, GALE01 rev 2): rightWall lines 9, 10, 7, 8, 6, ceiling lines 5, 4; each side kept as far from its ledge, the underside spanning the wider deck";
 
 const RIGHT_LEDGE = mainDeckRight(0);
 
-/** The reference side's x, from its ledge vertex, `depth` Melee units below the ledge. */
+
 function referenceSideX(depth: number): number | undefined {
   for (let i = 0; i + 1 < REFERENCE_RIGHT_SIDE.length; i++) {
     const [x0, y0] = REFERENCE_RIGHT_SIDE[i] ?? [0, 0];
@@ -776,14 +776,14 @@ function referenceSideX(depth: number): number | undefined {
 }
 
 interface WallMeeting {
-  /** Where the fighter's flank met the side, from the ledge vertex and below it (Melee units). */
+
   readonly x: number;
   readonly depth: number;
-  /** Where the fighter stopped, from the ledge vertex. */
+
   readonly stop: number;
 }
 
-/** A tumbler launched left into the main deck's right side about `depth` Melee units below its ledge. */
+
 function meetSide(character: Character, depth: number): WallMeeting | undefined {
   const s = solo(0, character);
   const f = fighter(s);
@@ -798,33 +798,33 @@ function meetSide(character: Character, depth: number): WallMeeting | undefined 
   return undefined;
 }
 
-/** Where the side met the fighter beside the reference side at the depth it met it. */
+
 function sideCheck(character: Character, depth: number): Check {
   const meeting = meetSide(character, depth);
   if (meeting === undefined) return { expected: "wall", actual: "no contact" };
   return { expected: referenceSideX(meeting.depth) ?? Number.NaN, actual: meeting.x, tolerance: 0.001 };
 }
 
-/** How far under the floor a tumbler launched up beneath the deck's middle meets its underside (Melee units). */
-/**
- * Each fighter's Melee ECB top in the air, Melee units: the highest of its
- * six ECB bones (ftData x44) in its model's bind pose (PlFxNr.dat, PlFcNr.dat,
- * PlCaNr.dat) times its model_scaling (+0x8C), with no pad, as falls and
- * jumps load it (melee:src/melee/mp/mpcoll.c mpColl_LoadECB_JObj): Fox 11.625
- * x 0.96, Falco 12.5 x 1.1, Captain Falcon (Illidan) 19.3585 x 0.97.
- */
+
+
+
+
+
+
+
+
 function referenceEcbTop(character: Character): number {
   if (character === Character.rifleman) return 13.75;
   return 18.777746200561523;
 }
 
 interface CeilingMeeting {
-  /** Where the fighter met the ceiling, and how far below it the fighter then stood (Melee units). */
+
   readonly contactZ: number;
   readonly below: number;
 }
 
-/** A tumbler launched up from `gap` world units under `ceiling` (its top that far below it) until it meets it. */
+
 function meetCeiling(stage: number, character: Character, x: number, ceiling: number, gap: number): CeilingMeeting | undefined {
   const s = solo(stage, character, x);
   const f = fighter(s);
@@ -834,10 +834,10 @@ function meetCeiling(stage: number, character: Character, x: number, ceiling: nu
   return contact === undefined ? undefined : { contactZ: melee(f.surfaceRecovery.contactZ), below: melee(f.surfaceRecovery.contactZ - f.motion.z) };
 }
 
-/** Beneath the main deck's middle, its top 3 under the underside: the bottom blast zone leaves Fox and Falco that much room. */
+
 const meetUnderside = (character: Character) => meetCeiling(0, character, 0.0, REFERENCE_UNDERSIDE_Y * WORLD_UNITS_PER_MELEE_UNIT, 3.0);
 
-/** The solid-deck test stage's left raised deck's underside, which stands high enough above the floor for every fighter's top. */
+
 const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_SURFACES + 2).startZ;
 const meetRaisedUnderside = (character: Character) => meetCeiling(SOLID_DECK_TEST_STAGE, character, -265.0, RAISED_UNDERSIDE_Z, 10.0);
 
@@ -846,15 +846,15 @@ interface SurfaceRun {
   readonly result: string;
 }
 
-/**
- * A tumbler presses tech on frame 2, is then held `frozen` frames in hitlag
- * and flies left into the main deck's right side below the ledge, or up into
- * its underside. Tech ages count hitlag frames in both games.
- */
+
+
+
+
+
 function surfaceRun(character: Character, wall: boolean, press: boolean, frozen: number): SurfaceRun {
   const s = solo(wall ? 0 : SOLID_DECK_TEST_STAGE, character, wall ? 0.0 : -265.0);
   const f = fighter(s);
-  // Under the raised deck, the fighter's top starts 30 under its underside.
+
   const below = RAISED_UNDERSIDE_Z - bodyTop(character) * WORLD_UNITS_PER_MELEE_UNIT - 30.0;
   tumbling(f, wall ? RIGHT_LEDGE + 200.0 : 0.0, 400.0);
   for (let n = 1; n <= 60; n++) {
@@ -873,7 +873,7 @@ function surfaceRun(character: Character, wall: boolean, press: boolean, frozen:
   return { contact: undefined, result: "no contact" };
 }
 
-/** Tech pressed `early` frames before the contact. */
+
 function surfaceTech(character: Character, wall: boolean, early: number): string {
   const contact = surfaceRun(character, wall, false, 0).contact;
   if (contact === undefined) return "no contact";
@@ -882,32 +882,32 @@ function surfaceTech(character: Character, wall: boolean, early: number): string
   return surfaceRun(character, wall, true, frozen).result;
 }
 
-/**
- * Wall data, Melee units a frame: ftCo_DatAttrs +0x100 passivewall_vel_x and
- * +0x104/+0x108 wall jump launch from the retail PlFx/PlFc/PlCa.dat
- * (physics-parameters.json). reference = Fox, Rifleman = Falco, Illidan =
- * Captain Falcon; all three set can_walljump.
- */
+
+
+
+
+
+
 function referenceWall(character: Character): { readonly pushOff: number; readonly jumpX: number; readonly jumpZ: number } {
   if (character === Character.rifleman) return { pushOff: 0.5, jumpX: 1.2999999523162842, jumpZ: 3.5999999046325684 };
   return { pushOff: 0.5, jumpX: 1.399999976158142, jumpZ: 3.0999999046325684 };
 }
 
-/** The fighter's own air friction and gravity in Melee units: Fox's and Falco's for reference and Rifleman, Illidan's authored ones. */
+
 function airDrag(character: Character): { readonly friction: number; readonly gravity: number } {
   const { airFriction, gravity } = createFighter(character, 0.0, 1).tuning.physics;
   return { friction: f32(melee(airFriction)), gravity: f32(melee(gravity)) };
 }
 
 interface WallLeave {
-  /** Frames from the wall recovery's first frame until the fighter moves off the wall. */
+
   readonly hang: number;
-  /** Its speed away from the wall on that frame, and how far it then rose (Melee units). */
+
   readonly speed: number;
   readonly rise: number;
 }
 
-/** Plays a wall recovery that began this frame until the fighter leaves the wall and stops rising. */
+
 function leaveWall(s: Scene): WallLeave | undefined {
   const f = fighter(s);
   if (f.surfaceRecovery.state !== SurfaceContact.techWall) return undefined;
@@ -923,7 +923,7 @@ function leaveWall(s: Scene): WallLeave | undefined {
   return { hang, speed, rise: melee(top - wallZ) };
 }
 
-/** A tumbler that pressed tech, launched left into the main deck's right side 5 units below its ledge; `up` holds the stick up. */
+
 function wallTechLeave(character: Character, up: boolean): WallLeave | undefined {
   const s = solo(0, character);
   const f = fighter(s);
@@ -934,11 +934,11 @@ function wallTechLeave(character: Character, up: boolean): WallLeave | undefined
   return leaveWall(s);
 }
 
-/**
- * Drifts left at `speed` (world units a frame) from `outside` world units
- * beyond the main deck's right side, just below its ledge and facing away,
- * holding left until it meets the side, then flicks the stick right.
- */
+
+
+
+
+
 function wallJumpLeave(character: Character, outside: number, speed: number): WallLeave | undefined {
   const s = solo(0, character);
   const f = fighter(s);
@@ -960,26 +960,26 @@ const WALL_HANG = "PlCo +0x760 = 5 (wall tech) and +0x774 = 5 (wall jump) frames
 const WALL_LAUNCH = "ftCo_DatAttrs +0x100 push-off 0.5, +0x104/+0x108 wall jump 1.4/3.3 (Fox), 1.3/3.6 (Falco), 1.4/3.1 (Captain Falcon) from the retail DATs (physics-parameters.json), set when the hang ends, then a frame of aerial friction and gravity: ftCo_PassiveWall_Anim, ftCo_PassiveWall_Phys";
 const WALL_JUMP = "can_walljump (ftFx/ftFc/ftCa_Init_OnLoad); met faster than +0x148 = 0.5 a frame, then the stick at least PlCo +0x76C = 0.8 away within +0x770 = 3 frames of leaving the deadzone and +0x768 = 130 frames of meeting the wall: melee:src/melee/ft/ftwalljump.c ftWallJump_8008169C";
 
-/**
- * Ceiling tech data: ftCo_DatAttrs +0x10C passiveceil_vel_x (Melee units a
- * frame) from the retail DATs and the animation's impulse event frame
- * (retail-ceiling-tech-events.json): Fox and Falco 0.7 on frame 14, Captain
- * Falcon (Illidan) 2.0 on frame 11; and +0x078 air_max_horizontal_velocity,
- * the cap of the drift that follows: Fox 3, Falco 4, Captain Falcon 3.
- */
+
+
+
+
+
+
+
 function referenceCeiling(character: Character): { readonly speed: number; readonly frame: number; readonly airMax: number } {
   if (character === Character.demonHunter) return { speed: 2.0, frame: 11, airMax: 3.0 };
   return { speed: 0.699999988079071, frame: 14, airMax: character === Character.rifleman ? 4.0 : 3.0 };
 }
 
-/**
- * One frame of Melee's air drift with the stick fully toward `velocity`
- * (ftCommon_CalcSelfAccel_DriftFrom, ftCommon_CalcSelfAccel_AccelToVelClampedFrom,
- * melee:src/melee/ft/ftcommon.c): the acceleration toward the drift maximum,
- * or, past it, the air friction instead, no lower than that maximum and no
- * higher than air_max_horizontal_velocity. Melee units, from the fighter's own
- * air values.
- */
+
+
+
+
+
+
+
+
 function meleeAirDrift(character: Character, velocity: number, airMax: number): number {
   const physics = createFighter(character, 0.0, 1).tuning.physics;
   const target = f32(melee(physics.airSpeed));
@@ -992,13 +992,13 @@ function meleeAirDrift(character: Character, velocity: number, airMax: number): 
   return f32(velocity + accel);
 }
 
-/**
- * A tumbler that pressed tech, launched up into the left raised deck's
- * underside on the solid-deck test stage, holding the stick left only on
- * frame `leftOn` after the contact: its sideways speed then (Melee units).
- * The shipped stages' one underside, the main deck's, is too near the bottom
- * blast zone for a fighter to reach the impulse.
- */
+
+
+
+
+
+
+
 function ceilingTechSpeed(character: Character, leftOn: number): number | undefined {
   const s = solo(SOLID_DECK_TEST_STAGE, character, -265.0);
   const f = fighter(s);
@@ -1006,13 +1006,13 @@ function ceilingTechSpeed(character: Character, leftOn: number): number | undefi
   f.launch.knockbackZ = 18.0;
   if (framesUntil(s, () => f.surfaceRecovery.contactSerial > 0, 10, (n) => (n === 1 ? [Action.leftTrigger] : [])) === undefined) return undefined;
   if (f.surfaceRecovery.state !== SurfaceContact.techCeiling) return undefined;
-  // Held airborne: the floor below the raised deck is nearer than the fall to the impulse frame.
+
   f.tuning = { ...f.tuning, physics: { ...f.tuning.physics, gravity: 0.0 } };
   for (let n = 1; n <= leftOn; n++) frame(s, n === leftOn ? [Action.moveLeft] : []);
   return f.motion.grounded ? undefined : melee(f.motion.vx);
 }
 
-/** The first frame after the contact on which the stick moves the fighter faster than a frame of air drift alone. */
+
 function ceilingImpulseFrame(character: Character): number | string {
   const drift = melee(createFighter(character, 0.0, 1).tuning.physics.airAcceleration);
   for (let leftOn = 1; leftOn <= 20; leftOn++) {
@@ -1113,9 +1113,9 @@ const SURFACES: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ shield and dodges
 
-/** Frames after the shield's release frame until an attack starts on its press frame. */
+
+
 function shieldReleaseLag(character: Character): number {
   const released = 21;
   const run = (attackAt: number): boolean => {
@@ -1127,7 +1127,7 @@ function shieldReleaseLag(character: Character): number {
   return firstAccepted((wait) => run(released + wait));
 }
 
-/** Frame ranges, as "a-b, c-d", of the frames that satisfy `flags`. */
+
 function ranges(flags: readonly boolean[]): string {
   const parts: string[] = [];
   let start: number | undefined;
@@ -1139,7 +1139,7 @@ function ranges(flags: readonly boolean[]): string {
   return parts.length === 0 ? "none" : parts.join(", ");
 }
 
-/** A spot dodge (down) or forward roll (right) out of shield: its frames and its intangible frames. */
+
 function groundDodge(character: Character, direction: Action): { frames: number; intangible: string } {
   const s = solo(0, character);
   const f = fighter(s);
@@ -1173,7 +1173,7 @@ function airDodgeFirstTravel(character: Character): number {
   return melee(f.motion.deltaZ);
 }
 
-/** Whether an attack pressed on frame 55, after a frame-1 air dodge's 49-frame animation, starts before landing. */
+
 function actsAfterAirDodge(character: Character): boolean {
   const s = solo(0, character);
   const f = fighter(s);
@@ -1182,7 +1182,7 @@ function actsAfterAirDodge(character: Character): boolean {
   return !f.motion.grounded && f.attack.serial > 0;
 }
 
-/** A straight-down air dodge just above the main deck. */
+
 const wavelandFall: Fall = { setup: (f) => airborne(f, 0.0, 6.0), held: (n) => (n === 1 ? [Action.moveDown, Action.leftTrigger] : []) };
 
 const DODGE_DATA = "Fox/Falco animation frames (retail-action-lengths.json, private PlFxAJ/PlFcAJ read)";
@@ -1230,9 +1230,9 @@ const SHIELD_AND_DODGES: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ powershield
 
-/** The test hit on a fighter holding an ordinary shield; `perfect` gives it a live powershield window first. */
+
+
 function shieldedHit(character: Character, perfect: boolean): { readonly s: Scene; readonly f: Fighter } {
   const s = solo(0, character);
   const f = fighter(s);
@@ -1244,7 +1244,7 @@ function shieldedHit(character: Character, perfect: boolean): { readonly s: Scen
   return { s, f };
 }
 
-/** Whether a parried fighter that lets go of its shield after the freeze is free to move, or only to attack as in Melee. */
+
 function dropAfterParry(character: Character): string {
   const { s, f } = shieldedHit(character, true);
   while (f.launch.hitlag > 1) frame(s, [Action.rightTrigger]);
@@ -1252,7 +1252,7 @@ function dropAfterParry(character: Character): string {
   return f.shield.raised ? "still shielding" : f.shield.releaseLag === 0 ? "no release lag" : "GuardOff, attacks only";
 }
 
-/** Whether a fresh full press during shieldstun opens a parry window for the next hit. */
+
 function pressInShieldstun(character: Character): string {
   const { s, f } = shieldedHit(character, false);
   while (f.launch.hitlag > 0) frame(s, [Action.rightTrigger]);
@@ -1283,14 +1283,14 @@ const POWERSHIELD: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ ledges
+
 
 function ledgeBox(character: Character): { reach: number; highest: number } {
   const snap = ledgeSnap(character);
   return { reach: 6.0 * (LEDGE_BODY_HALF_WIDTH + snap.x), highest: 6.0 * (snap.y + snap.height / 2.0) };
 }
 
-/** Falls from `below` under the right ledge, `outside` beyond it, facing the stage, until a catch or well past the ledge. */
+
 function catchesLedge(character: Character, outside: number, below: number): boolean {
   const s = solo(0, character);
   const f = fighter(s);
@@ -1305,7 +1305,7 @@ function catchesLedge(character: Character, outside: number, below: number): boo
   return false;
 }
 
-/** Drifts toward the stage from 2 units outside the right wall's flank and 20 below the ledge, holding left, until a catch or well past it. */
+
 function catchAgainstWall(character: Character): string {
   const s = solo(0, character);
   const f = fighter(s);
@@ -1320,7 +1320,7 @@ function catchAgainstWall(character: Character): string {
   return "fell";
 }
 
-/** A fighter hanging on the ledge past its intangible frames, grabbed from 70 units inside it: "caught", or "not caught" with the grab started. */
+
 function grabOnLedgeHanger(character: Character): string {
   const s = scene(0, [
     { character, x: mainDeckRight(0) - 70.0, facing: 1 },
@@ -1353,9 +1353,9 @@ const LEDGES: readonly Scenario[] = [
   { area: "ledge", name: "standing grab on a fighter hanging past its intangible frames", cite: "ftColl_80078A2C skips a victim with x1A6A & x1A68 (melee:src/melee/ft/ftcoll.c:1330); the hang sets x1A6A = 511 (ftCliffCommon_80081370, melee:src/melee/ft/ftcliffcommon.c:86; ftCo_8009A804, ftCo_CliffWait.c:25) and every catch sets x1A68 = 1 (ftCo_800D8C54, ftCo_Catch.c:115) (#72)", run: (c) => ({ expected: "not caught", actual: grabOnLedgeHanger(c) }) },
 ];
 
-// ------------------------------------------------------------------ grabs
 
-/** Frames a Rifleman at `percent` stays in the fighter's grab, with one mash press on held frame `mashOn` when given. */
+
+
 function grabHold(character: Character, percent: number, mashOn?: number): number | string {
   const s = scene(0, [{ character, x: 0.0, facing: 1 }, { character: Character.rifleman, x: 50.0, facing: -1 }]);
   const victim = fighter(s, 1);
@@ -1387,7 +1387,7 @@ const GRABS: readonly Scenario[] = [
   },
 ];
 
-// ------------------------------------------------------------------ table
+
 
 const windowBound = (name: string, lower: number, upper: number, actual: (character: Character) => number): Scenario => ({
   area: "execution bounds", name: `${name}: ${lower}..${upper} frames`,
@@ -1398,13 +1398,13 @@ const windowBound = (name: string, lower: number, upper: number, actual: (charac
   },
 });
 
-// ------------------------------------------------------------------ smash DI
 
-/**
- * An airborne fighter seeded in 20 frames of hitlag with a fresh stick that
- * alternates left and right on each of the 19 frames before release, then
- * neutral; returns the horizontal travel (Melee units) and the largest one-frame shift.
- */
+
+
+
+
+
+
 function sdiMash(character: Character): { readonly travel: number; readonly step: number } {
   const s = solo(0, character);
   const f = fighter(s);
@@ -1477,14 +1477,14 @@ export function runOracle(): OracleRow[] {
   return SCENARIOS.flatMap((scenario) => FIGHTERS.map(({ character, name }) => rowFor(scenario, character, name)));
 }
 
-/**
- * Rows that may mismatch until their owning issue lands, keyed by rowKey, each
- * with that issue; CI fails on any other mismatch and on a listed row that passes.
- */
+
+
+
+
 const KNOWN_MISMATCHES: ReadonlyMap<string, string> = new Map<string, string>([
 ]);
 
-/** Mismatches that aren't known, known mismatches and departures that now match Melee, and known rows the table no longer has. */
+
 export function oracleProblems(rows: readonly OracleRow[]): string[] {
   const keys = new Set(rows.map(rowKey));
   return [
@@ -1500,7 +1500,7 @@ export function oracleProblems(rows: readonly OracleRow[]): string[] {
 
 const pad = (text: string, width: number): string => text.padEnd(width);
 
-/** The table grouped by scenario with its citation, then counts per area and every mismatch with its owner. */
+
 export function formatOracle(rows: readonly OracleRow[]): string {
   const lines: string[] = [];
   let previous = "";

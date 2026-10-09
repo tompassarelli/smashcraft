@@ -30,8 +30,8 @@ world = {b.name: b.matrix.copy() for b in rig.pose.bones}
 required = ['Bone_Root', 'Bone_Pelvis', 'Bone_Chest', 'Rifle01'] + [f'Bone_{part}_{side}' for part in ('Arm1', 'Arm2', 'Hand', 'Leg1', 'Leg2') for side in ('L', 'R')]
 assert all(n in base for n in required), 'Rifleman skeleton differs from authored rig'
 assert rig.data.bones['Rifle01'].parent is None
-# Rifle01 is a separate root in the stock model. Keep its hierarchy unchanged:
-# bake its chest-relative pose and solve both arms to its original grip points.
+
+
 chest_inverse = world['Bone_Chest'].inverted()
 weapon_relative = chest_inverse @ world['Rifle01']
 grips = {s: world['Rifle01'].inverted() @ world[f'Bone_Hand_{s}'].translation for s in ('L', 'R')}
@@ -45,7 +45,7 @@ def rotation(axis, degrees):
 
 
 def turn(name, degrees):
-    # Inspected Rifleman body basis: local Z points along game -Y.
+
     rig.pose.bones[name].matrix_basis = base[name] @ rotation((0, 0, 1), degrees)
 
 
@@ -83,7 +83,7 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
          cape_lift=0, summon=0, weapon_pitch=0, grab=0, pummel_knee=0):
     for name, matrix in base.items():
         rig.pose.bones[name].matrix_basis = matrix
-    # Root displacement belongs entirely to simulation, including aerial clips.
+
     turn('Bone_Root', spin)
     rig.pose.bones['Bone_Root'].location = (0, 0, 0)
     turn('Bone_Chest', lean)
@@ -106,8 +106,8 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
              Vector((55, -15, 55)))
     chest = rig.pose.bones['Bone_Chest'].matrix.copy()
     pivot = chest @ center_relative
-    # Swing the butt forward around the two-hand grip, with separate pitch for
-    # the up/down strikes. No firing or shell-ejection action is reused.
+
+
     swing = rotation((0, 0, 1), 145*strike) @ rotation((0, 1, 0), elevation*abs(strike) + weapon_pitch)
     local_swing = chest.to_3x3().to_4x4() @ world['Bone_Chest'].to_3x3().inverted().to_4x4()
     swing = local_swing @ swing @ local_swing.inverted()
@@ -122,14 +122,14 @@ def pose(tuck=0, spin=0, lean=0, strike=0, elevation=0, crouch=0,
         bpy.context.view_layer.update()
     for side in ('L', 'R'):
         grip_arm(side, weapon @ grips[side], chest @ poles[side])
-    # Restore hand orientation relative to the weapon after the arm solve.
+
     for side in ('L', 'R'):
         hand = rig.pose.bones[f'Bone_Hand_{side}']
         hand.matrix = weapon @ world['Rifle01'].inverted() @ world[hand.name]
     if summon:
-        # The weapon is rooted independently in this stock model. Let the
-        # left arm leave its two-hand grip for a clear bear/trap gesture while
-        # the right hand keeps the rifle visible and aimed.
+
+
+
         turn('Bone_Arm1_L', -58*summon)
         turn('Bone_Arm2_L', 34*summon)
         bpy.context.view_layer.update()
@@ -152,7 +152,7 @@ def author(name, keys):
     rig.animation_data.action = action
     rig.animation_data.action_slot = slot
     frames = sorted(keys)
-    # Bake the foreign rig constraint solve; game playback needs no constraints.
+
     previous = {}
     for frame in range(frames[-1]+1):
         scene.frame_set(frame)
@@ -172,8 +172,8 @@ def author(name, keys):
             if bone.name != 'Bone_Root':
                 bone.keyframe_insert('location', frame=frame, group=bone.name)
             bone.keyframe_insert('scale', frame=frame, group=bone.name)
-    # Authored non-firing clips keep the body visible and shell/gore hidden.
-    # Store these on each mesh's imported visibility channel, not model bytes.
+
+
     for mesh in (o for o in scene.objects if o.type == 'MESH'):
         groups = {mesh.vertex_groups[g.group].name for v in mesh.data.vertices for g in v.groups if g.weight > 0}
         visible = 0.0 if groups <= {'shell', 'gutz00'} else 1.0
@@ -229,9 +229,9 @@ author('Fall Special', {0:{'tuck':.25,'strike':-.2,'lean':12,'cape_lift':20}, 24
 author('Get Up', {0:prone, 5:prone, 12:{'spin':65,'tuck':.8}, 20:{'spin':30,'tuck':.45}, 26:{'spin':8,'tuck':.15}, 30:{}})
 author('Get Up Attack', {0:prone, 5:{**prone,'strike':-.2}, 10:{'spin':70,'tuck':.8,'strike':-.3}, 16:{'spin':45,'tuck':.65,'strike':1}, 18:{'spin':35,'tuck':.5,'strike':1}, 25:{'spin':15,'tuck':.3,'strike':.4}, 38:{}, 45:{}})
 
-# Rifleman neutral fire shares Simulation's frame-2 projectile point in both
-# stances. Separate clip lengths preserve that point while their recovery
-# windows differ (24 grounded frames versus 15 airborne frames).
+
+
+
 author_timed_special('Special Neutral', {
     0: {'strike': 0}, 1: {'strike': .12, 'lean': -3},
     2: {'strike': -.16, 'lean': 2, 'weapon_lift': 2},
@@ -243,8 +243,8 @@ author_timed_special('Special Neutral Air', {
     4: {'strike': -.08, 'lean': 1}, 9: {'strike': 0}, 15: {},
 }, 15)
 
-# Down-B places the trap at the feet; the deep crouch and barrel-down angle
-# communicate placement without changing trap activation timing.
+
+
 author_timed_special('Special Down', {
     0: {'crouch': .15, 'strike': .08, 'weapon_pitch': 55},
     2: {'crouch': 1.5, 'lean': 13, 'leg_r': 22, 'leg_l': 18,
@@ -256,8 +256,8 @@ author_timed_special('Special Down', {
     20: {},
 }, 20)
 
-# Up-B aims and fires down on logical frame 4. Recoil opens the legs and lifts
-# the cape into a readable rising pose while simulation retains root motion.
+
+
 author_timed_special('Special Up', {
     0: {'tuck': .15, 'lean': 9, 'weapon_pitch': 70,
         'leg_r': 10, 'leg_l': 8, 'cape_lift': 5},

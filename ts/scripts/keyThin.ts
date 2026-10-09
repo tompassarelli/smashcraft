@@ -1,12 +1,12 @@
-// Thins node transform keys that the track's own interpolation reproduces
-// from its neighbours, then measures the posed skeleton against the source
-// with war3-model's renderer (the reader the clip tools draw with).
-// tools/animations/export-original-clips.ts runs it on each fighter's source
-// model before its clips are cut (#314). It lives under ts/ so the suite
-// resolves war3-model from ts/node_modules.
+
+
+
+
+
+
 import { ModelRenderer, model as mdx } from 'war3-model';
 
-/** Largest drift of any node's world position (model units) and world rotation (degrees) in any sequence. */
+
 export const KEY_BOUND = { position: 0.5, rotationDegrees: 0.5 } as const;
 export type KeyBound = { readonly position: number, readonly rotationDegrees: number };
 
@@ -16,12 +16,12 @@ export interface KeyThinReport {
     readonly maxPosition: number;
     readonly maxRotationDegrees: number;
     readonly samples: number;
-    /** Where the largest position drift is: sequence, frame and node. */
+
     readonly worst: string;
 }
 
 type Vec = ArrayLike<number>;
-/** Component i, 0 past the end (MDX vectors have fixed lengths). */
+
 const at = (values: ArrayLike<number>, i: number): number => values[i] ?? 0;
 function keyAt(keys: readonly mdx.AnimKeyframe[], i: number): mdx.AnimKeyframe {
     const key = keys[i];
@@ -31,7 +31,7 @@ function keyAt(keys: readonly mdx.AnimKeyframe[], i: number): mdx.AnimKeyframe {
 const channels = ['Translation', 'Rotation', 'Scaling'] as const;
 type Channel = typeof channels[number];
 
-/** Every keyed node transform not on a global clock (those run on their own time, so clips keep them whole). */
+
 function transforms(model: mdx.Model, visit: (track: mdx.AnimVector, node: mdx.Node, channel: Channel) => void): void {
     for (const node of [...model.Bones, ...model.Helpers, ...model.Attachments, ...model.CollisionShapes]) for (const channel of channels) {
         const animated = node[channel];
@@ -50,7 +50,7 @@ function slerp(a: Vec, b: Vec, t: number): number[] {
     return [s0 * at(a, 0) + s1 * bx, s0 * at(a, 1) + s1 * by, s0 * at(a, 2) + s1 * bz, s0 * at(a, 3) + s1 * bw];
 }
 
-/** The value war3-model draws between keys `left` and `right` (its interpVec3 / interpQuat). */
+
 function interpolate(track: mdx.AnimVector, quaternion: boolean, left: mdx.AnimKeyframe, right: mdx.AnimKeyframe, frame: number): number[] {
     const a = left.Vector, b = right.Vector;
     if (left.Frame === right.Frame || track.LineType === mdx.LineType.DontInterp) return [...a];
@@ -82,7 +82,7 @@ function difference(quaternion: boolean, a: ArrayLike<number>, b: ArrayLike<numb
     return Math.sqrt(sum);
 }
 
-/** How far a unit of this node's local rotation or scale moves its farthest descendant pivot. */
+
 function levers(model: mdx.Model): Map<number, number> {
     const lever = new Map<number, number>();
     const pivot = (id: number) => model.PivotPoints[id] ?? new Float32Array(3);
@@ -98,7 +98,7 @@ function levers(model: mdx.Model): Map<number, number> {
     return lever;
 }
 
-/** Keeps every key a sequence starts or ends on, every key outside sequences, and the fewest keys between that stay within `tolerance`. */
+
 function thinTrack(track: mdx.AnimVector, quaternion: boolean, sequences: readonly mdx.Sequence[], tolerance: number): void {
     const keys = track.Keys;
     if (keys.length < 3) return;
@@ -108,7 +108,7 @@ function thinTrack(track: mdx.AnimVector, quaternion: boolean, sequences: readon
         if (inside.length) { keep[inside[0] ?? 0] = true; keep[inside.at(-1) ?? 0] = true; }
     }
     const curved = track.LineType === mdx.LineType.Hermite || track.LineType === mdx.LineType.Bezier;
-    // Between original keys a curved track bends, so its midpoints are checked too.
+
     const fits = (a: number, c: number) => {
         for (let j = a + 1; j < c; j++) {
             if (track.LineType === mdx.LineType.DontInterp) { if (difference(quaternion, keyAt(keys, j).Vector, keyAt(keys, a).Vector) !== 0) return false; continue; }
@@ -160,7 +160,7 @@ function setFrame(renderer: ModelRenderer, frame: number): void {
     renderer.update(0);
 }
 
-/** Angle between two posed matrices' rotations, ignoring scale; undefined where a node is scaled away. */
+
 function rotationAngle(a: Float32Array, b: Float32Array): number | undefined {
     const column = (m: Float32Array, c: number) => {
         const length = Math.hypot(at(m, c * 4), at(m, c * 4 + 1), at(m, c * 4 + 2));
@@ -168,13 +168,13 @@ function rotationAngle(a: Float32Array, b: Float32Array): number | undefined {
     };
     const ra = [0, 1, 2].map(c => column(a, c)), rb = [0, 1, 2].map(c => column(b, c));
     if (ra.some(c => c === undefined) || rb.some(c => c === undefined)) return undefined;
-    // R = Ra^T Rb; its skew part has length sin(angle), its trace 1 + 2 cos(angle).
+
     const r = (i: number, j: number) => (ra[i] ?? []).reduce((sum, x, k) => sum + x * at(rb[j] ?? [], k), 0);
     const sin = Math.hypot(r(2, 1) - r(1, 2), r(0, 2) - r(2, 0), r(1, 0) - r(0, 1)) / 2;
     return Math.atan2(sin, (r(0, 0) + r(1, 1) + r(2, 2) - 1) / 2) * 180 / Math.PI;
 }
 
-/** The largest world position and rotation drift of any node, sampled at every source key frame and midway between them. */
+
 export function poseError(source: mdx.Model, candidate: mdx.Model): { maxPosition: number, maxRotationDegrees: number, samples: number, worst: string } {
     const before = new ModelRenderer(source), after = new ModelRenderer(candidate);
     const frames = new Set<number>();
@@ -211,11 +211,11 @@ export function poseError(source: mdx.Model, candidate: mdx.Model): { maxPositio
 
 const keyCount = (model: mdx.Model) => { let count = 0; transforms(model, track => { count += track.Keys.length; }); return count; };
 
-/**
- * The source with redundant node transform keys removed. Local tolerances
- * start at half the bound and shrink until the posed skeleton stays within it
- * in every sequence.
- */
+
+
+
+
+
 export function thinKeys(source: mdx.Model, bound: KeyBound = KEY_BOUND): { model: mdx.Model, report: KeyThinReport } {
     for (let scale = 0.5; scale > 0.01; scale *= 0.6) {
         const model = thinned(source, bound, scale), error = poseError(source, model);
@@ -225,12 +225,12 @@ export function thinKeys(source: mdx.Model, bound: KeyBound = KEY_BOUND): { mode
     return { model: structuredClone(source), report: { keysBefore: keyCount(source), keysAfter: keyCount(source), maxPosition: 0, maxRotationDegrees: 0, samples: 0, worst: '' } };
 }
 
-/**
- * The MDX bytes `thinned` saves over `source` in a clip of frames `interval`:
- * each key is a 4-byte frame and its value, plus two tangents on a curved track.
- * Thinning keeps every sequence's first and last key, so no track empties and
- * the chunk headers keep their size.
- */
+
+
+
+
+
+
 export function savedKeyBytes(source: mdx.Model, thinned: mdx.Model, interval: readonly number[]): number {
     const inside = (track: mdx.AnimVector) => track.Keys.reduce((count, key) => count + (key.Frame >= at(interval, 0) && key.Frame <= at(interval, 1) ? 1 : 0), 0);
     const before: number[] = [], after: number[] = [];

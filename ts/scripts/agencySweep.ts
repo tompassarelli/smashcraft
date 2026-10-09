@@ -1,14 +1,14 @@
-// The false-agency sweep (#68): every shipped fighter's grab and throws,
-// ground normals and specials against every fighter at 0-150%, jab resets
-// on a fighter lying down, and the bounded true links of the move
-// comparisons (scripts/moveComparisons.ts), each analysed by
-// scripts/agency.ts. A starter is played from a standing start; once it
-// catches the victim (a hit, a grab or a freeze), the analysis begins. The
-// attacker then tries to catch the victim again with the same starter, from
-// several reaches, standing or approaching: a follow-up that catches the
-// victim before it can act extends the stretch, and a stretch that comes back
-// to an equivalent situation is a loop, which is checked again with the
-// victim holding each DI direction. `bun wisp agency` prints the result.
+
+
+
+
+
+
+
+
+
+
+
 import { Action, bit } from "../src/game/input/actions";
 import { ATTACK_BUFFER_FRAMES } from "../src/game/input/attackBuffer";
 import { type InputRow, emptyInput, inputRow } from "../src/game/input/inputRow";
@@ -31,30 +31,30 @@ interface Entry {
   readonly character: Character;
 }
 
-/** Every selectable fighter: the original three and each complete hero. */
+
 export const FIGHTERS: readonly Entry[] = SELECTABLE_CHARACTERS.map((character) => ({ name: fighterName(character), character }));
 const nameOf = (character: number) => FIGHTERS.find((entry) => entry.character === character)?.name ?? "fighter";
 
 const PERCENTS = Array.from({ length: 16 }, (_, index) => index * 10);
 
-/**
- * Stretches longer than this are reported: about a visual reaction (250-333
- * ms). A lock shorter than a reaction ends before a player could try an
- * input and see it do nothing, so it can't leave them believing they could
- * have acted; a longer one can.
- */
+
+
+
+
+
+
 export const REPORTED_FRAMES = 20;
 
-/** Frames a stretch is followed for: two cycles of the slowest loop the sweep can make, a 300-frame freeze. */
+
 const WINDOW = 720;
-/** A follow-up catching the victim this many frames after the starter's stretch ended may still be a true one: a tech press or a buffered button counts as acting up to 20 frames before it shows. */
+
 const LATE_FOLLOW_UP = 25;
 const ATTACKER = 0;
 const VICTIM = 1;
-/** The two settling frames before the starter. */
+
 const SETTLE = 2;
 
-/** A controller row pressing `buttons` with the stick at whole directions (x, z), pressed from a neutral row. */
+
 function pad(buttons: number, x = 0, z = 0): InputRow {
   const held = buttons | (x < 0 ? bit(Action.moveLeft) : 0) | (x > 0 ? bit(Action.moveRight) : 0) | (z < 0 ? bit(Action.moveDown) : 0) | (z > 0 ? bit(Action.moveUp) : 0);
   const special = (buttons & bit(Action.special)) !== 0;
@@ -63,7 +63,7 @@ function pad(buttons: number, x = 0, z = 0): InputRow {
   return row;
 }
 
-/** A starter: the buttons pressed, where the stick points on that frame, and for a grab the throw once holding. */
+
 interface Starter {
   readonly name: string;
   readonly buttons: number;
@@ -102,12 +102,12 @@ function aimed(starter: Starter, attacker: Readonly<Fighter>, victim: Readonly<F
   return pad(starter.buttons, x, z);
 }
 
-/**
- * How the attacker plays: the starter on `first`, then, when `repeat` names a
- * reach, again whenever it can act and the victim is that close, holding the
- * stick toward it meanwhile when `approach`. A held victim is thrown at once.
- * A pure function of the match, as replays need.
- */
+
+
+
+
+
+
 interface Plan {
   readonly starter: Starter;
   readonly first: number;
@@ -124,7 +124,7 @@ function attackerRow(plan: Plan, state: Readonly<ReplayState>, frame: number): I
     return direction === "up" ? pad(0, 0, 1) : direction === "down" ? pad(0, 0, -1) : pad(0, direction === "forward" ? attacker.facing : -attacker.facing, 0);
   }
   if (frame === plan.first) return aimed(starter, attacker, victim);
-  // Presses come on even frames only, so a press that starts nothing is released before the next, as on a pad.
+
   if (plan.repeat === undefined || frame < plan.first || !canAttack(attacker) || victim.status.out) return emptyInput();
   if (Math.abs(victim.motion.x - attacker.motion.x) <= plan.repeat) return frame % 2 === 0 ? aimed(starter, attacker, victim) : emptyInput();
   return plan.approach ? pad(0, toward(attacker, victim), 0) : emptyInput();
@@ -142,18 +142,18 @@ function match(world: ReplayState["world"], percent: number): ReplayState {
   return { world, match: state, controls, runtime: createPacingAndPresentation() };
 }
 
-/** Two fighters `gap` apart at the middle of the flat stage, facing each other, the victim at `percent`, settled. */
+
 export function standingMatch(attacker: Character, victim: Character, percent: number, gap: number): ReplayState {
   const state = match(createRoster(3, [createFighter(attacker, -gap / 2, 1), createFighter(victim, gap / 2, -1)]), percent);
   for (let frame = 0; frame < SETTLE; frame++) runFrame(state, () => emptyInput());
   return state;
 }
 
-/** A fighter lying on the deck after a missed tech, `gap` in front of the attacker. */
+
 function lyingMatch(attacker: Character, victim: Character, percent: number, gap: number): ReplayState {
   const state = standingMatch(attacker, victim, percent, gap);
   const lying = fighterAt(state.world, VICTIM);
-  // Tumbling just above the deck with no tech pressed: it lands, bounces and lies there.
+
   lying.motion.grounded = false;
   lying.motion.surface = undefined;
   lying.motion.z = 2.0;
@@ -165,14 +165,14 @@ function lyingMatch(attacker: Character, victim: Character, percent: number, gap
   return state;
 }
 
-/** What the victim showed after the previous frame: a new hit, a new hold or a longer freeze is a new catch. */
+
 interface Catches {
   hits: number;
   grabbed: boolean;
   frozenFrames: number;
 }
 
-/** Whether the victim was caught again this frame: hit, grabbed or frozen, including a freeze renewed as the last one ended. */
+
 function caught(f: Readonly<Fighter>, seen: Catches): boolean {
   const grabbed = f.grab.owner !== undefined;
   const fresh = f.visuals.hit !== seen.hits || (grabbed && !seen.grabbed) || f.status.frozenFrames > seen.frozenFrames;
@@ -184,7 +184,7 @@ function caught(f: Readonly<Fighter>, seen: Catches): boolean {
 
 const catchesOf = (f: Readonly<Fighter>): Catches => ({ hits: f.visuals.hit, grabbed: f.grab.owner !== undefined, frozenFrames: f.status.frozenFrames });
 
-/** Plays `plan` from `start` for `frames` frames, the victim neutral: the frames it catches the victim on, and the match after the first. */
+
 function play(start: Readonly<ReplayState>, plan: Plan, frames: number): { readonly catchFrames: readonly number[]; readonly afterFirst: ReplayState | undefined; readonly end: ReplayState } {
   const state = snapshotOf(start);
   const seen = catchesOf(fighterAt(state.world, VICTIM));
@@ -203,10 +203,10 @@ function play(start: Readonly<ReplayState>, plan: Plan, frames: number): { reado
   return { catchFrames, afterFirst, end: state };
 }
 
-/** The victim's stretch from just after a catch while `attacker` plays on and the victim holds `victimRow`. */
+
 const neutral = () => emptyInput();
 
-/** The stick pushed to (x, z) on the frame after the catch and held there: directional influence held through everything. */
+
 function holding(caughtState: Readonly<ReplayState>, x: number, z: number): (frame: number) => InputRow {
   const first = caughtState.runtime.simulationFrame + 1;
   const pressed = pad(0, x, z);
@@ -224,7 +224,7 @@ function stretchAfter(caughtState: Readonly<ReplayState>, attacker: (state: Read
 
 const DI = [["up", 0, 1], ["up-right", 1, 1], ["right", 1, 0], ["down-right", 1, -1], ["down", 0, -1], ["down-left", -1, -1], ["left", -1, 0], ["up-left", -1, 1]] as const;
 
-/** A stretch: its length, the frames where only the stick mattered, its loop, and where it ended. */
+
 interface StretchResult {
   readonly length: number;
   readonly diFrames: number;
@@ -232,7 +232,7 @@ interface StretchResult {
   readonly loop: Loop | undefined;
   readonly endPercent: number;
   readonly knockedOut: boolean;
-  /** For a loop: each DI direction held from the catch, the stretch it gets, and the frames a cycle lets the victim act on if the loop still comes round. */
+
   readonly underDi: readonly { readonly direction: string; readonly length: number; readonly loopEscapeFrames: number | undefined; readonly plan: string }[];
 }
 
@@ -248,12 +248,12 @@ function summarize(report: AgencyReport, caughtState: Readonly<ReplayState>, und
   };
 }
 
-/**
- * Checks a loop again with the victim holding each DI direction from the
- * catch, against each repeating plan (`plans`, the loop's own first): the
- * attacker sees the DI and may follow it. For each direction, the loop with
- * the fewest escape frames any plan keeps, if one does.
- */
+
+
+
+
+
+
 function loopUnderDi(caughtState: Readonly<ReplayState>, plans: readonly Plan[]): StretchResult["underDi"] {
   return DI.map(([direction, x, z]) => {
     let best: { readonly length: number; readonly loopEscapeFrames: number | undefined; readonly plan: string } | undefined;
@@ -270,7 +270,7 @@ function loopUnderDi(caughtState: Readonly<ReplayState>, plans: readonly Plan[])
 
 const describePlan = ({ starter, repeat, approach }: Plan) => `${starter.name} again ${approach ? "approaching, " : ""}within ${repeat ?? 0} units`;
 
-/** One starter for one pair at one percent: the stretch it starts, and the longest a repeating follow-up made. */
+
 export interface StarterResult {
   readonly attacker: string;
   readonly victim: string;
@@ -283,10 +283,10 @@ export interface StarterResult {
 
 const REACHES = [25, 40, 60, 80, 110, 150];
 
-/** How much a follow-up locks the victim: looping first, then fewer escape frames a cycle, then the longer stretch. */
+
 const rank = ({ loop, length }: StretchResult) => (loop === undefined ? 0 : 1_000_000 - loop.escapeFrames * 1000) + length;
 
-/** One starter: its stretch with no follow-up, then each repeating plan whose second catch could come before the victim acts. */
+
 function sweepStarter(start: Readonly<ReplayState>, attacker: string, victim: string, starter: Starter, percent: number): StarterResult | undefined {
   const firstFrame = start.runtime.simulationFrame + 1;
   const once: Plan = { starter, first: firstFrame, repeat: undefined, approach: false };
@@ -299,15 +299,15 @@ function sweepStarter(start: Readonly<ReplayState>, attacker: string, victim: st
   const ownCatches = play(start, once, latest - start.runtime.simulationFrame).catchFrames.length;
   const plans = REACHES.flatMap((repeat) => [false, true].map((approach): Plan => ({ starter, first: firstFrame, repeat, approach })));
   let best: { readonly result: StretchResult; readonly plan: Plan } | undefined;
-  // Plans that reach the same match by the latest frame a follow-up could count play on alike; one analysis each.
+
   const tried: ReplayState[] = [];
   for (const plan of plans) {
     const trial = play(start, plan, latest - start.runtime.simulationFrame);
-    // Only a plan that catches the victim more often than the starter alone, before it could act, can extend the stretch.
+
     if (trial.catchFrames.length <= ownCatches || tried.some((end) => sameGameplay(end, trial.end))) continue;
     tried.push(trial.end);
     const result = summarize(stretchAfter(caughtState, (state, frame) => attackerRow(plan, state, frame), neutral, ESCAPE_FRAMES + 1), caughtState);
-    // A loop beats no loop, fewer escape frames a loop with more; then the longer stretch.
+
     if (result.length <= alone.length && result.loop === undefined) continue;
     if (best === undefined || rank(result) > rank(best.result)) best = { result, plan };
   }
@@ -315,17 +315,17 @@ function sweepStarter(start: Readonly<ReplayState>, attacker: string, victim: st
   const { result, plan } = best;
   const lastFrame = Math.max(caughtFrame + result.length, result.loop?.to ?? 0);
   const catches = play(start, plan, lastFrame - start.runtime.simulationFrame).catchFrames.length;
-  // A loop the victim can act out of only frame-tightly, or not at all, is checked against every DI and every plan.
+
   const underDi = result.loop !== undefined && result.loop.escapeFrames <= TIGHT_ESCAPE ? loopUnderDi(caughtState, [plan, ...plans.filter((other) => other !== plan)]) : [];
   return { attacker, victim, starter: starter.name, percent, alone, followUp: { ...result, underDi, plan: describePlan(plan), catches } };
 }
 
-/**
- * Every starter of `attackers` against every fighter: throws and jab resets
- * at each percent from 0 to 150, other starters at 0, 50, 100 and 150, as
- * their stretches change less with percent than throws' do. `only` names
- * the starters to sweep, "jab reset" included; absent, every one.
- */
+
+
+
+
+
+
 export function sweepStarters(attackers: readonly Entry[] = FIGHTERS, only?: readonly string[]): StarterResult[] {
   const results: StarterResult[] = [];
   const reset: Starter = { name: "jab reset", buttons: ATTACK, aim: "neutral" };
@@ -349,14 +349,14 @@ export function sweepStarters(attackers: readonly Entry[] = FIGHTERS, only?: rea
   return results;
 }
 
-/** A bounded true link of the move comparisons, played through the frame executor with every input class. */
+
 export interface LinkResult {
   readonly name: string;
-  /** The tick the comparison's follow-up first contacted, and the frame it did here. */
+
   readonly comparisonContact: number;
   readonly contact: number | undefined;
   readonly stretch: StretchResult;
-  /** Each DI direction held from the first contact: whether the link still caught the victim before it could act. */
+
   readonly holdsUnderDi: readonly { readonly direction: string; readonly holds: boolean }[];
 }
 
@@ -377,7 +377,7 @@ interface ComparisonRow {
 
 const isComparisonRow = (value: unknown): value is ComparisonRow => typeof value === "object" && value !== null && "kind" in value && "verdict" in value;
 
-/** The comparison's contact state (scripts/moveComparisons.ts, Rig): the first contact already resolved, on stage 0. */
+
 function comparisonContact(row: ComparisonRow): ReplayState {
   const character = FIGHTERS.find((entry) => entry.character === row.character)?.character;
   if (character === undefined) throw new Error(`the comparisons name fighter ${row.character}, which isn't shipped`);
@@ -399,13 +399,13 @@ function comparisonContact(row: ComparisonRow): ReplayState {
   return state;
 }
 
-/** Each bounded true link of the move comparisons. */
+
 export function sweepComparisonLinks(): LinkResult[] {
   const links = exportComparisons().map((line): unknown => JSON.parse(line)).filter(isComparisonRow).filter((row) => row.verdict === "bounded-true-link");
   return links.map((row) => {
     const contactState = comparisonContact(row);
     const tilt = row.candidateStyle === AttackStyle.forwardTilt;
-    // The comparison holds the stick toward the defender from the attacker's normal-ready tick until its scheduled start.
+
     const ready = row.scheduledStart - row.delay;
     const attacker = (state: Readonly<ReplayState>, frame: number): InputRow => {
       const tick = frame - contactState.runtime.simulationFrame;
@@ -430,10 +430,10 @@ export function sweepComparisonLinks(): LinkResult[] {
   });
 }
 
-/** Every starter's name, "jab reset" included. */
+
 export const STARTER_NAMES: readonly string[] = [...STARTERS.map(({ name }) => name), "jab reset"];
 
-/** The attacker's rows for a starter named `name`, pressed on `first` and, with `repeat`, again whenever the victim is that close. */
+
 export function attackerPlan(name: string, first: number, repeat?: number, approach = false): (state: Readonly<ReplayState>, frame: number) => InputRow {
   const starter = STARTERS.find((candidate) => candidate.name === name);
   if (starter === undefined) throw new Error(`no starter named ${name}`);

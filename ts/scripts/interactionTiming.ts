@@ -1,4 +1,4 @@
-/** Authoring checks for situations deliberately requiring a reaction or precision input (#69). */
+
 type InteractionTiming =
   | { readonly kind: "reaction"; readonly cueFrame: number; readonly lastResponseFrame: number; readonly choices: 1 | 4 }
   | { readonly kind: "required-link" | "required-precision"; readonly acceptedFrames: number };

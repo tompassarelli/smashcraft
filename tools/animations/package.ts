@@ -1,10 +1,10 @@
-// Foreign model boundary: encode the authored MDL and expose its clip metadata.
+
 import { parseMDL, generateMDX } from "war3-model";
 import { join } from "node:path";
 import { type ModelAssetInfo, typescriptAssetInfo } from "./asset-info";
 
 const project = join(import.meta.dir, "../..");
-// For metadata changes, pass the authored asset directory and --metadata-only.
+
 const assetDirectory = process.argv[2] ?? join(project, "build/animation-assets");
 const metadataOnly = process.argv[3] === "--metadata-only";
 

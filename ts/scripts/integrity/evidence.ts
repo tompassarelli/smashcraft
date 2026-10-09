@@ -1,5 +1,5 @@
-// Reads a capture directory into the reconciler's input and writes its tables.
-// Every file the capture driver or the game wrote is decoded once, here.
+
+
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Effect, Predicate, Schema } from "effect";
@@ -50,7 +50,7 @@ const ProducerLine = Schema.Struct({
 const KernelLine = Schema.Struct({ kernelNs: Schema.Int, type: Schema.Int, code: Schema.Int, value: Schema.Int })
   .pipe(Schema.encodeKeys({ kernelNs: "kernel_monotonic_ns" }));
 
-/** One producer.jsonl line: the edge a pad wrote and the clock around the write. */
+
 export function producerLine(phase: string, slot: number, { type, code, value }: SourceEdge, { injectedNs, beforeNs, afterNs }: Injection): string {
   return `${JSON.stringify({
     phase,
@@ -64,7 +64,7 @@ export function producerLine(phase: string, slot: number, { type, code, value }:
   })}\n`;
 }
 
-/** One kernel-SLOT.jsonl line: an event as evdev reported it. */
+
 export function kernelLine({ kernelNs, type, code, value }: KernelEvent): string {
   return `${JSON.stringify({ kernel_clock: "CLOCK_MONOTONIC", kernel_monotonic_ns: kernelNs, type, code, value })}\n`;
 }
@@ -113,7 +113,7 @@ const CaptureFile = Schema.Struct({
   settings: Schema.Struct({ build: Schema.String }),
   helper_sha256: Schema.String,
   input_integrity: Schema.optionalKey(Schema.Boolean),
-  // Captures before #49 have none; their helper read the pads as compass-tap-jump.
+
   pad_layout: Schema.optionalKey(Schema.Literals(["xpad", "compass-tap-jump"])),
   four_fighters: Schema.optionalKey(Schema.Boolean),
   sweep: Schema.optionalKey(Schema.NullOr(Schema.Array(Schema.Tuple([Schema.Int, Schema.Int])))),
@@ -123,7 +123,7 @@ const CaptureFile = Schema.Struct({
 
 const readText = (path: string) => tryIntegrityPromise("read", path, () => Bun.file(path).text());
 
-/** Lines of a JSON-lines file, each decoded with `schema`. */
+
 const readJsonLines = <S extends Schema.Top & { readonly DecodingServices: never }>(schema: S, path: string) =>
   Effect.gen(function*() {
     const lines = (yield* readText(path)).split(/\r?\n/);
@@ -132,7 +132,7 @@ const readJsonLines = <S extends Schema.Top & { readonly DecodingServices: never
     return yield* Effect.forEach(json, decode(schema, path));
   });
 
-/** Only the events the reconciler reads; the journey also records menus, receipts and settings. */
+
 const journeyEvent = (path: string) => (raw: unknown): Effect.Effect<readonly JourneyEvent[], IntegrityFailure> =>
   Effect.gen(function*() {
     const { event } = yield* decode(EventName, path)(raw);
@@ -177,7 +177,7 @@ export const readMetadata = (root: string) =>
     } satisfies CaptureMetadata;
   });
 
-/** The latest export run's response pages, in page order, and the native trace. */
+
 const clientExport = (root: string, epoch: number, client: number) =>
   Effect.gen(function*() {
     const directory = join(root, `epoch-${epoch}`);
@@ -235,11 +235,11 @@ const writeResult = (root: string, result: IntegrityResult, tag: string) =>
     });
   });
 
-/**
- * Reconciles a capture directory, writes summary.json and the #26 table next
- * to it (one pair per sweep entry, plus sweep-table.md), and reports whether
- * every gate passed.
- */
+
+
+
+
+
 export const reconcileCapture = (root: string) =>
   Effect.gen(function*() {
     const metadata = yield* readMetadata(root);

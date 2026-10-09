@@ -1,5 +1,5 @@
-// Native capture plans derived from production simulation, without forcing a
-// hold or release. Both players approach, grab, pummel and throw through input.
+
+
 import "../../ts/test/host-natives";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -75,8 +75,8 @@ for (const character of SELECTABLE_CHARACTERS) for (const targetCharacter of [ch
       const stop = new RegExp(`^(\\d+) ${target} stick 0 0$`, "m").exec(script);
       ensure(stop !== null, `${name}: missing approach stop`);
       const { expectations } = play(character, targetCharacter, holder, Number(stop[1]) - 40, action);
-      // Balance changes can shorten pummel hitlag. Keep the authored inputs and
-      // capture frames while deriving assertions from current gameplay rules.
+
+
       await Bun.write(path, script.replace(/^#! expect .*\n/gm, "").trimEnd() + "\n" + expectations.join("\n") + "\n");
       count++;
     }

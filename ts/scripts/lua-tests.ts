@@ -1,22 +1,22 @@
-// Runs the game's tests in Lua with Warcraft's number model (32-bit integers,
-// binary32 numbers). Usage: bun scripts/lua-tests.ts; LUA names the Lua32,
-// else Wisp's cached pinned build (wisp:scripts/wisp/lua32.ts).
-// GAME_SOAK=1 runs the long *.soak.ts scenarios instead; SWEEPS=1 runs only
-// the sweeps (src/runtime/sweep.ts). LUA_JOBS=N runs the tests in N Lua
-// processes at once, each taking the tests whose name hashes to its shard.
-// LUA_PARTITION=K/N divides those process shards across N CI jobs.
-// GAME_TESTS includes and GAME_TESTS_EXCLUDE excludes module-path substrings;
-// GAME_MODULES=A,B runs only those modules (paths from ts/, as the pre-push gate names them).
-// The remainder (no GAME_TESTS) also runs the memory census and stack checks.
-// The stack plugin instruments a whole bundle, so the stack-trace profile's
-// TypeScript frames are checked in a second bundle, after the tests pass.
-// On the farm (`wisp farm test`), LUA_TESTS_STEP=compile only compiles the
-// remainder's bundle (every module and the census) for sharded runs
-// (test/lua/entry.ts), and LUA_TESTS_STEP=stack runs only the stack check.
-// Outside soaks and sweeps the run ends with its CPU against the committed
-// baseline, test/lua/cost-baseline.tsv (scripts/testCost.ts, docs/commands/testing.md).
-// LUA_TESTS_STEP=budget checks farm shards' saved LUA_TEST_COST files under
-// LUA_TEST_COST_DIR, after the farm has collected every shard.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -49,7 +49,7 @@ const runSharded = async (bundle: string) => {
 };
 
 let pressure: { readonly peak: number | undefined } = { peak: undefined };
-/** The run's CPU against the per-test ceiling and the committed per-module baseline. */
+
 const budget = () => {
   const measured: Costs = new Map();
   const over: string[] = [];
@@ -89,9 +89,9 @@ const pattern = soak ? "src/**/*.soak.ts" : "src/**/*.tests.ts";
 const modules = [...new Bun.Glob(pattern).scanSync(".")]
   .filter((module) => module.includes(include) && (exclude === "" || !module.includes(exclude)) && (listed === undefined || listed.includes(module))).sort();
 if (modules.length === 0) throw new Error("No Lua test modules match GAME_TESTS and GAME_TESTS_EXCLUDE");
-// TSTL hoists imports above other statements, so the index loads each module
-// with require and records the registry length before it: entry.ts charges
-// each test's CPU to the module that registered it.
+
+
+
 const loaded = [...modules, ...(remainder ? ["test/lua/memoryCensus.tests.ts"] : [])];
 refuseUntagged(".", loaded);
 await runAdmitted("moderate", "smashcraft:lua-tests", 1800);
@@ -99,7 +99,7 @@ const lua = await Effect.runPromise(stockLua);
 await Bun.write("test/lua/index.ts", [
   'import { registeredTests } from "wisp/src/runtime/testing";',
   "export const testModules: [number, string][] = [];",
-  // A call per module, not a statement that TSTL gives a local: Lua allows 200 locals.
+  // Lua limits a function to 200 locals; register each module through a call.
   "const mark = (module: string): void => {",
   "  testModules.push([registeredTests.length, module]);",
   "};",

@@ -1,5 +1,5 @@
-// Joins actual compositor frames to the existing response marker. Camera Q
-// rows remain callback samples; they are never presented as per-draw cameras.
+
+
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { parseArgs } from "node:util";
@@ -37,7 +37,7 @@ interface Callback {
   camera?: readonly number[];
 }
 
-/** The probe is a magenta glyph in the game's top-left 128-cell grid. */
+
 export function cameraMarker(rgb: Uint8Array, width: number, height: number): Marker | undefined {
   const scale = height / 0.6;
   let count = 0, sumX = 0, sumY = 0;
@@ -57,7 +57,7 @@ function distribution(values: readonly number[]) {
   return { samples: values.length, p50: percentile(0.5), p95: percentile(0.95), p99: percentile(0.99), max: percentile(1) };
 }
 
-/** Adds one decoded page's A, B, P and Q lines to `rows`. */
+
 function addPageLines(rows: Map<number, Callback>, lines: readonly string[]): void {
   for (const line of lines) {
     const [kind, rowText, ...words] = line.split(" ");
@@ -107,7 +107,7 @@ const videoFrames = (video: string, viewport: readonly number[]) => Effect.gen(f
   const [x = 0, y = 0, width = stream.width, height = stream.height] = viewport;
   if (![x, y, width, height].every(Number.isInteger) || x < 0 || y < 0 || width < 1 || height < 1
     || x + width > stream.width || y + height > stream.height) return yield* new CameraDrawFailure({ problem: "Viewport must fit inside the recorded output" });
-  // The decoder belongs to this scope: a failure or interrupt stops it.
+
   return yield* Effect.scoped(Effect.gen(function*() {
     const decoder = yield* ChildProcess.make("ffmpeg", ["-v", "error", "-i", video, "-map", "0:v:0", "-vf", `crop=${width}:${height}:${x}:${y}`,
       "-fps_mode", "passthrough", "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"], { stdin: "ignore" });
@@ -199,5 +199,5 @@ const main = Effect.gen(function*() {
     capturedIntervalMs: report.capturedIntervalMs, multipleMatchAdvances: report.multipleMatchAdvances.length, drawnCameraMeasured: false }));
 });
 
-// One runtime boundary: SIGINT or SIGTERM stops ffprobe or ffmpeg before exit (docs/typescript.md, "Host tools").
+
 if (import.meta.main) BunRuntime.runMain(main.pipe(Effect.provide(BunServices.layer)));

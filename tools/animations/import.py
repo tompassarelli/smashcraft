@@ -1,4 +1,4 @@
-# Blender API boundary: preserve an installed fighter as an editable scene.
+
 import os
 from pathlib import Path
 import sys

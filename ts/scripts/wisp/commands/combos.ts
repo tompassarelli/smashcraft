@@ -1,13 +1,13 @@
-// `wisp combos [--fighter NAME]... [--jobs N]`: the combo explorer
-// (smashcraft:ts/scripts/comboExplorer.ts, smashcraft:docs/design/balance.md,
-// "Combo potential"). Measures each named fighter (every selectable one by
-// default) against three opponent bodies at two stage positions, one worker
-// thread per fighter, opponent and position; replays every opener's best
-// route from its setup to check it deals the same damage; prints the table;
-// writes every cell to smashcraft:tools/move-data/combos/ (Git ignores it)
-// and the per-fighter measure, with each fighter's best routes, to
-// smashcraft:tools/move-data/combo-potential.json and .md, which the balance
-// score reads. Run locally it admits itself through the capacity helper.
+
+
+
+
+
+
+
+
+
+
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Console, Effect, Schema } from "effect";
@@ -65,7 +65,7 @@ const UnitReportSchema = Schema.Struct({
   kills: Schema.Boolean, routes: Schema.Array(RouteRecordSchema), frames: Schema.Finite,
 });
 
-/** Every unit on `jobs` scoped worker threads, in the order given. */
+
 const measureUnits = (units: readonly Unit[], jobs: number) => Effect.gen(function* () {
   let done = 0;
   const started = performance.now();
@@ -85,7 +85,7 @@ const measureUnits = (units: readonly Unit[], jobs: number) => Effect.gen(functi
   })), { concurrency: jobs });
 });
 
-/** Each route replayed from its setup in a new match: the damage and the stock must match what the search recorded. */
+
 function replayProblems(routes: readonly (RouteRecord & { readonly fighter: string; readonly opponent: string; readonly position: string })[]): string[] {
   const problems: string[] = [];
   for (const record of routes) {
@@ -103,7 +103,7 @@ const NAMES: Readonly<Record<number, string>> = {
   [Action.smashRight]: "C-right", [Action.smashUp]: "C-up", [Action.smashDown]: "C-down", [Action.walk]: "walk",
 };
 
-/** The attacker's inputs as runs: "A ×1, — ×9, right+jump ×1". */
+
 export function describeInputs(held: readonly number[]): string {
   const runs: string[] = [];
   for (let run = 0; run + 2 < held.length; run += 3) {
@@ -157,7 +157,7 @@ function page(summaries: readonly FighterSummary[], units: readonly UnitReport[]
   ].join("\n");
 }
 
-/** `combos [--fighter NAME]... [--jobs N]`. */
+
 export const combos: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], options: { fighter: { type: "string", multiple: true }, jobs: { type: "string" } }, strict: true }).values,

@@ -1,10 +1,10 @@
-/**
- * BLP1 JPEG writer for map textures. Warcraft decodes a BLP1 JPEG as four
- * components, B G R A, with no colour transform, so each channel is coded
- * as its own full-resolution plane in a baseline JPEG.
- */
+// Warcraft BLP1 JPEG uses full-resolution B G R A components without a colour transform.
 
-/** Pixels in RGBA order, rows top to bottom. */
+
+
+
+
+
 export interface Rgba {
   readonly width: number;
   readonly height: number;
@@ -12,7 +12,7 @@ export interface Rgba {
   readonly alpha: boolean;
 }
 
-/** Reads an uncompressed true-colour TGA (type 2, 24 or 32 bits), either row order. */
+
 export function readTga(bytes: Uint8Array): Rgba {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const idLength = bytes[0] ?? 0, colorMap = bytes[1] ?? 0, type = bytes[2] ?? 0;
@@ -43,7 +43,7 @@ const ZIGZAG = [
   0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28,
   35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63,
 ];
-/** Canonical Huffman codes for a table's counts and values: [code, length] by symbol. */
+
 function huffmanCodes(counts: readonly number[], values: readonly number[]) {
   const code = new Uint16Array(256), length = new Uint8Array(256);
   let next = 0, index = 0;
@@ -64,7 +64,7 @@ const COS = Float64Array.from({ length: 64 }, (_, i) => {
   return Math.cos(((2 * x + 1) * u * Math.PI) / 16) * (u === 0 ? Math.SQRT1_2 : 1) / 2;
 });
 
-/** libjpeg's quality scaling of the Annex K table, in row order. */
+// ITU T.81 Annex K quantisation tables use libjpeg's quality scaling.
 export function quantTable(quality: number): Uint8Array {
   const q = Math.min(100, Math.max(1, Math.round(quality)));
   const scale = q < 50 ? 5000 / q : 200 - q * 2;
@@ -95,7 +95,7 @@ class BitWriter {
     }
     this.bytes[this.size++] = byte;
   }
-  /** Pads the last byte with ones and appends EOI. */
+
   finish(): Uint8Array {
     if (this.count > 0) this.write((1 << (8 - this.count)) - 1, 8 - this.count);
     this.push(0xff);
@@ -110,7 +110,7 @@ const magnitude = (value: number) => {
   return bits;
 };
 
-/** Quantised coefficients of every block, in scan order (block row, block column, component B G R A), zigzag order. */
+
 function quantise(image: Rgba, quant: Uint8Array): Int16Array {
   const { width, height, data } = image;
   const blocksX = Math.ceil(width / 8), blocksY = Math.ceil(height / 8);
@@ -149,7 +149,7 @@ function quantise(image: Rgba, quant: Uint8Array): Int16Array {
   return out;
 }
 
-/** Calls `emit` for each Huffman symbol and its extra bits, per component; `table` is 0 for colour, 1 for alpha. */
+
 function walk(coefficients: Int16Array, emit: (table: number, ac: boolean, symbol: number, extra: number, extraBits: number) => void) {
   const previous = [0, 0, 0, 0];
   for (let at = 0; at < coefficients.length; at += 64) {
@@ -174,10 +174,10 @@ function walk(coefficients: Int16Array, emit: (table: number, ac: boolean, symbo
   }
 }
 
-/** ITU T.81 Annex K.2: code lengths limited to 16 bits from symbol frequencies, as DHT counts and values. */
+// ITU T.81 Annex K.2 limits DHT code lengths to 16 bits.
 function optimalTable(frequencies: Uint32Array): { counts: number[]; values: number[] } {
   const freq = Array.from(frequencies, (count) => count);
-  freq[256] = 1; // reserves the all-ones code
+  freq[256] = 1;
   const codesize = new Array<number>(257).fill(0), others = new Array<number>(257).fill(-1);
   for (;;) {
     let c1 = -1, c2 = -1;
@@ -204,7 +204,7 @@ function optimalTable(frequencies: Uint32Array): { counts: number[]; values: num
   }
   let longest = 16;
   while ((bits[longest] ?? 0) === 0) longest--;
-  bits[longest] = (bits[longest] ?? 0) - 1; // drops the reserved symbol
+  bits[longest] = (bits[longest] ?? 0) - 1;
   const values: number[] = [];
   for (let size = 1; size <= 32; size++) for (let symbol = 0; symbol < 256; symbol++) if (codesize[symbol] === size) values.push(symbol);
   return { counts: bits.slice(1, 17), values };
@@ -213,7 +213,7 @@ function optimalTable(frequencies: Uint32Array): { counts: number[]; values: num
 interface Table { readonly counts: number[]; readonly values: number[] }
 const segment = (marker: number, body: readonly number[]) => [0xff, marker, (body.length + 2) >> 8, (body.length + 2) & 0xff, ...body];
 
-/** Baseline JPEG of four full-resolution components (B G R A, no colour transform), split at the scan. */
+
 export function encodeJpegPlanes(image: Rgba, quality: number): { header: Uint8Array; scan: Uint8Array } {
   const quant = quantTable(quality), coefficients = quantise(image, quant);
   const frequencies = [0, 1, 2, 3].map(() => new Uint32Array(256));
@@ -239,7 +239,7 @@ export function encodeJpegPlanes(image: Rgba, quality: number): { header: Uint8A
   return { header, scan: bits.finish() };
 }
 
-/** One-level BLP1 JPEG: 156-byte header, the JPEG header, then mip 0's scan. */
+
 export function encodeBlp(image: Rgba, quality: number): Uint8Array {
   const { header, scan } = encodeJpegPlanes(image, quality);
   const offset = 160 + header.length, out = new Uint8Array(offset + scan.length), view = new DataView(out.buffer);
@@ -258,5 +258,5 @@ export function encodeBlp(image: Rgba, quality: number): Uint8Array {
   return out;
 }
 
-/** #323 keeps the complete 26-fighter render set within #307's 15 MB budget. */
+
 export const PORTRAIT_QUALITY = 78;

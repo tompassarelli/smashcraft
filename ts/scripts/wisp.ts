@@ -1,14 +1,14 @@
-// Wisp: Smashcraft's host tools as one program (#37). Each command is
-// composed from the services in smashcraft:ts/scripts/wisp/ and prints how
-// long each of its steps took.
-// Usage (from ts/): bun wisp COMMAND [ARGUMENTS]
+
+
+
+
 import { BunRuntime } from "@effect/platform-bun";
 import { Cause, Effect, Exit } from "effect";
 import type { Teardown } from "effect/Runtime";
 import type { Command } from "wisp/scripts/wisp/command";
 import { step, timingsLayer } from "wisp/scripts/wisp/timings";
 
-/** Each command loads on demand, so it loads only the modules it uses. */
+
 const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Promise<Command> }> = {
   hot: { usage: "hot --data DIR [--data DIR ...] [--watch] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/hot")).hot },
   map: { usage: "map build --name NAME --out OUT.w3x [--base BASE.w3m] [--container MAP.w3x] [--assets DIR] [--summon DIR] [--packager PATH] [--profile NAME] | map rebuild MAP.w3x [--profile NAME]", load: async () => (await import("./wisp/commands/map")).map },
@@ -49,9 +49,9 @@ if (name === undefined || entry === undefined) {
   console.error(`usage: bun wisp COMMAND\nrun bun wisp help for commands and topics`);
   process.exit(2);
 }
-// Play is Tom's path from main and the client's Play button; Bun installs nothing
-// once node_modules exists, so a pull that moved the Wisp pin left play on the
-// old Wisp (7 Oct: main's checkout still ran 33e44eb with e54345e pinned).
+
+
+
 if (name === "play") {
   const install = Bun.spawnSync([process.execPath, "install", "--frozen-lockfile"], { cwd: import.meta.dir + "/..", stdout: "ignore", stderr: "pipe" });
   if (install.exitCode !== 0) {
@@ -60,7 +60,7 @@ if (name === "play") {
   }
 }
 const command = await entry.load();
-// Commands can leave watchers or servers open, so the entry always exits itself.
+
 const teardown: Teardown = (exit) => {
   if (Exit.isFailure(exit)) {
     if (!Cause.hasInterruptsOnly(exit.cause)) console.error(Cause.pretty(exit.cause));
@@ -68,8 +68,8 @@ const teardown: Teardown = (exit) => {
   }
   process.exit();
 };
-// runMain interrupts the command on SIGINT or SIGTERM, so its finalizers stop
-// every helper, pad and child before the process exits (docs/typescript.md, "Host tools").
+
+
 BunRuntime.runMain(command(args).pipe(
   step(name),
   Effect.provide(timingsLayer((line) => console.error(line))),

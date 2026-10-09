@@ -1,4 +1,4 @@
-// Independently authored loader; original executable bytes remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/shield-selection-runner';
@@ -27,7 +27,7 @@ const rows=[];
 for(const radius of [1,2]) for(const x of [0,2,2.999999761581421,3,3.000000238418579,4]) rows.push({radius,x});
 const entry=0x81000000,data=entry+0x30000,stack=entry+0xff000;
 const joint=entry+0x2a000,capsule=entry+0x28000,defender=entry+0x20000,attacker=entry+0x24000,result=defender+0x19c0,stride=16;
-// Stops before either response consumer; neither collision routine is patched.
+
 for(const stop of [0x80079080,0x800790b4]) {original.writeUInt32BE(0x7f2803a6,stop-base);original.writeUInt32BE(0x4e800020,stop+4-base);}
 const wrapper=Buffer.alloc(0x40000),words=[];
 wrapper.writeUInt32BE(joint,result-entry);

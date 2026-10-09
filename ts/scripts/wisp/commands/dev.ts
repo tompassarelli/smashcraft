@@ -1,7 +1,7 @@
-// `wisp dev [--data DIR ...]`: every save's type errors, affected tests,
-// quick-match journey in two simulated clients and whole type check, each
-// with its time since the save (wisp:docs/dev.md). With --data it also
-// hot-reloads the development build into those clients.
+
+
+
+
 import { join } from "node:path";
 import { type DevProject, makeDev } from "wisp/scripts/wisp/commands/dev";
 import { ISOLATED_TEST_GROUPS, TEST_WORKER_ENV, testWorkerEnvironment } from "../../testWorkers";
@@ -12,7 +12,7 @@ export const SMASHCRAFT_DEV: DevProject = {
   sources: ["src", "scripts", "test"],
   typeCheck: { projects: ["tsconfig.json", "tsconfig.game.json"], command: [process.execPath, "run", "check"] },
   tests: {
-    // scripts/test.ts's full suite: every Bun test file and the game registry.
+
     files: ["{src,scripts,test}/**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}", "scripts/**/*.tests.ts"],
     registry: "src/**/*.tests.ts",
     registryRunners: ["test/game.test.ts"],
@@ -28,17 +28,17 @@ export const SMASHCRAFT_DEV: DevProject = {
       "test/stage-thumbnails.test.ts": ["stage-thumbnails.json", "src/game/menu/stageSilhouettes.ts"],
       "test/ui-frames.test.ts": ["../tools/selection/art/*.fdf", "../tools/selection/art/*.toc"],
       "test/menu-fresh.test.ts": ["test/fixtures/wisp/**"],
-      // Dated evidence records, never edited.
+
       "test/integrity.test.ts": ["../evidence/**"],
       "test/playable.test.ts": ["test/fixtures/playable-0045/**", "../evidence/**"],
-      // It copies src/, the tunables' files included, to load the map with tuned values.
+
       "test/tune.test.ts": ["src/**"],
       "test/repro.test.ts": [],
       "test/standalone.test.ts": ["test/native/pads/cpu-expert.pad"],
       "test/native-driver.test.ts": ["test/native/pads/rifleman-neutral.pad", "test/native/pads/171/*.pad"],
       "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
     },
-    // Played in simulated clients: reported with the quick-match journey.
+
     journeys: [
       "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
       "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
@@ -47,7 +47,7 @@ export const SMASHCRAFT_DEV: DevProject = {
       "test/lag-recovery.test.ts", "test/local-start.test.ts", "test/bot-selection.test.ts", "test/cpu-settings.test.ts", "test/session-setup.test.ts",
     ],
     perFile: ["test/source-shapes.test.ts"],
-    // The audit parses with the TypeScript compiler, a third of a second to load.
+
     warm: { "test/source-shapes.test.ts": ["typescript"] },
     isolated: ISOLATED_TEST_GROUPS,
     env: TEST_WORKER_ENV,

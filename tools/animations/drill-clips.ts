@@ -1,4 +1,4 @@
-// Foreign MDX boundary: append articulated drills without changing prior clips.
+
 import { chmodSync, cpSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
@@ -70,7 +70,7 @@ for (const character of [Character.blademaster, Character.warden, Character.shad
   for (const node of [...model.Bones,...model.Helpers,...model.Attachments]) if (node.Parent == null) node.Parent=root;
   model.Helpers.push(helper); model.Nodes.push(helper); model.PivotPoints.push(helper.PivotPoint);
   for (const sequence of source.Sequences) for (const Frame of sequence.Interval) helper.Rotation?.Keys.push({Frame,Vector:axis(2,0)});
-  // Body turns during contact; recovery decelerates into a recognisable stance.
+
   for (let frame=0;frame<=frames;frame++) {
     const active = Math.max(0,Math.min(1,(frame-first)/Math.max(1,last-first)));
     const entry = smooth(Math.min(1,frame/Math.max(1,first)));

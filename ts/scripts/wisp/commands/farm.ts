@@ -1,20 +1,20 @@
-// `bun wisp farm test|balance|pads|perf|memory [--ref REF] [--wait]`: runs headless work on
-// GitHub's free hosted runners instead of this machine. `test` runs the full
-// Bun and 32-bit Lua suites through smashcraft:.github/workflows/farm-test.yml
-// (wisp:docs/farm.md). `balance` dispatches
-// smashcraft:.github/workflows/balance.yml (the balance gate's computer
-// field, a `cpuField --pairs` process a core over about 17 jobs, merged in
-// one, then each fighter's spam probe, `--probe N` matches a pair, 0 to skip);
-// `pads` dispatches smashcraft:.github/workflows/headless-pads.yml
-// (every top-level native check script, or the files/folders `--only PATH` names,
-// headless, against its own expectations);
-// `perf "RUN ARGS" ... [--out DIR]` dispatches smashcraft:.github/workflows/perf.yml,
-// one `bun wisp perf RUN ARGS` a job, and always waits: it prints each run's
-// summary and writes its output to DIR/<run>.txt.
-// `memory` dispatches smashcraft:.github/workflows/memory-soak.yml (#168's
-// memory soak, `soak memory`, for `--minutes` game minutes, 30 by default).
-// --wait waits for the run and prints the verdict and field table, or each
-// failing script. Without --ref, the checkout's HEAD (wisp:scripts/wisp/farm.ts).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -26,7 +26,7 @@ import { FarmFailure, type RunState, currentRepo, dispatch, farmTest, resolveRef
 const WORKFLOWS = { balance: "balance.yml", pads: "headless-pads.yml", perf: "perf.yml", memory: "memory-soak.yml" } as const;
 type Job = keyof typeof WORKFLOWS;
 
-// A failing gate still publishes its tables: print them, then fail.
+
 const balanceResult = (repo: string, id: number, state: RunState) => Effect.gen(function*() {
   const folder = mkdtempSync(join(tmpdir(), "farm-balance-"));
   const downloaded = yield* run(["gh", "run", "download", String(id), "-R", repo, "-n", "balance-field", "-D", folder]).pipe(Effect.as(true), Effect.orElseSucceed(() => false));
@@ -53,7 +53,7 @@ const padsResult = (repo: string, id: number, state: RunState) => Effect.gen(fun
   return yield* new FarmFailure({ problem: `${failed.length} of ${pads.length} pad scripts failed (${state.conclusion}); evidence: gh run download ${id} -R ${repo}` });
 });
 
-/** The artifact name perf.yml gives a run: its arguments with every other character an underscore. */
+
 const perfArtifact = (runArgs: string) => `perf-${runArgs.replace(/[^A-Za-z0-9-]/g, "_")}`;
 
 const perfResult = (repo: string, id: number, state: RunState, runs: readonly string[], out: string | undefined) => Effect.gen(function*() {
@@ -112,7 +112,7 @@ export const farm: Command = (args) => Effect.gen(function*() {
   const runs = perfRuns.length > 0 ? perfRuns : ["playable-bot-four"];
   const workflow = WORKFLOWS[job satisfies Job];
   const repo = yield* currentRepo;
-  // Closing the scope deletes the scratch branch resolveRef pushed.
+
   yield* Effect.scoped(Effect.gen(function*() {
     const { ref, scratch } = yield* resolveRef(parsed.values.ref, repo);
     const tag = runTag();

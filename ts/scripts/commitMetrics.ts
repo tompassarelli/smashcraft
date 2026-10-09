@@ -1,14 +1,14 @@
-// CI's per-commit metrics line (smashcraft:.github/workflows/ci.yml): the
-// playable four-bot match's p95 frame cost and allocation, and the playable
-// map script's size, so a regression is a lookup in the run's summary or log
-// (`gh run view RUN --log | grep commit-metrics`).
-// Usage: bun scripts/commitMetrics.ts PERF_FILE MAP_SCRIPT
+
+
+
+
+
 import { existsSync, readFileSync, statSync } from "node:fs";
 
 const [perfPath = "", scriptPath = ""] = process.argv.slice(2);
 const commit = process.env.GITHUB_SHA ?? "local";
 
-/** Player 0's `p0 METRIC ... p95=N ... total=N` fields from a `bun wisp perf --out` file. */
+
 function perfMetrics(text: string): Record<string, Record<string, number>> {
   const metrics: Record<string, Record<string, number>> = {};
   for (const line of text.split("\n")) {

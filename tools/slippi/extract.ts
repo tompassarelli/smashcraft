@@ -1,13 +1,13 @@
-// Extracts human input-consistency events from Slippi replays.
-// Usage: bun extract.ts <rank> <shard> <shards>  ->  $ROOT/events/<rank>.<shard>.jsonl
-// One JSON line per game player; report.ts pools them. Definitions live in
-// docs/design/human-input-consistency.md.
+
+
+
+
 import { SlippiGame } from "@slippi/slippi-js/node";
 import { appendFileSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CHARS, ROOT } from "./fetch.ts";
 
-// Melee action states (decomp ftCo_MotionState).
+
 const S = {
   WAIT: 14, TURN: 18, TURN_RUN: 19, DASH: 20, RUN: 21, RUN_BRAKE: 23, KNEE_BEND: 24,
   JUMP_F: 25, JUMP_B: 26, LANDING_SPECIAL: 43, AIR_N: 65, AIR_LW: 69, LAND_AIR_N: 70, LAND_AIR_LW: 74,
@@ -17,7 +17,7 @@ const S = {
 };
 const BTN = { Z: 0x10, R: 0x20, L: 0x40, X: 0x400, Y: 0x800 };
 
-const FULL = 0.8; // full stick deflection for a dash-dance reversal
+const FULL = 0.8;
 const DI_DEADZONE = 0.2875;
 const SDI_THRESHOLD = 0.7;
 const RUN_REGRET_WINDOW = 6;
@@ -46,8 +46,8 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     tech: [] as number[][], techChase: [] as number[], techChaseCensored: 0,
   };
 
-  // 1. Dash-dance reversals: full stick side changes while in Dash or Turn.
-  // The interval counts only when every frame since the previous reversal was Dash or Turn.
+
+
   let lastSide = 0, lastSideFrame = -999;
   for (let f = first; f <= last; f++) {
     const x = pre(f).joystickX ?? 0;
@@ -61,7 +61,7 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     lastSide = side; lastSideFrame = f;
   }
 
-  // 2. Run entries that are braked or turned within the regret window.
+
   for (let f = first + 1; f <= last; f++) {
     if (st(f) === S.RUN && st(f - 1) === S.DASH) {
       ev.runs++;
@@ -73,7 +73,7 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     }
   }
 
-  // 3/4. Hits taken: hitlag in a damage state. DI from the stick on the launch frame.
+
   let prevHitEnd = -999;
   for (let f = first + 1; f <= last; f++) {
     const h = post(f).hitlagRemaining ?? 0, h0 = post(f - 1).hitlagRemaining ?? 0;
@@ -95,7 +95,7 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     const speed = Math.hypot(kx, ky);
     if (speed < 0.5) continue;
     const sx = pre(e).joystickX ?? 0, sy = pre(e).joystickY ?? 0;
-    // Did this hit end the stock with no further hit?
+
     let died = 0; const stocks = post(e).stocksRemaining ?? 0;
     for (let g = e; g <= Math.min(last, e + 300); g++) {
       if ((post(g).stocksRemaining ?? stocks) < stocks) { died = 1; break; }
@@ -104,27 +104,27 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     ev.di.push([+speed.toFixed(2), +Math.atan2(ky, kx).toFixed(3), +sx.toFixed(3), +sy.toFixed(3), died, Math.round(post(e).percent ?? 0)]);
   }
 
-  // 5. Jump-button hold through jumpsquat, and what follows the jump.
+
   for (let f = first + 1; f <= last; f++) {
     if (!(st(f) === S.KNEE_BEND && st(f - 1) !== S.KNEE_BEND)) continue;
     let press = -1;
     for (let g = f; g >= f - 1; g--) if (jumpBtn(pre(g)) && !jumpBtn(pre(g - 1))) { press = g; break; }
     let kbEnd = f; while (st(kbEnd + 1) === S.KNEE_BEND) kbEnd++;
     const takeoff = kbEnd + 1; const next = st(takeoff);
-    // Wavedash: airdodge on or shortly after takeoff, landing soon after.
+
     let ad = -1; for (let g = takeoff; g <= takeoff + 8; g++) if (st(g) === S.ESCAPE_AIR) { ad = g; break; } else if (!(st(g) === S.JUMP_F || st(g) === S.JUMP_B)) break;
     if (ad >= 0) {
       let land = -1; for (let g = ad; g <= ad + 15; g++) if (st(g) === S.LANDING_SPECIAL || (post(g).isAirborne === false && g > ad)) { land = g; break; }
       if (land >= 0) {
         const p = pre(ad); const x = p.joystickX ?? 0, y = p.joystickY ?? 0;
-        // The airdodge can start no earlier than the frame after takeoff, so 0 is frame-perfect.
+
         ev.wavedash.push([ad - takeoff - 1, +x.toFixed(3), +y.toFixed(3), isGuard(st(f - 1)) ? 1 : 0]);
         if (isGuard(st(f - 1))) ev.oos.wd++;
       }
     }
     if (press < 0 || !(next === S.JUMP_F || next === S.JUMP_B)) continue;
     let hold = 0; while (jumpBtn(pre(press + hold)) && hold < 40) hold++;
-    const deadline = kbEnd - press + 1; // frames the button must be held for a full hop
+    const deadline = kbEnd - press + 1;
     let aerial = -1;
     for (let g = takeoff; g <= takeoff + 30; g++) { const s = st(g); if (s >= S.AIR_N && s <= S.AIR_LW) { aerial = g; break; } if (!(s === S.JUMP_F || s === S.JUMP_B)) break; }
     let aerialId = aerial >= 0 ? st(aerial) : -1;
@@ -132,10 +132,10 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     if (aerial >= 0 && hold < deadline) (ev.aerialDelays[aerialId] ??= []).push(aerial - takeoff);
   }
 
-  // OoS rolls.
+
   for (let f = first + 1; f <= last; f++) if ((st(f) === S.ESCAPE_F || st(f) === S.ESCAPE_B) && isGuard(st(f - 1))) ev.oos.roll++;
 
-  // 6. L-cancel: aerial landings, status and last L/R/Z press before landing.
+
   for (let f = first + 1; f <= last; f++) {
     const s = st(f);
     if (!(s >= S.LAND_AIR_N && s <= S.LAND_AIR_LW && !(st(f - 1) >= S.LAND_AIR_N && st(f - 1) <= S.LAND_AIR_LW))) continue;
@@ -145,7 +145,7 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     ev.lcancel.push([status, before]);
   }
 
-  // Tech on landing from hitstun or tumble: [teched, frames before contact of last L/R press or -1].
+
   for (let f = first + 1; f <= last; f++) {
     const s = st(f), s0 = st(f - 1);
     const landed = s === S.MISSED_TECH_U || s === S.MISSED_TECH_D || (s >= S.TECH_IN_PLACE && s <= S.TECH_ROLL_B);
@@ -155,8 +155,8 @@ function analysePlayer(frames: Record<number, any>, first: number, last: number,
     ev.tech.push([s >= S.TECH_IN_PLACE ? 1 : 0, before]);
   }
 
-  // 7. Tech-chase reaction: opponent starts a tech roll; frames until our stick goes
-  // fully toward the roll, from an idle grounded state with the stick not already there.
+
+
   for (let f = first + 1; f <= last - 12; f++) {
     const os = opost(f).actionStateId ?? -1, os0 = opost(f - 1).actionStateId ?? -1;
     if (!((os === S.TECH_IN_PLACE + 1 || os === S.TECH_ROLL_B) && os0 !== os)) continue;

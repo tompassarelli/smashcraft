@@ -1,7 +1,7 @@
-// `bun wisp client doctor [CLIENT...]`: brings clients A and B (or those named) to a
-// ready state, recovering each known bad state with its documented recovery
-// and printing each step (wisp:docs/doctor.md), signing each launcher in with
-// its client's account. `sign-out CLIENT...` signs clients out.
+
+
+
+
 import { Effect } from "effect";
 import type { Command } from "wisp/scripts/wisp/command";
 import { makeDoctor, makeSignOut } from "wisp/scripts/wisp/clientDoctorCommand";

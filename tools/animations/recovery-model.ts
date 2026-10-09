@@ -1,9 +1,9 @@
-// The recovery postprocessor is additive: remove its clips and identity
-// parent to recover the exact input model for cache comparison/regeneration.
+
+
 import { model as mdx } from "war3-model";
 import { ensure, onGlobalClock, tracks } from "./original-clips";
 
-/** Illidan locomotion appends three clips without changing the retained rig. */
+
 export function locomotionBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name === "Locomotion Walk");
   if (first < 0) return undefined;
@@ -112,7 +112,7 @@ export function jumpBaseModel(source: mdx.Model): mdx.Model | undefined {
 
 export function downAirBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Down Air "));
-  // A fighter authored on its own rig names its down air in place; only an appended suffix is a reusable base.
+
   if (first <= 0 || !source.Sequences.slice(first).every(s => s.Name.startsWith("Down Air "))) return undefined;
   const cutoff = source.Sequences[first]?.Interval[0];
   ensure(cutoff !== undefined, "Down air has no start");
@@ -122,7 +122,7 @@ export function downAirBaseModel(source: mdx.Model): mdx.Model | undefined {
   return model;
 }
 
-/** Remove the additive drill and its identity parent for exact pool reuse. */
+
 export function drillBaseModel(source: mdx.Model): mdx.Model | undefined {
   const helper = source.Helpers.find(n => n.Name === "Drill Motion");
   if (!helper) return undefined;
@@ -151,7 +151,7 @@ export function drillBaseModel(source: mdx.Model): mdx.Model | undefined {
   return model;
 }
 
-/** Paired gestures only append keys; stripping them recovers the exact input. */
+
 export function grabBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Paired Grab "));
   if (first < 0) return undefined;
@@ -164,7 +164,7 @@ export function grabBaseModel(source: mdx.Model): mdx.Model | undefined {
   return model;
 }
 
-/** Removing the additive damage suffix must reproduce its exact input bytes. */
+
 export function damageBaseModel(source: mdx.Model): mdx.Model | undefined {
   const first = source.Sequences.findIndex(s => s.Name.startsWith("Damage Grid "));
   if (first < 0) return undefined;

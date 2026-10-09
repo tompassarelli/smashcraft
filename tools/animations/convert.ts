@@ -1,4 +1,4 @@
-// Foreign asset-format boundary; gameplay remains authored in TypeScript.
+
 import { decodeBLP, getBLPImageData, generateMDL } from "war3-model";
 import { parseModelMDX } from "../../ts/scripts/mdxCodec";
 import { renumberNodes } from "../../ts/scripts/clipNodes";

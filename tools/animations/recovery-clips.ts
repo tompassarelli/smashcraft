@@ -1,5 +1,5 @@
-// Foreign MDX boundary: append visible recovery/transition motion while keeping
-// every existing sequence index and track. Game physics alone owns travel.
+
+
 import { chmodSync, cpSync, lstatSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
@@ -99,7 +99,7 @@ for (const [character, fighter] of fighters.entries()) {
     Rotation: { LineType: 1, GlobalSeqId: -1, Keys: [] }, Translation: { LineType: 1, GlobalSeqId: -1, Keys: [] }, Scaling: { LineType: 1, GlobalSeqId: -1, Keys: [] } };
   for (const node of [...model.Bones, ...model.Helpers, ...model.Attachments]) if (node.Parent == null) node.Parent = id;
   model.Helpers.push(helper); model.Nodes.push(helper); model.PivotPoints.push(helper.PivotPoint);
-  // Identity in old clips retains their exact posed body and prevents interpolation across gaps.
+
   for (const s of source.Sequences) for (const Frame of s.Interval) {
     helper.Rotation?.Keys.push({ Frame, Vector: new Float32Array([0, 0, 0, 1]) });
     helper.Translation?.Keys.push({ Frame, Vector: new Float32Array([0, 0, 0]) });
@@ -119,8 +119,8 @@ for (const [character, fighter] of fighters.entries()) {
     tracks(model, (track, path) => {
       const original = originalTracks.get(path);
       if (!original || onGlobalClock(original)) return;
-      // Weapons articulate with the attack. Its transient missile/geoset
-      // visibility belongs to the shot, so recovery keeps the standing body.
+
+
       const channelDonor = /^\.(Bones|Helpers|Attachments|CollisionShapes)\./.test(path) ? donor : stand;
       for (const key of original.Keys) if (key.Frame >= channelDonor.Interval[0] && key.Frame <= channelDonor.Interval[1]) {
         track.Keys.push({ ...key, Frame: Math.round(start + (key.Frame - channelDonor.Interval[0]) * (end - start) / (channelDonor.Interval[1] - channelDonor.Interval[0])) });
@@ -141,15 +141,15 @@ for (const [character, fighter] of fighters.entries()) {
         let lowest = Infinity;
         for (let i = 1; i < triangle.length; i += 2) lowest = Math.min(lowest, triangle[i] ?? Infinity);
         ensure(Number.isFinite(lowest), `${fighter.name}/${action.pose}: invisible body`);
-        // Ledge ascent deliberately starts below the deck; all other ground actions meet it.
+
         const p = phaseAt(action.phases, frame / action.frames);
         translation[frame]!.Vector[2] -= lowest - p.height;
       }
     }
     bindings.push(`    ${action.pose}: { index: ${index}, seconds: ${seconds((end - start) / 1000)} },`);
   }
-  // The encoder represents an absent global-sequence id as the parser's null.
-  // Normalize that foreign representation, then require its complete round trip.
+
+
   const packaged = parseSource(generateMDX(model));
   const encoded = encodeVerified(packaged);
   const finalPreview = new DrawnModel(encoded, 1);

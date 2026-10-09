@@ -1,4 +1,4 @@
-// Independently authored loader; original executable bytes remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/launch-magnitude-runner';

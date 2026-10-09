@@ -1,8 +1,8 @@
-// `wisp inputs`: the checkout's content-addressed map build inputs
-// (smashcraft:docs/build-inputs.md). `add FAMILY PATH` stores a family under
-// its hash and writes that hash into smashcraft:build-inputs.json; `check`
-// verifies every family the manifest names; `path [NAME]` prints the inputs'
-// paths for tools that take --base, --container, --assets or --summon.
+
+
+
+
+
 import { renameSync } from "node:fs";
 import { Effect } from "effect";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";

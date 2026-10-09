@@ -1,5 +1,5 @@
-// Native raster evidence for the existing integrity harness. Acquisition uses
-// Wisp's desktop driver and the same Linux clock as the independent stimulus.
+
+
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -49,7 +49,7 @@ export interface ScreenSample {
   readonly height: number;
 }
 
-/** No rate is assumed: the retained intervals decide the usable temporal resolution. */
+
 export const captureScreen = (options: ScreenCaptureOptions) => Effect.gen(function*() {
   const clients = yield* loadClients(options.clientsFile);
   const client = clients.find(client => client.name === options.client);

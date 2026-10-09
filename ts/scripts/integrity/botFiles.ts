@@ -1,6 +1,6 @@
-// A bot session capture's files (`integrity capture --bot`, journey.ts), decoded
-// for its analysis scripts: botResult.ts, botInputs.ts, pad49Result.ts and
-// stallSeries.ts. Fields they don't read are ignored.
+
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Schema } from "effect";
@@ -30,10 +30,10 @@ const Edge = Schema.Struct({
 
 const parse = (path: string): unknown => JSON.parse(readFileSync(path, "utf8"));
 
-/** The journey's events; a failed capture writes events.json without capture.json. */
+
 export const readEvents = (directory: string) => Schema.decodeUnknownSync(Schema.Array(Event))(parse(join(directory, "events.json")));
 
-/** Each client's name and the game process the capture recorded, when it finished. */
+
 export function readGamePids(directory: string) {
   try {
     const capture = parse(join(directory, "capture.json"));
@@ -43,11 +43,11 @@ export function readGamePids(directory: string) {
   }
 }
 
-/** Every pad edge the capture wrote, in order. */
+
 export const readEdges = (directory: string) =>
   readFileSync(join(directory, "producer.jsonl"), "utf8").split("\n").filter((line) => line !== "").map((line) => Schema.decodeUnknownSync(Edge)(JSON.parse(line)));
 
-/** A frame at 60 frames a second, in ms. */
+
 const FRAME_MS = 1000 / 60;
 const middle = (values: readonly number[]) => {
   const sorted = [...values].sort((a, b) => a - b);
@@ -58,11 +58,11 @@ const triple = (label: string, text: string) => {
   return match === null ? undefined : [Number(match[1]), Number(match[2]), Number(match[3])] as const;
 };
 
-/**
- * Client A's frame-cost overlay readings (journey.ts's `perf-overlay`
- * events), each the median / p95 / max of the 120 frames before it. A
- * reading whose Lua line is not three numbers is counted as unread.
- */
+
+
+
+
+
 export function frameCostOverlay(events: readonly (typeof Event.Type)[]) {
   const readings = events.filter((event) => event.event === "perf-overlay");
   const windows = readings.flatMap(({ epoch, text = "" }) => {

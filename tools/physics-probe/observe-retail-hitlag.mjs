@@ -1,4 +1,4 @@
-// Independently authored foreign executable loader; original bytes remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/hitlag-scalar-runner';
@@ -23,7 +23,7 @@ function register(address, reg) {
 const r2 = register(0x80005348, 2), r13 = register(0x80005350, 13);
 const common=0x81029000, state=0x81020000;
 original.writeUInt32BE(common,(r13-20812)-base);
-// End the selected positive-duration cap block before hitlag side effects.
+
 original.writeUInt32BE(0x4e800020,0x8006d744-base);
 const datSource='/home/tom/.local/share/smashcraft-melee-reference/ntsc-1.02/PlCo.dat';
 const dat=Buffer.from(await Bun.file(datSource).arrayBuffer());

@@ -1,6 +1,6 @@
 # caller-state match-running
-# Candidate grounded in the existing native UI-service collection sequence:
-# Escape releases focused map UI; Ctrl+H requests its bounded export.
+
+
 tap Escape 120
 chord ctrl+h 150
 wait 200

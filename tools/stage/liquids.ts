@@ -10,7 +10,7 @@ export async function packageLiquids(output: string): Promise<readonly string[]>
   for (const kind of ["Water", "Lava"] as const) {
     const texture = liquidTga((x, y) => liquidTexel(kind, x, y));
     const textureName = `Stage${kind}-${hash(texture)}.tga`;
-    // Lava adds its glow layer (Blackrock, #292); water keeps one layer.
+
     const glow = kind === "Lava" ? liquidTga(lavaGlowTexel) : undefined;
     const glowName = glow === undefined ? undefined : `Stage${kind}Glow-${hash(glow)}.tga`;
     const extent = 'MinimumExtent { -50, -60, 0 }, MaximumExtent { 50, 60, 0 }, BoundsRadius 80,';

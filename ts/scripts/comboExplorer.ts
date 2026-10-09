@@ -1,16 +1,16 @@
-// The combo explorer (smashcraft:docs/design/balance.md, "Combo potential"):
-// each fighter's combo potential measured from the deterministic match frame
-// executor, independent of how well any computer player combos. From every
-// opener that lands, at a grid of percents, two stage positions and three
-// opponent bodies, with the defender holding each of five DI directions, it
-// branches from the saved state the frame a hit lands: every follow-up the
-// attacker can start (stand, dash, short or full hop toward, full hop in
-// place, drift, double jump; each attack at every press frame the hitstun
-// window allows) is played from that state, and a follow-up whose hit lands
-// before the defender could act extends a true combo. A beam keeps the most
-// damaging branches at each depth. A combo that ends with the defender
-// landing in tumble is a tech chase: the attacker's read of one of the four
-// tech options is searched the same way and counted as another opening.
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { Action, bit } from "../src/game/input/actions";
 import { type ComboRoute, type ComboSetup, comboScene, heldRuns } from "../src/game/match/comboRoute";
@@ -26,30 +26,30 @@ import { attackStartupFrames } from "../src/game/sim/moves";
 import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 
 const STAGE = 0;
-/** Percents an opener is measured at; a kill confirm is reported at this resolution. */
+
 export const PERCENTS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180] as const;
-/** Light and fast-falling, middle-weight and floaty, heaviest: the roster's spread of weight and fall speed. */
+
 export const OPPONENTS: readonly Character[] = [ Character.rifleman, Character.cairne];
 export const POSITIONS = ["centre", "ledge"] as const;
 export type Position = (typeof POSITIONS)[number];
-/** Held during hitlag, hitstun and a grab: in and out are toward and away from the attacker. */
+
 export const DIS = ["out", "up", "down", "in", "none"] as const;
 export type Di = (typeof DIS)[number];
 
-/** Follow-ups searched per hit, and hits per combo after the opener. */
+
 const BEAM = 4;
 const DEPTH = 8;
-/** Frames a line runs at most: the longest hitstun the grid reaches, and a launch's flight to a blast zone. */
+
 const LINE_LIMIT = 150;
 const FLIGHT_LIMIT = 120;
-/** A press is played only when the defender is this near where the attack will be on its first active frame. */
+
 const GATE_X = 260.0;
 const GATE_Z = 320.0;
-/** Frames before landing a tech-chase read presses its tech, inside the 20-frame tech window. */
+
 const TECH_LEAD = 2;
-/** Press frames after the earliest searched one by one; later ones every other frame. */
+
 const FINE_FRAMES = 6;
-/** A grabbed defender is thrown within this many frames. */
+
 const THROW_LIMIT = 60;
 
 const ATTACK = bit(Action.attack);
@@ -73,14 +73,14 @@ const smashToward = (self: Readonly<Fighter>, other: Readonly<Fighter>): number 
 const forward = (self: Readonly<Fighter>): number => (self.facing > 0 ? RIGHT : LEFT);
 const backward = (self: Readonly<Fighter>): number => (self.facing > 0 ? LEFT : RIGHT);
 
-// ------------------------------------------------------------------ moves
+
 
 type Throw = "forward" | "back" | "up" | "down";
 interface Move {
   readonly name: string;
   readonly kind: "ground" | "air" | "special" | "dash" | "grab";
   readonly style?: AttackStyle;
-  /** The buttons that start it this frame. */
+
   readonly press: (self: Readonly<Fighter>, other: Readonly<Fighter>) => number;
 }
 
@@ -98,7 +98,7 @@ const GROUND_MOVES: readonly Move[] = [
   ground("down smash", AttackStyle.downSmash, () => SMASH_DOWN),
 ];
 const GRAB_MOVE: Move = { name: "grab", kind: "grab", style: AttackStyle.grab, press: () => GRAB };
-// A dash attack is A with the stick back at neutral during a dash; A with the stick held is a forward smash.
+
 const DASH_ATTACK: Move = { name: "dash attack", kind: "dash", style: AttackStyle.dashAttack, press: () => ATTACK };
 const DASH_GRAB: Move = { name: "dash grab", kind: "grab", style: AttackStyle.grab, press: (a, b) => toward(a, b) | GRAB };
 const AERIALS: readonly Move[] = [
@@ -118,12 +118,12 @@ const THROWS: readonly Throw[] = ["forward", "back", "up", "down"];
 const throwMask = (self: Readonly<Fighter>, direction: Throw): number =>
   direction === "up" ? UP : direction === "down" ? DOWN : direction === "back" ? backward(self) : forward(self);
 
-/** An opener: its first press, the stick it holds before (a dash), and its setup. */
+
 interface Opener {
   readonly name: string;
   readonly move: Move;
   readonly throw?: Throw;
-  /** Frames of dash before the press. */
+
   readonly dash?: number;
   readonly airborne?: boolean;
   readonly facingAway?: boolean;
@@ -137,9 +137,9 @@ export const OPENERS: readonly Opener[] = [
   ...SPECIALS.map((move) => ({ name: move.name, move })),
 ];
 
-// ------------------------------------------------------------------ the simulator
 
-/** Saved states are reused: allocating one costs more than playing a frame. */
+
+
 const spare: ReplayState[] = [];
 
 interface Saved {
@@ -149,7 +149,7 @@ interface Saved {
 
 class Sim {
   readonly scene: Scene;
-  /** A match from the setup, or from `from`: a saved state of any two-fighter match with the setup's fighters. */
+
   constructor(readonly setup: ComboSetup, from?: ReplayState) {
     this.scene = comboScene(setup);
     if (from !== undefined) {
@@ -185,13 +185,13 @@ const free = (saved: Saved): void => {
   spare.push(saved.state);
 };
 
-// ------------------------------------------------------------------ the defender
 
-/** What the defender holds: DI while the hits own it, then (offstage) a jump and up special back toward the stage. */
+
+
 interface Defender {
   readonly name: string;
   readonly di: Di;
-  /** A tech-chase read: the tech option pressed TECH_LEAD frames before the landing frame, from the line's start. */
+
   readonly tech?: { readonly option: TechOption; readonly landing: number };
 }
 
@@ -212,23 +212,23 @@ function diMask(di: Di, b: Readonly<Fighter>, a: Readonly<Fighter>): number {
 
 const offstage = (b: Readonly<Fighter>): boolean => b.motion.x < mainDeckLeft(STAGE) || b.motion.x > mainDeckRight(STAGE) || b.motion.z < -20.0;
 
-/** The defender's held buttons on line frame n (from 1), given whether it has been free since frame `freedAt`. */
+
 function defenderMask(d: Defender, n: number, freedAt: number | undefined, b: Readonly<Fighter>, a: Readonly<Fighter>): number {
   if (d.tech !== undefined && d.tech.option !== "missed tech" && n === d.tech.landing - TECH_LEAD) {
     return SHIELD | (d.tech.option === "tech in" ? toward(b, a) : d.tech.option === "tech away" ? away(b, a) : 0);
   }
   if (owned(b) || freedAt === undefined) return owned(b) ? diMask(d.di, b, a) : 0;
   if (!offstage(b) || b.motion.grounded) return 0;
-  // A free defender off the stage recovers: double jump on its first free frame, up special twelve frames later.
+
   const home = b.motion.x > 0 ? LEFT : RIGHT;
   const since = n - freedAt;
   return since === 1 ? home | JUMP : since === 13 ? home | UP | SPECIAL : home;
 }
 
-/** Free to act on the next frame: it can attack, jump, dodge or shield, chose a get-up, or holds the ledge. */
+
 const settled = (b: Readonly<Fighter>): boolean => canStartAttack(b) || b.down.state === DownState.wait || b.ledge.state === LedgeState.hang;
 
-// ------------------------------------------------------------------ routes and nodes
+
 
 interface Inputs {
   readonly attacker: readonly number[];
@@ -239,29 +239,29 @@ const joined = (base: Inputs, attacker: readonly number[], defender: readonly nu
   attacker: [...base.attacker, ...attacker], defender: [...base.defender, ...defender],
 });
 
-/** A state just after a hit landed, with the inputs from the setup that reach it. */
+
 interface Node {
   readonly saved: Saved;
   readonly inputs: Inputs;
   readonly moves: readonly string[];
   readonly reads: number;
-  /** The defender's damage on landing the hit. */
+
   readonly damage: number;
-  /** The defender's hit count then. */
+
   readonly hits: number;
 }
 
 export type Situation = "none" | "tech chase" | "ledge";
 
 export interface Ending {
-  /** Damage the route dealt, opener included. */
+
   readonly damage: number;
   readonly ko: boolean;
   readonly moves: readonly string[];
   readonly reads: number;
-  /** Hits that landed, as Slippi counts a conversion's moves: a multi-hit move's every hit. */
+
   readonly hits: number;
-  /** What the defender faces when the combo ends: a tech chase or the ledge, a 50/50 the attacker can read. */
+
   readonly situation: Situation;
   readonly route: ComboRoute;
 }
@@ -270,27 +270,27 @@ const better = (x: Ending | undefined, y: Ending): boolean =>
   x === undefined || (y.ko !== x.ko ? y.ko : y.ko ? y.reads < x.reads || (y.reads === x.reads && y.moves.length < x.moves.length) : y.damage > x.damage);
 
 interface Line {
-  /** Press frames from 1: whether the attacker can start an attack then. */
+
   readonly canPress: boolean[];
-  /** The first frame on which the defender could act; a hit on an earlier frame is true. */
+
   readonly free: number;
   readonly attacker: number[];
   readonly defender: number[];
   readonly bx: number[];
   readonly bz: number[];
-  /** The defender's damage after each frame, until it lost a stock. */
+
   readonly damage: number[];
-  /** After each frame: the defender lies after a missed tech, or holds the ledge. */
+
   readonly situation: Situation[];
-  /** The frame the defender lost a stock on, if it did. */
+
   readonly ko: number | undefined;
-  /** The defender's hit count after each frame. */
+
   readonly hits: number[];
   readonly ax: number[];
   readonly az: number[];
   readonly avx: number[];
   readonly grounded: boolean[];
-  /** States at the start of each kept frame. */
+
   readonly saved: (Saved | undefined)[];
 }
 
@@ -303,15 +303,15 @@ function releaseLine(line: Line): void {
   line.saved.length = 0;
 }
 
-/** Attacker plans the search moves under: the stick before the press and after it. */
+
 interface Mode {
   readonly name: string;
-  /** The attacker's buttons on line frame n when it presses nothing; `start` is its first press frame. */
+
   readonly hold: (n: number, start: number, a: Readonly<Fighter>, b: Readonly<Fighter>) => number;
-  /** The stick held after the press. */
+
   readonly after: (a: Readonly<Fighter>, b: Readonly<Fighter>) => number;
   readonly moves: (a: Readonly<Fighter>) => readonly Move[];
-  /** The earliest press frame from the first frame the attacker can act. */
+
   readonly earliest: (start: number, a: Readonly<Fighter>) => number;
 }
 
@@ -344,7 +344,7 @@ const DOUBLE_JUMP: Mode = {
 const GROUND_MODES: readonly Mode[] = [STAND, DASH, hop("short hop", 0, false, true), hop("full hop", 0, true, true), hop("full hop in place", 0, true, false), hop("short hop", 4, false, true), hop("full hop", 4, true, true)];
 const AIR_MODES: readonly Mode[] = [STAND, DRIFT, DOUBLE_JUMP];
 
-// ------------------------------------------------------------------ the search
+
 
 interface Counter { frames: number }
 export const cost: Counter = { frames: 0 };
@@ -358,11 +358,11 @@ const started = (a: Readonly<Fighter>, before: Started): boolean =>
 class Explorer {
   constructor(private readonly sim: Sim) {}
 
-  /**
-   * Plays a line from `from`: the attacker holding `hold` for each frame, the
-   * defender following `d`. Keeps a state at the start of every frame in
-   * `keep` and stops when `stop` says so after a frame.
-   */
+
+
+
+
+
   private line(from: Saved, d: Defender, hold: (n: number, a: Fighter, b: Fighter) => number, keep: (n: number) => boolean, limit: number, flight: boolean): Line {
     const { sim } = this;
     sim.load(from);
@@ -398,25 +398,25 @@ class Explorer {
       line.damage[n] = b.status.damage;
       line.hits[n] = b.visuals.hit;
       line.situation[n] = b.ledge.state === LedgeState.hang ? "ledge" : b.down.state === DownState.bound ? "tech chase" : "none";
-      // Landing in tumble is a tech chance, unless this line already chose its tech.
+
       const landed = wasTumbling && b.motion.grounded && d.tech === undefined;
       wasTumbling = b.down.state === DownState.tumble && !b.motion.grounded;
       if (freeAt > LINE_LIMIT && landed) freeAt = n;
       else if (freeAt > LINE_LIMIT && settled(b)) freeAt = n + 1;
       if (freedAt === undefined && freeAt <= n + 1) freedAt = n;
       if (freeAt <= n + 1) {
-        // A free defender over the deck and below a launch's peak is safe; off the stage or high, its flight may still take the stock.
+
         if (!flight || b.motion.grounded || b.ledge.state === LedgeState.hang || (!offstage(b) && b.motion.z < 400.0)) break;
       }
     }
     return { ...line, free: freeAt, ko };
   }
 
-  /** Where the combo stands if the attacker stops: the defender's damage before its first free frame, or the stock it loses in flight. */
+
   private ending(node: Node, d: Defender, root: number): { readonly ending: Ending; readonly line: Line } {
     const line = this.line(node.saved, d, () => 0, () => true, LINE_LIMIT + FLIGHT_LIMIT, true);
     const ko = line.ko !== undefined;
-    // Damage counts until the defender could act: hits after that weren't guaranteed.
+
     const counted = line.ko ?? Math.min(line.attacker.length, Math.max(0, line.free - 1));
     const last = ko ? counted - 1 : counted;
     const damage = last >= 1 ? line.damage[last] ?? node.damage : node.damage;
@@ -432,7 +432,7 @@ class Explorer {
     };
   }
 
-  /** Every follow-up from the node that hits before the line's free frame. */
+
   private followUps(node: Node, d: Defender, idle: Line): Node[] {
     const { sim } = this;
     sim.load(node.saved);
@@ -447,7 +447,7 @@ class Explorer {
       if (earliest >= idle.free) continue;
       const line = mode === STAND ? idle : this.line(node.saved, d, (n, a, b) => mode.hold(n, start, a, b), (n) => n >= earliest, idle.free - 1, false);
       if (line.ko !== undefined) { releaseLine(line); continue; }
-      // Every press frame near the earliest; every other one later in a long window.
+
       for (let k = mode === STAND && lastJab ? 1 : earliest; k < idle.free; k += k < earliest + FINE_FRAMES ? 1 : 2) {
         const saved = line.saved[k];
         if (saved === undefined) continue;
@@ -477,7 +477,7 @@ class Explorer {
     return children;
   }
 
-  /** The move pressed on frame k of the mode's line; a landed hit before `limit` is a child (a grab gives one per throw). */
+
   private branch(node: Node, d: Defender, line: Line, k: number, mode: Mode, move: Move, limit: number): Node[] {
     const { sim } = this;
     const saved = line.saved[k];
@@ -514,7 +514,7 @@ class Explorer {
     return [];
   }
 
-  /** A caught defender thrown each way: the throw's hit is the child. */
+
   private throws(node: Node, d: Defender, attacker: readonly number[], defender: readonly number[], move: Move, from: number): Node[] {
     const { sim } = this;
     const caught = sim.save();
@@ -543,7 +543,7 @@ class Explorer {
     return children;
   }
 
-  /** The best combo from a node: a beam over true follow-ups, each ending scored as if the attacker stopped there. */
+
   search(root: Node, d: Defender, rootPercent: number, stopAbove?: Ending): { readonly best: Ending; readonly nodes: number } {
     let frontier: Node[] = [root];
     let best: Ending | undefined;
@@ -561,7 +561,7 @@ class Explorer {
       frontier = next.sort((x, y) => y.damage - x.damage).slice(0, BEAM);
       for (const dropped of next.slice(BEAM)) free(dropped.saved);
       next.length = 0;
-      // A defender DI already worse for the attacker than another's best can't be the escape-optimal one.
+
       if (stopAbove !== undefined && best !== undefined && better(stopAbove, best)) break;
     }
     for (const node of frontier) if (node !== root) free(node.saved);
@@ -569,12 +569,12 @@ class Explorer {
     return { best, nodes };
   }
 
-  /** The attacker's best read of a tech chase at the end of `ending`: one tech option's punish, searched as a combo. */
+
   readTechChase(ending: Ending, di: Di, percent: number): Ending | undefined {
     const { sim } = this;
-    // Replays the route but the last stretch, to the state before the landing.
+
     const held = expand(ending.route.held);
-    // The route stops the frame before the defender lands; the tech press leads that landing.
+
     const landing = held.attacker.length + 1;
     let best: Ending | undefined;
     for (const option of TECH_OPTIONS) {
@@ -605,12 +605,12 @@ function expand(held: readonly number[]): Inputs {
   return { attacker, defender };
 }
 
-// ------------------------------------------------------------------ openers
+
 
 const SPACINGS = [40, 70, 100, 20, 140, 200, 300] as const;
 const OPENER_LIMIT = 90;
 
-/** Aerial openers: a short hop's low and high strike on a standing defender, then air to air. */
+
 const AERIAL_HEIGHTS: readonly (readonly [attacker: number, defender: number])[] = [[40, 0], [100, 0], [60, 60]];
 
 function setupFor(attacker: Character, defender: Character, opener: Opener, percent: number, position: Position, spacing: number, heights: readonly [number, number]): ComboSetup {
@@ -622,7 +622,7 @@ function setupFor(attacker: Character, defender: Character, opener: Opener, perc
   };
 }
 
-/** Plays the opener from the setup; the root is the state just after its hit, or undefined when it doesn't land. */
+
 function openerRoot(setup: ComboSetup, opener: Opener, d: Defender): { readonly sim: Sim; readonly root: Node } | undefined {
   const sim = new Sim(setup);
   const attacker: number[] = [];
@@ -656,7 +656,7 @@ function openerRoot(setup: ComboSetup, opener: Opener, d: Defender): { readonly 
   return undefined;
 }
 
-/** The spacing (and for an aerial, defender height) at which the opener lands with no DI, if any. */
+
 function landingSetup(attacker: Character, defender: Character, opener: Opener, percent: number, position: Position): ComboSetup | undefined {
   const heights = opener.airborne === true ? AERIAL_HEIGHTS : [[0, 0] as const];
   for (const height of heights) for (const spacing of SPACINGS) {
@@ -670,17 +670,17 @@ function landingSetup(attacker: Character, defender: Character, opener: Opener, 
   return undefined;
 }
 
-// ------------------------------------------------------------------ measuring a fighter
+
 
 export interface Cell {
   readonly opener: string;
   readonly opponent: string;
   readonly position: Position;
   readonly percent: number;
-  /** The combo the attacker gets against the DI that holds it to the least; undefined when the opener doesn't land. */
+
   readonly escape: Ending | undefined;
   readonly escapeDi: Di | undefined;
-  /** The best combo against each DI searched to the end (others stopped once they beat the escape DI). */
+
   readonly byDi: Readonly<Partial<Record<Di, { readonly damage: number; readonly ko: boolean }>>>;
   readonly nodes: number;
 }
@@ -710,9 +710,9 @@ export function measureCell(attacker: Character, defender: Character, opener: Op
   return { ...base, escape, escapeDi, byDi, nodes };
 }
 
-// ------------------------------------------------------------------ a fighter against one opponent at one position
 
-/** A conversion (Slippi's opening): the best opener's true combo and, through a tech chase, the attacker's reads, until the defender is free or loses the stock. */
+
+
 export interface Conversion {
   readonly percent: number;
   readonly moves: readonly string[];
@@ -748,19 +748,19 @@ export interface UnitReport {
   readonly opponent: string;
   readonly position: Position;
   readonly cells: readonly CellSummary[];
-  /** The lowest grid percent at which one opening takes the stock against escape-optimal DI. */
+
   readonly killPercent: number | undefined;
   readonly conversions: readonly Conversion[];
-  /** Whether the chain reached a kill within MAX_CONVERSIONS. */
+
   readonly kills: boolean;
-  /** Each opener's best route over the grid, for reference and replay. */
+
   readonly routes: readonly RouteRecord[];
   readonly frames: number;
 }
 
-/** Conversions a chain plays before it stops counting: a fighter this far from a kill is far outside every target. */
+
 export const MAX_CONVERSIONS = 12;
-/** Reads a conversion may chain through tech chases. */
+
 const MAX_READS = 2;
 
 const gridAt = (percent: number): number => {
@@ -769,7 +769,7 @@ const gridAt = (percent: number): number => {
   return at;
 };
 
-/** Every opener at every grid percent, then the chain of conversions from 0% to the kill. */
+
 export function measureUnit(attacker: Character, opponent: Character, position: Position, progress?: (opener: string) => void): UnitReport {
   const before = cost.frames;
   const cells: CellSummary[] = [];
@@ -798,7 +798,7 @@ export function measureUnit(attacker: Character, opponent: Character, position: 
     const start = endings.get(grid);
     if (start === undefined) break;
     let ending = start.ending;
-    // A tech chase keeps the conversion going: the defender never gets 45 frames of grounded control.
+
     for (let reads = 0; reads < MAX_READS && !ending.ko && ending.situation === "tech chase"; reads++) {
       const read = new Explorer(new Sim(ending.route.setup)).readTechChase(ending, start.di, grid);
       if (read === undefined || !better(ending, read)) break;
@@ -814,24 +814,24 @@ export function measureUnit(attacker: Character, opponent: Character, position: 
   };
 }
 
-// ------------------------------------------------------------------ a fighter's summary
+
 
 export interface FighterSummary {
   readonly fighter: string;
-  /** The most damage any opener's true combo deals against escape-optimal DI. */
+
   readonly maxDamage: number;
-  /** The median over opponents, positions and 0-120% of the best opener's true-combo damage. */
+
   readonly typicalDamage: number;
-  /** The median over opponents and positions of the kill-confirm percent; undefined past the grid. */
+
   readonly killPercent: number | undefined;
-  /** Mean conversions per kill from 0% (Slippi's count), over opponents and positions. */
+
   readonly openingsPerKill: number;
-  /** Mean conversions of two or more hits per kill (pokes deal damage but aren't counted). */
+
   readonly multiHitOpeningsPerKill: number;
-  /** Mean openings per kill counting each tech-chase read as an opening of its own. */
+
   readonly openingsWithReads: number;
   readonly damagePerOpening: number;
-  /** Whether every chain reached a kill within MAX_CONVERSIONS. */
+
   readonly complete: boolean;
   readonly openers: readonly { readonly opener: string; readonly maxDamage: number; readonly typicalDamage: number; readonly killPercent: number | undefined }[];
   readonly bestRoute: RouteRecord | undefined;
@@ -873,11 +873,11 @@ export function summarize(fighter: string, units: readonly UnitReport[]): Fighte
   };
 }
 
-/**
- * The best true combo from a state of another match, the frame after a hit's
- * hitlag ends: the root of the seeded-match check, where a real combo's
- * follow-ups must be among what the explorer finds.
- */
+
+
+
+
+
 export function exploreFrom(setup: ComboSetup, state: ReplayState): Ending {
   const sim = new Sim(setup, state);
   const saved = sim.save();

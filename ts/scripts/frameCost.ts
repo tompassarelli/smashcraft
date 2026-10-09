@@ -1,4 +1,4 @@
-// Read recorded paired native benchmark results, including historical Wurst baselines.
+
 import { join } from "node:path";
 import { canonicalChecksum } from "../src/game/replay/canonical";
 import { Effect } from "effect";

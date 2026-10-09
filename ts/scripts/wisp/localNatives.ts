@@ -1,13 +1,13 @@
-// The natives Smashcraft's code calls on one client only, for headless runs in
-// Bun (headless.ts) and in 32-bit Lua (perfLua.ts). Plain data, so a Lua
-// program can import it.
+
+
+
 import type { LocalNatives } from "wisp/src/headless/client";
 
-/**
- * Natives Smashcraft calls on one client only, beyond the ones Wisp's runtime
- * does: they read or show local state and create, destroy or change nothing
- * synchronized.
- */
+
+
+
+
+
 export const SMASHCRAFT_LOCAL_NATIVES: LocalNatives = {
   GetLocalizedString: "reads the local graphics mode's cue string; only effect poses depend on it",
   BlzGetLocalClientWidth: "local screen size, for layout",
@@ -51,12 +51,12 @@ export const SMASHCRAFT_LOCAL_NATIVES: LocalNatives = {
   ConvertOsKeyType: "pure conversion, for the local keys the keyboard polls",
 };
 
-/**
- * The integrity and playable builds' pool-predicted presentation poses
- * existing effects and frames the camera from each client's own prediction,
- * which differs between clients until inputs confirm; creating and
- * destroying effects stays synchronized.
- */
+
+
+
+
+
+
 const PREDICTED_PRESENTATION: LocalNatives = {
   ...Object.fromEntries([
     "BlzPlaySpecialEffect", "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectAnimation", "BlzSetSpecialEffectAnimationBlendTime", "BlzSetSpecialEffectColor",
@@ -67,5 +67,5 @@ const PREDICTED_PRESENTATION: LocalNatives = {
   SetLightningColor: "shows or hides training's existing hit-area outlines from this client's prediction",
 };
 
-/** Smashcraft's local natives with predicted presentation, whose confirmed state and handle lifetimes still match on every client. */
+
 export const PREDICTED_LOCAL_NATIVES: LocalNatives = { ...SMASHCRAFT_LOCAL_NATIVES, ...PREDICTED_PRESENTATION };

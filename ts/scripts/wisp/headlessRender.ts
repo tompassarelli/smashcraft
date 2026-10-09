@@ -23,7 +23,7 @@ import { resolveRenderAsset, type AssetLocation, type AssetLayer, type Graphics,
 const key = (path: string) => path.replaceAll("\\", "/").toLowerCase().replace(/\.mdl$/, ".mdx");
 const PRIVATE = join(homedir(), ".local/share/smashcraft-render-assets");
 
-/** A map asset the renderer asked for couldn't be read, extracted or converted. */
+
 class RenderAssetFailure extends Schema.TaggedError<RenderAssetFailure>()("RenderAssetFailure", { problem: Schema.String }) {
   override get message(): string {
     return this.problem;
@@ -55,7 +55,7 @@ export const checkCueModels = Effect.fnUntraced(function*(renderer: { readonly r
   return models.length * 2;
 });
 
-/** The map's imports and selected stock layers. Extraction stays outside the checkout. */
+
 export function headlessRender(options: RenderAssetOptions = {}) {
   const storage = options.storage ?? process.env.WC3_STORAGE ?? join(homedir(), ".local/share/Steam/steamapps/compatdata/3516115571/pfx/drive_c/Program Files (x86)/Warcraft III");
   const manifestPath = options.manifest ?? process.env.WC3_ASSET_MANIFEST;
@@ -63,7 +63,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   let stockInfo: { readonly storage: string; readonly buildInfoSha256: string; readonly fields: Readonly<Record<string, string>> } | undefined;
   const attempt = <A>(operation: string, run: () => A | Promise<A>) =>
     Effect.tryPromise({ try: async () => run(), catch: (cause) => new RenderAssetFailure({ problem: `${operation}: ${cause instanceof Error ? cause.message : String(cause)}` }) });
-  // Both run once per renderer, whichever asset asks first.
+
   const stockCache = Effect.runSync(Effect.cached(attempt("read the stock build info", async () => {
     const info = await Bun.file(join(storage, ".build.info")).text();
     const lines = info.trim().split(/\r?\n/), headers = (lines[0] ?? "").split("|").map((name) => name.split("!")[0] ?? name);
@@ -86,7 +86,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     }
     return paths;
   }).pipe(Effect.mapError((cause) => cause instanceof RenderAssetFailure ? cause : new RenderAssetFailure({ problem: `read the map's imports: ${cause.message}` })))));
-  // Copies of stock Classic heroes are fallbacks; they must not override a player's stock art layer.
+
   const stockFallback = new Set<string>();
   let extractedTextures: Map<string, string> | undefined;
   const pending = new Map<string, Promise<ResolvedRenderAsset>>();
@@ -102,7 +102,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     yield* runProcess(ChildProcess.make(converter, [`${source}[0]`, target], { stdin: "ignore" })).pipe(
       Effect.mapError((failure) => new RenderAssetFailure({ problem: `cannot convert texture ${source}: ${failure.problem}` })));
   });
-  // The stock extractor can exit 0 without writing a missing asset.
+
   const succeeds = (program: string, args: readonly string[]) =>
     runProcess(ChildProcess.make(program, args, { stdin: "ignore" })).pipe(
       Effect.flatMap(() => {
@@ -110,7 +110,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
         return output === undefined ? Effect.succeed(false) : read(output).pipe(Effect.map((bytes) => bytes !== undefined && bytes.length > 0));
       }),
       Effect.catchTag("ProcessFailure", () => Effect.succeed(false)));
-  /** A stock art layer; DDS textures are converted to PNG in private storage. */
+
   const stockLayer = (normalized: string, layer: AssetLayer) => Effect.gen(function*() {
     const directory = join(yield* stockCache, layer);
     const texture = /\.(blp|tga|png|dds|tif)$/.test(normalized);
@@ -176,7 +176,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
     const resolveMap = (entry: string) => Effect.gen(function*() {
       const imported = yield* sources;
       const name = key(entry);
-      // The map's generated post-processing file, which Definitive's ambient occlusion and bloom read.
+
       if (name === key(POST_PROCESSING_FILE.entry)) return POST_PROCESSING_FILE.contents;
       if (graphics !== "classic" && stockFallback.has(name)) return undefined;
       const source = imported.get(name);
@@ -208,7 +208,7 @@ export function headlessRender(options: RenderAssetOptions = {}) {
   };
   return {
     unitModels: Object.fromEntries(Object.values(FIGHTER_OBJECTS).map(({ id, model }) => [id, model])),
-    // Warcraft draws no effect outside the base map's world bounds (#297, #298); the headless world stands 0,0 on the playable centre.
+    // Warcraft draws no effects outside base-map world bounds (#297, #298).
     terrain: { bounds: { minX: WORLD_BOUNDS.left, maxX: WORLD_BOUNDS.right, minY: WORLD_BOUNDS.front, maxY: WORLD_BOUNDS.back }, origin: [0.0, PLAYABLE_BOUNDS.centreY] as const },
     resolveAsset,
     readAsset: (path: string, graphics: Graphics = "classic") => resolveAsset(path, graphics).then(({ bytes }) => bytes),

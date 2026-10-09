@@ -1,9 +1,9 @@
-// `bun wisp accept [--only ID...] [--pair K... | --pairs N | --clients-file FILE] [--dry-run] [--out DIR]`:
-// every open native check Smashcraft declares (smashcraft:ts/scripts/wisp/acceptChecks.ts),
-// run in as few fresh matches as their maps allow: on clients A and B, on one
-// offline pool pair (--pair K), or split over several pairs at once (--pair K
-// repeated, or --pairs N for the first N pairs the pool lists).
-// Evidence goes to ~/.local/state/smashcraft/accept/RUN/ (wisp:docs/accept.md).
+
+
+
+
+
+
 import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -31,7 +31,7 @@ import { profileOptions } from "./map";
 import { onHealthyClients, readClientsFile, smashcraftWatch } from "../doctor";
 import { LAN_POOL_FILE, lanPairs, withTools } from "../padBatch";
 
-/** Client names from the clients file, for the plan; reading it touches no client. */
+
 const clientNames = (clientsFile: string): [string, ...string[]] => {
   try {
     const [first, ...rest] = readClientsFile(clientsFile).clients.map(({ name }) => name);
@@ -41,7 +41,7 @@ const clientNames = (clientsFile: string): [string, ...string[]] => {
   }
 };
 
-/** Checks name the two player positions a and b; a pool uses its actual client names. */
+
 export const acceptForClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => {
   const rename = <T extends { readonly client?: string }>(entry: T): T => entry.client === undefined ? entry : {
     ...entry, client: entry.client === "a" ? clients[0] : entry.client === "b" ? clients[1] ?? clients[0] : entry.client,
@@ -53,7 +53,7 @@ export const acceptForClients = (suite: AcceptSuite, clients: readonly [string, 
   })) };
 };
 
-/** Solo games have their own slot zero, so each game's inputs are sent separately. */
+
 export const acceptForSoloClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => ({
   ...acceptForClients(suite, clients),
   checks: acceptForClients(suite, clients).checks.map(check => ({ ...check,
@@ -76,12 +76,12 @@ const fighterCount = (mask: number) => {
 
 const REPLAY_NAME = /^smashcraft-replay-(\d+)(-\d+)?\.txt$/;
 
-/**
- * This match's replay manifest, if it ended. Parts (`smashcraft-replay-N-P.txt`)
- * are written while a match runs; only the manifest (`smashcraft-replay-N.txt`)
- * marks its end. This match is the newest serial written since `since`, so an
- * earlier match's manifest, even one written after `since`, doesn't count.
- */
+
+
+
+
+
+
 const matchEnd = (receipts: readonly ReceiptFile[], since: number) => {
   const recent = receipts.flatMap(({ name, modified }) => {
     const match = modified > since ? REPLAY_NAME.exec(name) : null;
@@ -91,11 +91,11 @@ const matchEnd = (receipts: readonly ReceiptFile[], since: number) => {
   return recent.find(({ serial, manifest }) => manifest && serial === current);
 };
 
-/**
- * The failed condition of a run's first capture, or undefined: two fighters
- * present, the match still running since `since`, a drawn frame. A solo quick
- * match with one fighter once made 18 invalid captures before anyone looked.
- */
+
+
+
+
+
 export const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], since: number) => Effect.gen(function*() {
   const quick = receipts.filter(({ name }) => name.startsWith("smashcraft-dev-")).sort((a, b) => b.modified - a.modified)[0];
   if (quick === undefined) return "two fighters present: the host wrote no quick-match receipt";
@@ -117,11 +117,11 @@ export const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], sin
   return undefined;
 });
 
-/**
- * `driver` with one smoke capture after its first session starts. When that
- * capture fails, every later session stops before touching a client, and
- * `failed()` names the condition so the command can abort the batch.
- */
+
+
+
+
+
 export const withSmokeCapture = (driver: AcceptDriver["Service"], settle: Duration.Input = "2 seconds") => {
   let smoked = false;
   let failed: string | undefined;
@@ -146,16 +146,16 @@ export const withSmokeCapture = (driver: AcceptDriver["Service"], settle: Durati
   };
 };
 
-// Doctor heals the clients before the run and once after a failure
-// (wisp:docs/doctor.md): before Clients' layer finds each client's window, so
-// a client it relaunches is driven by its new window. A run's failures are
-// its checks' verdicts, so the run isn't repeated. The watch decides that
-// each session's match runs and that no client crashed or dropped.
 
-/** Set for a shard's own run: the sharding parent already rebuilt every map. */
+
+
+
+
+
+
 const PREBUILT = "SMASHCRAFT_ACCEPT_PREBUILT";
 
-/** The pool pairs `--pair K...` or `--pairs N` select, as shard names. */
+
 const selectedPairs = (args: readonly string[]) => Effect.try({
   try: () => {
     const ids = flagValues(args, "pair");
@@ -171,7 +171,7 @@ const selectedPairs = (args: readonly string[]) => Effect.try({
 
 const withoutPairFlags = (args: readonly string[]) => args.filter((arg, index) => !["--pair", "--pairs"].includes(arg) && !arg.startsWith("--pair=") && !arg.startsWith("--pairs=") && !["--pair", "--pairs"].includes(args[index - 1] ?? ""));
 
-/** Rebuilds each map profile's development map once, for every shard. */
+
 const prebuild = (maps: readonly string[], profiles: Readonly<Record<string, SmashcraftMapProfile>>) => Effect.forEach([...new Map(maps.flatMap((map) => {
   const profile = profiles[map];
   return profile?.rebuild === undefined ? [] : [[profile.path, profile.rebuild] as const];
@@ -180,11 +180,11 @@ const prebuild = (maps: readonly string[], profiles: Readonly<Record<string, Sma
   yield* rebuildMap(path).pipe(step(`map rebuilt (${path})`), Effect.provide(options.services));
 }), { discard: true });
 
-/**
- * One shard: this command on pool pair `pair`, as its own process, so every pair keeps its own clients and driver.
- * The child belongs to this effect's scope, so an interrupted run stops every shard.
- * A shard that exits nonzero fails with its exit code, so a crash shows beside its missing report.
- */
+
+
+
+
+
 export const runShard = (pair: string, ids: readonly string[], directory: string, map?: string) => Effect.scoped(Effect.gen(function*() {
   yield* Effect.try({ try: () => mkdirSync(directory, { recursive: true }), catch: (cause) => new AcceptFailure({ operation: `pair ${pair}`, problem: describeCause(cause) }) });
   const { handle, written } = yield* spawnLogged(ChildProcess.make(process.execPath, [join(import.meta.dir, "../../wisp.ts"), "accept", "--only", ids.join(","), "--pair", pair, "--out", directory, ...(map === undefined ? [] : ["--map", map])], {
@@ -262,7 +262,7 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
     run: (pair: string, ids: readonly string[], directory: string) => runShard(pair, ids, directory, candidate),
   };
   const accepted = makeAccept({ suite: solo ? acceptForSoloClients(suite, names) : acceptForClients(suite, names), evidenceRoot: join(homedir(), ".local/state/smashcraft/accept"), driver, clients: names, shards })(forwarded);
-  // A failed smoke capture fails every check, so its condition replaces the run's own failure.
+
   const smokeStop = () => {
     const failed = smoke?.failed();
     return failed === undefined ? undefined : new AcceptFailure({ operation: "smoke capture", problem: `${failed}; the batch stopped before its checks` });
@@ -274,6 +274,6 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
       return stop === undefined ? Effect.void : Effect.fail(stop);
     }),
   );
-  // A dry run touches no client; each shard heals its own pair.
+
   return yield* (args.includes("--dry-run") || requested.length > 1 ? run : onHealthyClients(run, { retry: false, clientsFile: selectedClients }));
 });

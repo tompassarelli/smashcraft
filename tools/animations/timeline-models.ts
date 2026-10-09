@@ -18,7 +18,7 @@ if (!relative(resolve(import.meta.dir, '../..'), output).startsWith('..')) throw
 const fighter = [...fighters.values()].find(fighter => fighter.name === fighterName);
 if (fighter === undefined) throw new Error(`Unknown fighter ${fighterName}`);
 await Effect.runPromise(Effect.tryPromise({ try: async () => {
-    // The same key thinning the clip pool was cut with (#314).
+
     const source = thinKeys(parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer())).model;
     const played = flashableSequences([...fighters].find(([, item]) => item === fighter)![0], source.Sequences);
     const bytes = encodeVerified(timelineBody(source, played));

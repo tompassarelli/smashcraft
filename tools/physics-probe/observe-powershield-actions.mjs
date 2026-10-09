@@ -1,4 +1,4 @@
-// Independently authored loader; original executable bytes remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/powershield-actions-runner';
@@ -31,8 +31,8 @@ const datSha1=createHash('sha1').update(dat).digest('hex');
 if(datSha1!=='c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41') throw Error('Wrong common data');
 const roots=32+dat.readUInt32BE(4)+4*dat.readUInt32BE(8);
 const commonFileOffset=32+dat.readUInt32BE(32+dat.readUInt32BE(roots));
-// Stop before action consumers. The original counter branches and stores run
-// unchanged; executed PC traces identify which original input check was next.
+
+
 const returnPatches=[0x800927d4,0x80092af4,0x80093fb0,0x80092d24,0x80092de4];
 for(const address of returnPatches)original.writeUInt32BE(0x4e800020,address-base);
 const counters=[0,1,2,3,4],entry=0x81000000,data=entry+0x30000,stack=entry+0xff000,gobj=entry+0x28000,stride=16;

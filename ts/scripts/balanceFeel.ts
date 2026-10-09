@@ -18,7 +18,7 @@ import { currentKit } from "./balanceKit";
 import type { FeelValues, FeelSample } from "./balanceKit";
 
 const cache = new Map<string, number | undefined>();
-/** One uncharged hit, centre of Sky Deck, grounded Rifleman, neutral DI and no recovery input. */
+
 export function killPercent(effect: Readonly<HitEffect>): number | undefined {
   const key = JSON.stringify(effect);
   if (cache.has(key)) return cache.get(key);
@@ -52,7 +52,7 @@ const sample = (effect: Readonly<HitEffect>, recovery: number, aerial: boolean):
   return { advantage: digitalShieldstunFrames(effect.damage, aerial) - recovery, ...(kill === undefined ? {} : { killPercent: kill }) };
 };
 
-/** First contact; aerials land on contact. Every authored contact retains a separate lock. */
+
 export function currentFeel(character: Character): FeelValues {
   const tuning = authoredTuning(character);
   const out: Record<string, FeelSample> = {};

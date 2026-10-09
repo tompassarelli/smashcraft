@@ -30,7 +30,7 @@ const phase = (at: number, pose: Gesture = {}): Phase => ({ at, pose });
 const strike = (name: string, frames: number, first: number, last: number, coil: Gesture, hit: Gesture, exit: Gesture = {}, air = false) =>
   add(name, frames, [phase(0), phase(Math.max(0, first - 3), coil), phase(first, hit), phase(last, { ...hit, bow: (hit.bow ?? 0) + 12 }), phase(Math.min(frames - 1, last + 9), exit), phase(frames)], { air });
 
-// The left hand carries the bow; the free right hand casts and drains.
+
 const LEAN_JAB = 8, LEAN_TILT = 16;
 strike("jab", 18, 3, 4, { bow: 85, grip: 75, elbow: 30, chest: -25, twist: -18, knee: -40 }, { bow: -62, elbow: -12, chest: 18, knee: 8, yaw: 15, lean: LEAN_JAB });
 strike("jab2", 20, 4, 5, { bow: 85, grip: 75, elbow: 30, chest: -25, twist: -18, knee: -40 }, { bow: -66, elbow: -14, chest: 20, twist: 10, knee: 10, yaw: 30, lean: LEAN_JAB });
@@ -178,7 +178,7 @@ const victimSequence = model.Sequences[victimPummel.index]!;
 const [victimFirst, victimLast] = victimSequence.Interval;
 const victimContact = victimFirst! + 1000;
 const retimedStart = cursor;
-// Victims meet every holder at 0.5 s; preserve this pose and all other sequence keys.
+
 tracks(model, track => {
   if (onGlobalClock(track)) return;
   for (const key of track.Keys) if (key.Frame >= victimFirst! && key.Frame <= victimLast!) {

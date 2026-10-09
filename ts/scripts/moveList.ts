@@ -1,7 +1,7 @@
-// Writes smashcraft:docs/move-list.md, every selectable fighter's move list,
-// from the kit data (src/game/sim/moveNames.ts). test/move-list.test.ts
-// fails when the committed page differs, so a renamed move needs a rerun:
-//   bun scripts/moveList.ts
+
+
+
+
 import { join } from "node:path";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { SPECIAL_INPUTS, fighterKit } from "../src/game/sim/moveNames";

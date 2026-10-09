@@ -1,6 +1,6 @@
-// Samples each fighter's moves for the animation scorecard (#367): the move is
-// played through the production step and pose selection, and its exported
-// timeline body (Classic or Definitive) is posed at the clip time shown.
+
+
+
 import { join } from "node:path";
 import { originalClip } from "../../src/game/assets/fighterOriginalClipInfo";
 import { advanceFighterPose, createFighterPose } from "../../src/game/presentation/fighterPose";
@@ -25,7 +25,7 @@ import { capture, DrawnModel, type PoseFrame } from "./hurtboxView";
 
 export type Look = "classic" | "definitive";
 
-/** Moves the scorecard reads, by name and class; a fighter without a move skips its row. */
+
 export const SCORED_NORMALS: readonly { readonly move: string; readonly style: AttackStyle; readonly moveClass: MoveClass; readonly aerial: boolean }[] = [
   { move: "jab", style: AttackStyle.jab, moveClass: "jab", aerial: false },
   { move: "jab2", style: AttackStyle.jab2, moveClass: "jab", aerial: false },
@@ -46,22 +46,22 @@ export const SCORED_NORMALS: readonly { readonly move: string; readonly style: A
   { move: "down-air", style: AttackStyle.downAir, moveClass: "aerial", aerial: true },
 ];
 
-/** Hero specials by input, grounded; the originals' specials are scripted outside the hero kits and aren't sampled. */
+
 export const SCORED_SPECIALS: readonly { readonly move: string; readonly x: number; readonly z: number }[] = [
   { move: "neutral-special", x: 0, z: 0 }, { move: "side-special", x: 1, z: 0 },
   { move: "up-special", x: 0, z: 1 }, { move: "down-special", x: 0, z: -1 },
 ];
 
-/**
- * Pelvis and chest names the skeleton is searched for, first match wins; the
- * exceptions below name a fighter's nodes outright.
- */
+
+
+
+
 const PELVIS = [/^bone_pelvis/i, /^pelvis_bind_jnt$/i, /^pelvis$/i, /^hips$/i, /^bone rider waist$/i, /^bone koto waist/i, /^bone_butt$/i, /^spine_c0_0_jnt$/i, /^root$/i, /^bone_root/i];
 const CHEST = [/^bone_chest/i, /^chest$/i, /^bone neck$/i, /^bone_neck$/i, /^spine_c0_1_jnt$/i];
-/**
- * Arm and leg chains, shoulder or hip to hand or foot; {S} is the side letter
- * and {side} the side word. Every template both of whose nodes exist adds a limb.
- */
+
+
+
+
 const LIMBS: readonly (readonly [string, string, string])[] = [
   ["arm", "^bone_arm1_?{S}$", "^bone_hand_?{S}$"],
   ["arm", "^bone_upperarm{S}$", "^bone_hand{S}$"],
@@ -77,21 +77,21 @@ const LIMBS: readonly (readonly [string, string, string])[] = [
   ["leg", "^bone back {S} leg(01)?$", "^bone (back {S} toe|toe {S})\\s*$"],
   ["foreleg", "^bone front {S} leg(01)?$", "^bone front ?{S} toe(01)?$"],
 ];
-/** Per-fighter skeleton exceptions: node names to use instead of the name search. */
+
 export const SKELETON_EXCEPTIONS: Readonly<Record<string, { readonly pelvis?: string; readonly chest?: string; readonly limbs?: readonly { readonly name: string; readonly root: string; readonly end: string }[] }>> = {};
 
-/** The frames after a move ends that the return-to-ready check reads. */
+
 const AFTER_FRAMES = 2;
 const LIMIT = 150;
 
-/** Pixels per world unit at 1080 rows in the widest gameplay framing (Frozen Throne, far), where the body draws smallest. */
+
 export function gameplayPixelsPerUnit(): number {
   const camera = createMatchCamera();
   extremeCamera(camera, FROZEN_THRONE_STAGE, MATCH_CAMERA_ASPECT, "far");
   return 1080 / (2 * camera.distance * camera.tangent);
 }
 
-/** The timeline body a look draws for the fighter, under the assets view. */
+
 export function bodyPath(assets: string, character: Character, look: Look): { readonly classic: string; readonly definitive: string } {
   const clip = originalClip(character, 0);
   if (clip === undefined) throw new Error(`${fighterSlug(character)} has no clip table`);
@@ -103,7 +103,7 @@ export function bodyPath(assets: string, character: Character, look: Look): { re
 
 export async function loadBody(assets: string, character: Character, look: Look): Promise<DrawnModel> {
   const paths = bodyPath(assets, character, look);
-  // Lich King and Malfurion keep their Classic body in both looks (smashcraft:docs/design/hd-fighters.md).
+
   const path = look === "definitive" && await Bun.file(paths.definitive).exists() ? paths.definitive : paths.classic;
   return new DrawnModel(await Bun.file(path).arrayBuffer(), characterModelScale(character));
 }
@@ -147,7 +147,7 @@ function pose(model: DrawnModel, character: Character, frame: PoseFrame): ScoreF
   return { frame: frame.frame, ...model.posed(0, timelineSeconds(character, frame), 1) };
 }
 
-/** Steps one simulated frame the way the hero special tests do: motion, specials, contacts, projectiles. */
+
 function step(world: Roster, input: Readonly<Controls>): void {
   const f = world.fighters[0];
   if (f === undefined) throw new Error("a sampled world has its fighter");
@@ -178,9 +178,9 @@ function readyPose(model: DrawnModel, character: Character, aerial: boolean): Sc
 export interface SampledMove {
   readonly move: string;
   readonly sample: MoveSample;
-  /** Zero-based last frame of the move, from the simulation. */
+
   readonly endFrame: number;
-  /** Each frame's time on the body's timeline and the fighter's height above the deck, for rendering it. */
+
   readonly seconds: readonly number[];
   readonly heights: readonly number[];
 }
@@ -188,7 +188,7 @@ export interface SampledMove {
 const strikeEnd = (capsule: { readonly x1: number; readonly z1: number; readonly x2: number; readonly z2: number }, chestZ: number) =>
   Math.hypot(capsule.x2, capsule.z2 - chestZ) >= Math.hypot(capsule.x1, capsule.z1 - chestZ) ? { x: capsule.x2, z: capsule.z2 } : { x: capsule.x1, z: capsule.z1 };
 
-/** A normal from rest, through its end and two frames into whatever follows. */
+
 export function sampleNormal(model: DrawnModel, skeleton: ScoreSkeleton, character: Character, entry: (typeof SCORED_NORMALS)[number], pixelsPerUnit: number): SampledMove | undefined {
   const f = createFighter(character, 0.0, 1);
   if (authoredHitRegionCount(entry.style, f.tuning.moves) === 0) return undefined;
@@ -223,7 +223,7 @@ export function sampleNormal(model: DrawnModel, skeleton: ScoreSkeleton, charact
   };
 }
 
-/** A hero special from standing, through its end and two frames after. */
+
 export function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, character: Character, entry: (typeof SCORED_SPECIALS)[number], pixelsPerUnit: number): SampledMove | undefined {
   if (!HERO_ROSTER.some((hero) => hero.character === character)) return undefined;
   const f: Fighter = createFighter(character, 0.0, 1);
@@ -272,7 +272,7 @@ export function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, charac
   };
 }
 
-/** Every scored move a fighter has. */
+
 export function sampleFighter(model: DrawnModel, character: Character): SampledMove[] {
   const skeleton = skeletonOf(model, character);
   const pixelsPerUnit = gameplayPixelsPerUnit();

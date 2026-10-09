@@ -1,9 +1,9 @@
-// `bun wisp perf budget RUN_FILE [--p99 MS] [--worst MS]`: holds a run
-// written by `perf RUN --samples --out RUN_FILE` to #168's frame budget. Each
-// client's predicted Warcraft cost per frame (wisp's nativeFrameCost, the
-// map's callbacks; typing is reported apart) may not exceed --p99 at its 99th
-// percentile or --worst at its worst frame (10 and 14 ms by default: 60 fps
-// locked with room for rendering inside the 16.7 ms frame).
+
+
+
+
+
+
 import { Console, Effect } from "effect";
 import { type Command, UsageFailure, describeCause, flagValues } from "wisp/scripts/wisp/command";
 import { PerfFailure } from "wisp/scripts/wisp/commands/perf";
@@ -13,7 +13,7 @@ import { WARCRAFT_COST, nativeFrameCost } from "wisp/src/headless/nativeCost";
 export const BUDGET_P99_MS = 10;
 export const BUDGET_WORST_MS = 14;
 
-/** Nearest rank, as the perf summaries compute it. */
+
 function rank(sorted: readonly number[], share: number): number {
   return sorted[Math.max(0, Math.min(sorted.length - 1, Math.ceil(share * sorted.length) - 1))] ?? 0;
 }
@@ -27,7 +27,7 @@ export interface ClientBudget {
   readonly worst: number;
 }
 
-/** Each client's predicted callback ms per frame: median, 95th and 99th percentile, worst. */
+
 export function clientBudgets(samples: string): ClientBudget[] {
   return [...parsePerfSamples(samples)].map(([slot, frames]) => {
     const ms = frames.map((frame) => nativeFrameCost(WARCRAFT_COST, { ...frame, typedCharacters: 0 }).callbacksUs / 1000).sort((a, b) => a - b);

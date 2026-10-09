@@ -1,5 +1,5 @@
-// Stock Medivh's staff-and-cape rig; original geometry and textures remain private.
-// Usage: bun tools/animations/medivh-clips.ts STOCK_MEDIVH.mdx PRIVATE_OUTPUT
+
+
 import { BunRuntime } from "../../ts/node_modules/@effect/platform-bun/dist/index.js";
 import { Effect, Schema } from "effect";
 import { mkdirSync } from "node:fs";
@@ -135,7 +135,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
    if(donorKeys.length>0){for(const k of donorKeys){const key=structuredClone(k);key.Frame=start+Math.round((k.Frame-raven.Interval[0])/(raven.Interval[1]-raven.Interval[0])*(end-start));track.Keys.push(key);}return;}
    if(/^\.GeosetAnims\.\d+\.Alpha$/.test(path)){for(const Frame of [start,end])track.Keys.push({Frame,Vector:new Float32Array([1])});return;}}
   let first=donor.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1]);
-  // Stock chest and left hand omit their identity pose in Stand.
+
   if(!first&&/^\.(Bones|Helpers)\.\d+\.(Rotation|Translation|Scaling)$/.test(path)){const Vector=new Float32Array(path.endsWith("Rotation")?[0,0,0,1]:path.endsWith("Scaling")?[1,1,1]:[0,0,0]);first={Frame:stand.Interval[0],Vector,...track.LineType>1?{InTan:Vector.slice(),OutTan:Vector.slice()}: {}};}
   if(!first)return;
   const match=/^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path),node=match?source[match[1] as "Bones"|"Helpers"][Number(match[2])]:undefined;
@@ -153,7 +153,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  if(["grab","grabHold","pummel","throwForward","neutralSpecial","neutralSpecialAir"].includes(action.pose))aimArm(index,start,action,phases,true,[36,12,65]);
  if(["sideSpecial","sideSpecialAir"].includes(action.pose))aimArm(index,start,action,phases,true,[27,12,112]);
  if(["downSpecial","downSpecialAir"].includes(action.pose))aimArm(index,start,action,phases,true,[35,12,32]);
- // Root translation grounds the articulated fighter; airborne actions retain their authored pose.
+
  const center=model.Nodes.find(b=>b.Name==="Bone_Root");ensure(center,"No Medivh root");
  if(!center.Translation)center.Translation={LineType:1,GlobalSeqId:null,Keys:source.Sequences.flatMap(s=>Array.from(s.Interval).map(Frame=>({Frame,Vector:new Float32Array([0,0,0])})))};
  const beforeKeys=center.Translation.Keys.filter(k=>k.Frame<start);
@@ -167,7 +167,7 @@ for(const [ordinal,action]of [...actions,...damageActions].entries()){
  if(ordinal<actions.length)bindings.push(`  ${action.pose}: ${binding},`);else damageBindings.push(`  ${binding},`);
  records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
 }
-// Preserve the grounded strike while the knees compress its wind-up and the staff recovers beside the active window.
+
 const upTiltOrdinal=actions.findIndex(action=>action.pose==="upTilt"),upTiltAction=actions[upTiltOrdinal]!,upTiltIndex=source.Sequences.length+upTiltOrdinal;
 const upTiltSequence=model.Sequences[upTiltIndex]!,upTiltStart=upTiltSequence.Interval[0],upTiltEnd=upTiltSequence.Interval[1];
 const upTiltFrame=(frame:number)=>upTiltStart+Math.round(frame*1000/60),upTiltCoil=upTiltFrame(upTiltAction.contact-3);
@@ -184,7 +184,7 @@ for(const frame of [0,upTiltAction.contact-3,upTiltAction.contact+7,upTiltAction
 const upTiltDrawn=new DrawnModel(generateMDX(model),1),upTiltTriangles=upTiltDrawn.triangles(upTiltIndex,(upTiltCoil-upTiltStart)/1000,1);
 let upTiltFloor=Infinity;for(let i=1;i<upTiltTriangles.length;i+=2)upTiltFloor=Math.min(upTiltFloor,upTiltTriangles[i]!);
 const upTiltRoot=model.Nodes.find(node=>node?.Name==="Bone_Root")!.Translation!.Keys.find(key=>key.Frame===upTiltCoil)!;upTiltRoot.Vector[2]!-=upTiltFloor;
-// Paired victims share a half-second contact; separate intervals preserve every other clip's keys.
+
 for(const [ordinal,action]of actions.entries())if(/^victim(Pummel|Throw)/.test(action.pose)){
  const sequence=model.Sequences[source.Sequences.length+ordinal]!,[first,last]=sequence.Interval,contact=first!+Math.round(action.contact*1000/60),start=cursor;cursor=start+1100;
  tracks(model,track=>{if(onGlobalClock(track))return;for(const key of track.Keys)if(key.Frame>=first!&&key.Frame<=last!)key.Frame=start+(key.Frame<=contact?Math.round((key.Frame-first!)/(contact-first!)*500):500+Math.round((key.Frame-contact)/(last!-contact)*500));track.Keys.sort((a,b)=>a.Frame-b.Frame);});

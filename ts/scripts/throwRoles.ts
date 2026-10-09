@@ -1,8 +1,8 @@
-// Throw roles (#107): every selectable fighter's up throw measured for its
-// guaranteed short juggle and its down throw for the tech chase it sets up,
-// with the combo trees' victim scripts and follow-up menu (comboTrees.ts)
-// played through the interaction graph's Timeline. The stance is in
-// smashcraft:docs/gameplay-design.md, "Throw roles".
+
+
+
+
+
 import { DownState } from "../src/game/sim/codes";
 import { canAttack } from "../src/game/sim/conditions";
 import { fighterAt } from "../src/game/sim/roster";
@@ -10,9 +10,9 @@ import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/regis
 import { type FighterEntry, type Move, VICTIM_CHOICES, comboRow, openingState } from "./comboTrees";
 import { Timeline } from "./interactions";
 
-/** Low to mid percent: where an up throw's juggle must be guaranteed and a down throw must force a tech. */
+
 export const ROLE_PERCENTS: readonly number[] = [0, 30, 60];
-/** Reported beyond the role, where an up throw is expected to stop guaranteeing. */
+
 export const REPORT_PERCENTS: readonly number[] = [...ROLE_PERCENTS, 90];
 const UP_THROW: Move = { name: "up throw", throw: "up" };
 const DOWN_THROW: Move = { name: "down throw", throw: "down" };
@@ -38,12 +38,12 @@ export interface UpThrowRow {
   readonly problems: readonly string[];
 }
 
-/** How a thrown victim, holding one DI direction and pressing nothing, reaches the floor. */
+
 interface Landing {
   readonly di: string;
-  /** Tumbling as it touches down, so it must tech or miss the tech. */
+
   readonly tumbles: boolean;
-  /** Free to act in the air before touching down, so it can escape the tech chase. */
+
   readonly actsFirst: boolean;
   readonly frame: number | undefined;
 }
@@ -53,10 +53,10 @@ export interface DownThrowRow {
   readonly fighter: string;
   readonly percent: number;
   readonly guaranteedFollowups: number;
-  /** DI directions after which the victim lands tumbling without acting first. */
+
   readonly forcedTech: number;
   readonly landingFrames: readonly number[];
-  /** Each tech option, and the DI directions in which no follow-up in the menu covers it. */
+
   readonly coverage: readonly { readonly option: string; readonly uncovered: readonly string[]; readonly best: readonly string[] }[];
   readonly problems: readonly string[];
 }
@@ -128,7 +128,7 @@ export function downThrowRow(entry: FighterEntry, percent: number): DownThrowRow
   };
 }
 
-/** One fighter's throw-role rows at every reported percent. */
+
 export function throwRoleRows(entry: FighterEntry, progress?: (line: string) => void): ThrowRoleRow[] {
   const rows: ThrowRoleRow[] = [];
   for (const percent of REPORT_PERCENTS) {

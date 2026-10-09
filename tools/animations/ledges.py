@@ -47,20 +47,20 @@ def author_ledges(rig, fighter):
             rig.pose.bones[name].matrix_basis = base[name] @ Quaternion(Vector((0,0,1)), radians(angle)).to_matrix().to_4x4()
         bpy.context.view_layer.update()
         if fighter == 'Rifleman':
-            # Rifle is an independent stock root; carry it with the torso and
-            # its right-hand grip while the left hand supports the fighter.
+
+
             chest_delta = rig.pose.bones['Bone_Chest'].matrix @ chest_inverse
             rig.pose.bones['Rifle01'].matrix = chest_delta @ world['Rifle01']
             bpy.context.view_layer.update()
         start = upper.matrix.translation.copy()
         rest = hand.matrix.translation.copy()
-        # FighterAssets fixes model scale at one. +X is inward when facing the
-        # ledge; Y retains the ready wrist's depth on the platform's wide lip.
+
+
         progress = min(1, frame / 30 * dimensions['LEDGE_CLIMB_FRAMES'] / dimensions['LEDGE_MOUNT_FRAMES']) if climbing else 0
         contact = Vector((dimensions['LEDGE_HANG_OUTSET'] * (1-progress) - dimensions['LEDGE_CLIMB_INSET'] * progress,
                           world[hand.name].translation.y, dimensions['LEDGE_HANG_DEPTH'] * (1-progress)))
-        # Release after the initial pull, before root travel takes the ledge
-        # outside this rig's arm reach. Subsequent motion returns to ready.
+
+
         grip = max(0, min(1, (12-frame)/6)) if climbing else 1
         target = rest.lerp(contact, grip)
         elbow = lower.matrix.translation.copy()

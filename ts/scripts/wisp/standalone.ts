@@ -39,20 +39,20 @@ function keys(input: StandaloneInput): Set<number> {
   return held;
 }
 
-/**
- * wisp#48's frame-rate match: Illidan on the bot beat's keys against computer
- * Rifleman, Illidan and Warden, 99 stocks and a two-minute clock, so four
- * fighters stay on stage for the whole measurement.
- */
+
+
+
+
+
 const FOUR_FIGHTERS = ["-dev slots 1 14", "-dev fighter 2 Rifleman", "-dev fighter 3 Illidan", "-dev fighter 4 Warden", "-dev time 2"];
 const FOUR_FIGHTER_STOCKS = 99;
 
-/** One map callback per step; scripts share the native driver's exact pad rows. */
+
 export async function createStandaloneSession(options: { readonly script?: string; readonly presentation?: MapBuild["presentation"]; readonly fourFighters?: boolean } = {}): Promise<StandaloneSession & { frame(): number; finished(): boolean }> {
   const { script, presentation, fourFighters = false } = options;
   const runtime = installHeadless(script === undefined || presentation === "pool-confirmed" || presentation === "pool-predicted" ? PREDICTED_HEADLESS : SMASHCRAFT_HEADLESS);
   try {
-    // Map modules are checked by tsconfig.game.json, with Warcraft's native types.
+
     const platform = join(import.meta.dir, "../../src/platform");
     interface State { readonly game: { readonly phase: number; stockCount: number }; readonly runtime: { readonly simulationFrame: number } }
     const { shell }: { shell(): State } = await import(join(platform, "shell/state.ts"));
@@ -83,7 +83,7 @@ export async function createStandaloneSession(options: { readonly script?: strin
     if (fourFighters) client.run(() => {
       const state = shell();
       for (const command of FOUR_FIGHTERS) applyDeveloperCommand(state, 0, command);
-      // The menus allow at most nine stocks; the beat's reference loses about 40 in two minutes.
+
       state.game.stockCount = FOUR_FIGHTER_STOCKS;
       startQuickMatch(state, 0, undefined, Character.demonHunter, FOUR_FIGHTER_STOCKS);
     });

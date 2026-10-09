@@ -1,9 +1,9 @@
-// The new-failure gate: a push to main runs the tests its change affects
-// (`bun wisp dev`'s selection, smashcraft:ts/scripts/wisp/commands/dev.ts; the
-// game registry also in 32-bit Lua when sim code changed) and is refused when
-// one fails that wasn't failing in main's latest completed CI run. Tests main
-// already fails don't block. The pre-push gate (smashcraft:ts/scripts/prePush.ts)
-// calls it; `bun scripts/newFailures.ts run PLAN_JSON` is the admitted runner.
+
+
+
+
+
+
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { Effect, Schema } from "effect";
@@ -17,30 +17,30 @@ import { SMASHCRAFT_DEV } from "./wisp/commands/dev";
 const tsRoot = resolve(import.meta.dir, "..");
 const repositoryRoot = resolve(tsRoot, "..");
 
-/** Wall time the gate's tests may take, the capacity queue included; past it the push goes on unverified. */
+
 export const GATE_BUDGET_S = 150;
-/** Baseline CPU of the Bun tests and of the Lua32 tests one push runs; the heaviest affected beyond it are left to CI. */
+
 const BUN_CPU_BUDGET_S = 90;
 const LUA_CPU_BUDGET_S = 40;
 const LUA_JOBS = 4;
 const SHARED_PROCESSES = 3;
 
 export interface Plan {
-  /** Bun test files, relative to ts/. */
+
   readonly files: readonly string[];
-  /** Game registry modules, relative to ts/ (src/...). */
+
   readonly game: readonly string[];
-  /** Registry modules also run in 32-bit Lua: the affected ones, when sim code changed. */
+
   readonly lua: readonly string[];
-  /** Changed files no test selection covers, each with why. */
+
   readonly uncovered: readonly string[];
-  /** Affected Bun files over the CPU budget, left to CI. */
+
   readonly deferred: readonly string[];
 }
 
 const isSim = (path: string) => /^ts\/src\/(?:.+\/)?sim\//.test(path);
 
-/** The tests a change to `paths` (relative to the repository root) affects, as `bun wisp dev` selects them on a save. */
+
 export function affectedTests(paths: readonly string[]): Plan {
   const plan = new TestPlan(tsRoot, SMASHCRAFT_DEV.tests);
   const units = new Map(plan.all().map((unit) => [unit.path, unit]));
@@ -48,7 +48,7 @@ export function affectedTests(paths: readonly string[]): Plan {
   const uncovered: string[] = [];
   for (const path of paths.filter((path) => path.startsWith("ts/"))) {
     const absolute = resolve(repositoryRoot, path);
-    // A deleted module's importers changed too.
+
     if (!existsSync(absolute)) continue;
     const own = units.get(absolute);
     if (own !== undefined) selected.set(own.path, own.kind);
@@ -72,7 +72,7 @@ export function affectedTests(paths: readonly string[]): Plan {
   };
 }
 
-/** The cheapest `units` whose baseline CPU fits in `budget` seconds, and the rest. */
+
 function withinBudget<T extends { readonly path: string }>(units: readonly T[], baselinePath: string, budget: number): { readonly kept: T[]; readonly deferred: string[] } {
   const baseline = readBaseline(baselinePath);
   const cost = (path: string) => baseline.get(path)?.cpu ?? 1;
@@ -89,7 +89,7 @@ function withinBudget<T extends { readonly path: string }>(units: readonly T[], 
   return { kept, deferred };
 }
 
-/** One test process the gate ran: how to rerun it, and what it printed. */
+
 export interface ProcessRun {
   readonly command: string;
   readonly exitCode: number;
@@ -104,7 +104,7 @@ export interface Failure {
 const shellQuote = (text: string) => `'${text.replaceAll("'", "'\\''")}'`;
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** A process's passed count and failing tests; a failed process that names no test fails as itself. */
+
 export function processResult(run: ProcessRun): { readonly passed: number; readonly failures: readonly Failure[] } {
   const bunPassed = [...run.output.matchAll(/^\s*(\d+) pass$/gm)].reduce((sum, match) => sum + Number(match[1]), 0);
   const luaPassed = [...run.output.matchAll(/^(\d+) of \d+ passed$/gm)].reduce((sum, match) => sum + Number(match[1]), 0);
@@ -114,19 +114,19 @@ export function processResult(run: ProcessRun): { readonly passed: number; reado
     test,
     reproduce: lua ? run.command : `${run.command} -t ${shellQuote(`^${escapeRegExp(test.replace(/ > /g, " "))}`)}`,
   }));
-  // Exit 75 is an inconclusive cost verdict under CPU pressure, not a failure.
+
   if (failures.length === 0 && run.exitCode !== 0 && run.exitCode !== 75) failures.push({ test: `process: ${run.command} exited ${run.exitCode}`, reproduce: run.command });
   return { passed: bunPassed + luaPassed, failures };
 }
 
-/** The failures `runs` show that `known` (main's failing tests) doesn't list. */
+
 export function newFailures(runs: readonly ProcessRun[], known: ReadonlySet<string>): Failure[] {
   const identity = (test: string) => test.replace(/^Lua32: /, "").replace(/^[^>]+ > /, "");
   const titles = new Set([...known].map(identity));
   return runs.flatMap((run) => processResult(run).failures).filter(({ test }) => !titles.has(identity(test)));
 }
 
-/** The refusal that names each new failure and how to reproduce it. */
+
 export function refusal(failures: readonly Failure[], knownFrom: string): string {
   return [
     `pre-push: ${failures.length} affected test${failures.length === 1 ? "" : "s"} fail that main does not (${knownFrom}):`,
@@ -135,10 +135,10 @@ export function refusal(failures: readonly Failure[], knownFrom: string): string
   ].join("\n");
 }
 
-/** The processes a plan runs: Bun file groups, the game registry, and the Lua leg. */
+
 export function processesFor(plan: Plan): { readonly argv: readonly string[]; readonly env: Readonly<Record<string, string>>; readonly command: string }[] {
   const bun = process.execPath;
-  // A bare path is a name filter, which never matches a `.tests.ts` file; `./` makes it a path.
+
   const testArgs = (files: readonly string[]) => [bun, "test", "--timeout", "120000", ...files.map((file) => `./${file}`)];
   const isolated = ISOLATED_TEST_GROUPS.map((group) => plan.files.filter((file) => group.includes(file))).filter((group) => group.length > 0);
   const shared = plan.files.filter((file) => !ISOLATED_TEST_GROUPS.flat().includes(file));
@@ -153,7 +153,7 @@ export function processesFor(plan: Plan): { readonly argv: readonly string[]; re
 
 const RESULT_PREFIX = "new-fail-gate result ";
 
-/** Runs a plan's processes at once; each one's output is kept, not printed. */
+
 const runPlan = (plan: Plan) => Effect.forEach(processesFor(plan), ({ argv, env, command }) => Effect.acquireUseRelease(
   Effect.sync(() => Bun.spawn([...argv], { cwd: tsRoot, env: { ...process.env, ...env }, stdin: "ignore", stdout: "pipe", stderr: "pipe" })),
   (child) => Effect.promise(async () => {
@@ -168,14 +168,14 @@ const runPlan = (plan: Plan) => Effect.forEach(processesFor(plan), ({ argv, env,
 
 const ProcessRuns = Schema.Array(Schema.Struct({ command: Schema.String, exitCode: Schema.Finite, output: Schema.String }));
 
-/** The runs the admitted runner printed, from its output; undefined when it printed none it could decode. */
+
 export const decodeRuns = (output: string): Effect.Effect<readonly ProcessRun[] | undefined> => {
   const line = output.split("\n").find((text) => text.startsWith(RESULT_PREFIX));
   if (line === undefined) return Effect.succeed(undefined);
   return Schema.decodeEffect(Schema.fromJsonString(ProcessRuns))(line.slice(RESULT_PREFIX.length)).pipe(Effect.orElseSucceed(() => undefined));
 };
 
-/** Main's failing tests from its latest completed CI run, cached per main commit in the clone's git directory. */
+
 export interface Known {
   readonly sha: string;
   readonly url: string;
@@ -214,7 +214,7 @@ export const knownFailing = (cacheDirectory: string) => Effect.gen(function*() {
   return known;
 }).pipe(Effect.timeout("60 seconds"), Effect.orElseSucceed(() => undefined));
 
-/** One line per commit pushed to main: when, the commit, its verdict, tests run and passed, its new failures (empty when it landed), main's set. */
+
 export function landingLine(at: Date, sha: string, verdict: string, passed: number, failures: readonly Failure[], ran: number, knownFrom: string): string {
   return [at.toISOString(), sha, verdict, `ran=${ran}`, `passed=${passed}`, `new=${failures.map(({ test }) => test).join("; ")}`, `known=${knownFrom}`].join("\t");
 }

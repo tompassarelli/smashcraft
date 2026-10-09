@@ -1,17 +1,17 @@
 import { parseModelMDX as parseMDX, generateModelMDX as generateMDX } from '../../ts/scripts/mdxCodec';
-// Foreign MDX boundary: one body clip per original sequence and one static
-// light component per fighter, retaining native selected-sequence evaluation.
+
+
 import {model as mdx, renumberNodes} from '../../ts/scripts/clipNodes';
 import {isDeepStrictEqual} from 'node:util';
 import {HERO_ROSTER} from '../../ts/src/game/sim/heroes/registry';
 import {heroModelSource, importedModelFile, stockModelPath} from '../../ts/scripts/heroModelSource';
 
-/**
- * Each fighter's original model under the private assets directory, in
- * Character order: Rifleman and Illidan, then every registered hero's stock
- * model, which `stock` names in the game's archives, or its community model
- * under imported-models.
- */
+
+
+
+
+
+
 export const fighters: ReadonlyMap<number, {readonly name: string, readonly source: string, readonly stock?: string}> = new Map([
     [1, {name: 'Rifleman', source: 'animation-assets/RiflemanFighter.mdx'}],
     [2, {name: 'Illidan', source: 'illidan-animation/DemonHunterFighter.mdx'}],
@@ -27,14 +27,14 @@ export const hash = (bytes: ArrayBuffer) => new Bun.CryptoHasher('sha256').updat
 export function tracks(value: unknown, visit: (track: mdx.AnimVector, path: string) => void, path = '') {
     if (!value || typeof value !== 'object' || ArrayBuffer.isView(value)) return;
     if ('Keys' in value && Array.isArray(value.Keys)) { visit(value as mdx.AnimVector, path); return; }
-    // Nodes aliases Bones, Helpers, etc.; visiting it would transform each node twice.
+
     for (const [key, child] of Object.entries(value)) if (key !== 'Nodes') tracks(child, visit, `${path}.${key}`);
 }
 
-/**
- * A track on a global animation clock (the stock heroes' blinks and glows)
- * runs on its own time, not the sequence's, so a clip keeps all its keys.
- */
+
+
+
+
 export const onGlobalClock = (track: mdx.AnimVector) =>
     track.GlobalSeqId != null && track.GlobalSeqId !== -1 && track.GlobalSeqId !== 0xffffffff;
 
@@ -63,7 +63,7 @@ export function removeBodyEffects(model: mdx.Model) {
     model.ParticleEmitters2 = [];
     model.ParticleEmitterPopcorns = [];
     model.RibbonEmitters = [];
-    // Keep object IDs and pivot indices and only clear the removed aliases; originalBodyClip renumbers.
+
     for (const id of ids) delete model.Nodes[id];
     return counts;
 }
@@ -81,11 +81,11 @@ export function encodeVerified(model: mdx.Model) {
     return bytes;
 }
 
-/**
- * Checks a clip against its source: same textures, materials, geometry,
- * skin, pivots and bone/helper hierarchy, with each kept node renumbered by
- * its place in the clip's node order.
- */
+
+
+
+
+
 export function verifyPreservedBody(original: mdx.Model, timeline: mdx.Model) {
     const kept = ['Bones', 'Helpers', 'Attachments', 'CollisionShapes'] as const;
     const renumbered = new Map<number, number>();
@@ -103,8 +103,8 @@ export function verifyPreservedBody(original: mdx.Model, timeline: mdx.Model) {
             `${node.Name}: source pivot point changed`);
     });
     ensure(isDeepStrictEqual(original.Textures, timeline.Textures), 'Source texture references changed');
-    // Like bone transforms below, material animation has its own key-preservation
-    // check. Normalize only source-animated Alpha; fixed material values stay exact.
+
+
     const staticMaterials = (m: mdx.Model) => m.Materials.map((material, i) => ({...material,
         Layers: material.Layers.map((layer, j) => {
             if (typeof original.Materials[i]?.Layers[j]?.Alpha === 'number') return layer;
@@ -125,8 +125,8 @@ export function verifyPreservedBody(original: mdx.Model, timeline: mdx.Model) {
 
 export function parseSource(bytes: ArrayBuffer) {
     const source = parseMDX(bytes);
-    // This also rejects parser-discarded chunks or hidden static defaults. The current
-    // source packages are emitted by this same pinned MDX codec.
+
+
     ensure(hash(generateMDX(source)) === hash(bytes), 'Source MDX is not lossless through the pinned codec; unsupported source fields/defaults');
     return source;
 }
@@ -138,9 +138,9 @@ export const staticLightGate = {
     inactiveAnimation: 'Death', inactiveInterval: [2000, 3000], seconds: .5,
 } as const;
 
-// Independent static illumination belongs to the fighter, not each body clip.
-// The body keeps its node IDs until originalBodyClip numbers each clip's nodes by
-// place; the light's IDs and pivots are dense.
+
+
+
 export function splitStaticLights(source: mdx.Model): {body: mdx.Model, lights: mdx.Model | null} {
     const body = structuredClone(source);
     if (!source.Lights.length) return {body, lights: null};
@@ -211,8 +211,8 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
         ensure(!omitEmptyTracks || sourceKeyCount > 0, `${path}: source zero-key track requires explicit diagnostic or untrimmed-reference mode`);
         originalKeys += track.Keys.length;
         trackCount++;
-        // Zero-key chunks fail the native compact probe. Keep them only in the
-        // named diagnostic; normal compact assets omit emptied channels.
+
+
         if (trimKeys && !onGlobalClock(track)) track.Keys = track.Keys.filter(key => key.Frame >= start && key.Frame <= end);
         retainedKeys += track.Keys.length;
         if (!track.Keys.length) emptyTracks.push(path);
@@ -223,18 +223,18 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
             for (const part of parts) owner = Reflect.get(owner, part);
             ensure(Reflect.get(owner, property) === track, `${path}: track property identity changed`);
             if (/^\.(GeosetAnims\.\d+|Materials\.\d+\.Layers\.\d+)\.Alpha$/.test(path)) {
-                // GEOA/LAYS require static Alpha even without KGAO/KMTA. The codec
-                // writes that backing scalar as 1 for animated Alpha; sources
-                // admitted by parseSource round-trip that exact stored value.
+
+
+
                 Reflect.set(owner, property, 1);
             } else if (/^\.GeosetAnims\.\d+\.Color$/.test(path)) {
-                // Likewise GEOA's static Color, written as white for animated Color.
+
                 Reflect.set(owner, property, new Float32Array([1, 1, 1]));
             } else if (/^\.(Bones|Helpers|Attachments|CollisionShapes)\.\d+\.(Translation|Rotation|Scaling)$/.test(path)) {
                 ensure(Reflect.deleteProperty(owner, property), `${path}: cannot omit emptied track`);
             } else if (/^\.Attachments\.\d+\.Visibility$/.test(path)) {
-                // ATCH visibility has no serialized backing scalar. Absent KATV
-                // retains the attachment node/path and its normal visibility.
+
+
                 ensure(Reflect.deleteProperty(owner, property), `${path}: cannot omit emptied visibility`);
             } else {
                 throw new Error(`${path}: unsupported empty-channel static backing semantics`);
@@ -242,8 +242,8 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
             omittedEmptyTracks.push(path);
         }
     });
-    // Body preservation checks compare material structure separately from these
-    // animation channels. Check retained keys and omissions against source data.
+
+
     const expectedTracks = new Map<string, mdx.AnimVector>();
     const bodySource = structuredClone(source);
     removeBodyEffects(bodySource);
@@ -254,7 +254,7 @@ export function originalBodyClip(source: mdx.Model, sequenceIndex: number, mode:
     const retainedTracks = new Map<string, mdx.AnimVector>();
     tracks(model, (track, path) => retainedTracks.set(path, track));
     ensure(isDeepStrictEqual(retainedTracks, expectedTracks), 'Original clip changed retained animation channels');
-    // Removed lights and effect nodes leave gaps, and Warcraft does not read ObjectIds as written (ts/scripts/clipNodes.ts).
+    // Warcraft requires surviving ObjectIds to follow file order (ts/scripts/clipNodes.ts).
     renumberNodes(model);
     return {model, mode, sequenceIndex, name: sequence.Name, interval: [start, end], looping: !sequence.NonLooping,
         originalKeys, retainedKeys, trackCount, emptyTracks, omittedEmptyTracks, omittedEffects};

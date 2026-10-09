@@ -1,10 +1,10 @@
-// Computer tiers measured against each other (smashcraft:docs/design/cpu-profiles.md):
-// every pair of different tiers plays `--matches` seeded matches, then tier
-// Expert plays `--top` against Rookie. Matches cycle through every ordered pair of
-// different fighters and every soak stage, each under its own match seed, the
-// two tiers on alternating sides. Prints the tier matrix, each tier's win
-// rate against the other tiers and whether it rises with the tier.
-// Usage (from ts/): bun scripts/cpuTiers.ts [--matches N] [--top N] [--stocks N] [--minutes N]
+
+
+
+
+
+
+
 import { parseArgs } from "node:util";
 import { CPU_TIERS, type CpuTier } from "../src/game/match/cpuProfiles";
 import type { Character } from "../src/game/sim/codes";
@@ -24,7 +24,7 @@ const PAIRS: readonly (readonly [Character, Character])[] = SELECTABLE_CHARACTER
   SELECTABLE_CHARACTERS.filter((b) => b !== a).map((b) => [a, b] as const));
 const STAGES = Object.keys(FIELD_STAGES);
 
-/** `matches` seeded matches of `tier` against `opponent`; match k plays seed k. */
+
 export function playTiers(tier: CpuTier, opponent: CpuTier, matches: number, { stocks = 3, minutes = 4 } = {}): TierResult {
   let wins = 0;
   let losses = 0;
@@ -58,7 +58,7 @@ if (import.meta.main) {
   const rules = { stocks: Number(values.stocks ?? 3), minutes: Number(values.minutes ?? 4) };
   const started = performance.now();
   const tiers = CPU_TIERS;
-  // a's wins against b, by "a:b"; ties by tier.
+
   const wins = new Map<string, number>();
   const ties = new Map<CpuTier, number>();
   const winsOf = (a: CpuTier, b: CpuTier) => wins.get(`${a}:${b}`) ?? 0;

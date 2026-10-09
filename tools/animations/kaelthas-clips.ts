@@ -1,4 +1,4 @@
-// Usage: bun tools/animations/kaelthas-clips.ts STOCK_BLOOD_MAGE.mdx PRIVATE_OUTPUT
+
 import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -192,7 +192,7 @@ for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
   if (ordinal < actions.length) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
   records.push({ pose: name, index, frames: action.frames, contact: action.contact });
 }
-// Fresh intervals let captive gestures share contact time without moving any other sequence's keys.
+
 for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.test(action.pose)) {
   const sequence = model.Sequences[source.Sequences.length + ordinal]!;
   const [first, last] = sequence.Interval, contact = first! + Math.round(action.contact * 1000 / 60), start = cursor;
@@ -230,7 +230,7 @@ for (const style of [AttackStyle.forwardTilt, AttackStyle.jab, AttackStyle.jab2,
     }
   };
   let selected: ReturnType<typeof measureDrawnReach> | undefined;
-  // Prefer a pose that peaks inside the active frames; allow the two-frame slack only when none does.
+
   selection: for (const slack of [0, 2]) for (const activeRoot of [0, 20, -20, 40, -40, 60, -60])
     for (const activeChest of [action.gesture.chest ?? 0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100])
       for (const recoilRoot of [60, -60, 30, -30, 0, 80, -80]) {

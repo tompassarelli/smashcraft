@@ -1,4 +1,4 @@
-// Aggregate #179 report; game checks run the same samples in emitted Lua32.
+
 import { SELECTABLE_CHARACTERS } from "../src/game/sim/heroes/registry";
 import { fighterCoverage } from "../src/game/match/botCoverage";
 

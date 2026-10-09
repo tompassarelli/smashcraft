@@ -11,10 +11,10 @@ export const projectRoot = join(tsDirectory, "..");
 export const clientState = join(homedir(), ".local/state/smashcraft/clients.json");
 export const sourceMapDirectory = join(tsDirectory, "build/source-maps");
 
-/** Every compile of the map: normal gameplay, and each diagnostic with its own entry and TypeScriptToLua configuration. */
+
 const profiles = ["main", "integrity", "pause-probe", "playable", "native-input", "analog-keys", "analog-cursor", "native-perf", "physics-probe", "frame-cost", "stack-trace", "damage-blend-probe", "native-driver", "native-capture"] as const;
 type Profile = (typeof profiles)[number];
-/** Profiles whose entry starts the scene recorder (src/platform/sceneReport.ts). */
+
 export const sceneProfiles: ReadonlySet<Profile> = new Set<Profile>(["main", "integrity", "pause-probe"]);
 const profileConfigs: Readonly<Record<Profile, string>> = {
   main: "tsconfig.map.json",
@@ -46,7 +46,7 @@ export const buildProject = (profile: Profile = "main"): BuildProject => ({
   entryGlobal: "smashcraftTs",
 });
 
-/** The command's `--profile NAME` (main when absent) and its other arguments. */
+
 export const profileOption = (args: readonly string[]) => Effect.gen(function*() {
   const index = args.indexOf("--profile");
   const name = index < 0 ? "main" : args[index + 1];

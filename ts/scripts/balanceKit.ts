@@ -21,7 +21,7 @@ function numericLeaves(value: unknown, path: string, out: Record<string, number>
   else if (value !== null && typeof value === "object") for (const [key, child] of Object.entries(value)) numericLeaves(child, `${path}.${key}`, out);
 }
 
-/** Effective authored values, including the original fighters' shared normal tables. */
+
 const originalNumericSources = ["specials.ts", "projectiles.ts", "summons.ts", "grabs.ts", "moves.ts", "hitRegions.ts", "exSpecials.ts"];
 function originalNumbers(out: Record<string, number>): void {
   for (const file of originalNumericSources) {
@@ -89,7 +89,7 @@ export function currentRosterKits(): Record<string, KitSnapshot> {
 }
 
 export type KitParameter = "proportional" | "frames" | "fixed";
-/** Only authored damage, launch strength, timing, mana cost and cooldown can change. */
+
 export function parameterKind(path: string): KitParameter {
   if (path.includes(".hurtboxes.")) return "fixed";
   const key = path.split(".").at(-1) ?? "";
@@ -102,7 +102,7 @@ export interface FeelSample { readonly advantage: number; readonly killPercent?:
 export type FeelValues = Readonly<Record<string, FeelSample>>;
 
 
-/** Captured after profile calibration, then compared on every kit round. */
+
 export function currentComputerCode(): string {
   const folder = `${import.meta.dir}/../src/game/match`;
   return readdirSync(folder).filter(name => name.startsWith("bot") || name === "cpuSkill.ts" || name === "cpuProfiles.ts").filter(name => name.endsWith(".ts") && !name.endsWith(".tests.ts")).sort().map(name => `${name}\n${readFileSync(`${folder}/${name}`, "utf8")}`).join("\n");

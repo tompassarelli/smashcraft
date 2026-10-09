@@ -1,9 +1,9 @@
-// The spam probe's computer (smashcraft:docs/design/balance.md, "Spam
-// probe"): the ordinary computer's movement, shield, dodges and recovery, but
-// its only attack is one move. Every other attack or special it chooses is
-// dropped; the one move is pressed whenever it reaches, and on the deck the
-// fighter walks toward its target until it does. Host-side only: it edits the
-// produced controls before capture, as a player's hands would.
+
+
+
+
+
+
 import { f32 } from "wisp/src/sim/f32";
 import { type AttackBuffer, clearAttackBuffer, queueAttack } from "../src/game/input/attackBuffer";
 import { moveReaches } from "../src/game/match/botMoves";
@@ -17,13 +17,13 @@ import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 
 const AERIALS: readonly number[] = [AttackStyle.neutralAir, AttackStyle.forwardAir, AttackStyle.backAir, AttackStyle.upAir, AttackStyle.downAir];
 const SPECIALS: readonly number[] = [GameplanSpecial.neutral, GameplanSpecial.side, GameplanSpecial.up, GameplanSpecial.down];
-/** How near a special is pressed: projectiles and rushes across this gap, at about the target's height. */
+
 const SPECIAL_GAP = 520.0;
 const SPECIAL_HEIGHT = 140.0;
-/** A grounded fighter this near an aerial's target jumps for it. */
+
 const JUMP_GAP = 220.0;
 
-/** The move the produced controls start, as the field counts moves: an aerial by its air direction, a special by its slot. */
+
 function chosenMove(f: Readonly<Fighter>, input: Readonly<Controls>, commands: Readonly<AttackBuffer>): number | undefined {
   if (input.specialPressed) {
     return input.specialZ > 0 ? GameplanSpecial.up : input.specialZ < 0 ? GameplanSpecial.down : input.specialX !== 0 ? GameplanSpecial.side : GameplanSpecial.neutral;
@@ -48,7 +48,7 @@ function drop(input: Controls, commands: AttackBuffer): void {
   input.specialZ = 0;
 }
 
-/** Whether `move` would reach `target` if started now. */
+
 function reaches(f: Readonly<Fighter>, target: Readonly<Fighter>, move: number): boolean {
   const dx = f32(target.motion.x - f.motion.x);
   const dz = f32(target.motion.z - f.motion.z);
@@ -57,9 +57,9 @@ function reaches(f: Readonly<Fighter>, target: Readonly<Fighter>, move: number):
     return Math.abs(dx) <= gap && Math.abs(dz) <= SPECIAL_HEIGHT;
   }
   if (AERIALS.includes(move) === f.motion.grounded) return false;
-  // A dash attack starts only from a dash; the walk-up press would be a jab.
+
   if (move === AttackStyle.dashAttack && f.ground.dashFrame <= 0) return false;
-  // Aerials strike along the current facing (a back air behind it); a ground move turns toward the target.
+
   const facing = f.motion.grounded ? (dx < 0 ? -1 : 1) : f.facing;
   const style = move === AttackStyle.dashAttack ? f.tuning.moves?.dashAttack ?? AttackStyle.dashAttack : Object.values(AttackStyle).find((known) => known === move);
   if (style === undefined) return false;
@@ -86,14 +86,14 @@ function press(f: Readonly<Fighter>, target: Readonly<Fighter>, move: number, fr
   queueAttack(commands, { style: request, facing: move === AttackStyle.backAir ? (f.facing < 0 ? 1 : -1) : f.facing < 0 ? -1 : 1, frame, mayCharge: false });
 }
 
-/**
- * Restricts the computer's produced controls to `move` (an AttackStyle, or a
- * GameplanSpecial slot). An up special the computer chose offstage stays: the
- * probe tests one attack, not falling.
- */
+
+
+
+
+
 export function spamOnly(f: Readonly<Fighter>, target: Readonly<Fighter>, move: number, stage: number, frame: number, input: Controls, commands: AttackBuffer): void {
   const holding = f.grab.action !== GrabAction.none;
-  // A held grab's pummels and throws belong to the grab.
+
   if (holding) {
     if (move !== AttackStyle.grab) {
       input.grabThrowX = 0;
@@ -101,7 +101,7 @@ export function spamOnly(f: Readonly<Fighter>, target: Readonly<Fighter>, move: 
     }
     return;
   }
-  // Get-up and ledge attacks are moves too.
+
   if (move !== AttackStyle.getupAttack && move !== AttackStyle.ledgeAttack) input.getupAttackPressed = false;
   const chosen = chosenMove(f, input, commands);
   const recovering = chosen === GameplanSpecial.up && offstage(f, stage);

@@ -1,4 +1,4 @@
-// Append authored Blender motion to the shipped Illidan without re-exporting older clips.
+
 import { chmodSync, cpSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDL, generateMDX, parseMDL, parseMDX, type model as mdx } from "war3-model";

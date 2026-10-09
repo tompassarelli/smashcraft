@@ -1,4 +1,4 @@
-// Original gestures on the Forsaken Paladin rig; the stock mesh stays private.
+
 import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { ModelRenderer, model as mdx } from "war3-model";
@@ -45,7 +45,7 @@ const back: Gesture = { ...reach, chest: -10, yaw: 130, arm: -110, free: -60 };
 const brace: Gesture = { chest: 28, arm: -24, elbow: 40, free: -35, hip: -35, knee: 55, head: -12 };
 const held: Gesture = { chest: 8, arm: -25, elbow: 20, free: -78, freeElbow: 12, hip: -8, knee: 12 };
 const captive: Gesture = { chest: -25, head: -28, arm: 25, elbow: 55, free: 20, freeElbow: 45, hip: -30, knee: 38 };
-// How far a swing coils away from its strike first, as a fraction of the strike pose: a jab or low poke draws back to read at gameplay zoom (#163).
+
 const COIL: Partial<Record<HeroPose, number>> = { jab: 1.5, jab2: 1, downTilt: 1, dashAttack: 1 };
 const actions: Action[] = [];
 const normals: readonly [HeroPose, AttackStyle, Gesture][] = [
@@ -161,8 +161,8 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
       const tangent=()=>match||track.LineType===mdx.LineType.Bezier?Vector.slice():new Float32Array(Vector.length);
       track.Keys.push({...first,Frame:start+Math.round(phase.frame*1000/60),Vector,...first.InTan?{InTan:tangent(),OutTan:tangent()}: {}});}
   });
-  // Aim the held weapon at each authored contact, rather than trusting a
-  // rig-specific shoulder angle to produce the intended strike direction.
+
+
   const shoulder=model.Nodes.find(n=>n.Name==="arm_R0_0_jnt")!,elbow=model.Nodes.find(n=>n.Name==="arm_R0_3_jnt")!;
   const baseline=(node:mdx.Node)=>source.Nodes[node.ObjectId]!.Rotation!.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1])!.Vector;
   for(const phase of phases)if(phase.target){
@@ -174,8 +174,8 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
     for(let pass=0;pass<4;pass++)for(let axis=0;axis<6;axis++){let best=Infinity,bestAngle=angles[axis]!;for(let angle=-180;angle<=180;angle+=pass<2?15:5){angles[axis]=angle;const value=loss();if(value<best){best=value;bestAngle=angle;}}angles[axis]=bestAngle;}
     loss();for(const key of [armKey,elbowKey])if(key.InTan){key.InTan=key.Vector.slice();key.OutTan=key.Vector.slice();}
   }
-  // The stock sword has a separate root. Follow the right hand's complete
-  // transform for new clips without changing the old model's hierarchy.
+
+
   const addTransform=(node:mdx.Node,frame:number,matrix:mat4)=>{
     const pivot=model.PivotPoints[node.ObjectId]!,q=quat.create(),p=vec3.fromValues(pivot[0]!,pivot[1]!,pivot[2]!),v=vec3.create();
     mat4.getRotation(q,matrix);quat.normalize(q,q);vec3.transformQuat(v,p,q);
@@ -191,7 +191,7 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
     ensure(mat4.invert(local,data.nodes[main.ObjectId].matrix),"Main pose is singular");mat4.multiply(local,local,world);addTransform(weapon,frame,local);
   }
   weapon.Rotation!.Keys.sort((a,b)=>a.Frame-b.Frame);weapon.Translation!.Keys.sort((a,b)=>a.Frame-b.Frame);
-  // Main affects body and sword equally, keeping floor support through rolls.
+
   const drawn=new DrawnModel(generateHdBody(model),1);const rootTrack=main.Translation!;
   if(!action.air){const mainDonor={Vector:new Float32Array([0,0,0])};
     for(let frame=0;frame<=action.frames;frame++){const vertices=drawn.triangles(index,frame/60,1);let floor=Infinity;for(let i=1;i<vertices.length;i+=2)floor=Math.min(floor,vertices[i]!);
@@ -206,7 +206,7 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
   if(action.damage)damageBindings.push(`  ${binding},`);else bindings.push(`  ${action.pose}: ${binding},`);
   records.push({pose:name,index,frames:victimContact?60:action.frames,contact:victimContact?30:action.contact});
 }
-// Separate intervals keep the shared victim contact from changing any holder clip.
+
 for(const [ordinal,action]of actions.entries())if(action.pose.startsWith("victim")){
   const sequence=model.Sequences[source.Sequences.length+ordinal]!,[first,last]=sequence.Interval,contact=first+Math.round(action.contact*1000/60),start=cursor;cursor=start+1100;
   tracks(model,track=>{if(onGlobalClock(track))return;for(const key of track.Keys)if(key.Frame>=first&&key.Frame<=last)key.Frame=start+(key.Frame<=contact?Math.round((key.Frame-first)/(contact-first)*500):500+Math.round((key.Frame-contact)/(last-contact)*500));track.Keys.sort((a,b)=>a.Frame-b.Frame);});

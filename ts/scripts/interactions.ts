@@ -1,9 +1,9 @@
-// The interaction graph (#67): for each situation, the options both players
-// have, which option beats which and by how many frames, and the frames in
-// which a punish lands. Every number comes from playing the situation through
-// the match frame executor (src/game/match/padScene.ts) from controller rows, so it reads
-// the authored move data, physics, input buffers and contacts that a match
-// uses. smashcraft:docs/design/interaction-graph.md defines the model.
+
+
+
+
+
+
 import { Schema } from "effect";
 import { Action } from "../src/game/input/actions";
 import type { InputRow } from "../src/game/input/inputRow";
@@ -17,37 +17,37 @@ import { resetMatchFrameInput } from "../src/game/match/frameInput";
 import { type ReplayState, captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../src/game/replay/snapshot";
 import { type Placement, type Scene, airborne, fighter, frameRows, projectileShieldActions, scene, tumbling } from "../src/game/match/padScene";
 
-// ------------------------------------------------------------------ playing a situation
+
 
 export type Held = readonly Action[];
 type Side = 0 | 1;
-/** A side's inputs on frame n (from 1), seeing both fighters as frame n - 1 left them. */
+
 type Policy = (n: number, self: Fighter, other: Fighter) => Held;
 
 const idle: Policy = () => [];
 
 export interface Situation {
   readonly placements: readonly [Placement, Placement];
-  /** Places the fighters before frame 1. */
+
   readonly prepare?: (first: Fighter, second: Fighter) => void;
-  /** Each side's inputs while none of its options runs. */
+
   readonly policies: readonly [Policy, Policy];
-  /** A continuation begins in the full state left by the previous contact. */
+
   readonly initial?: ReplayState;
   readonly previous?: readonly number[];
-  /** SDI pulses and throw taps are independent of held buttons. */
+
   readonly amend?: (n: number, self: Fighter, other: Fighter, row: InputRow, side: Side) => void;
 }
 
-/** What starting an option changes, so a search can tell whether a press started it on its own frame. */
+
 type StartKind = "attack" | "act" | "jump" | "dodge" | "shield" | "ledge" | "none";
 
 export interface Option {
   readonly name: string;
   readonly kind: StartKind;
-  /** The attack the press starts, when it starts one directly. */
+
   readonly style?: AttackStyle;
-  /** Held i frames after the option's press (i = 0 is the press); `base` is what the side holds without it. */
+
   readonly input: (i: number, self: Fighter, other: Fighter, base: Held) => Held;
 }
 
@@ -56,7 +56,7 @@ interface Choice {
   readonly start: number;
 }
 
-/** A side's options; each, from its start, decides the inputs, given those of the options started before it. */
+
 type Plan = readonly Choice[];
 type Plans = readonly [Plan, Plan];
 
@@ -93,7 +93,7 @@ const signature = (f: Fighter): Signature => ({
 function began(kind: StartKind, before: Signature, after: Signature): boolean {
   switch (kind) {
     case "attack": return after.attackSerial !== before.attackSerial;
-    // A get-up or ledge attack is the down or ledge option the press chose, not the fighter acting freely.
+
     case "act": return after.attackSerial !== before.attackSerial && after.attackStyle !== AttackStyle.getupAttack && after.attackStyle !== AttackStyle.ledgeAttack;
     case "jump": return (after.squat > 0 && before.squat === 0) || after.jumpSerial !== before.jumpSerial;
     case "dodge": return after.groundDodge === 1;
@@ -103,10 +103,10 @@ function began(kind: StartKind, before: Signature, after: Signature): boolean {
   }
 }
 
-/** Attack pressed on top of whatever the side holds: a jab, an aerial, or in a shield a shield grab. The first frame it starts on is when the side can act. */
+
 const ACT_PROBE: Option = { name: "act", kind: "act", input: (i, _self, _other, base) => (i === 0 ? [...base, Action.attack] : base) };
 
-/** A decisive contact: `by` hit or grabbed the other side on `frame`. */
+
 interface Contact {
   readonly frame: number;
   readonly by: Side;
@@ -122,22 +122,22 @@ interface Counters {
 const counters = (f: Fighter): Counters => ({ hit: f.visuals.hit, grab: f.visuals.grab, shield: f.visuals.shield + f.visuals.shieldReflect });
 
 interface Played {
-  /** The first decisive contact; contacts on one frame from both sides are a trade. */
+
   readonly first: Contact | undefined;
   readonly trade: boolean;
-  /** Frames on which a side's attack met the other's shield. */
+
   readonly shieldContacts: readonly { readonly frame: number; readonly by: Side }[];
 }
 
-/**
- * A situation played once with no options, keeping the state at the start of
- * every frame. A run with options branches from the first frame an option
- * starts, since every earlier frame is the same, and replays only the rest.
- */
-/** States that released timelines hand back: allocating one costs more than playing a frame. */
+
+
+
+
+
+
 const spareStates: ReplayState[] = [];
 
-/** Free to start an attack, or a shield grab: the options it ran can no longer land. */
+
 const settled = (f: Fighter): boolean => canAttack(f) || canShieldGrab(f);
 
 export class Timeline {
@@ -151,7 +151,7 @@ export class Timeline {
     if (sit.previous !== undefined) this.live.previous.splice(0, this.live.previous.length, ...sit.previous);
     const [a, b] = this.fighters();
     sit.prepare?.(a, b);
-    // Combo candidates all branch on frame 1; they need no later baseline snapshots.
+
     for (let n = 1; n <= (retention === "first" ? 1 : last); n++) {
       const snapshot = spareStates.pop() ?? createReplaySnapshot();
       captureReplaySnapshot(snapshot, this.live.world, this.live.game, this.live.controls, this.live.runtime);
@@ -168,14 +168,14 @@ export class Timeline {
     });
   }
 
-  /** Copies the current branch after its last executed frame. */
+
   capture(): { readonly state: ReplayState; readonly previous: readonly number[] } {
     const state = createReplaySnapshot();
     captureReplaySnapshot(state, this.live.world, this.live.game, this.live.controls, this.live.runtime);
     return { state, previous: [...this.live.previous] };
   }
 
-  /** Returns the kept states for later timelines; this one can't be played again. */
+
   release(): void {
     for (const state of this.states) if (state !== undefined) spareStates.push(state);
     this.states.length = 0;
@@ -191,21 +191,21 @@ export class Timeline {
     if (state === undefined || held === undefined) throw new Error(`frame ${n} is outside the timeline's ${this.last} frames`);
     restoreReplaySnapshot(state, this.live.world, this.live.game, this.live.controls, this.live.runtime);
     this.live.previous.splice(0, this.live.previous.length, ...held);
-    // The restored frame may be one the scene already captured a row for.
+
     resetMatchFrameInput(this.live.row);
   }
 
-  /** Both fighters as they start frame n with no options. */
+
   at(n: number): readonly [Fighter, Fighter] {
     this.restore(n);
     return this.fighters();
   }
 
-  /**
-   * Plays frames until `last` with the plans, stopping after the first
-   * decisive contact unless `throughContacts`; `each` sees every frame after
-   * it runs and may stop the run.
-   */
+
+
+
+
+
   play(plans: Plans, last: number, each?: (n: number, first: Fighter, second: Fighter) => boolean, throughContacts = false): Played {
     const from = firstStart(plans);
     this.restore(from);
@@ -236,11 +236,11 @@ export class Timeline {
     return { first, trade, shieldContacts };
   }
 
-  /**
-   * The side's signature after each frame lo-1..hi following the plans (frame
-   * 0 is the start), and the first frame at or past lo after which `enough`
-   * holds, where the run stops.
-   */
+
+
+
+
+
   private signatures(plans: Plans, side: Side, lo: number, hi: number, enough?: (self: Fighter) => boolean): { readonly after: readonly (Signature | undefined)[]; readonly stopped: number | undefined } {
     const from = firstStart(plans);
     const after: (Signature | undefined)[] = [];
@@ -260,13 +260,13 @@ export class Timeline {
     return { after, stopped };
   }
 
-  /**
-   * The first frame in lo..hi on which a press of `option` starts it for
-   * `side` after its plan so far, or undefined; a press on any later frame
-   * starts it too. A start counts only when the press causes it: an action
-   * the plan was starting anyway on that frame is not the press's. A guess
-   * from the state, with the signatures up to it, is checked first.
-   */
+
+
+
+
+
+
+
   earliest(plans: Plans, side: Side, option: Option, lo: number, hi: number, known?: { readonly guess: number; readonly after: readonly (Signature | undefined)[] }): number | undefined {
     if (option.kind === "none") return lo;
     let unpressed = known?.after ?? this.signatures(plans, side, lo, hi).after;
@@ -294,27 +294,27 @@ export class Timeline {
       else low = middle + 1;
     }
     if (low > hi) return undefined;
-    // A press that worked earlier but not later breaks the bisection's premise; scan instead.
+
     if (low > lo && startsOn(low - 1)) {
       for (let k = lo; k <= hi; k++) if (startsOn(k)) return k;
     }
     return low;
   }
 
-  /** The first frame in lo..hi on which `side` can act while running its plan; undefined when it can't by hi. */
+
   actionable(plans: Plans, side: Side, lo: number, hi: number): number | undefined {
-    // The state after a frame tells when a press on it would start an attack; the search confirms that guess.
+
     const { after, stopped } = this.signatures(plans, side, lo, hi, settled);
     return this.earliest(plans, side, ACT_PROBE, lo, hi, stopped === undefined ? undefined : { guess: stopped, after });
   }
 
-  /** The same situation with `side` following `plan` as its own, so runs against that plan branch where they start. */
+
   following(side: Side, plan: Plan): Timeline {
     const [first, second] = this.sit.policies;
     return new Timeline({ ...this.sit, policies: side === 0 ? [policyWith(first, plan), second] : [first, policyWith(second, plan)] }, this.last);
   }
 
-  /** Start frames from..until-1 at which `punisher`, started by `side`, lands on a frame from `landsFrom` to before `until`. */
+
   punishStarts(side: Side, punisher: Option, from: number, until: number, landsFrom = 0): number[] {
     const starts: number[] = [];
     for (let s = from; s < until; s++) {
@@ -324,12 +324,12 @@ export class Timeline {
       let serial: number | undefined;
       const { first, trade } = this.play(sideOf(side, [{ option: punisher, start: s }]), until, (n, a, b) => {
         const self = side === 0 ? a : b;
-        // A press that doesn't start the punish on its own frame starts it later, which a later s counts.
+
         if (n === s) {
           pressed = began(punisher.kind, before, signature(self));
           if (!pressed) return true;
         }
-        // Once the punisher's attack has left its active frames it can no longer land.
+
         if (serial === undefined && self.attack.style !== undefined && self.attack.frame === 0) serial = self.attack.serial;
         return serial !== undefined && self.attack.serial === serial && (self.attack.style === undefined || attackPhase(self) === AttackPhase.recovery);
       });
@@ -339,7 +339,7 @@ export class Timeline {
   }
 }
 
-/** Releases `line` once `value`, computed from it, is ready. */
+
 function released<T>(line: Timeline, value: T): T {
   line.release();
   return value;
@@ -351,7 +351,7 @@ function firstStart(plans: Plans): number {
 }
 
 
-// ------------------------------------------------------------------ options
+
 
 const towardOf = (self: Fighter, other: Fighter): Action => (other.motion.x >= self.motion.x ? Action.moveRight : Action.moveLeft);
 const awayOf = (self: Fighter, other: Fighter): Action => (other.motion.x >= self.motion.x ? Action.moveLeft : Action.moveRight);
@@ -360,7 +360,7 @@ const smashToward = (self: Fighter, other: Fighter): Action => (other.motion.x >
 const press = (name: string, kind: StartKind, held: (self: Fighter, other: Fighter) => Held): Option =>
   ({ name, kind, input: (i, self, other) => (i === 0 ? held(self, other) : []) });
 
-/** Keeps doing what the side was doing: standing, holding its shield, hanging. */
+
 const waiting = (name: string): Option => ({ name, kind: "none", input: (_i, _self, _other, base) => base });
 
 const WAIT = waiting("wait");
@@ -379,7 +379,7 @@ const SPOT_DODGE = press("spot dodge", "dodge", () => [Action.rightTrigger, Acti
 const ROLL_IN = press("roll in", "dodge", (self, other) => [Action.rightTrigger, towardOf(self, other)]);
 const ROLL_AWAY = press("roll away", "dodge", (self, other) => [Action.rightTrigger, awayOf(self, other)]);
 
-/** The punishes every situation tries: a standing fighter's ground attacks and grab. */
+
 const GROUND_ATTACKS: readonly Option[] = [JAB, FTILT, UTILT, DTILT, FSMASH, USMASH, DSMASH, GRAB];
 
 const AERIALS = [
@@ -391,7 +391,7 @@ const AERIALS = [
 ] as const;
 type Aerial = (typeof AERIALS)[number];
 
-/** The press that starts `style` in the air: attack alone for a neutral air, the C-stick otherwise, leaving the stick free to drift. */
+
 function aerialPress(self: Fighter, style: AttackStyle): Held {
   switch (style) {
     case AttackStyle.neutralAir: return [Action.attack];
@@ -402,7 +402,7 @@ function aerialPress(self: Fighter, style: AttackStyle): Held {
   }
 }
 
-/** Out of shield: a short hop with the aerial buffered in jump squat, drifting toward the attacker once airborne. */
+
 const oosAerial = (aerial: Aerial): Option => ({
   name: `jump ${aerial.name}`,
   kind: "jump",
@@ -414,7 +414,7 @@ const OUT_OF_SHIELD: readonly Option[] = [waiting("hold shield"), SHIELD_GRAB, .
 const OOS_PUNISH_TARGETS: readonly Option[] = [SHIELD_GRAB, SPOT_DODGE, ROLL_IN, ROLL_AWAY];
 const AFTER_AERIAL: readonly Option[] = [WAIT, JAB, GRAB, SHIELD, SPOT_DODGE, ROLL_AWAY];
 
-// ------------------------------------------------------------------ rows
+
 
 export const FIGHTERS = [
   { character: Character.rifleman, name: "Rifleman", slug: "rifleman" },
@@ -422,20 +422,20 @@ export const FIGHTERS = [
 ] as const;
 export type FighterEntry = (typeof FIGHTERS)[number];
 
-/** One option pair played from each option's earliest start. */
+
 interface Cell {
   readonly row: string;
   readonly column: string;
-  /** Who landed first: the row's option, the column's, both on one frame, or neither within the horizon. */
+
   readonly winner: "row" | "column" | "trade" | "none";
   readonly kind: "hit" | "grab" | "none";
-  /** The decisive contact's frame; for "none", the row's lead in frames to act afterwards (negative: the column acts first). */
+
   readonly frame: number | undefined;
-  /** An attack met a shield before the decision. */
+
   readonly blocked: boolean;
 }
 
-/** Punisher start frames that land before the target can act; frames count from the situation's frame 0. */
+
 interface Window {
   readonly punisher: string;
   readonly starts: readonly number[];
@@ -443,9 +443,9 @@ interface Window {
 
 interface OptionStart {
   readonly option: string;
-  /** The first frame the option starts on, from frame 0; undefined when it can't start in the searched frames. */
+
   readonly start: number | undefined;
-  /** The first frame its user can act again; undefined when not by the horizon. */
+
   readonly acts: number | undefined;
 }
 
@@ -455,25 +455,25 @@ interface AerialRow {
   readonly aerial: string;
   readonly spacing: "unspaced" | "spaced";
   readonly drift: string;
-  /** Standing start distance, world units, between the fighters' centres. */
+
   readonly distance: number;
-  /** The aerial's press, on the hop's frames from the jump press (frame 1). */
+
   readonly press: number;
   readonly attackFrame: number;
-  /** Defender minus attacker x at contact. */
+
   readonly separation: number;
   readonly shieldstun: number;
   readonly attackerActs: number | undefined;
   readonly defenderActs: number | undefined;
-  /** defenderActs - attackerActs read from the attacker's side: negative means the defender acts first. */
+
   readonly advantage: number | undefined;
   readonly defender: readonly OptionStart[];
   readonly attacker: readonly OptionStart[];
-  /** Rows are the defender's options, columns the attacker's follow-ups. */
+
   readonly cells: readonly Cell[];
-  /** The defender's options that land before the attacker can act. */
+
   readonly punishes: readonly Window[];
-  /** For each listed defender option, the attacker's punishes of it. */
+
   readonly oosPunishes: readonly { readonly option: string; readonly acts: number | undefined; readonly punishes: readonly Window[] }[];
 }
 
@@ -485,16 +485,16 @@ interface ParryRow {
   readonly drift: string;
   readonly distance: number;
   readonly press: number;
-  /** The shield press, frames from the contact: -1 is the frame before. */
+
   readonly raise: number;
-  /** The timed press parried the aerial rather than blocking it. */
+
   readonly parried: boolean;
   readonly attackerActs: number | undefined;
   readonly defenderActs: number | undefined;
-  /** defenderActs - attackerActs: negative means the defender acts first. */
+
   readonly advantage: number | undefined;
   readonly defender: readonly OptionStart[];
-  /** The defender's options out of the parry that land before the attacker can act. */
+
   readonly punishes: readonly Window[];
 }
 
@@ -502,7 +502,7 @@ interface ReachRow {
   readonly kind: "aerial-reach";
   readonly fighter: string;
   readonly aerial: string;
-  /** Start distances from which the aerial, approaching, meets the shield, as spans of the swept step. */
+
   readonly distances: string;
 }
 
@@ -511,9 +511,9 @@ interface NeutralRow {
   readonly fighter: string;
   readonly distance: number;
   readonly options: readonly OptionStart[];
-  /** Rows are the fighter's options, columns the opponent's. */
+
   readonly cells: readonly Cell[];
-  /** For each option, the opponent's punishes of it. */
+
   readonly punishes: readonly { readonly option: string; readonly punishes: readonly Window[] }[];
 }
 
@@ -522,13 +522,13 @@ interface StateRow {
   readonly fighter: string;
   readonly variant: string;
   readonly option: string;
-  /** Frame 0's frame in the situation: touchdown, or the ledge option's start. */
+
   readonly zero: number;
   readonly acts: number | undefined;
   readonly intangible: string;
-  /** Where the option leaves its user, world units from its start (landing, tech) or inward from the ledge. */
+
   readonly travel: number;
-  /** The option's own hit on the waiting opponent, if it lands one. */
+
   readonly hits: number | undefined;
   readonly punishes: readonly Window[];
 }
@@ -547,16 +547,16 @@ function cellOf(row: string, column: string, played: Played, zero: number, lead:
   return { row, column, winner: played.trade ? "trade" : first.by === 0 ? "column" : "row", kind: first.kind, frame: first.frame - zero, blocked };
 }
 
-// ------------------------------------------------------------------ aerial on shield
 
-/**
- * The attacker approaches until its aerial meets the shield; then each drift
- * holds its own stick, and picks its press in the hop, after the terms in
- * smashcraft:docs/design/platform-fighters.md: an advancing aerial hits as low
- * as it can and lands in front, an early advancing one as high as it can and
- * lands in front, a fade hits as early as it can and drifts the rest of the
- * fall away from the shield (fade-back) or on through it (fade-forward).
- */
+
+
+
+
+
+
+
+
+
 const DRIFTS = [
   { name: "advancing", after: 0, press: "latest" },
   { name: "early advancing", after: 0, press: "earliest" },
@@ -565,36 +565,36 @@ const DRIFTS = [
 ] as const;
 type Drift = (typeof DRIFTS)[number];
 
-/** The shielding defender stands here, facing left; the attacker starts `distance` to its left. */
+
 const DEFENDER_X = 150.0;
-/** Start distances swept for each aerial, outward from 48, where two references' hurt capsules (radius 24) touch. */
+
 const APPROACH_STEP = 6;
 const APPROACH_DISTANCES = Array.from({ length: 43 }, (_, index) => 48 + APPROACH_STEP * index);
-/** Frames after the contact that the options, cells and punishes are played. */
+
 const SHIELD_HORIZON = 70;
 
 const shieldMet = (defender: Fighter): boolean => defender.visuals.shield + defender.visuals.shieldReflect > 0;
 
-/** The attacker starts left of the shield, so its approach and a fade-forward hold right and a fade-back left, wherever it ends up. */
+
 function driftStick(drift: Drift, defender: Fighter): Held {
   const direction = shieldMet(defender) ? drift.after : 1;
   return direction === 0 ? [] : [direction > 0 ? Action.moveRight : Action.moveLeft];
 }
 
-/** A short hop from standing, released in jump squat, drifting by `drift` until it lands. */
+
 const hop = (drift: Drift): Policy => (n, self, other) => {
   if (n === 1) return [Action.jump, ...driftStick(drift, other)];
   return self.motion.grounded && self.jump.squat === 0 ? [] : driftStick(drift, other);
 };
 
-/** The aerial pressed during the hop, which keeps drifting. */
+
 const aerialOption = (aerial: Aerial): Option => ({
   name: aerial.name,
   kind: "attack",
   input: (i, self, _other, base) => (i > 0 ? base : aerial.style === AttackStyle.neutralAir ? [Action.attack] : [...base, ...aerialPress(self, aerial.style)]),
 });
 
-/** A back air is thrown with the back to the shield. */
+
 const facingFor = (aerial: Aerial): number => (aerial.style === AttackStyle.backAir ? -1 : 1);
 
 const holdShield: Policy = () => [Action.rightTrigger];
@@ -614,7 +614,7 @@ interface ShieldContact {
   readonly shieldstun: number;
 }
 
-/** The first contact of an aerial pressed on frame `press` with the shield, made by that aerial. */
+
 function shieldContact(line: Timeline, aerial: Aerial, press: number): ShieldContact | undefined {
   let contact: ShieldContact | undefined;
   let serial = -1;
@@ -632,7 +632,7 @@ function shieldContact(line: Timeline, aerial: Aerial, press: number): ShieldCon
   return contact;
 }
 
-/** The frames a short hop leaves the ground and lands back on it, and its height. */
+
 function hopFrames(character: Character): { readonly takeoff: number; readonly landing: number; readonly apex: number } {
   const line = new Timeline(approachSituation(character, DRIFTS[0], 400.0, 1), 1);
   let takeoff = 0;
@@ -653,13 +653,13 @@ interface Found {
   readonly contact: ShieldContact;
 }
 
-/** From one start distance, the latest and the earliest press in the hop that meet the shield. */
+
 interface Reach {
   readonly latest: Found;
   readonly earliest: Found;
 }
 
-/** For each aerial, the start distances that reach the shield. Every drift approaches until contact, so one search serves them all. */
+
 function searchApproaches(character: Character, aerials: readonly Aerial[], distances: readonly number[] = APPROACH_DISTANCES): ReadonlyMap<Aerial, readonly Reach[]> {
   const { takeoff, landing } = hopFrames(character);
   const found = new Map<Aerial, Reach[]>(aerials.map((aerial) => [aerial, []]));
@@ -690,7 +690,7 @@ function searchApproaches(character: Character, aerials: readonly Aerial[], dist
   return found;
 }
 
-/** One spacing's row; without `full`, only the frame advantage and the punishes of the aerial, leaving out the cells and what punishes the defender. */
+
 function aerialRow(entry: FighterEntry, aerial: Aerial, drift: Drift, spacing: AerialRow["spacing"], found: Found, full: boolean): AerialRow {
   const sit = approachSituation(entry.character, drift, found.distance, facingFor(aerial), { aerial, press: found.press });
   const zero = found.contact.frame;
@@ -722,7 +722,7 @@ function aerialRow(entry: FighterEntry, aerial: Aerial, drift: Drift, spacing: A
       const plans: Plans = [[{ option: follow, start: followStart }], [{ option: defend, start: defendStart }]];
       const played = line.play(plans, end, (n, a, b) => n > Math.max(followStart, defendStart) && settled(a) && settled(b));
       cells.push(cellOf(defend.name, follow.name, played, zero, () => {
-        // An option that met a shield can act again only after its last contact.
+
         const lastShield = Math.max(0, ...played.shieldContacts.map((contact) => contact.frame));
         const attackerAgain = line.actionable(plans, 0, Math.max(followStart, lastShield) + 1, end);
         const defenderAgain = line.actionable(plans, 1, Math.max(defendStart, lastShield) + 1, end);
@@ -755,7 +755,7 @@ function aerialRow(entry: FighterEntry, aerial: Aerial, drift: Drift, spacing: A
   });
 }
 
-/** Values as "a..b" spans of consecutive steps: frames step by 1, swept distances by their step. */
+
 function spans(values: readonly number[], step = 1): string {
   const parts: string[] = [];
   let index = 0;
@@ -772,10 +772,10 @@ function spans(values: readonly number[], step = 1): string {
   return parts.join(", ");
 }
 
-/** The press a drift uses from one reach: the lowest hit for advancing, the earliest for early advancing and a fade. */
+
 const pressFor = (drift: Drift, reach: Reach): Found => (drift.press === "latest" ? reach.latest : reach.earliest);
 
-/** Each aerial on a shield: the start distances it reaches it from, and each drift's rows for the nearest (unspaced) and farthest (spaced). */
+
 function aerialRows(entry: FighterEntry): Row[] {
   const found = searchApproaches(entry.character, AERIALS);
   return AERIALS.flatMap((aerial) => {
@@ -796,12 +796,12 @@ function aerialRows(entry: FighterEntry): Row[] {
   });
 }
 
-/**
- * One aerial and drift on a shield from one start distance, as the graph's
- * row for that spacing would hold it without the follow-up cells: frame
- * advantage and the defender's punishes. Undefined when no press in the hop
- * meets the shield from there.
- */
+
+
+
+
+
+
 export function aerialOnShield(fighter: string, aerial: string, drift: string, distance: number, spacing: AerialRow["spacing"]): AerialRow | undefined {
   const entry = fighterNamed(fighter);
   const move = AERIALS.find((candidate) => candidate.name === aerial);
@@ -811,19 +811,19 @@ export function aerialOnShield(fighter: string, aerial: string, drift: string, d
   return reach === undefined ? undefined : aerialRow(entry, move, path, spacing, pressFor(path, reach), false);
 }
 
-// ------------------------------------------------------------------ aerial on a powershield
 
-/** A parry's options: every ground attack as well as the out-of-shield ones, since a parry drops the shield without release lag. */
+
+
 const OUT_OF_PARRY: readonly Option[] = [SHIELD_GRAB, ...GROUND_ATTACKS.filter((option) => option !== GRAB), ...AERIALS.map(oosAerial), SPOT_DODGE, ROLL_IN, ROLL_AWAY];
 
-/** Stands without a shield, then raises it on `raise` and holds it: a full press, so the hit on the next frame is parried. */
+
 const parryOn = (raise: number): Policy => (n) => (n >= raise ? [Action.rightTrigger] : []);
 
-/**
- * The same approach as the held-shield row, with the defender pressing its
- * shield the frame before the aerial meets it. Frame 0 is the parried contact;
- * `parried` is false when the timed press blocked instead.
- */
+
+
+
+
+
 function parryRow(entry: FighterEntry, aerial: Aerial, drift: Drift, spacing: ParryRow["spacing"], found: Found): ParryRow {
   const held = approachSituation(entry.character, drift, found.distance, facingFor(aerial), { aerial, press: found.press });
   const raise = found.contact.frame - 1;
@@ -858,7 +858,7 @@ function parryRow(entry: FighterEntry, aerial: Aerial, drift: Drift, spacing: Pa
   });
 }
 
-// ------------------------------------------------------------------ neutral: both fighters act on frame 1
+
 
 const NEUTRAL_DISTANCES = [60, 120] as const;
 const NEUTRAL_OPTIONS: readonly Option[] = [WAIT, JAB, FTILT, UTILT, DTILT, FSMASH, USMASH, DSMASH, GRAB, SHIELD, SPOT_DODGE, ROLL_IN, ROLL_AWAY];
@@ -874,11 +874,11 @@ function neutralRow(entry: FighterEntry, distance: number): NeutralRow {
   const acts = NEUTRAL_OPTIONS.map((option) => line.actionable([[choice(option)], []], 0, 2, NEUTRAL_HORIZON));
   const cells: Cell[] = [];
   NEUTRAL_OPTIONS.forEach((mine, row) => NEUTRAL_OPTIONS.forEach((theirs, column) => {
-    // The column's fighter takes slot 0 so that winner "row" is slot 1, as in the other situations' cells.
+
     const plans: Plans = [[choice(theirs)], [choice(mine)]];
     const played = line.play(plans, NEUTRAL_HORIZON, (n, a, b) => n > 1 && settled(a) && settled(b));
     cells.push(cellOf(mine.name, theirs.name, played, 0, () => {
-      // An option that met a shield can act again only after its last contact.
+
       const lastShield = Math.max(0, ...played.shieldContacts.map((contact) => contact.frame));
       const columnActs = line.actionable(plans, 0, Math.max(1, lastShield) + 1, NEUTRAL_HORIZON);
       const rowActs = line.actionable(plans, 1, Math.max(1, lastShield) + 1, NEUTRAL_HORIZON);
@@ -897,18 +897,18 @@ function neutralRow(entry: FighterEntry, distance: number): NeutralRow {
   });
 }
 
-// ------------------------------------------------------------------ landing, ledge and tech
+
 
 interface StateSituation {
   readonly kind: StateRow["kind"];
   readonly variant: string;
   readonly line: Timeline;
   readonly options: readonly { readonly option: Option; readonly start: number }[];
-  /** Frame 0 for one option's row, given its plan: from it the option's user is committed, so only contacts from it count as punishes. */
+
   readonly zero: (plan: Plan) => number;
-  /** Where its user ends, measured as the row's travel. */
+
   readonly travel: (self: Fighter, startX: number) => number;
-  /** The last frame a punish is tried when the option's user doesn't act by then. */
+
   readonly cap: number;
   readonly horizon: number;
 }
@@ -938,7 +938,7 @@ function stateRows(entry: FighterEntry, sit: StateSituation): StateRow[] {
   });
 }
 
-/** The first frame on which `side`'s fighter stands on a deck after frame `after`, following `plan`. */
+
 function touchdown(line: Timeline, plan: Plan, after: number, last: number): number {
   let landing = last;
   line.play(sideOf(0, plan), last, (n, a) => {
@@ -979,7 +979,7 @@ function landingRows(entry: FighterEntry): StateRow[] {
 }
 
 const LEDGE_X = mainDeckRight(0);
-/** The opponent waits this far inside the ledge, facing it. */
+
 const LEDGE_GUARD = 70.0;
 
 function ledgeRows(entry: FighterEntry): StateRow[] {
@@ -1047,14 +1047,14 @@ function techRows(entry: FighterEntry): StateRow[] {
   }));
 }
 
-// ------------------------------------------------------------------ rows for a fighter
 
-// ------------------------------------------------------------------ projectiles (#98)
 
-/**
- * The special inputs a fighter fires projectiles from. Rows for a source are
- * played from these spacings: point blank, mid range and long range.
- */
+
+
+
+
+
+
 const SPECIAL_INPUTS = [
   { name: "neutral special", held: (): Held => [Action.special] },
   { name: "side special", held: (self: Fighter): Held => [self.facing > 0 ? Action.moveRight : Action.moveLeft, Action.special] },
@@ -1062,13 +1062,13 @@ const SPECIAL_INPUTS = [
   { name: "down special", held: (): Held => [Action.moveDown, Action.special] },
 ] as const;
 type SpecialInput = (typeof SPECIAL_INPUTS)[number];
-/** Feral Spirit follows the roster's summon rule even while its wolves run. */
+
 export const isProjectileSummon = (character: Character, source: string): boolean => character === Character.thrall && source === "side special";
 export const PROJECTILE_SPACINGS = [60, 240, 480] as const;
-/** The shooter fires on this frame, so a shield held from frame 1 has left its powershield frames. */
+
 const FIRE = 10;
 const PROJECTILE_HORIZON = 150;
-/** Full hop: jump held through jump squat. */
+
 const FULL_JUMP: Option = { name: "jump", kind: "jump", input: (i) => (i < 8 ? [Action.jump] : []) };
 const PROJECTILE_ANSWERS: readonly Option[] = [FULL_JUMP, SPOT_DODGE, ROLL_IN, ROLL_AWAY];
 const OOS_PUNISHERS: readonly Option[] = [SHIELD_GRAB, ...AERIALS.map(oosAerial)];
@@ -1076,30 +1076,30 @@ const OOS_PUNISHERS: readonly Option[] = [SHIELD_GRAB, ...AERIALS.map(oosAerial)
 interface ProjectileRow {
   readonly kind: "projectile";
   readonly fighter: string;
-  /** Source and spacing: "neutral special at 60". */
+
   readonly variant: string;
   readonly source: string;
   readonly distance: number;
-  /** Frames the projectile lives, flying clear of everyone. */
+
   readonly flight: number;
   readonly traveling: boolean;
-  /** The most of the fighter's projectiles out at once with this source pressed as often as it starts. */
+
   readonly mostOut: number;
-  /** Frames from the press to the projectile meeting a shield held from frame 1; undefined when it never reaches one. */
+
   readonly arrives: number | undefined;
-  /** It passed the shrinking shield and hit the body behind it. */
+
   readonly pokes: boolean;
-  /** Whether a standing defender that does nothing is hit. */
+
   readonly hitsIdle: boolean;
-  /** From the shield contact (frame 0). */
+
   readonly shooterActs: number | undefined;
   readonly defenderActs: number | undefined;
   readonly advantage: number | undefined;
-  /** Out-of-shield options that land before the shooter can act, by start frame from the contact. */
+
   readonly punishes: readonly Window[];
-  /** Shield presses, from the contact frame, that reflect it. */
+
   readonly powershield: readonly number[];
-  /** Options other than a shield that leave a standing defender unhit, by press frame from the contact frame. */
+
   readonly answers: readonly { readonly option: string; readonly starts: readonly number[] }[];
 }
 
@@ -1108,14 +1108,14 @@ const shooterPolicy = (input: SpecialInput, fire: number, every = 0): Policy => 
 
 const liveProjectiles = (f: Fighter): number => f.projectiles.filter((projectile) => projectile.life > 0).length;
 
-/**
- * Fired away from everyone: how long the first projectile lives (its own
- * slot, not a stream of later shots overlapping it), whether it moves, and
- * the most out while the input repeats. A projectile sent backward
- * (Thunder Clap's rear wave) can reach the idle fighter behind; the flight
- * runs through that contact, which ends the projectile, instead of stopping
- * there and reading the projectile as never ending.
- */
+
+
+
+
+
+
+
+
 function projectileFlight(character: Character, input: SpecialInput): { readonly flight: number; readonly traveling: boolean; readonly mostOut: number } | undefined {
   const away = (every: number): Timeline => new Timeline({
     placements: [{ character, x: 0.0, facing: 1 }, { character, x: -400.0, facing: 1 }],
@@ -1137,7 +1137,7 @@ function projectileFlight(character: Character, input: SpecialInput): { readonly
       traveling = !isProjectileSummon(character, input.name) && (first.velocityX !== 0 || first.velocityZ !== 0);
       return false;
     }
-    // A slot whose life rises was retired and refilled by a later shot.
+
     const next = a.projectiles[slot]?.life ?? 0;
     if (next <= 0 || next > life) died = n;
     life = next;
@@ -1155,7 +1155,7 @@ function projectileFlight(character: Character, input: SpecialInput): { readonly
   return { flight: (died ?? PROJECTILE_HORIZON + 1) - born, traveling, mostOut };
 }
 
-/** One source fired from `distance` at a mirror defender. */
+
 function projectileRow(character: Character, name: string, input: SpecialInput, distance: number, flight: { readonly flight: number; readonly traveling: boolean; readonly mostOut: number }): ProjectileRow {
   const placements: Situation["placements"] = [{ character, x: -distance / 2, facing: 1 }, { character, x: distance / 2, facing: -1 }];
   const last = FIRE + PROJECTILE_HORIZON;
@@ -1173,7 +1173,7 @@ function projectileRow(character: Character, name: string, input: SpecialInput, 
   }, true);
   const base = { kind: "projectile", fighter: name, variant: `${input.name} at ${distance}`, source: input.name, distance, ...flight } as const;
   const standing = new Timeline({ placements, policies: [shooterPolicy(input, FIRE), idle] }, last);
-  /** Whether the standing defender is hit; once the projectile has met someone, a run ends when the shooter has none left. */
+
   const hit = (plans: Plans, after = last): boolean => {
     let hurt = false;
     standing.play(plans, last, (n, a, b) => {
@@ -1217,7 +1217,7 @@ function projectileRow(character: Character, name: string, input: SpecialInput, 
   };
 }
 
-/** Each out-of-shield option and the first frame a press starts it from a shield held since frame 1; undefined when it never does. */
+
 export function outOfShieldStarts(character: Character): { readonly option: string; readonly start: number | undefined }[] {
   const line = new Timeline({
     placements: [{ character, x: 0.0, facing: 1 }, { character, x: 400.0, facing: -1 }],
@@ -1226,7 +1226,7 @@ export function outOfShieldStarts(character: Character): { readonly option: stri
   return released(line, OUT_OF_SHIELD.slice(1).map((option) => ({ option: option.name, start: line.earliest(NONE, 0, option, 12, 60) })));
 }
 
-/** Every projectile source of a fighter, fired at a mirror defender from each spacing. */
+
 export function projectileRows(character: Character, name: string): ProjectileRow[] {
   return SPECIAL_INPUTS.flatMap((input) => {
     const flight = projectileFlight(character, input);
@@ -1238,7 +1238,7 @@ export function fighterNamed(name: string): FighterEntry | undefined {
   return FIGHTERS.find((entry) => entry.name.toLowerCase() === name.toLowerCase() || entry.slug === name.toLowerCase());
 }
 
-/** Every situation's rows for one fighter, in its mirror match. */
+
 export function interactionRows(entry: FighterEntry): Row[] {
   return [
     ...aerialRows(entry),
@@ -1250,7 +1250,7 @@ export function interactionRows(entry: FighterEntry): Row[] {
   ];
 }
 
-// ------------------------------------------------------------------ tables and graphs
+
 
 const table = (header: readonly string[], body: readonly (readonly string[])[]): string[] =>
   [`| ${header.join(" | ")} |`, `| ${header.map(() => "---").join(" | ")} |`, ...body.map((cells) => `| ${cells.join(" | ")} |`)];
@@ -1289,7 +1289,7 @@ interface Edge {
 
 const nodeId = (name: string): string => name.replace(/[^a-z0-9]+/gi, "_");
 
-/** A Mermaid flowchart: each edge runs from the option that beats to the option it beats. */
+
 function mermaid(nodes: ReadonlyMap<string, string>, edges: readonly Edge[]): string[] {
   return [
     "```mermaid",
@@ -1457,7 +1457,7 @@ function stateSection(kind: StateRow["kind"], rows: readonly Row[]): string[] {
   ];
 }
 
-/** One fighter's page: every situation's tables and graphs. */
+
 export function fighterPage(entry: FighterEntry, rows: readonly Row[]): string {
   return [
     `# ${entry.name}: interaction graph`, "",
@@ -1474,9 +1474,9 @@ export function fighterPage(entry: FighterEntry, rows: readonly Row[]): string {
   ].join("\n");
 }
 
-// ------------------------------------------------------------------ evaluating a move against the graph
 
-/** What one move does in every situation of its fighter's graph. */
+
+
 export function moveProfile(rows: readonly Row[], move: string): string[] {
   const lines: string[] = [];
   const asPunisher = (situation: string, target: string, windows: readonly Window[]): void => {
@@ -1523,7 +1523,7 @@ const RowIdentity = Schema.Struct({
   drift: Schema.optionalKey(Schema.String), distance: Schema.optionalKey(Schema.Finite), variant: Schema.optionalKey(Schema.String), option: Schema.optionalKey(Schema.String),
 });
 
-/** What identifies a row across generations: its situation and option, not its numbers. */
+
 function rowKey(row: typeof RowIdentity.Type): string {
   return [row.kind, row.fighter, row.aerial, row.spacing, row.drift, row.kind === "neutral" ? row.distance : undefined, row.variant, row.option]
     .filter((part) => part !== undefined).join(" | ");
@@ -1537,7 +1537,7 @@ export function parseRows(text: string): Record<string, unknown>[] {
   });
 }
 
-/** Rows added, removed or changed from `before` to `after`, with each changed row's changed fields. */
+
 export function rowChanges(before: readonly Record<string, unknown>[], after: readonly Row[]): string[] {
   const keyed = (rows: readonly Record<string, unknown>[]): Map<string, Record<string, unknown>> =>
     new Map(rows.map((row) => { Schema.asserts(RowIdentity, row); return [rowKey(row), row]; }));

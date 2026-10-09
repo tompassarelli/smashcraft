@@ -1,7 +1,7 @@
-// Foreign MDX/SYLK boundary: export authored sound cues without changing their timing.
-// The cues and labels come from the original fighter models and the game's
-// AnimSounds.slk, so the evidence stays in private storage outside the checkout.
-// Usage: bun tools/animations/export-model-sounds.ts --assets PRIVATE_ASSETS --sounds AnimSounds.slk --out OUTPUT
+
+
+
+
 import {join, resolve, relative} from 'node:path';
 import {seconds} from './asset-info';
 import {fighters, parseSource, ensure, hash} from './original-clips';
@@ -30,8 +30,8 @@ for (const [character, fighter] of fighters.entries()) {
     for (const event of source.EventObjects) {
         if (!event.Name.startsWith('SND')) continue;
         ensure(/^SND.[A-Za-z0-9]{4}$/.test(event.Name), `${fighter.name}/${event.Name}: unknown sound event name`);
-        // This codec emits the non-global KEVT sentinel. parseSource's exact
-        // byte round-trip rejects a source global event clock it cannot retain.
+
+
         const code = event.Name.slice(4);
         const rows = byCode.get(code) ?? [];
         ensure(rows.length === 1, `${code}: expected one stock sound definition, found ${rows.length}`);

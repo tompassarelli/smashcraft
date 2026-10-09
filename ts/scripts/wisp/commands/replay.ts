@@ -1,8 +1,8 @@
-// `wisp replay FILE [--out JOINED]`: replays a whole match the map recorded
-// (smashcraft:ts/src/game/replay/matchReplay.ts) in Bun and in the 32-bit
-// Lua that LUA names, each to every checksum the game recorded. FILE is the
-// manifest the map writes last, with its parts beside it, or a joined replay;
-// --out writes the joined replay, one file to share.
+
+
+
+
+
 import "../../../test/host-natives";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -35,7 +35,7 @@ async function inputsHash(paths: readonly string[]): Promise<string> {
   return hasher.digest("hex");
 }
 
-/** Compiles the Lua replayer when its sources changed since the last compile. */
+
 async function compileReplayLua(): Promise<void> {
   const sources = ["src", "test/replay"].flatMap((dir) => [...new Bun.Glob(`${dir}/**/*.ts`).scanSync(ts)]).sort().map((path) => join(ts, path));
   const framework = [...new Bun.Glob("src/**/*.{ts,lua}").scanSync(join(ts, "node_modules/wisp"))].map((file) => join(ts, "node_modules/wisp", file));
@@ -48,7 +48,7 @@ async function compileReplayLua(): Promise<void> {
   await Bun.write(stamp, hash);
 }
 
-/** The Lua replayer's report: "frames F reached R recorded T checksum C digests D divergent X", then a "problem ..." line each. */
+
 export function parseLuaReport(stdout: string): MatchReplayResult | undefined {
   const lines = stdout.split("\n").filter((line) => line.length > 0);
   const match = /^frames (\d+) reached (\d+) recorded (\d+) checksum (\S*) digests (\d+) divergent (\d+)$/.exec(lines[0] ?? "");
@@ -67,7 +67,7 @@ const report = (runtime: string, result: MatchReplayResult) => [
   ...result.problems.map((problem) => `${runtime}: ${problem}`),
 ];
 
-/** Replays the joined replay in 32-bit Lua; `file` holds its lines. */
+
 export const replayInLua = (file: string, given?: string) => Effect.gen(function*() {
   const lua = given ?? (yield* stockLua.pipe(Effect.mapError((problem) => new ReplayFailure({ problem }))));
   yield* Effect.tryPromise({ try: compileReplayLua, catch: (cause) => new ReplayFailure({ problem: `compiling the Lua replayer: ${describeCause(cause)}` }) }).pipe(step("compile Lua replayer"));

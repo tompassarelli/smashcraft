@@ -1,4 +1,4 @@
-// Foreign SYLK boundary used by Warcraft's stock asset metadata.
+
 import {ensure} from './original-clips';
 
 function fields(line: string) {

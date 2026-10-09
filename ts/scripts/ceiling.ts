@@ -69,7 +69,7 @@ export function ceilingVerdicts(rows: readonly CeilingRow[]): { rows: CeilingVer
   const verdicts = rows.map(row => {
     const rates = CPU_OPPONENT_IDS.map(id => row.panel[id]);
     const best = Math.max(...rates);
-    // Shared first place counts for each personality; no ordering bias breaks a tie.
+
     for (const id of CPU_OPPONENT_IDS) if (row.panel[id] === best) bestFits[id]++;
     const panelAverage = rates.reduce((a,b) => a+b, 0) / rates.length;
     const executionGain = row.execution - row.expert;

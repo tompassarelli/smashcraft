@@ -94,7 +94,7 @@ for (const [character, fighter] of fighters.entries()) {
     texture.ReplaceableId = 0;
   }
   for (const geoset of model.GeosetAnims) { geoset.Color = new Float32Array([1, 1, 1]); geoset.Flags &= ~mdx.GeosetAnimFlags.Color; }
-  // Glow cards and team-glow ground planes would draw solid white, and Warcraft ignores a zero geoset alpha on them (#346).
+  // Warcraft ignores zero geoset alpha on glow cards and team-glow planes (#346).
   const effectGeosets = new Set(model.Geosets.flatMap((geoset, index) => effectMaterials.has(geoset.MaterialID) ? [index] : []));
   removeGeosets(model, effectGeosets);
   removeGeosets(original, effectGeosets);

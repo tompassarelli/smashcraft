@@ -1,4 +1,4 @@
-// Foreign MDX boundary: append down-air gestures while retaining shipped clips.
+
 import { chmodSync, cpSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";

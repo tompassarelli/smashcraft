@@ -1,24 +1,24 @@
-// One-client native captures of pad scripts (clone-a and other single signed-in clients):
-//   bun scripts/nativeCapture.ts build --out MAP.w3x [--name NAME] [--control] [PAD|DIR...]
-//     bakes the scripts and their `capture` frames into a native-capture map
-//     (smashcraft:ts/src/platform/nativeCaptureMain.ts) and writes MAP.captures.json;
-//     --control plays the control fixtures (smashcraft:ts/src/platform/captureFixtures.ts)
-//     first, and with no scripts the map plays only them;
-//   bun scripts/nativeCapture.ts plan PAD|DIR...
-//     plays the scripts headlessly on the capture map's schedule and checks each
-//     `#! cue` line against the held frames (smashcraft:ts/scripts/nativeCapturePlan.ts);
-//   bun scripts/nativeCapture.ts run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--crop X,Y,W,H] [--audio-sink SINK | --no-audio]
-//     (--crop: a windowed client's game area within the desktop capture, e.g. 5,44,1280,720)
-//     with that map hosted on the client (`bun wisp fresh MAP --no-quick`), keeps
-//     capturing the screen and saves each capture whose drawn stamp names a
-//     requested fixture and frame (smashcraft:ts/src/runtime/drawnStamp.ts) as
-//     DIR/FIXTURE/frame-N.ppm; every capture's stamp is logged in DIR/captures.json;
-//     meanwhile it records the client's own PipeWire sink (`wisp-online-NAME`,
-//     wisp:docs/lan.md) to DIR/audio.wav, its start on the same clock as each
-//     capture's `ms` and `capturedMs`;
-//   bun scripts/nativeCapture.ts compare DIR FIXTURE OTHER
-//     prints, per shared frame, how far the two fixtures' captures differ, and
-//     how far each fixture's first and last captures differ.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
@@ -46,11 +46,11 @@ function option(args: readonly string[], name: string): string | undefined {
   const index = args.indexOf(name);
   return index < 0 ? undefined : args[index + 1];
 }
-/** Flags that take no value. */
+
 const SWITCHES = new Set(["--control", "--no-audio"]);
 const positional = (args: readonly string[]) => args.filter((value, index) => !value.startsWith("--") && !(args[index - 1]?.startsWith("--") === true && !SWITCHES.has(args[index - 1] ?? "")));
 
-/** A pad script's capture frames, once each, in order. Chat lines are the native driver's own, so other lines go through the pad parser. */
+
 export function fixtureOf(path: string, script: string): CaptureFixture {
   const chat = /^\s*\S+\s+[ab]\s+chat\s/;
   const lines = script.split("\n");
@@ -67,7 +67,7 @@ const build = (args: readonly string[]) => Effect.gen(function*() {
   const name = option(args, "--name") ?? "Smashcraft native capture";
   const pads = positional(args).flatMap(path => statSync(path).isDirectory() ? readdirSync(path).filter(file => file.endsWith(".pad")).sort().map(file => join(path, file)) : [path]);
   if (out === undefined) return yield* new CaptureFailure({ problem: "usage: build --out MAP.w3x [--name NAME] [PAD|DIR...]; without scripts it builds the control" });
-  // Without scripts the checked-in control fixtures are built as they are; --control runs them before the scripts.
+
   const scripts = yield* attempt("read pad scripts", () => pads.map(path => fixtureOf(path, readFileSync(path, "utf8"))));
   const fixtures = pads.length === 0 ? CAPTURE_FIXTURES : args.includes("--control") ? [...CAPTURE_FIXTURES, ...scripts] : scripts;
   if (new Set(fixtures.map(fixture => fixture.name)).size !== fixtures.length) return yield* new CaptureFailure({ problem: "two pad scripts share a fixture name" });
@@ -88,11 +88,11 @@ const build = (args: readonly string[]) => Effect.gen(function*() {
   console.log(`built ${out}: ${fixtures.length} scripts, ${fixtures.reduce((total, fixture) => total + fixture.frames.length, 0)} captures; manifest ${manifest}`);
 });
 
-/**
- * A stamp colour's class by its dominant channel: red one, blue zero, green guard.
- * Dominance, not fixed levels, so a cell still reads under the KO flash's white
- * wash, which lifts every channel (#289).
- */
+
+
+
+
+
 function colourClass(red: number, green: number, blue: number): StampCell | "unclear" {
   if (red - Math.max(green, blue) > 60) return "one";
   if (blue - Math.max(red, green) > 60) return "zero";
@@ -100,7 +100,7 @@ function colourClass(red: number, green: number, blue: number): StampCell | "unc
   return "unclear";
 }
 
-/** The class of a cell's centre patch. */
+
 function cellAt(frame: Frame, x: number, y: number): StampCell | "unclear" {
   let red = 0;
   let green = 0;
@@ -119,7 +119,7 @@ function cellAt(frame: Frame, x: number, y: number): StampCell | "unclear" {
   return colourClass(red / count, green / count, blue / count);
 }
 
-/** The stamp read along one row whose two guards span `start`..`end`, if it decodes. */
+
 function stampAlong(frame: Frame, y: number, start: number, end: number) {
   const side = (end - start + 1) / STAMP_CELLS;
   const middle = y + side / 2;
@@ -128,11 +128,11 @@ function stampAlong(frame: Frame, y: number, start: number, end: number) {
   return readStamp(cells);
 }
 
-/**
- * The stamp the map paints along the top of its 4:3 UI area. It is found from its
- * guard cells rather than placed from the frame's size, since a pool desktop is
- * larger than the game window it holds (wisp:docs/lan.md) and a crop can be off.
- */
+
+
+
+
+
 export function frameStamp(frame: Frame): { readonly script: number; readonly frame: number } | undefined {
   for (let y = 0; y < frame.height; y++) {
     const runs: { start: number; end: number }[] = [];
@@ -148,7 +148,7 @@ export function frameStamp(frame: Frame): { readonly script: number; readonly fr
       if (right.start <= left.end || side < 3) continue;
       const fits = (run: { start: number; end: number }) => Math.abs(run.end - run.start + 1 - side) <= Math.max(2, side * 0.3);
       if (!fits(left) || !fits(right)) continue;
-      // Read from the guard's top edge only, so the sample row is each cell's middle.
+
       const above = ((y - 1) * frame.width + left.start) * 3;
       if (y > 0 && colourClass(frame.rgb[above] ?? 0, frame.rgb[above + 1] ?? 0, frame.rgb[above + 2] ?? 0) === "guard") continue;
       const stamp = stampAlong(frame, y, left.start, right.end);
@@ -169,7 +169,7 @@ const PipeWireObjects = Schema.fromJsonString(Schema.Array(Schema.Struct({
   }))),
 })));
 
-/** The sink's serial: a stopped client's sink can linger beside its new one, so the one a stream plays into wins, else the newest. */
+
 const sinkSerial = (sink: string) => Effect.gen(function*() {
   const dump = yield* runProcess(ChildProcess.make("pw-dump", [])).pipe(Effect.mapError(failure => new CaptureFailure({ problem: failure.message })));
   const objects = yield* Schema.decodeEffect(PipeWireObjects)(dump).pipe(Effect.mapError(cause => new CaptureFailure({ problem: `pw-dump: ${String(cause)}` })));
@@ -182,7 +182,7 @@ const sinkSerial = (sink: string) => Effect.gen(function*() {
   return chosen;
 });
 
-/** Records the sink until the run's scope closes; SIGINT lets pw-record finish the WAV header. */
+
 const recordAudio = (sink: string, file: string, started: number) => Effect.gen(function*() {
   const chosen = yield* sinkSerial(sink);
   const startedMs = Date.now() - started;
@@ -192,7 +192,7 @@ const recordAudio = (sink: string, file: string, started: number) => Effect.gen(
   return { file: basename(file), sink, serial: chosen.serial, startedMs };
 });
 
-/** The game area of a windowed client, cut out of the whole-desktop capture. */
+
 function cropFrame(frame: Frame, [x0, y0, width, height]: readonly [number, number, number, number]): Frame {
   const rgb = new Uint8Array(width * height * 3);
   for (let y = 0; y < height; y++) rgb.set(frame.rgb.subarray(((y + y0) * frame.width + x0) * 3, ((y + y0) * frame.width + x0 + width) * 3), y * width * 3);
@@ -270,7 +270,7 @@ const plan = (args: readonly string[]) => Effect.gen(function*() {
   if (passed !== cues) return yield* new CaptureFailure({ problem: `${cues - passed} cues aren't shown on a capture frame` });
 });
 
-/** Root-mean-square difference of two captures over the frame, on a 0..1 scale, skipping the stamp row. */
+
 export function rmse(a: Frame, b: Frame): number {
   if (a.width !== b.width || a.height !== b.height) return 1;
   const skip = Math.ceil(STAMP_CELL * (a.height / 0.6)) + 2;

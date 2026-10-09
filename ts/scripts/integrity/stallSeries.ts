@@ -1,5 +1,5 @@
-// `bun scripts/integrity/stallSeries.ts CAPTURE_DIR SLOT EPOCH TRIAL`: one helper's input delay, in frames, at
-// each edit-box receipt from 4 s before a bot-stall to 6 s after it continued (botResult.ts's measure).
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { readEvents } from "./botFiles";

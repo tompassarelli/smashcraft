@@ -1,13 +1,13 @@
-// Stage layout agreement between a native capture and a Wisp render of the same
-// view (wisp#40): each cell of a 3x3 grid over the play rows (8%-76% of the
-// height, above the HUD, as contrast.ts takes fighters) reports the share of
-// its pixels that show scene (deck, platforms, backdrop, fighters) rather than
-// sky. A pixel is scene when its CIELAB colour differs from a Wisp render of the
-// same camera with only the sky drawn by more than SCENE_DE. The sky render's
-// art must match the native capture's: Classic captures for stock skies, either
-// mode for the stages' authored skies. The views agree when every cell's share
-// is within LIMIT points.
-// usage: bun tools/stage/layout.ts SKY.png NATIVE.png WISP.png
+
+
+
+
+
+
+
+
+
+
 import { $ } from "bun";
 
 const WIDTH = 640, HEIGHT = 360, SCENE_DE = 12, LIMIT = 5;
@@ -27,7 +27,7 @@ async function lab(path: string): Promise<Float32Array> {
   return out;
 }
 
-/** Each cell's share of scene pixels, row by row. */
+
 function coverage(sky: Float32Array, image: Float32Array): number[] {
   const top = Math.floor(HEIGHT * TOP), bottom = Math.floor(HEIGHT * BOTTOM);
   const scene = new Uint8Array(WIDTH * HEIGHT);

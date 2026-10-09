@@ -1,4 +1,4 @@
-// Native stage-art acceptance: one hosted game per artifact, reset between stages.
+
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { NativeCheck } from "wisp/scripts/wisp/accept";
@@ -34,9 +34,9 @@ export const STAGE_COMPOSITION_CHECKS: readonly NativeCheck[] = ARTIFACTS.flatMa
   },
 ]));
 
-// smashcraft#177: the three stages that exposed a giant temporary object on entry.
-// Cold entry is the first stage load after a fresh game; the rematch follows a
-// one-minute timed match ending on its own, with the automatic rematch.
+
+
+
 const ENTRY_STAGES = STAGE_CATALOG.filter(({ id }) => id === 10 || id === 11 || id === 13);
 export const STAGE_ENTRY_MAPS = Object.fromEntries(ENTRY_STAGES.map(({ id, name }) => [`entry-${id}`, {
   describe: `integrated stage art artifact; cold entry and rematch on ${name}`,
@@ -67,13 +67,13 @@ export const STAGE_ENTRY_CHECKS: readonly NativeCheck[] = ENTRY_STAGES.flatMap((
   },
 ]);
 
-/** The development map rebuilt from this checkout, every stage in one hosted game. */
+
 const FLOATING_MAP = join(homedir(), ".local/share/smashcraft-build-inputs/stage-presentation-r3-20261008/presentation.w3x");
 export const FLOATING_STAGE_MAPS = {
   "floating-stages": { describe: "integrity development map rebuilt from this checkout; every stage in one hosted game, each at both camera extremes", path: FLOATING_MAP, rebuild: "integrity", quick: "-dev quick" },
 };
 
-/** smashcraft#191: every stage at its closest and widest camera (`-dev view near|far`), judged against the art checklist (smashcraft:docs/design/stage-art.md). */
+
 export const FLOATING_STAGE_CHECKS: readonly NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): NativeCheck[] => (["near", "far"] as const).map((extreme): NativeCheck => ({
   id: `191-${id}-${extreme}`, closes: "smashcraft#191 boxes 2-4", map: "floating-stages", session: "floating-stages",
   setup: [

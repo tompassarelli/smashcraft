@@ -1,5 +1,5 @@
-// Foreign MDX animation boundary: locally articulate each rig's existing
-// joints, append clips, and preserve every shipped sequence and bone track.
+
+
 import { chmodSync, cpSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
@@ -22,9 +22,9 @@ function pitch(q: Float32Array | Int32Array, degrees: number): Float32Array {
   return new Float32Array([c * x + s * z, c * y + s * w, c * z - s * x, c * w - s * y]);
 }
 
-// Pain travels through different body regions, rather than nine whole-body
-// tilts. High recoils the face/chest; middle folds around the abdomen; low
-// pulls the knees up and counterbalances the chest. Weapons inherit the arms.
+
+
+
 function jointPitch(name: string, height: number, strength: number): number {
   const amount = [0.65, 1, 1.35][strength] ?? 1;
   const is = (pattern: RegExp) => pattern.test(name);
@@ -69,8 +69,8 @@ for (const [character, fighter] of fighters.entries()) {
       const keys = donor.Keys.filter(k => k.Frame >= stand.Interval[0] && k.Frame <= stand.Interval[1]);
       const first = keys[0];
       if (!first) return;
-      // Hold the standing donor's local transforms, then articulate its named
-      // joints. Visibility/material channels retain the standing body.
+
+
       const match = /^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path);
       const node = match ? source[match[1] as "Bones" | "Helpers"][Number(match[2])] : undefined;
       const degrees = node ? (fighter.name === "Lich" && node.Name === "Bone_Head" ? 0 : jointPitch(node.Name, height, strength)) : 0;

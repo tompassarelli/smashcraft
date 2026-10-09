@@ -1,6 +1,6 @@
-// One fighter's interaction rows, or its throw-role rows, on a worker thread,
-// so `bun wisp interactions` plays the fighters at once
-// (smashcraft:ts/scripts/interactions.ts, smashcraft:ts/scripts/throwRoles.ts).
+
+
+
 import { fighterNamed, interactionRows } from "./interactions";
 import { comboRows } from "./comboTrees";
 import { throwFighterNamed, throwRoleRows } from "./throwRoles";

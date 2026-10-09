@@ -53,7 +53,7 @@ while IFS=$'\t ' read -r op arg ms extra || [[ -n "${op:-}" ]]; do
     *) echo "Unsupported recipe operation: $op" >&2; exit 2 ;;
   esac
   if [[ "$op" == tap || "$op" == hold || "$op" == chord ]]; then
-    # Return sends chat: from the menus to Battle.net's public channel, from a lobby to its chat.
+
     for key in "${keys[@]}"; do
       case "${key,,}" in return|kp_enter|iso_enter|linefeed) echo "Procedures never press $key: outside a match it sends chat to Battle.net's channel or a lobby." >&2; exit 2 ;; esac
     done
@@ -83,7 +83,7 @@ require_game() {
 require_game
 cleanup() { local key; for key in "${held[@]}"; do xdotool keyup "$key" >/dev/null 2>&1 || true; done; }
 trap cleanup EXIT INT TERM HUP
-# Batch all events into one XTEST client invocation; keep this under 8 seconds.
+
 xdotool "${actions[@]}"
 require_game
 held=()

@@ -1,4 +1,4 @@
-// Foreign MDX boundary: authored contact gestures append to immutable fighter inputs.
+
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { generateMDX, ModelRenderer, model as mdx } from "war3-model";
@@ -27,7 +27,7 @@ const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   12: ["forwardTiltDown"],
 };
 
-// Torso, leading upper arm, off arm, leading elbow, wrist, leading hip, knee, body lean.
+
 const CONTACT: Readonly<Record<string, readonly number[]>> = {
   jab: [12, -22, 38, -15, 0, -10, 18, 0], jab2: [-12, -48, -12, 38, -20, 18, -8, 0], jab3: [28, -75, 45, -42, 25, -24, 35, 0],
   forwardTilt: [22, -40, 35, -28, 18, -18, 22, 0], forwardTiltUp: [-16, -105, 18, -20, 30, 12, 22, 0],
@@ -46,7 +46,7 @@ function rotate(q: Float32Array | Int32Array, degrees: number, axis = 1): Float3
   const norm=Math.hypot(...out); for(let i=0;i<4;i++)out[i]=out[i]!/norm;return out;
 }
 
-// A rig whose shared profile draws too little toward the strike, or a jab as long as its forward tilt (#163), gets its own.
+
 const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly number[]>>>> = {
   2: { jab3: [-17, -69, 0, 3, 25, 1, -2, 40] },
   4: { jab: [-7, 1, 78, -1, -90, 15, 10, 1], jab2: [70, -2, -91, -18, -90, -13, 5, -25], upTilt: [34, -145, -103, 15, 35, -5, -1, 0], dashAttack: [30, 10, -60, -40, 0, 15, 20, 12] },
@@ -60,12 +60,12 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
   },
   12: { forwardTiltDown: [8, 15, -30, -32, -45, -35, 48, 0] },
 };
-// How far the fighter draws back before the strike, as a fraction of the contact pose (0.3 unless named).
+
 const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
   4: { jab: 0.5, upTilt: 1 }, 8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
 };
 const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
-// A strike centred on the body draws by leaving the floor: the hop's height, landing on the contact frame.
+
 const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
   4: { dashAttack: 36 },
 };
@@ -95,14 +95,14 @@ function joint(name: string, pose: HeroPose, character: number): number {
   return 0;
 }
 
-/** Normalised blend from rotation `from` (weight 0) to `to` (weight 1), along the shorter arc. */
+
 function blend(from: ArrayLike<number>, to: ArrayLike<number>, weight: number): Float32Array {
   let dot = 0; for (let i = 0; i < 4; i++) dot += from[i]!*to[i]!;
   const sign = dot < 0 ? -1 : 1, vector = new Float32Array(4); for (let i = 0; i < 4; i++) vector[i] = from[i]!*(1-weight)+sign*to[i]!*weight;
   const norm = Math.hypot(...vector); return vector.map(v => v/norm);
 }
 
-/** The unit direction from the chest (50 units up) to the far end of the move's first active strike, as `view reach` measures toward. */
+
 function strikeDirection(pose: HeroPose): number[] {
   const frames = sampleAttack(5 as Character, AttackStyle[pose as keyof typeof AttackStyle], 1, pose.endsWith("Air"));
   const first = frames.find(f => f.phase === AttackPhase.active && f.strikes.length > 0), strike = first?.strikes[0]; ensure(first && strike, `${pose}: no active strike`);
@@ -121,7 +121,7 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
   const position = (node: mdx.Node) => { const m = data.nodes[node.ObjectId]!.matrix, v = model.PivotPoints[node.ObjectId]!; return [m[0]!*v[0]!+m[4]!*v[1]!+m[8]!*v[2]!+m[12]!, m[1]!*v[0]!+m[5]!*v[1]!+m[9]!*v[2]!+m[13]!, m[2]!*v[0]!+m[6]!*v[1]!+m[10]!*v[2]!+m[14]!]; };
   data.frame = start; renderer.update(0);
   const initialHand = position(hand), initialTip = position(tip);
-  /** Turns `node` by `full` radians about the world `axis` at clip frame `at`, from its current key. */
+
   const turnAt = (node: mdx.Node, axis: number[], full: number, at: number) => {
     const parent = node.Parent == null ? undefined : data.nodes[node.Parent]?.matrix;
     const local = parent ? [0,1,2].map(i => (axis[0]!*parent[i*4]!+axis[1]!*parent[i*4+1]!+axis[2]!*parent[i*4+2]!)/Math.hypot(parent[i*4]!,parent[i*4+1]!,parent[i*4+2]!)) : axis;
@@ -142,12 +142,12 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
     forwardTiltUp: [[28,-27,128],[63,-28,168]],
   };
   const [targetHand,targetTip] = shadowLow ? [[72,-27,28],[145,-28,12]] : targets[pose]!;
-  // Up tilt's strike sweeps forward of her chest: the weapon passes through it the frame before it lands overhead.
+
   const via = pose === "upTilt" ? [[50,-27,100],[100,-28,105]] as const : undefined;
   const solved = [...arm, hand], held = new Map<mdx.Node, Float32Array>();
   for (let frame = 0; frame <= total; frame++) {
     const at = start + Math.round(frame*1000/60); data.frame = at; renderer.update(0);
-    // Past contact the solve would chase a retreating target and overshoot the contact reach; recovery instead blends the held contact rotations back to the base pose.
+
     if (frame > contact) {
       const weight = frame < contact+3 ? 1 : Math.max(0,1-(frame-contact-3)/(total-contact-3));
       for (const node of solved) {
@@ -170,7 +170,7 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
     for (let iteration = 0; iteration < 12; iteration++) for (const node of arm.toReversed()) aim(node,hand,target(initialHand,targetHand,via?.[0]));
     aim(hand,tip,target(initialTip,targetTip,via?.[1]));
     if (frame === contact) {
-      // The contact pose must be the farthest reach: the blend back to the base pose can swing the weapon out past it, so contact starts where that blend reaches farthest.
+
       const keys = solved.map(node => node.Rotation!.Keys.find(k => k.Frame === at)!), solution = keys.map(k => k.Vector.slice());
       const direction = strikeDirection(pose), length = 1;
       const reach = () => { const t = new DrawnModel(generateMDX(model),1).triangles(index,contact/60,1); let r = -Infinity; for (let i = 0; i < t.length; i += 2) r = Math.max(r,(t[i]!*direction[0]!+(t[i+1]!-50)*direction[1]!)/length); return r; };
@@ -181,7 +181,7 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
       }
       keys.forEach((key,i) => { key.Vector = blend(base[i]!, solution[i]!, best); if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); } });
       renderer.update(0);
-      // An overhead strike rolls the glaive about her forearm until its crescent stands tallest.
+
       if (pose === "upSmash" || pose === "upAir") {
         const handKey = keys[keys.length-1]!, unrolled = handKey.Vector.slice(), top = () => { const t = new DrawnModel(generateMDX(model),1).triangles(index,contact/60,1); let z = -Infinity; for (let i = 1; i < t.length; i += 2) z = Math.max(z,t[i]!); return z; };
         let roll = 0, tallest = top();
@@ -197,7 +197,7 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
     }
   }
   if (shadowLow) floorSolve(model, data, renderer, start, total, turnAt, named);
-  // Her arm is straight at contact; an overhead strike also rises onto her toes, within the two units the floor allows.
+
   if (pose === "upSmash" || pose === "upAir") {
     const root = named("Bone_Root"), anticipation = Math.max(1,contact-2);
     for (let frame = anticipation; frame <= total; frame++) {
@@ -208,18 +208,18 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
   }
 }
 
-/**
- * Shadow Hunter's low strike crouches his head and off-hand below the stage floor (-2): at every frame
- * between the stance keys, each dangling chain (beard, off-hand arm, rear leg) folds up, parent first,
- * by the smallest turn that clears the floor, and the root then rises by whatever still sinks.
- */
+
+
+
+
+
 function floorSolve(model: mdx.Model, data: { frame: number; nodes: { matrix: Float32Array }[] }, renderer: ModelRenderer, start: number, total: number,
   turnAt: (node: mdx.Node, axis: number[], full: number, at: number) => void, named: (name: string) => mdx.Node) {
   const FLOOR = -2, CLEAR = FLOOR + 0.5;
   const children = new Map<number, number[]>(); for (const n of model.Nodes) if (n.Parent != null) children.set(n.Parent, [...children.get(n.Parent) ?? [], n.ObjectId]);
   const subtree = (id: number): number[] => [id, ...(children.get(id) ?? []).flatMap(subtree)];
   const visible = model.Geosets.flatMap((g, i) => model.Materials[g.MaterialID]?.Layers.some(l => Number(l.FilterMode) <= 2) ? [i] : []);
-  // Each visible vertex with its bones and weights, owned by its heaviest bone.
+
   const vertices = visible.flatMap(gi => { const g = model.Geosets[gi]!; return Array.from({ length: g.Vertices.length/3 }, (_, v) => {
     const sk = g.SkinWeights, bones = sk ? Array.from(sk.subarray(v*8, v*8+4)) : [...g.Groups[g.VertexGroup[v]!]!];
     const weights = sk ? Array.from(sk.subarray(v*8+4, v*8+8), w => w/255) : bones.map(() => 1/Math.max(1, bones.length));
@@ -261,7 +261,7 @@ const selectedPose = options.includes("--pose") ? options[options.indexOf("--pos
 ensure(selectedPose === undefined || only !== undefined, "--pose requires --character");
 ensure(input&&output&&relative(project,output).startsWith(".."),"usage: bun tools/animations/attack-gesture-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 mkdirSync(output,{recursive:true});
-// A retained binding is written as the shortest decimal of its f32 seconds, as a freshly authored one is.
+
 const authoredSeconds=(value:number)=>{for(let digits=1;digits<17;digits++){const decimal=Number(value.toPrecision(digits));if(Math.fround(decimal)===value)return decimal;}return value;};
 const bindings:string[]=[],records:object[]=only!==undefined&&await Bun.file(join(output,"attack-gestures.json")).exists()
   ? (await Bun.file(join(output,"attack-gestures.json")).json() as {character:number}[]).filter(r=>r.character!==only) : [];
@@ -273,7 +273,7 @@ if(only!==undefined)for(const [id,table]of Object.entries(ROSTER_ATTACK_CLIPS))i
 for(const [id,poses]of Object.entries(PLAN)) {
   if(only!==undefined&&Number(id)!==only)continue;
   const character=Number(id) as Character,f=fighters.get(character)!;ensure(f,"missing fighter");
-  // A published model already carries its gestures: author again from the model they were appended to.
+
   const published=parseSource(await Bun.file(join(input,f.source)).arrayBuffer()),base=selectedPose ? undefined : attackGestureBaseModel(published);
   const source=base?parseSource(generateMDX(base)):published;
   ensure(selectedPose !== undefined || !source.Sequences.some(s=>s.Name.startsWith("Attack Gesture ")),`${f.name}: input already has roster gestures`);
@@ -344,7 +344,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
   await Bun.write(join(output,`${f.name}-attack-gestures.png`),sheet(f.name,new DrawnModel(bytes,characterModelScale(character)),drawnFrames,6).png);
   console.log(`ATTACK_GESTURES_PASS ${f.name}: ${poses.length} gestures, ${source.Sequences.length} old clips preserved`);
 }
-// Fighters stay in Character order whichever one --character regenerated.
+
 function byFighter(lines:readonly string[]):string[]{const blocks:string[][]=[];for(const line of lines){if(/^  \d+: \{$/.test(line))blocks.push([]);blocks.at(-1)?.push(line);}return blocks.sort((a,b)=>parseInt(a[0]??"")-parseInt(b[0]??"")).flat();}
 await Bun.write(join(project,"ts/src/game/presentation/rosterAttackClipInfo.ts"),["// Generated by tools/animations/attack-gesture-clips.ts; regenerate instead of editing.",'import { f32 } from "wisp/src/sim/f32";','import type { HeroClipTable } from "../sim/heroes/hero";',"export const ROSTER_ATTACK_CLIPS = {",...byFighter(bindings),"} as const satisfies Readonly<Record<number, HeroClipTable>>;",""].join("\n"));
 await Bun.write(join(output,"attack-gestures.json"),JSON.stringify(records,null,2)+"\n");

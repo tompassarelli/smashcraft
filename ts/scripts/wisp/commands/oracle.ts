@@ -1,7 +1,7 @@
-// `wisp oracle`: plays the Melee behaviour oracle's scenarios for every
-// fighter (smashcraft:ts/scripts/meleeOracle.ts) and prints each outcome
-// beside the value cited from the decompilation. Fails on a mismatch that
-// isn't known, or a known one that now passes.
+
+
+
+
 import { Console, Effect, Schema } from "effect";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";

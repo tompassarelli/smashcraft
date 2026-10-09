@@ -1,14 +1,14 @@
-// The pre-push gate. Git runs smashcraft:.githooks/pre-push (core.hooksPath
-// .githooks) on every push; safe-push runs it itself before taking its
-// landing lock, then pushes with it skipped. It names the open "main is
-// red" issue's failing tests (smashcraft:ts/scripts/mainRed.ts) and runs the
-// clean-room check (smashcraft:ts/scripts/cleanRoom.ts) and the fast checks
-// for the projects the pushed commits change, so no lane lands a
-// compile break, a type escape or stale model facts. A push to main then runs
-// the tests its change affects and is refused when one fails that main's
-// latest CI run didn't (smashcraft:ts/scripts/newFailures.ts). CI runs the
-// full suite on main. The checks read the working tree, so the gate refuses a push whose
-// commit isn't the clean checkout.
+
+
+
+
+
+
+
+
+
+
+
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Console, Effect, Option, Schema } from "effect";
@@ -26,13 +26,13 @@ export class PrePushRefusal extends Schema.TaggedError<PrePushRefusal>()("PrePus
 
 interface Check { readonly name: string; readonly directory: string; readonly args: readonly string[]; readonly fix?: string }
 
-/** Inputs that rename imported models (content-hashed) or change which models the scene names. */
+
 const MODEL_INPUTS = ["build-inputs.json", "tools/animations/", "ts/src/game/assets/", "ts/src/game/presentation/", "ts/scripts/wisp/playerView.ts", "ts/scripts/wisp/modelFacts.ts"];
 
 export const MODEL_FACTS_REFRESH = "cd ts && bun wisp view models --assets ASSETS --summon ASSETS/summon-original-clips"
   + " --extractor ../build/animation-assets/casc-extract --storage WARCRAFT_III_DIR (smashcraft:docs/player-view.md), then commit ts/scripts/wisp/modelFacts.ts";
 
-/** The checks a push changing `paths` (relative to the repository root) needs. */
+
 export function checksFor(paths: readonly string[]): Check[] {
   const ts = paths.some((path) => path.startsWith("ts/") || path === "typescript-toolchain.lock");
   const client = paths.some((path) => path.startsWith("client/ui/"));
@@ -51,29 +51,29 @@ export function checksFor(paths: readonly string[]): Check[] {
   ];
 }
 
-/** Process groups of the children still running; the hook kills them when a signal ends it early. */
+
 const liveGroups = new Set<number>();
 
 const signalGroup = (group: number, signal: NodeJS.Signals) => {
   try {
     process.kill(-group, signal);
   } catch {
-    // ESRCH: the group has no members left.
+
   }
 };
 
-/** Kills every child's process group; the hook calls it on SIGINT, SIGTERM and SIGHUP. */
+
 export function killChildren(): void {
   for (const group of liveGroups) signalGroup(group, "SIGKILL");
   liveGroups.clear();
 }
 
-/**
- * Runs a child in its own process group to completion and captures its output.
- * Whatever it started dies with it: anything left holding its pipes would keep
- * git waiting for EOF. Interruption sends the group SIGTERM, so a queued
- * capacity request withdraws itself, then SIGKILL after a second.
- */
+
+
+
+
+
+
 export const run = (command: readonly string[], cwd: string, stdout: "pipe" | "ignore" = "pipe") => Effect.acquireUseRelease(
   Effect.try({
     try: () => {
@@ -101,17 +101,17 @@ export const run = (command: readonly string[], cwd: string, stdout: "pipe" | "i
   }),
 );
 
-/** Git's trimmed output; a failed call refuses the push, since an unknown change set can't pick its checks. */
+
 const git = (...args: string[]) => run(["git", ...args], root).pipe(
   Effect.flatMap(({ exitCode, stdout, stderr }) => exitCode === 0
     ? Effect.succeed(stdout.trim())
     : Effect.fail(new PrePushRefusal({ problem: `pre-push: git ${args.join(" ")} exited ${exitCode}${stderr.trim() === "" ? "" : `: ${stderr.trim()}`}` }))),
 );
 
-/** Whether this clone has `commit`; `git cat-file -e` answers with its exit code. */
+
 const hasCommit = (commit: string) => run(["git", "cat-file", "-e", `${commit}^{commit}`], root).pipe(Effect.map(({ exitCode }) => exitCode === 0));
 
-/** The files the pushed commits change: from what the remote has, else from where they leave origin/main. */
+
 const changedPaths = (local: string, remote: string) => Effect.gen(function*() {
   const base = !ZERO.test(remote) && (yield* hasCommit(remote)) ? remote : yield* git("merge-base", local, "origin/main");
   return (yield* git("diff", "--name-only", base, local)).split("\n").filter((path) => path.length > 0);
@@ -119,7 +119,7 @@ const changedPaths = (local: string, remote: string) => Effect.gen(function*() {
 
 const RedIssues = Schema.fromJsonString(Schema.Array(Schema.Struct({ number: Schema.Finite, title: Schema.String, body: Schema.String, url: Schema.String })));
 
-/** One line naming the open "main is red" issue's failing tests; nothing when main is green or GitHub can't be reached in time. */
+
 export function redNotice(issue: { readonly number: number; readonly body: string; readonly url: string }): string {
   const tests = issueTests(issue.body);
   const shown = tests.slice(0, 8).join("; ");
@@ -134,7 +134,7 @@ const mainRedNotice = run(["gh", "issue", "list", "--state", "open", "--search",
   Effect.ignore,
 );
 
-/** Runs the gate on git's pre-push input: one "LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA" line per pushed ref. */
+
 export const prePush = (input: string) => Effect.gen(function*() {
   yield* mainRedNotice;
   const pushed = input.split("\n").flatMap((line) => {
@@ -163,7 +163,7 @@ export const prePush = (input: string) => Effect.gen(function*() {
   if (pushed.some(({ remoteRef }) => remoteRef === "refs/heads/main")) yield* newFailureGate(head, paths);
 });
 
-/** Refuses a push to main whose affected tests fail where main's latest CI run passed; logs each verdict. */
+
 const newFailureGate = (head: string, paths: readonly string[]) => Effect.gen(function*() {
   const plan = affectedTests(paths);
   const gitDirectory = resolve(root, yield* git("rev-parse", "--git-common-dir"));

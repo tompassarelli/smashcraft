@@ -5,7 +5,7 @@ import re
 
 def timing(action):
     source = (Path(__file__).resolve().parents[2] / 'ts/src/game/sim/moves.ts').read_text()
-    # Read the TypeScript action tables so authored clips follow gameplay timing.
+
     def value(function):
         body = source.split('export function ' + function + '(action: GrabAction): number {', 1)[1].split('\n}', 1)[0]
         parts = action.removeprefix('GRAB_').lower().split('_')
@@ -55,8 +55,8 @@ def author_grabs(author, fighter):
             reaction.update({'spin': 85, 'lean': 15, 'leg_r': 35, 'knee_r': -65})
         else:
             reaction.update({'lean': -45, 'leg_r': 35, 'knee_r': -50})
-        # Victim translation is supplied by the canonical pair tether. Clips
-        # only articulate the body; they cannot move the collision root.
+
+
         victim_phases = {0: captive, max(1, release//2): captive, release-1: reaction,
                          duration: captive if action == 'GRAB_PUMMEL' else reaction}
         author('Victim ' + name, victim_phases, duration)

@@ -1,9 +1,9 @@
-// The complete selection/match/rematch journey is one capture contract:
-// controller event order and publication times feed the retained integrity oracle.
-// The integrity capture's journey through two native clients: controller-only
-// fighter and stage selection, an instrumented match, the results screen, a
-// slot change, and the rematch. Everything it does to the clients goes through
-// the Rig service, so a recording Rig can replay the journey without Warcraft.
+
+
+
+
+
+
 import { Context, Effect } from "effect";
 import { RULE_BUTTONS } from "../../src/game/ui/ruleButtons";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
@@ -18,16 +18,16 @@ import { SLOTS, type Slot } from "./reconcile";
 import { type PadLayout, PULSE_HOLD_MILLIS, STALL_MILLIS, type Pulse, type Send, type StallTarget, integritySchedule, pulseSends } from "./schedule";
 import { INPUT_TRACE_FILE, devCommandReceiptFile, journalControlFile, journalLifecycleFile, journalMenuFile, nativeChatFile, responsePageFile, stageReceiptFile } from "../../src/runtime/gameFiles";
 
-/** A game file's text and modification time. */
+
 export interface GameFile {
   readonly text: string;
   readonly mtimeNs: bigint;
 }
 
-/**
- * A game file read with the clocks sampled around the read, which places its
- * publication on the monotonic clock the pads stamp edges with.
- */
+
+
+
+
 export interface PublicationRecord {
   readonly path: string;
   readonly contents: string;
@@ -44,7 +44,7 @@ interface ModeReceipt {
   readonly publications: readonly PublicationRecord[];
 }
 
-/** One journey event as capture.json stores it. */
+
 export type JourneyRecord =
   | { readonly event: "menu"; readonly phase: string; readonly contents: readonly string[]; readonly observed_monotonic_ns: number }
   | { readonly event: "start" | "end"; readonly epoch: number; readonly publications: readonly PublicationRecord[]; readonly observed_monotonic_ns: number }
@@ -72,12 +72,12 @@ export type JourneyRecord =
   | { readonly event: "bot-moment"; readonly epoch: number; readonly pressed_monotonic_ns: number; readonly released_monotonic_ns: number }
   | { readonly event: "dev-config"; readonly epoch: number; readonly command: string; readonly publications: readonly PublicationRecord[] }
   | { readonly event: "results"; readonly epoch: number; readonly texts: readonly string[]; readonly notices?: readonly string[] }
-  /** Client A's frame-cost overlay as read from its screen (botResult.ts reduces the readings). */
+
   | { readonly event: "perf-overlay"; readonly epoch: number; readonly observed_monotonic_ns: number; readonly text: string }
-  /** What an input-integrity capture's player-view check found; `failure` is undefined when it passed. */
+
   | { readonly event: "player-view"; readonly epoch: number; readonly at: PlayerViewMoment; readonly failure: string | undefined };
 
-/** When a match's player view is checked: after its start, and at its result. */
+
 type PlayerViewMoment = "start" | "result";
 
 export interface Stopped {
@@ -86,36 +86,36 @@ export interface Stopped {
 }
 
 export interface RigShape {
-  /** Writes an edge and its SYN_REPORT to a slot's pad, and logs it in producer.jsonl. */
+
   readonly send: (send: Send) => Effect.Effect<void, IntegrityFailure>;
   readonly sleep: (millis: number) => Effect.Effect<void>;
   readonly monotonicNs: Effect.Effect<number>;
   readonly realtimeNs: Effect.Effect<bigint>;
-  /** When the capture started: game files written earlier are left over from before it. */
+
   readonly startedNs: bigint;
-  /** Polls `check` until it holds; fails with `what` after `seconds`, or as soon as a helper or pad observer stops. */
+
   readonly until: (what: string, check: Effect.Effect<boolean, IntegrityFailure>, seconds?: number) => Effect.Effect<void, IntegrityFailure>;
-  /** Fails if a helper or pad observer has stopped. */
+
   readonly healthy: Effect.Effect<void, IntegrityFailure>;
-  /** A file in a client's CustomMapData, when it exists. */
+
   readonly file: (client: Slot, name: string) => Effect.Effect<GameFile | undefined, IntegrityFailure>;
-  /** Names of a client's CustomMapData files matching a glob. */
+
   readonly files: (client: Slot, pattern: string) => Effect.Effect<readonly string[], IntegrityFailure>;
   readonly helperLog: (slot: Slot) => Effect.Effect<string, IntegrityFailure>;
   readonly boundary: (client: Slot, name: string) => Effect.Effect<PublicationRecord, IntegrityFailure>;
-  /** Stops a process and waits until the kernel reports it stopped. */
+
   readonly stop: (target: StallTarget) => Effect.Effect<Stopped, IntegrityFailure>;
   readonly resume: (stopped: Stopped) => Effect.Effect<void>;
-  /** Waits until a client's screen shows text matching `pattern`, and returns the text read. */
+
   readonly waitText: (client: Slot, pattern: RegExp, region?: Region) => Effect.Effect<string, IntegrityFailure>;
-  /** Reads one region of a client's screen once. */
+
   readonly readText: (client: Slot, region: Region) => Effect.Effect<string, IntegrityFailure>;
   readonly click: (client: Slot, x: number, y: number) => Effect.Effect<void, IntegrityFailure>;
   readonly key: (client: Slot, key: string) => Effect.Effect<void, IntegrityFailure>;
   readonly type: (client: Slot, text: string) => Effect.Effect<void, IntegrityFailure>;
-  /** Copies this capture's game files from both clients into epoch-LABEL/. */
+
   readonly archive: (label: string) => Effect.Effect<void, IntegrityFailure>;
-  /** Checks what each player sees in a match: one captured frame each, and the scene report of a build that writes one. */
+
   readonly playerView: (epoch: number, checks: { readonly frame: boolean; readonly scene: boolean }) => Effect.Effect<void, IntegrityFailure>;
   readonly record: (event: JourneyRecord) => Effect.Effect<void>;
   readonly progress: (message: string) => Effect.Effect<void>;
@@ -125,62 +125,62 @@ export class Rig extends Context.Service<Rig, RigShape>()("smashcraft/integrity/
 
 export interface JourneyOptions {
   readonly build: string;
-  /** Map match numbers; integrity runs start at an odd one and alternate match and rematch. */
+
   readonly epochs: readonly number[];
   readonly fourFighters: boolean;
-  /** Rollback windows and transport batches, each commanded before its match. */
+
   readonly sweep: readonly (readonly [window: number, batch: number])[];
-  /**
-   * #17 uses normal timed combat; a playable candidate plays one-stock
-   * matches that end when a player walks off; the default retains #26's
-   * complete input workload.
-   */
+
+
+
+
+
   readonly workload?: "match" | "playable" | "bot";
-  /** A bot session with a second computer, an reference in slot D, recording raw frame costs in an undisturbed rematch. */
+
   readonly botFour?: boolean;
-  /** A bot session whose three-fighter rematch records raw frame costs, as --bot-four's does. */
+
   readonly botPerf?: boolean;
-  /** A bot session whose first match starts with #49's pad script on slot 0. */
+
   readonly pad49?: boolean;
-  /** How the helper reads the pads; `xpad` unless replaying a capture before #49. */
+
   readonly padLayout?: PadLayout;
 }
 
 const CONTROLS = /CONTROLS/i;
-/** The selection help row: whole-screen word OCR drops its small Controls label. */
+
 const SELECTION_HELP: Region = { x: 350, y: 1000, width: 1850, height: 400 };
-/** Stage selection names the chosen stage in its preview panel. */
+
 const STAGE_NAME: Region = { x: 420, y: 965, width: 900, height: 110 };
 const SKY_DECK = /Sky Deck/i;
 const REMATCH_SETTING: Region = { x: 390, y: 655, width: 555, height: 90 };
 const RESULTS = /wins|rematch/i;
-/**
- * The result announcement, view.ts's notice frame at (0.26, 0.47) sized 0.42 by
- * 0.07 in Warcraft's 0.8 by 0.6 interface, on the 2560x1440 client frame,
- * where that interface is 1920 by 1440 pixels from x = 320. A region is read
- * as one block of text; the whole screen is read as scattered words.
- */
+
+
+
+
+
+
 const RESULT_NOTICE: Region = { x: 944, y: 312, width: 1008, height: 168 };
 const PAUSED = /PAUSED.*Press.*Start.*resume|Paused.*press.*Start.*resume/i;
 const TWO_HUMANS = "connected=3 human-fighters=3 computers=0 fighters=3";
 const TRACE = INPUT_TRACE_FILE;
-/** Callbacks an input trace records: with the response probe, and in every other normal build. */
+
 const PROBE_TRACE_TICKS = 1200;
 const PLAYABLE_TRACE_TICKS = 300;
 
-/** A bot session's match timeline, in ms after its start boundary (#48's 2 s stalls; the helper saves a moment for View held 1 s). */
+
 const BOT_STALLS = [6000, 14000, 22000] as const;
 const BOT_STALL_MILLIS = 2000;
-/** Two moments a match, so a short bot session still saves at least five (#59). */
+
 const BOT_MOMENTS = [12000, 30000] as const;
 const BOT_MOMENT_HOLD_MILLIS = 1300;
 const BOT_PLAY_MILLIS = 58000;
 const BOT_BEAT_MILLIS = 400;
-/**
- * A bot beat: a 5 ms button tap, or a stick or trigger held then released.
- * Its name ends the edge's phase, so the reconciler reports every action the
- * session pressed (#60).
- */
+
+
+
+
+
 const BOT_BEATS = [
   { kind: "tap", code: BTN_A, name: "attack" },
   { kind: "hold", code: ABS_RX, value: 32767, holdMillis: 100, name: "c-right" },
@@ -193,44 +193,44 @@ const BOT_BEATS = [
   { kind: "hold", code: ABS_RY, value: 32767, holdMillis: 100, name: "c-down" },
   { kind: "hold", code: ABS_X, value: -32768, holdMillis: 300, name: "dash-left" },
 ] as const;
-/** Stick down (+Y) just below and just past Melee's 0.6625 of full scale (#49). */
+
 const PAD49_BELOW_DOWN = 21299;
 const PAD49_PAST_DOWN = 21954;
-/**
- * The raw capture the rematch records on every client: 1800 callbacks, the
- * frames `bun wisp perf bot` and `perf bot-four` predict, written to
- * smashcraft-perf-capture-pSLOT-runRUN.txt (smashcraft:ts/src/platform/frameMeter.ts).
- */
+
+
+
+
+
 export const BOT_CAPTURE = "-dev capture 1800";
-/**
- * Stocks in each match of #26's integrity workload. Its pads dash both ways
- * through the whole workload, and on 0.0.48 Player 2 drifted off the stage on
- * its one stock 19–21 s in, ending the match before its scheduled pause.
- */
+
+
+
+
+
 const INTEGRITY_STOCKS = 3;
 const stocks = (count: number) => new RegExp(`${count} Stock`, "i");
 const signature = (humans: number, computers: number) => `connected=3 human-fighters=${humans} computers=${computers} fighters=${humans + computers}`;
-/** The calibrated bot workload's stage, Sky Deck (smashcraft:ts/src/game/menu/stageCatalog.ts), whatever the catalog lists first. */
+
 const BOT_STAGE = 0;
-/** A bot session's computers by player number: an Illidan in C, and with --bot-four an reference in D (scripts/wisp/botMatch.ts). */
+
 const BOT_COMPUTERS = [[3, Character.demonHunter], [4, Character.warden]] as const;
-/** A developer receipt's `name=value` fields, from both its lines (journalFiles.ts devReceiptFile). */
+
 export const receiptFields = (text: string): ReadonlyMap<string, string> => new Map([...text.matchAll(/([A-Za-z-]+)=([^\s"]+)/g)].map(([, name, value]) => [name ?? "", value ?? ""]));
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });
 
-/** The journey's steps over one Rig; `run` is the whole capture. */
+
 export function journey(rig: RigShape, options: JourneyOptions) {
   const { build, epochs, fourFighters, sweep } = options;
   const matchOnly = options.workload === "match";
   const playable = options.workload === "playable";
   const bot = options.workload === "bot";
-  /** A bot session on a playable build has neither the Ctrl+G trace nor scene reports; other workloads name their build's kind. */
+
   const diagnosticBuild = !bot || !build.startsWith("playable");
-  /**
-   * Builds with the dev console are set up by chat commands and their
-   * receipts (sessionSetup.ts); a playable build has no console, so its
-   * journeys still click the menus and read their labels.
-   */
+
+
+
+
+
   const commands = !playable && diagnosticBuild;
   const firstEpoch = epochs[0] ?? 1;
   const lastEpoch = epochs.at(-1) ?? firstEpoch;
@@ -259,11 +259,11 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* send(slot, button(code, 0), phase);
     });
 
-  /**
-   * #17 and playable runs fail on what a player sees. An input-integrity
-   * capture records it and goes on, so its own gates decide the result and
-   * every match still exports its pages.
-   */
+
+
+
+
+
   const playerView = (epoch: number, at: PlayerViewMoment, checks: { readonly frame: boolean; readonly scene: boolean }) =>
     matchOnly || playable || bot
       ? rig.playerView(epoch, checks)
@@ -282,20 +282,20 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.record({ event: "menu", phase, contents, observed_monotonic_ns: yield* rig.monotonicNs });
     });
 
-  /**
-   * A synchronized player chat command, typed into client A. Both clients'
-   * developer receipts confirm it: each a newer complete file than before the
-   * command, with the same game-wide receipt count, past the count this
-   * capture saw before. Only then are `expected`'s fields checked, so a
-   * refused command fails with its receipt instead of waiting out a timeout.
-   */
+
+
+
+
+
+
+
   const command = (text: string, expected: Readonly<Record<string, string | number | RegExp>>) =>
     Effect.gen(function*() {
       const name = (client: Slot) => devCommandReceiptFile(build, client);
       const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, name(client)));
       const count = (file: GameFile | undefined) => Number(receiptFields(file?.text ?? "").get("receipt") ?? -1);
       const before = (yield* receipts).map((file) => ({ mtimeNs: file?.mtimeNs ?? -1n, count: complete(file) ? count(file) : -1 }));
-      // Counts this capture saw bound the new one; a file from before it (perhaps an earlier game) only by its time.
+
       const floor = Math.max(...before.map((receipt) => receipt.count));
       const entry = rig.file(0, nativeChatFile(build, 0)).pipe(Effect.map((file) => {
         if (file === undefined || !file.text.trimEnd().endsWith("endfunction")) return undefined;
@@ -319,14 +319,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
     });
 
-  /** A developer command whose receipts the capture records as a dev-config event. */
+
   const devCommand = (epoch: number, text: string, expected: Readonly<Record<string, string | number | RegExp>>) =>
     Effect.gen(function*() {
       yield* command(text, expected);
       yield* rig.record({ event: "dev-config", epoch, command: text, publications: yield* boundaries((client) => devCommandReceiptFile(build, client)) });
     });
 
-  /** A running journal match hands chat focus to Warcraft only after the helpers stop typing. */
+
   const journalChat = (epoch: number, text: string) => Effect.gen(function*() {
     const name = `smashcraft-journal-text-ack-${build}-e${epoch}-p0.txt`;
     const read = rig.file(0, name);
@@ -346,7 +346,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     })), 8);
   });
 
-  /** Closing chat leaves the player-requested pause intact; this measurement explicitly resumes it. */
+
   const resumeAfterChat = (epoch: number) => Effect.gen(function*() {
     const from = yield* Effect.forEach(SLOTS, (slot) => rig.helperLog(slot).pipe(Effect.map((text) => text.length)));
     yield* menuButton(0, BTN_START, `match-${epoch}-chat-resume`);
@@ -361,22 +361,22 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     })) });
   });
 
-  /** Fighter selection: the menu receipts say each client's controller may drive it. */
+
   const characterScreen = Effect.gen(function*() {
     yield* menuPhase("CHARACTER");
     if (!commands) yield* rig.waitText(0, CONTROLS, SELECTION_HELP);
   });
 
-  /** Both pads pick their highlighted fighter; A's Start picks the stage. */
+
   const controllerSelect = Effect.gen(function*() {
     yield* characterScreen;
     for (const slot of SLOTS) yield* menuButton(slot, BTN_A, "menu-character-select");
     yield* menuButton(0, BTN_START, "menu-character-confirm");
     yield* menuPhase("STAGE");
     if (bot && !commands) {
-      // The calibrated bot workload uses Sky Deck, independent of the catalog's first stage. The stage
-      // panel polls the mouse button once a frame, so a desktop click can fall between frames; A's
-      // stick steps through the catalog instead.
+
+
+
       for (let step = 0; step < STAGE_CATALOG.length && !SKY_DECK.test(yield* rig.readText(0, STAGE_NAME)); step++) {
         yield* send(0, { type: EV_ABS, code: ABS_X, value: -32768 }, "menu-stage-left");
         yield* rig.sleep(120);
@@ -387,15 +387,15 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     }
   });
 
-  /** Native slot tags use WC3's centered 4:3 coordinates on the 2560x1440 desktop. */
+
   const clickSlotTag = (x: number) =>
     Effect.gen(function*() {
-      // Mouse focus on the inert widescreen margin first; the menu receipts decide delivery.
+
       yield* rig.click(0, 2400, 200);
       yield* rig.click(0, x, 824);
     });
 
-  /** Sets slot tags by command (or, on a build without the dev console, one tag click at `x`). */
+
   const setSlots = (x: number, humans: number, computers: number) =>
     commands ? command(`-dev slots ${humans} ${computers}`, { "human-fighters": humans, computers }) : clickSlotTag(x);
 
@@ -407,20 +407,20 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         return { human_fighters: humans, computers, publications: yield* boundaries(menuName) } satisfies ModeReceipt;
       }));
 
-  /** Issue #17's two humans and two CPUs. */
+
   const fourFighterSetup = Effect.gen(function*() {
     yield* characterScreen;
     const changes = yield* modeChanges("four-fighter setup absent on one client", [[1484, 7, 0], [1484, 3, 4], [1904, 11, 4], [1904, 3, 12]]);
     yield* rig.record({ event: "four-fighter-setup", epoch: firstEpoch, changes });
   });
 
-  /** A bot session's computer opponent: slot C's tag goes EMPTY → HMN → CPU, keeping its default Demon Hunter. */
+
   const botSetup = Effect.gen(function*() {
     yield* characterScreen;
     const changes = yield* modeChanges("bot session computer absent on one client", options.botFour === true ? [[1484, 7, 0], [1484, 3, 4], [1904, 11, 4], [1904, 3, 12]] : [[1484, 7, 0], [1484, 3, 4]]);
     yield* rig.record({ event: "bot-setup", epoch: firstEpoch, changes });
     if (commands) {
-      // The computers' fighters and the stage, which the defaults and the stage menu's mouse targets otherwise decide.
+
       for (const [player, character] of BOT_COMPUTERS.slice(0, options.botFour === true ? 2 : 1)) {
         yield* command(`-dev fighter ${player} ${fighterName(character)}`, { characters: new RegExp(`^(?:\\d+,){${player - 1}}${character}(?:,|$)`) });
       }
@@ -428,18 +428,18 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     }
   });
 
-  /**
-   * A bot session's match, timed from its start boundary: both pads attack,
-   * jump and use specials, client B's game stops for 2 s at each BOT_STALLS
-   * time, and both pads hold View at each BOT_MOMENTS time so each helper
-   * asks its client to save a moment. Stops early when the match ends.
-   */
-  /**
-   * #49's pad script on slot 0 (pad49Result.ts checks the rows): resting and
-   * drifted sticks, X and Y taps, down just below and just past 0.6625, and a
-   * held right during which `pad49: focus blip` asks the operator's watcher
-   * to move the desktop's focus away for 150 ms. Phases name each step.
-   */
+
+
+
+
+
+
+
+
+
+
+
+
   const pad49 = (epoch: number, startNs: number) =>
     Effect.gen(function*() {
       const at = (offsetMs: number) => Effect.gen(function*() {
@@ -488,7 +488,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       if (options.pad49 === true && epoch === firstEpoch) yield* pad49(epoch, startNs);
       const ended = Effect.forEach(SLOTS, (client) => rig.file(client, controlName("end", epoch, client))).pipe(Effect.map((files) => files.some(complete)));
       let beat = 0;
-      /** One beat on both pads, in a cycle of 5 ms taps (A, Y, X), a held shield and dashes right and left. */
+
       const beatOnce = Effect.gen(function*() {
         const step = BOT_BEATS[beat % BOT_BEATS.length] ?? BOT_BEATS[0];
         beat++;
@@ -498,7 +498,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         for (const slot of SLOTS) yield* send(slot, step.kind === "tap" ? button(step.code, 0) : { type: EV_ABS, code: step.code, value: 0 }, phase);
         yield* rig.sleep(BOT_BEAT_MILLIS);
       });
-      /** Plays beats until `offsetMs` after the start; false once the match has ended. */
+
       const playUntil = (offsetMs: number) =>
         Effect.gen(function*() {
           while ((yield* rig.monotonicNs) < startNs + offsetMs * 1_000_000) {
@@ -507,7 +507,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
           }
           return !(yield* ended);
         });
-      // A four-fighter or --bot-perf session measures its rematch's frame cost undisturbed, and #49's script plays alone: no stalls there.
+
       const stallTimes = ((options.botFour === true || options.botPerf === true) && epoch % 2 === 0) || (options.pad49 === true && epoch === firstEpoch) ? [] : BOT_STALLS;
       const timeline = [
         ...stallTimes.map((at, index) => ({ at, kind: "stall" as const, trial: index + 1 })),
@@ -540,7 +540,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* playUntil(BOT_PLAY_MILLIS);
     });
 
-  /** Exercises the slot-mode UI while both human fighters keep playing the rematch. */
+
   const slotChange = (epoch: number) =>
     Effect.gen(function*() {
       yield* characterScreen;
@@ -549,14 +549,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.record({ event: "integrity-slot-change", epoch, changes });
     });
 
-  /** The rematch left slot C as CPU; one tag click returns it to EMPTY. */
+
   const slotRestore = Effect.gen(function*() {
     yield* characterScreen;
     yield* setSlots(1484, 3, 0);
     yield* rig.until("slot C was not restored to EMPTY", menusShow(TWO_HUMANS));
   });
 
-  /** Chained runs start from two humans with slots C and D EMPTY; tags cycle HMN, CPU, EMPTY. */
+
   const restoreTwoHumans = Effect.gen(function*() {
     if (commands) {
       yield* command("-dev slots 3 0", { "human-fighters": 3, computers: 0 });
@@ -576,14 +576,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     yield* rig.until("slots C/D were not restored to EMPTY", menusShow(TWO_HUMANS));
   });
 
-  /** Rule button centers in Warcraft's centered 4:3 area on a 2560x1440 desktop. */
+
   const clickRule = Effect.fnUntraced(function*(name: keyof typeof RULE_BUTTONS) {
     const box = RULE_BUTTONS[name];
     yield* rig.click(1, 250, 900);
     yield* rig.click(1, Math.round(320 + 2400 * (box.x + box.width / 2)), Math.round(1440 - 2400 * (box.y - box.height / 2)));
   });
 
-  /** Stock count on B's fighter selection screen, one click at a time. */
+
   const stockCount = (target: number) => Effect.gen(function*() {
     if (commands) return yield* command(`-dev stocks ${target}`, { stocks: target });
     const text = yield* rig.waitText(1, /[1-9] Stock/i);
@@ -597,7 +597,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   });
   const reduceStocks = stockCount(1);
 
-  /** A normal one-minute match bounds the CPU journey without changing combat rules. */
+
   const oneMinute = Effect.gen(function*() {
     if (commands) return yield* command("-dev time 1", { minutes: 1 });
     const text = yield* rig.waitText(1, /(?:[0-9]+:00|No time limit)/i);
@@ -611,10 +611,10 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     }
   });
 
-  /**
-   * Both clients' receipts that they drew this match's stage (matchStart.ts),
-   * before the player's view is captured; a bot match must be on BOT_STAGE.
-   */
+
+
+
+
   const stageDrawn = (epoch: number) =>
     Effect.gen(function*() {
       const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, stageReceiptFile(build, client)));
@@ -664,7 +664,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       });
     });
 
-  /** Start pauses both clients and Start resumes them; each side commits through one control receipt. */
+
   const pause = (epoch: number) =>
     Effect.gen(function*() {
       const prefix = `match-${epoch}-integrity-`;
@@ -695,7 +695,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.until("helpers did not accept integrity resume", helpersShow(/ state=RESUME /));
     });
 
-  /** The match's integrity workload, from its schedule. */
+
   const integrity = (epoch: number) =>
     Effect.forEach(integritySchedule(epoch, options.padLayout ?? "xpad"), (step) => {
       switch (step.kind) {
@@ -717,7 +717,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       return end !== null && Number(end[1]) >= ticks;
     }));
 
-  /** Ctrl+H exports every client's response pages; each page holds 150 rows. */
+
   const exportResponse = (epoch: number, afterNs: bigint) =>
     Effect.gen(function*() {
       yield* rig.key(0, "ctrl+h");
@@ -748,13 +748,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
 
       const traceAfterNs = yield* rig.realtimeNs;
-      // Ctrl+G only enables the diagnostic trace; the pads choose, start and rematch.
+
       if (!playable && diagnosticBuild) yield* rig.key(0, "ctrl+g");
       const start = (client: Slot) => controlName("start", epoch, client);
       const startsShown = Effect.forEach(SLOTS, (client) => rig.file(client, start(client))).pipe(Effect.map((files) => files.every(complete)));
       if (!bot || epoch === firstEpoch) {
         yield* menuButton(0, BTN_START, `menu-match-${epoch}-start`);
-        // Start on fighter selection opens stage selection; Start there starts the match.
+
         yield* rig.until(`epoch ${epoch}: stage selection absent`, Effect.gen(function*() {
           return (yield* menusShow("phase=STAGE")) || (yield* startsShown);
         }));
@@ -771,9 +771,9 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.sleep(Math.max(0, (deadline - (yield* rig.monotonicNs)) / 1_000_000));
       yield* rig.sleep(700);
       if (commands) yield* stageDrawn(epoch);
-      // The playable build starts no scene recorder.
+
       yield* playerView(epoch, "start", { frame: true, scene: !playable && diagnosticBuild });
-      // A menu-started match holds every fighter until GO! (#129): scripted input starts after it.
+
       const goNs = deadline - 300_000_000 + START_HOLD_FRAMES * 1_000_000_000 / MATCH_TICKS_PER_SECOND;
       yield* rig.sleep(Math.max(0, (goNs - (yield* rig.monotonicNs)) / 1_000_000));
       if (bot) {
@@ -787,8 +787,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       } else yield* integrity(epoch);
 
       const stockLoss = `match-${epoch}-stock-loss`;
-      // Each player walks off their own side. A playable one-stock match loses
-      // Player 1's stock, its rematch Player 2's.
+
+
       const walkers: readonly Slot[] = matchOnly || bot ? [] : playable ? [odd ? 0 : 1] : odd ? [0] : [0, 1];
       for (const slot of walkers) yield* send(slot, { type: EV_ABS, code: ABS_X, value: slot === 0 ? -32768 : 32767 }, stockLoss);
       const end = (client: Slot) => controlName("end", epoch, client);
@@ -798,17 +798,17 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.until(`epoch ${epoch}: helpers did not quiesce`, Effect.forEach(SLOTS, rig.helperLog).pipe(Effect.map((logs) => logs.every((log) => quiescent.test(log)))));
       if (bot && epoch === lastEpoch) yield* rig.key(0, "Escape");
       yield* rig.record({ event: "end", epoch, publications: yield* boundaries(end), observed_monotonic_ns: yield* rig.monotonicNs });
-      // At the result every stay in view is complete; the screen no longer shows the arena.
+
       if (!playable && diagnosticBuild) yield* playerView(epoch, "result", { frame: false, scene: true });
       const results = yield* both((client) => rig.waitText(client, RESULTS));
       if (playable || bot) {
-        // The playable build has no response probe: its results are the
-        // result screens and a stationary confirmed-checksum trace.
+
+
         const notices = yield* both((client) => rig.readText(client, RESULT_NOTICE));
         yield* rig.record({ event: "results", epoch, texts: results, notices });
         if (bot && diagnosticBuild) {
-          // A diagnostic build's Ctrl+G trace from the match start holds its confirmed checksums;
-          // its response pages give every press's frame and local start (#60).
+
+
           for (const client of SLOTS) yield* rig.until(`epoch ${epoch}: trace did not complete`, traceComplete(client, traceAfterNs), 30);
           yield* rig.archive(String(epoch));
           yield* exportResponse(epoch, traceAfterNs);
@@ -823,8 +823,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         yield* rig.archive(String(epoch));
         yield* exportResponse(epoch, traceAfterNs);
         yield* rig.archive(String(epoch));
-        // A match can outlast the first trace. Keep it intact and capture a
-        // stationary result endpoint only when necessary.
+
+
         const traces = yield* Effect.forEach(SLOTS, (client) => rig.file(client, TRACE));
         if (!traces.every((trace) => /participant \d+ frame \d+ phase 3 /.test(trace?.text ?? ""))) {
           const finalAfterNs = yield* rig.realtimeNs;
@@ -835,7 +835,7 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
       yield* rig.healthy;
       if (epoch !== lastEpoch && !bot) {
-        // A results-screen tap must not become a new-match action.
+
         yield* menuPhase("RESULT");
         yield* tap(0, "results-only");
         yield* menuButton(1, BTN_START, "menu-results-confirm");
@@ -847,8 +847,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
     });
 
   const run = Effect.gen(function*() {
-    // A lobby's computer players arrive as CPU tags in slots C/D; every
-    // workload's setup and slot changes start from two humans.
+
+
     yield* rig.until("live controller menu phase CHARACTER absent", menusShow("phase=CHARACTER"));
     yield* restoreTwoHumans;
     if (fourFighters) yield* fourFighterSetup;
@@ -865,8 +865,8 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       if (!/Automatic rematch: On/i.test(rematch)) yield* clickRule("automaticRematch");
       yield* both(client => rig.waitText(client, /Automatic rematch: On/i, REMATCH_SETTING));
     }
-    // #26's named integrity workload plays INTEGRITY_STOCKS in every match: its stalls, pause and
-    // complete edge sample must finish before ordinary stock loss can end the match.
+
+
     if (!matchOnly && !playable && !fourFighters && !bot) yield* stockCount(INTEGRITY_STOCKS);
     yield* controllerSelect;
     for (const epoch of epochs) yield* match(epoch);
@@ -880,11 +880,11 @@ export function journey(rig: RigShape, options: JourneyOptions) {
   return { integrity, run };
 }
 
-/**
- * The game's next match number, read from both clients' menu receipts (the
- * last match begun, 0 in a new game). Captures start at an odd match, the
- * first of a match and its rematch.
- */
+
+
+
+
+
 export const nextMatchEpoch = (build: string) =>
   Effect.gen(function*() {
     const rig = yield* Rig;
@@ -901,7 +901,7 @@ export const nextMatchEpoch = (build: string) =>
     return a + 1;
   });
 
-/** The whole capture journey against the provided Rig. */
+
 export const runJourney = (options: JourneyOptions) =>
   Effect.gen(function*() {
     yield* journey(yield* Rig, options).run;

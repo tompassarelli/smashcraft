@@ -1,6 +1,6 @@
-// Runs #26's integrity capture on the two signed-in clients: one virtual pad,
-// kernel observer and persistent helper per player, the journey, then
-// capture.json and events.json for the reconciler.
+
+
+
 import { closeSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
@@ -19,14 +19,14 @@ import { SLOTS, type Slot } from "./reconcile";
 import { archiveFiles, liveRig } from "./rig";
 
 interface CaptureOptions extends Omit<JourneyOptions, "epochs"> {
-  /** The matches to capture; undefined plays the game's next match and its rematch, read from its menu receipts. */
+
   readonly epochs: readonly number[] | undefined;
-  /** The persistent controller helper binary. */
+
   readonly helper: string;
   readonly out: string;
-  /** The desktop driver's clients file; its default when undefined. */
+
   readonly clients: string | undefined;
-  /** Each client's private-compositor app ID, by client name. */
+
   readonly appIds: ReadonlyMap<string, string>;
 }
 
@@ -42,7 +42,7 @@ function wholeNumber(text: string, option: string): number {
   return Number(text);
 }
 
-/** RB or RB:BATCH entries: rollback window and callbacks per input message, by default the map's. */
+
 export function parseSweep(text: string): readonly (readonly [window: number, batch: number])[] {
   return text.split(",").map((entry) => {
     const [window = "", batch = ""] = `${entry}:${DEFAULT_BATCH}`.split(":");
@@ -50,7 +50,7 @@ export function parseSweep(text: string): readonly (readonly [window: number, ba
   });
 }
 
-/** One match and rematch, or one pair per sweep entry, numbered from the session's next match. */
+
 export function captureEpochs(sweepEntries: number, firstEpoch: number): readonly number[] {
   return Array.from({ length: sweepEntries > 0 ? 2 * sweepEntries : 2 }, (_, index) => firstEpoch + index);
 }
@@ -94,24 +94,24 @@ export function parseCaptureArguments(args: readonly string[]): CaptureOptions {
 }
 
 declare global {
-  // Bun implements JSON.rawJSON (ES2026); TypeScript's lib does not declare it yet.
+
   interface JSON {
     rawJSON(text: string): unknown;
   }
 }
 
-/** JSON with 64-bit nanosecond times written as exact integers. */
+
 export const json = (value: unknown) => `${JSON.stringify(value, (_key, item: unknown) => (typeof item === "bigint" ? JSON.rawJSON(String(item)) : item), 2)}\n`;
 
 const fromDesktop = (failure: DesktopFailure) => new IntegrityFailure({ operation: failure.operation, path: failure.client, cause: failure.cause });
 
-/** The client's game process, checked by name, with its window focused for the helper's focus gate. */
+
 export const gameProcess = (client: Client, checkDisplay: boolean) =>
   Effect.gen(function*() {
     const pid = yield* windowPid(client).pipe(Effect.mapError(fromDesktop));
     const name = yield* tryIntegrity("read game process name", `/proc/${pid}/comm`, () => readFileSync(`/proc/${pid}/comm`, "utf8"));
     if (!name.includes("Warcraft")) return yield* new IntegrityFailure({ operation: "find game process", path: client.name, cause: `window process ${pid} is ${name.trim()}` });
-    // A bot session stops this process: it must be the one running on the client's own display.
+
     if (checkDisplay) {
       const display = yield* tryIntegrity("read game process display", `/proc/${pid}/environ`, () =>
         readFileSync(`/proc/${pid}/environ`, "utf8").split("\0").find((entry) => entry.startsWith("DISPLAY="))?.slice("DISPLAY=".length));
@@ -122,7 +122,7 @@ export const gameProcess = (client: Client, checkDisplay: boolean) =>
     return pid;
   });
 
-/** Interrupts a helper with SIGINT (continuing it first, in case a stall stopped it), then kills it after 3 s. */
+
 const stopHelper = (helper: Subprocess) =>
   Effect.gen(function*() {
     if (helper.exitCode !== null || helper.signalCode !== null) return;
@@ -133,7 +133,7 @@ const stopHelper = (helper: Subprocess) =>
     yield* Effect.promise(() => helper.exited).pipe(Effect.timeoutOption("2 seconds"));
   });
 
-/** A persistent helper following matches on one pad, logging to helper-SLOT.log, stopped with its scope. */
+
 export const startHelper = (command: readonly string[], env: Record<string, string | undefined>, logPath: string) =>
   Effect.gen(function*() {
     const log = yield* Effect.acquireRelease(tryIntegrity("open helper log", logPath, () => openSync(logPath, "w")), (fd) => Effect.sync(() => closeSync(fd)));
@@ -143,12 +143,12 @@ export const startHelper = (command: readonly string[], env: Record<string, stri
     );
   });
 
-/**
- * Watches both clients from their events (wisp:docs/watch.md) for the
- * capture's length: a crash or a lost Battle.net fails the capture at the
- * rig's next check, instead of when its wait runs out. The journey gets the
- * same watch, so its chat goes only into a match (wisp:docs/watch.md).
- */
+
+
+
+
+
+
 const watchClients = (clients: readonly Client[]) => Effect.gen(function*() {
   const watch = Context.get(yield* Layer.build(ClientWatch.layer({ filePrefix: "smashcraft" })), ClientWatch);
   let lost: IntegrityFailure | undefined;
@@ -188,11 +188,11 @@ export const captureMatches = (options: CaptureOptions) =>
       const helpers: Subprocess[] = [];
       for (const slot of SLOTS) {
         const client = clients[slot];
-        // A bot session's pads also hold View, which asks the helper for a moment.
+
         const pad = yield* openPad(options.workload === "bot" ? [...PAD_BUTTONS, BTN_SELECT] : PAD_BUTTONS);
         pads.push(pad);
         observers.push(yield* observeDevice(pad.device, join(out, `kernel-${slot}.jsonl`)));
-        // A playable candidate's helper runs exactly as its player guide starts it.
+
         helpers.push(yield* startHelper([
           options.helper, "--follow-matches", "--build", build, "--slot", String(slot), "--device", pad.device, "--out", data[slot],
           "--editbox-display", client.x11.DISPLAY ?? "", "--x11-window", client.window, "--pid", String(gamePids[slot]), "--private-wlr-app-id", appIds[slot],
@@ -247,7 +247,7 @@ export const captureMatches = (options: CaptureOptions) =>
       })));
     }));
 
-    // The journey's events and every file the game wrote are kept even when the capture fails.
+
     const keep = Effect.gen(function*() {
       yield* tryIntegrity("write events.json", out, () => writeFileSync(join(out, "events.json"), json(events)));
       yield* archiveFiles({ data, out, build, startedNs }, "final");

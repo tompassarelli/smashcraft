@@ -1,4 +1,4 @@
-// Authored foreign executable loader. Original game instructions remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -46,7 +46,7 @@ for(let i=0;i<rows.length;i++) {
   dform(48,1,30,offset+8);call(addresses.cosf);dform(52,1,30,offset+12);
   dform(48,1,30,offset+8);call(addresses.sinf);dform(52,1,30,offset+16);
 }
-// Linux PPC32 sys_write(1, data, bytes), followed by sys_exit(0).
+
 dform(14,0,0,4);dform(14,3,0,1);imm(4,data);dform(14,5,0,rows.length*20);emit(0x44000002);
 dform(14,0,0,1);dform(14,3,0,0);emit(0x44000002);
 words.forEach((word,i)=>wrapper.writeUInt32BE(word,i*4));

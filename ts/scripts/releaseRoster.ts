@@ -1,7 +1,7 @@
-// Writes the release roster (smashcraft:ts/src/game/sim/heroes/releaseRoster.ts) from a balance
-// gate run: every fighter outside the gate's field band is hidden from selection.
-// Usage (from ts/): bun scripts/releaseRoster.ts FIELD.json
-// FIELD.json is a `cpuField --json` file (Wren Expert, at least 400 a pair).
+
+
+
+
 import { readFileSync, writeFileSync } from "node:fs";
 import { BALANCE_GATE, type FieldOptions, type FighterSummary, balanceVerdict, matchupReport } from "./cpuField";
 
@@ -9,14 +9,14 @@ export const RELEASE_ROSTER_FILE = new URL("../src/game/sim/heroes/releaseRoster
 
 type Field = { readonly options: Pick<FieldOptions, "opponents" | "tiers">; readonly summaries: readonly FighterSummary[] };
 
-/** Whether a parsed file looks like a `cpuField --json` field: options and fighter summaries. */
+
 function isField(value: unknown): value is Field {
   return typeof value === "object" && value !== null && "options" in value && typeof value.options === "object" && value.options !== null
     && "summaries" in value && Array.isArray(value.summaries)
     && value.summaries.every((s: unknown) => typeof s === "object" && s !== null && "fighter" in s && "winRate" in s && "played" in s && "against" in s && "decisive" in s);
 }
 
-/** The fighters a gate run hides: those outside the field band. Refuses a run that isn't a gate run. */
+
 export function hiddenFighters(field: Field): readonly string[] {
   const { opponents, tiers } = field.options;
   const required = `not a gate run: needs ${BALANCE_GATE.opponent} ${BALANCE_GATE.tier} and at least ${BALANCE_GATE.perPair} matches a pair`;

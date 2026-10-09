@@ -1,4 +1,4 @@
-// Foreign MDX boundary: original sword gestures, with shipped sequences retained.
+
 import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, ModelRenderer, model as mdx } from "war3-model";

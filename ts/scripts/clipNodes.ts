@@ -1,20 +1,20 @@
 export { parseMDX, generateMDX, ModelRenderer, model } from "war3-model";
-// The node table of an MDX model, as tools/animations/original-clips.ts
-// writes the pooled fighters' clip models. Warcraft does not read a node's
-// ObjectId as written: Illidan's standalone light, written alone with
-// ObjectId 155 beside a 276-entry pivot table, lit from the wrong place
-// natively and lit exactly once numbered 0. So a model that drops nodes
-// numbers the rest by their place in the file's node order, with the pivot at
-// that place.
+// Warcraft requires ObjectIds and pivots to follow file order (native Illidan light capture).
 
-/** A node as war3-model reads it: bones, lights, helpers, attachments, emitters, events and collision shapes. */
+
+
+
+
+
+
+
 interface Node {
   readonly Name?: string;
   ObjectId: number | null;
   Parent?: number | null;
 }
 
-/** The parts of a war3-model model that address nodes by ObjectId. */
+
 export interface NodeTable {
   Bones: Node[];
   Lights: Node[];
@@ -31,7 +31,7 @@ export interface NodeTable {
   Nodes: Node[];
 }
 
-/** The model's nodes in the order its MDX file stores them. */
+
 function fileOrder(model: NodeTable): Node[] {
   return [
     ...model.Bones, ...model.Lights, ...model.Helpers, ...model.Attachments, ...model.ParticleEmitters,
@@ -42,7 +42,7 @@ function fileOrder(model: NodeTable): Node[] {
 
 const isRoot = (parent: number | null | undefined): parent is null | undefined => parent === null || parent === undefined;
 
-/** Each node whose ObjectId, parent or pivot does not follow its place in the file's node order. */
+
 export function misplacedNodes(model: NodeTable): string[] {
   const nodes = fileOrder(model);
   const problems = nodes.flatMap((node, place) => {
@@ -55,11 +55,11 @@ export function misplacedNodes(model: NodeTable): string[] {
   return problems;
 }
 
-/**
- * Numbers every node by its place in the file's node order. Parents, skin
- * matrices and pivots follow their node, so the skeleton and its mesh stay as
- * they were.
- */
+
+
+
+
+
 export function renumberNodes(model: NodeTable): void {
   const nodes = fileOrder(model);
   const places = new Map<number, number>();

@@ -43,8 +43,8 @@ function preserveNonunitHolds(source: mdx.Model, model: mdx.Model, sequences: re
             const axisNorm = Math.hypot(...axisRotation);
             for (let component = 0; component < axisRotation.length; component++) axisRotation[component] /= axisNorm;
             const inverse = new Float32Array([-axisRotation[0], -axisRotation[1], -axisRotation[2], axisRotation[3]]);
-            // A nonunit quaternion's matrix is a unit rotation times a stretch perpendicular to its axis.
-            // Keep the original animated keys; the adjacent integer millisecond joins back to them.
+
+
             for (const frame of [start, end]) {
                 const existing = bone.Rotation.Keys.find(key => key.Frame === frame);
                 if (existing !== undefined) existing.Vector = polar;
@@ -61,8 +61,8 @@ function preserveNonunitHolds(source: mdx.Model, model: mdx.Model, sequences: re
             track.Keys.sort((a, b) => a.Frame - b.Frame);
             const id = model.PivotPoints.length;
             const node: mdx.Node = { Name: `${bone.Name} hold ${suffix}`, ObjectId: id, Parent: parent, Flags: 0, PivotPoint: new Float32Array(bone.PivotPoint), [property]: track };
-            // Vertices move onto the last node, so it must be a bone: HD and Definitive skin only from the
-            // bone palette, and a helper's index reads another model's bone there (#319).
+            // HD and Definitive skin the moved vertices only when the final node is a bone.
+
             if (suffix === 'inverse') model.Bones.push({ ...node, GeosetId: bone.GeosetId, GeosetAnimId: bone.GeosetAnimId });
             else model.Helpers.push(node);
             model.PivotPoints.push(node.PivotPoint);
@@ -84,7 +84,7 @@ export function timelineBody(source: mdx.Model, sequences: readonly mdx.Sequence
     removeBodyEffects(model);
     const first = sequences[0];
     if (first === undefined) throw new Error('Timeline body has no sequences');
-    // Missing sequence-local channels use the native static backing, not neighbouring clips.
+
     tracks(model, (track, path) => {
         if (onGlobalClock(track)) return;
         const transform = /^\.(Bones|Helpers|Attachments|CollisionShapes|TextureAnims)\.\d+\.(Translation|Rotation|Scaling)$/.test(path);
@@ -110,7 +110,7 @@ export function timelineBody(source: mdx.Model, sequences: readonly mdx.Sequence
                 if (track.LineType >= mdx.LineType.Hermite) {
                     key.InTan = flatHandle(key.Vector);
                     key.OutTan = flatHandle(key.Vector);
-                    // Native clips clamp outside their first/last key; those unused handles now join the hold.
+
                     if (edge !== undefined) edge[incoming ? 'InTan' : 'OutTan'] = flatHandle(edge.Vector);
                 }
                 added.push(key);

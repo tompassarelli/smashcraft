@@ -1,5 +1,5 @@
-// Foreign MDX boundary: append paired gestures to the existing rig. Simulation
-// owns the pair's positions and release; local joints supply the silhouette.
+
+
 import { chmodSync, cpSync, lstatSync, mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, model as mdx } from "war3-model";
@@ -17,8 +17,8 @@ ensure(selectedCharacter === undefined || Number.isInteger(selectedCharacter) &&
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/grab-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]");
 const metadata = join(project, "ts/src/game/presentation/grabClipInfo.ts");
-// The mesh evaluator imports production pose selection, which reads this
-// generated table even during the first authoring run.
+
+
 if (!await Bun.file(metadata).exists()) await Bun.write(metadata, 'import type { HeroClipTable } from "../sim/heroes/hero";\nexport const GRAB_CLIPS: Readonly<Record<number, HeroClipTable>> = {};\n');
 const { DrawnModel } = await import("../../ts/scripts/wisp/hurtboxView");
 mkdirSync(output, { recursive: true });
@@ -61,7 +61,7 @@ function phasesFor(action: Action, character: number): readonly { readonly at: n
   const activeEnd = action.pose === "grab" ? contact + characterAttackActiveFrames(character, AttackStyle.grab, moves) / duration : 0.6;
   const coil = action.pose === "grab" ? Math.max(0, contact - 2 / duration)
     : action.pose === "victimPummel" ? contact - contact / PUMMEL_CONTACT_FRAME : 0.3;
-  // Frostmourne's guard otherwise obscures the reaching shoulder at contact.
+
   const contactPose = character === Character.lichKing && action.pose === "grab" ? gesture(action.contact, { chest: 18 }) : action.contact;
   return [{ at: 0, pose: action.first }, { at: coil, pose: action.coil }, { at: contact, pose: contactPose }, { at: activeEnd, pose: contactPose }, { at: 1, pose: action.last }];
 }
@@ -82,12 +82,12 @@ function rotate(q: Float32Array | Int32Array, pitch: number, yaw = 0): Float32Ar
     a[3]! * s - a[0]! * x - a[1]! * v - a[2]! * w]);
 }
 function articulation(name: string, pose: Gesture, fighter: string): [number, number] {
-  // Different bodies keep their characteristic mechanics: dwarves drive a
-  // compact shoulder, agile fighters twist, heavy fighters commit the chest.
+
+
   const heavy = fighter === "PitLord" || fighter === "Beastmaster" ? 1.15 : fighter === "MountainKing" ? 0.85 : 1;
   const agile = fighter === "Warden" || fighter === "Blademaster" || fighter === "ShadowHunter" ? 1.2 : 1;
-  // The classic Lich's arm chains use mesh names: the two shoulder cylinders
-  // parent the upper-arm meshes and their hand meshes, rather than Bone_Arm*.
+
+
   if (fighter === "Lich") {
     if (name === "Mesh01") return [pose.chest * 0.7, pose.twist];
     if (name === "Cylinder07") return [pose.grip, 0];
@@ -109,7 +109,7 @@ function articulation(name: string, pose: Gesture, fighter: string): [number, nu
 
 const generated: string[] = [], evidence = [];
 for (const [character, fighter] of fighters.entries()) {
-  // His own rig carries his paired grabs.
+
   if (character < 3 || character === Character.forsakenPaladin) continue;
   const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
   const stand = source.Sequences.find(s => /^stand ready$/i.test(s.Name)) ?? source.Sequences.find(s => /^stand(?:\s*-?\s*\d+)?$/i.test(s.Name));
@@ -144,14 +144,14 @@ for (const [character, fighter] of fighters.entries()) {
         const transform = (q: Float32Array | Int32Array) => pitch || yaw ? rotate(q, pitch, yaw) : q.slice();
         const Vector = transform(first.Vector);
         if (match) {
-          // Imported rotation keys can be quantized below unit length;
-          // spherical interpolation then moves even between equal keys.
+
+
           const norm = Math.hypot(...Vector);
           ensure(norm > 0, `${fighter.name}/${node?.Name}: zero rotation quaternion`);
           for (let i = 0; i < Vector.length; i++) Vector[i] = Vector[i]! / norm;
         }
-        // Donor handles describe its old motion. Flat handles keep held
-        // gestures still and ease between the newly authored local poses.
+
+
         const tangent = () => match || track.LineType === mdx.LineType.Bezier ? Vector.slice() : new Float32Array(Vector.length);
         track.Keys.push({ ...first, Frame: start + Math.round(t * (end - start)), Vector,
           ...(first.InTan ? { InTan: tangent() } : {}), ...(first.OutTan ? { OutTan: tangent() } : {}) });

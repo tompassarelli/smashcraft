@@ -1,22 +1,22 @@
-// The TypeScript presentation modules generated from each model's authored
-// clips: the imported model path and each sequence index and duration.
+
+
 
 interface ClipBinding {
-  /** Constant-name fragment, such as GRAB_HOLD. */
+
   readonly key: string;
   readonly index: number;
-  /** Present when presentation code owns this clip's clock. */
+
   readonly seconds?: number;
 }
 
 export interface ModelAssetInfo {
-  /** Constant prefix, such as RIFLEMAN. */
+
   readonly prefix: string;
   readonly modelPath: string;
   readonly clips: readonly ClipBinding[];
 }
 
-/** An exact binary32 value as a literal; other values round through f32(). */
+
 export function seconds(value: number): string {
   const literal = Number.isInteger(value) ? value.toFixed(1) : String(value);
   return Math.fround(value) === value ? literal : `f32(${literal})`;

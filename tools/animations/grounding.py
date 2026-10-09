@@ -44,9 +44,9 @@ def ground_recovery(rig, action, frame_end, floor_z=1.0):
         scene.frame_set(frame)
         bpy.context.view_layer.update()
 
-        # The stock model has separate top-level attachment bones. Apply the
-        # same root pose to those branches so held weapons and attachment points
-        # follow the fighter, while leaving Bone_Root's location untouched.
+
+
+
         root_delta = root.matrix @ root_rest_inverse
         for bone in accessory_roots:
             bone.matrix = root_delta @ bone.matrix
@@ -66,8 +66,8 @@ def ground_recovery(rig, action, frame_end, floor_z=1.0):
                 f"{action.name} frame {frame}: visible geometry missed floor by {error:.3f}"
             )
 
-        # Store visual corrections on child/accessory bones. The simulation
-        # origin remains at its original height and has no translation track.
+
+
         for bone in rig.pose.bones:
             bone.rotation_mode = "QUATERNION"
             bone.keyframe_insert("rotation_quaternion", frame=frame, group=bone.name)

@@ -1,7 +1,7 @@
-// `wisp soak`: Smashcraft's soak (scripts/wisp/soak.ts) in worker processes,
-// one repro file played again, the memory soak (soakMemory.ts), or with
-// --helper, matches through the real controller helper in real time
-// (test/soak/helper.ts; wisp:docs/soak.md).
+
+
+
+
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Effect, Schema } from "effect";
@@ -20,13 +20,13 @@ class HelperSoakFailure extends Schema.TaggedError<HelperSoakFailure>()("HelperS
   }
 }
 
-/** Each match takes real time, so a run through the helpers stays short. */
+
 const MAX_HELPER_MATCHES = 20;
 const MAX_HELPER_SECONDS = 90;
 
 const headless = makeSoak({ project: join(import.meta.dir, "../soak.ts"), out: SOAK_OUT });
 
-/** `soak --helper BINARY [--matches N] [--seconds S] [--seed N] [--out DIR]`. */
+
 const throughHelper: Command = (args) => Effect.gen(function*() {
   const parsed = yield* Effect.try({
     try: () => parseArgs({ args: [...args], options: { helper: { type: "string" }, matches: { type: "string" }, seconds: { type: "string" }, seed: { type: "string" }, out: { type: "string" } }, strict: true }).values,
@@ -43,7 +43,7 @@ const throughHelper: Command = (args) => Effect.gen(function*() {
     return yield* new UsageFailure({ problem: `--helper takes the wc3-journal binary, at most ${MAX_HELPER_MATCHES} matches and ${MAX_HELPER_SECONDS} seconds a match` });
   }
   const out = parsed.out ?? join(SOAK_OUT, `helper-${new Date().toISOString().replaceAll(":", "-").replace(/\.\d+Z$/, "")}`);
-  // Loaded at run time, so the host type check never reads map code.
+
   const module: unknown = yield* Effect.tryPromise({
     try: () => import(join(import.meta.dir, "../../../test/soak/helper.ts")),
     catch: (cause) => new HelperSoakFailure({ problem: "loading the helper soak", cause }),

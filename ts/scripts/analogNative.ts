@@ -59,7 +59,7 @@ const write = (file: string, value: unknown) => Effect.tryPromise({ try: () => B
 
 yield* write("plan.json", plan);
 
-// Only the assigned pair's existing clients are used; their owner admits this run.
+
 yield* command(["client", "watch", "--once", "--clients-file", clientsFile]);
 yield* command(["lan", "fresh", map, "--pair", pair]);
 const clients = yield* (loadClients(clientsFile));
@@ -73,7 +73,7 @@ const targets = yield* Effect.forEach(clients, client => Effect.gen(function*() 
     "--pid", `${pid}`, "--private-wlr-app-id", appId, "--watch-seconds", "900", "--cursor-grid", grid ?? ""] };
 }));
 
-// Receipts anchor each client's native clock to its own file publication time.
+
 const anchors: { match: number; slot: number; nativeSeconds: number; hostPublicationMs: number; mouseEvents: number; syncEvents: number }[] = [];
 const calibrate = (match: number) => Effect.scoped(Effect.gen(function*() {
  for (const [slot, target] of targets.entries()) {
@@ -133,7 +133,7 @@ yield* Effect.gen(function*() {
       const number = (field: string) => Number(header.match(new RegExp(`${field} ([\\d.]+)`))?.[1]);
       const anchor = anchors.filter(anchor => anchor.match === match && anchor.slot === slot).at(-1);
       if (anchor === undefined) return yield* analogFailure(`No clock anchor for match ${match}, client ${slot}`);
-      // The event-rate window starts after both clients finished calibrating.
+
       const finalCalibration = anchors.filter(anchor => anchor.match === match).at(-1);
       if (finalCalibration === undefined) return yield* analogFailure(`No completed calibration for match ${match}`);
       const baseline = lines.find(line => line.startsWith(`mouse ${finalCalibration.mouseEvents} `))?.split(" ");

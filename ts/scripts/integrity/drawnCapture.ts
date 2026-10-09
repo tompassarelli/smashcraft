@@ -1,10 +1,10 @@
-// A pad script's `capture` on the frame it names. The helper's clock gives
-// each edge its frame, but under load a client draws its (predicted) match
-// many frames behind that clock: on 7 Oct, #156's captures taken on the clock
-// showed client A 6 to 88 frames before the move. The integrity build writes
-// the frame it drew (smashcraft:ts/src/platform/shell/drawnFrame.ts); a
-// capture waits until that file names the capture's frame, then takes the
-// screen and records the frames drawn just before and after it.
+
+
+
+
+
+
+
 import { existsSync, readFileSync } from "node:fs";
 import { Effect } from "effect";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
@@ -13,7 +13,7 @@ import type { PadStep } from "./padScript";
 
 export const visualCaptureToken = (time = Date.now(), pid = process.pid): string => `${time.toString(36)}-${pid.toString(36)}`;
 
-/** One finite visual schedule; authored pad frames and helper input deadlines stay intact. */
+
 export function visualCaptureCommand(command: string, token: string, steps: readonly PadStep[]): string {
   const frames = [0, 1].map(slot => {
     const sorted = [...new Set(steps.filter(step => step.kind === "capture" && step.slot === slot).map(step => step.frame))].sort((a, b) => a - b);
@@ -29,7 +29,7 @@ export interface Drawn {
   readonly frame: number;
 }
 
-/** The drawn-frame file's epoch and frame; undefined while missing, partly written or another build's. */
+
 export function parseDrawn(text: string): Drawn | undefined {
   for (const line of preloadLines(text) ?? []) {
     const match = /^SMASHCRAFT DRAWN v=1 build=\S+ epoch=(\d+) frame=(\d+)/.exec(line);
@@ -48,13 +48,13 @@ export const drawnFrom = (path: string) => (): Drawn | undefined => {
 
 export interface DrawnShot<A> {
   readonly shot: A;
-  /** The frame the client had drawn when the capture began, and when it ended. */
+
   readonly before: number;
   readonly after: number;
   readonly waitedMs: number;
 }
 
-/** Both receipts must identify the requested frame; a later frame or absent completion is invalid. */
+
 export const captureWhenDrawn = <A, E>(read: () => Drawn | undefined, epoch: number, frame: number, timeoutMs: number, shoot: Effect.Effect<A, E>, where: string) =>
   Effect.gen(function*() {
     const started = performance.now();

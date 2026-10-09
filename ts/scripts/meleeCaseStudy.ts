@@ -1,9 +1,9 @@
-// Computes every number in the Melee case study (smashcraft:docs/design/melee/)
-// from the reference data: smashcraft:references/melee-frame-data/ and
-// smashcraft:docs/smash-melee-reference/retail-roster.json. The documents mark
-// computed text with <!-- v:KEY -->...<!-- /v --> and tables with
-// <!-- table:KEY -->...<!-- /table -->; this script rewrites those spans.
-// Usage (from ts/): bun scripts/meleeCaseStudy.ts [--check]
+
+
+
+
+
+
 import { readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Schema } from "effect";
@@ -11,7 +11,7 @@ import { Schema } from "effect";
 const root = resolve(import.meta.dir, "../..");
 const CASE_STUDY_DIRECTORY = join(root, "docs/design/melee");
 
-// ------------------------------------------------------------------ inputs
+
 
 const FrameRecord = Schema.Struct({
   character: Schema.String, category: Schema.String, action: Schema.NullOr(Schema.String),
@@ -77,7 +77,7 @@ function events(f: Fighter, action: string) {
   return f.actions[action]?.events ?? [];
 }
 
-// ------------------------------------------------------------------ statistics and formatting
+
 
 const defined = (values: readonly (number | null)[]): number[] => values.filter((v): v is number => v !== null);
 function quantile(values: readonly number[], q: number): number {
@@ -121,7 +121,7 @@ const set = (key: string, value: string | number): void => {
   if (values.has(key)) throw new Error(`value ${key} set twice`);
   values.set(key, String(value));
 };
-/** Least, median and greatest of a cast-wide column, with who holds the extremes. */
+
 function spread(key: string, entries: readonly { id: string; v: number }[], format: (v: number | null) => string): void {
   const vs = entries.map((e) => e.v), lo = Math.min(...vs), hi = Math.max(...vs);
   set(`${key}.min`, format(lo));
@@ -131,19 +131,19 @@ function spread(key: string, entries: readonly { id: string; v: number }[], form
   set(`${key}.maxWho`, list(entries.filter((e) => e.v === hi).map((e) => name(e.id))));
 }
 
-// ------------------------------------------------------------------ movement
+
 
 const FRICTION_ABOVE_WALK = commonValue("friction_when_above_walk_speed");
 const DASH_FRICTION = commonValue("run_dash_turn_friction_multiplier");
 const AIR_DODGE_FORCE = commonValue("escapeair_force");
 const AIR_DODGE_DECAY = commonValue("escapeair_decay");
 const WAVELAND_LAG = commonValue("x344");
-/** SmashWiki's angle for the longest wavedash (https://www.ssbwiki.com/Wavedash). */
+
 const WAVEDASH_DEGREES = 17.1;
-/** Fighters whose aerial jump is their own state rather than ftCo_JumpAerial_Enter_Basic. */
+
 const OWN_AERIAL_JUMP = new Set(["ness", "yoshi", "peach", "mewtwo", "kirby", "jigglypuff"]);
 
-/** Takeoff frame moves by the launch speed alone (ftCo_Jump_Phys skips its first frame); then gravity, capped at the fall speed. */
+
 function jump(f: Fighter, launch: number, fastFall: boolean, gravityFirst = false): { height: number; airtime: number } {
   const gravity = attribute(f, "gravity"), fall = attribute(f, "terminal_velocity"), fast = attribute(f, "fast_fall_velocity");
   let vy = gravityFirst ? launch - gravity : launch, y = vy, height = y, frame = 1;
@@ -155,7 +155,7 @@ function jump(f: Fighter, launch: number, fastFall: boolean, gravityFirst = fals
   }
   return { height, airtime: frame };
 }
-/** Ground slide from speed `v` under Landing/Wait friction (ft_80084F3C): traction, doubled above walk speed. */
+
 function slide(f: Fighter, v: number, frames = Infinity): number {
   const traction = attribute(f, "ground_friction"), walk = attribute(f, "walk_max_vel");
   let x = 0;
@@ -165,9 +165,9 @@ function slide(f: Fighter, v: number, frames = Infinity): number {
   }
   return x;
 }
-/** Frame on which Dash sets cmd_vars[0], letting a held stick enter Run (ftCo_Dash_IASA). */
+
 const runFrame = (f: Fighter): number | null => events(f, "Dash").find((e) => e.event === "cmdVar" && e.index === 0 && e.value === 1)?.frame ?? null;
-/** Full-stick Dash: the entry sets the initial speed, then ftCommon_CalcGroundAccel_DashRun toward run speed. */
+
 function dashDistance(f: Fighter, frames: number): number {
   const initial = attribute(f, "dash_initial_velocity"), run = attribute(f, "dash_max_velocity"), cap = attribute(f, "ground_max_horizontal_velocity");
   const accel = attribute(f, "dash_accel_mul") + attribute(f, "dash_accel_base"), friction = attribute(f, "ground_friction") * DASH_FRICTION;
@@ -184,7 +184,7 @@ function dashDistance(f: Fighter, frames: number): number {
   }
   return x;
 }
-/** Frames to reach full drift from rest, and the distance drifted over `frames` holding one way (ftCommon_CalcSelfAccel). */
+
 function drift(f: Fighter, frames: number): { toFull: number; distance: number } {
   const max = attribute(f, "air_drift_max"), accel = attribute(f, "air_drift_stick_mul") + attribute(f, "aerial_drift_base");
   let v = 0, x = 0, toFull = 0;
@@ -226,13 +226,13 @@ const movement: Movement[] = fighters.map((f) => {
   };
 });
 
-// Checks against independent sources: the jump rule against SmashWiki's Fox heights
-// (smashcraft:docs/physics.md), dash speeds and jump squat against the frame-data corpus.
+
+
 const fox = movement.find((m) => m.f.id === "fox");
 if (fox === undefined || Math.abs(fox.full.height - 31.28) > 0.01 || Math.abs(fox.short.height - 10.65) > 0.01 || Math.abs((fox.double ?? 0) - 40.204) > 0.01) {
   throw new Error("Fox jump heights differ from the reference");
 }
-// The corpus prints speeds to two decimals: agreement is within half a hundredth.
+
 const CORPUS_CHECKS: readonly [string, string, string][] = [
   ["squat", "jump_squat", "jump_startup_time"], ["weight", "weight", "weight"],
   ["dash", "walk_speed", "dash_initial_velocity"], ["run", "run_speed", "dash_max_velocity"],
@@ -313,8 +313,8 @@ spread("wavedashActionable", movement.map((m) => ({ id: m.f.id, v: m.wavedash.ac
 }
 set("waveland.frames", 1 + WAVELAND_LAG);
 
-// Rolls and spot dodges: frames from the corpus, intangibility from the retail command
-// streams (body state 2 from its set frame to the frame before it is cleared), travel from libmelee.
+
+
 function intangible(f: Fighter, action: string): { start: number; end: number } | null {
   const body = events(f, action).filter((e) => e.event === "bodyState");
   const on = body.find((e) => e.value === 2), off = body.find((e) => e.value === 0 && e.frame > (on?.frame ?? Infinity));
@@ -352,7 +352,7 @@ spread("backRollTravel", dodgeRows.flatMap((d) => (d.backward === null ? [] : [{
 spread("rollFrames", dodgeRows.flatMap((d) => { const t = field(d.roll, "total"); return t === null ? [] : [{ id: d.f.id, v: t }]; }), f0);
 spread("spotFrames", dodgeRows.flatMap((d) => { const t = field(d.spot, "total"); return t === null ? [] : [{ id: d.f.id, v: t }]; }), f0);
 {
-  // The window most fighters share, and who differs.
+
   const usual = (entries: readonly { id: string; v: string }[], key: string): void => {
     const counts = new Map<string, number>();
     for (const e of entries) counts.set(e.v, (counts.get(e.v) ?? 0) + 1);
@@ -366,7 +366,7 @@ spread("spotFrames", dodgeRows.flatMap((d) => { const t = field(d.spot, "total")
   usual(fighters.map((f) => ({ id: f.id, v: String(f.actions.GuardOff?.frames ?? 0) })), "shield.release");
 }
 
-// ------------------------------------------------------------------ attacks
+
 
 const GROUND = ["jab1", "ftilt", "utilt", "dtilt", "dattack", "fsmash", "usmash", "dsmash"] as const;
 const AERIALS = ["nair", "fair", "bair", "uair", "dair"] as const;
@@ -378,9 +378,9 @@ const MOVE_NAMES: Readonly<Record<string, string>> = {
   standing_grab: "Grab", dash_grab: "Dash grab",
 };
 const moveName = (action: string): string => MOVE_NAMES[action] ?? action;
-/** First frame the attacker can act again: IASA when reported, else the frame after the last. */
+
 const actionable = (r: FrameRecord | undefined): number | null => field(r, "iasa") ?? (field(r, "total") === null ? null : (field(r, "total") ?? 0) + 1);
-/** Reach of the farthest hitbox edge in the move's direction, from libmelee's recorded positions. */
+
 function reach(id: string, action: string): number | null {
   const frames = motionRecord(id, action)?.hitbox_frames ?? [];
   if (frames.length === 0) return null;
@@ -399,9 +399,9 @@ interface Attack {
   readonly shieldstun: number | null;
   readonly damage: number | null;
   readonly reach: number | null;
-  /** Ground: contact on the first active frame. Aerial: contact the frame before an L-cancelled landing. */
+
   readonly onShield: number | null;
-  /** Ground: contact on the last active frame. Aerial: contact the frame before a landing without L-cancel. */
+
   readonly onShieldLate: number | null;
   readonly landing: number | null;
   readonly cancelled: number | null;
@@ -411,7 +411,7 @@ const attacks: Attack[] = fighters.flatMap((f) => [...GROUND, ...AERIALS].map((a
   const s = field(r, "start"), e = field(r, "end"), a = actionable(r), stun = field(r, "stun");
   const aerial = isAerial(action);
   const landing = field(r, "land_lag"), cancelled = field(r, "cancel_lag");
-  // Contact on frame c: the defender acts on c + shieldstun + 1, the attacker on its actionable frame.
+
   const ground = (c: number | null) => (stun === null || c === null || a === null ? null : c + stun + 1 - a);
   const air = (lag: number | null) => (stun === null || lag === null ? null : stun - lag);
   return {
@@ -422,7 +422,7 @@ const attacks: Attack[] = fighters.flatMap((f) => [...GROUND, ...AERIALS].map((a
   };
 }));
 const of = (action: string) => attacks.filter((a) => a.action === action);
-/** The more favourable on-shield value a move can get: a late ground hit, or an L-cancelled aerial. */
+
 const bestOnShield = (a: Attack): number | null => (a.aerial ? a.onShield : a.onShieldLate);
 const triple = (vs: readonly number[], format: (v: number | null) => string) =>
   (vs.length === 0 ? "–" : `${format(Math.min(...vs))} / ${format(median(vs))} / ${format(Math.max(...vs))}`);
@@ -487,8 +487,8 @@ tables.set("safestGround", table(["Fighter", "Move", "On shield, last active fra
 tables.set("leastSafe", table(["Fighter", "Move", "On shield, last active frame"], ["l", "l", "r"],
   moveRows(top(attacks.filter((a) => !a.aerial), bestOnShield, 10, false), (a) => signed(bestOnShield(a)))));
 
-// Out-of-shield options (ftCo_Guard_IASA): grab directly; up smash from jump squat
-// (ftCo_KneeBend_IASA), starting the frame after the jump input; an aerial on the takeoff frame.
+
+
 interface OutOfShield { readonly f: Fighter; readonly grab: number | null; readonly upSmash: number | null; readonly aerial: number | null; readonly aerialMove: string; readonly fastest: number }
 const outOfShield: OutOfShield[] = fighters.map((f) => {
   const grab = field(frameRecord(f.id, "grabs", "standing_grab"), "start");
@@ -508,7 +508,7 @@ tables.set("outOfShield", table(
 spread("oos", outOfShield.map((o) => ({ id: o.f.id, v: o.fastest })), f0);
 spread("oosGrab", outOfShield.flatMap((o) => (o.grab === null ? [] : [{ id: o.f.id, v: o.grab }])), f0);
 {
-  // A move is punishable out of shield, ignoring spacing, when the defender's option hits before the attacker can act.
+
   const medianOos = median(outOfShield.map((o) => o.fastest)), fastestOos = Math.min(...outOfShield.map((o) => o.fastest));
   const ground = attacks.filter((a) => !a.aerial && bestOnShield(a) !== null), aerial = attacks.filter((a) => a.aerial && bestOnShield(a) !== null);
   const punishable = (rows: readonly Attack[], within: number) => rows.filter((a) => (bestOnShield(a) ?? 0) <= -within).length;
@@ -519,9 +519,9 @@ spread("oosGrab", outOfShield.flatMap((o) => (o.grab === null ? [] : [{ id: o.f.
   set("punish.aerialByFastest", `${punishable(aerial, fastestOos)} of ${aerial.length}`);
 }
 
-// On shield by timing, spacing and drift, for each fighter's aerial with the best L-cancelled advantage.
+
 const SHIELD_PUSHBACK = { strength: 1 - commonValue("x2E8"), stun: commonValue("x28C"), base: commonValue("x290"), speed: commonValue("x294"), ordinary: commonValue("x2BC"), cap: commonValue("x298") };
-/** Defender's initial slide speed from a full shield (ftCo_80092F2C): (1.5 × 0.3 × damage + 2) × 0.2 × 0.6, at most 2. */
+
 const pushback = (damage: number): number => Math.min(SHIELD_PUSHBACK.cap, (SHIELD_PUSHBACK.stun * Math.trunc(damage) * SHIELD_PUSHBACK.strength + SHIELD_PUSHBACK.base) * SHIELD_PUSHBACK.speed * SHIELD_PUSHBACK.ordinary);
 const medianTraction = median(fighters.map((f) => attribute(f, "ground_friction")));
 const medianDefender = fighters.reduce((best, f) => (Math.abs(attribute(f, "ground_friction") - medianTraction) < Math.abs(attribute(best, "ground_friction") - medianTraction) ? f : best));
@@ -544,7 +544,7 @@ tables.set("aerialSpacing", table(
   movement.map((m) => {
     const best = top(attacks.filter((a) => a.id === m.f.id && isAerial(a.action)), bestOnShield, 1, true)[0];
     if (best === undefined || best.startup === null || best.cancelled === null || best.shieldstun === null) return [name(m.f.id), "–", "–", "–", "–", "–", "–", "–"];
-    // Aerial input on the takeoff frame of a short hop fast-fallen at once: contact on frame `startup`, landing on `airtime`.
+
     const landing = m.shortFastFall.airtime;
     const early = best.startup < landing ? best.shieldstun - best.cancelled - (landing - 1 - best.startup) : null;
     return [name(m.f.id), moveName(best.action), signed(best.onShield), signed(best.onShieldLate), early === null ? "lands first" : signed(early),
@@ -552,10 +552,10 @@ tables.set("aerialSpacing", table(
   }),
 ));
 
-// ------------------------------------------------------------------ defence
+
 
 const HITLAG = { cap: commonValue("x194_unkHitLagFrames"), perDamage: commonValue("x198"), base: commonValue("x19C"), crouch: commonValue("x1A0"), electric: commonValue("x1A4") };
-/** Victim hitlag (ftCommon_CalcHitlag): truncated damage/3 + 3, electric ×1.5, capped at 20. */
+
 const hitlag = (damage: number, electric: boolean): number =>
   Math.min(HITLAG.cap, Math.trunc(Math.trunc(Math.trunc(damage) * HITLAG.perDamage + HITLAG.base) * (electric ? HITLAG.electric : 1)));
 const SDI = commonValue("sdi_pos_scale"), ASDI = commonValue("x4BC");
@@ -605,10 +605,10 @@ set("tapjump.window", commonValue("tap_jump_window"));
 set("dash.smashWindow", commonValue("dash_smash_window"));
 set("dash.smashThreshold", f2(commonValue("dash_smash_stick_threshold")));
 
-// ------------------------------------------------------------------ aerials on shield
 
-// Shieldstun (ftCo_80092F2C): GuardSetOff plays for x28C × power × (1 − (light × (x2E8 − x2E4) + x2E4)) + x290
-// frames of its animation; Smashcraft's verified tick count of that is ⌊raw × 200/201⌋ (smashcraft:docs/physics.md).
+
+
+
 const STUN = { scale: commonValue("x28C"), base: commonValue("x290"), light: commonValue("x2E4"), full: commonValue("x2E8") };
 const fullShieldRaw = (damage: number): number => STUN.scale * Math.trunc(damage) * (1 - STUN.full) + STUN.base;
 const shieldstunTicks = (damage: number): number => Math.trunc((fullShieldRaw(damage) * 200) / 201);
@@ -628,8 +628,8 @@ tables.set("aosStun", table(
   [3, 6, 9, 12, 15, 18, 24].map((d) => [String(d), String(shieldstunTicks(d)), String(hitlag(d, false)), f2(pushback(d))]),
 ));
 
-// Advantage of an aerial whose hitbox meets the shield on hop frame `contact` of a hop landing on frame `landing`:
-// shieldstun minus the frames still to fall minus the landing lag (attacks.md, "Reading the numbers").
+
+
 const aerialAdvantage = (damage: number, contact: number, landing: number, lag: number): number => shieldstunTicks(damage) - (landing - 1 - contact) - lag;
 const fighterById = (id: string): Movement => {
   const m = movement.find((entry) => entry.f.id === id);
@@ -637,7 +637,7 @@ const fighterById = (id: string): Movement => {
   return m;
 };
 {
-  // Captain Falcon's knee: SmashWiki's sweetspot (frames 14–16, 18%) and sourspot (17–30, 6%).
+
   const falcon = fighterById("captain_falcon"), knee = frameRecord("captain_falcon", "attacks", "fair");
   const strong = field(knee, "percent") ?? 0, weak = field(knee, "percent_weak") ?? 0, start = field(knee, "start") ?? 0;
   const lag = attribute(falcon.f, "landingairf_lag"), cancelled = Math.trunc(lag / commonValue("xE8"));
@@ -657,7 +657,7 @@ const fighterById = (id: string): Movement => {
   set("knee.hopAirFast", falcon.shortFastFall.airtime);
   set("knee.fullAir", falcon.full.airtime);
   set("knee.fullAirFast", falcon.fullFastFall.airtime);
-  // Pressed on the takeoff frame: the strong hit meets the shield on hop frame `start`, the weak on 17.
+
   set("knee.weakHighHop", signed(aerialAdvantage(weak, SOUR, falcon.short.airtime, cancelled)));
   set("knee.weakHighHopFall", falcon.short.airtime - 1 - SOUR);
   set("knee.strongFastHop", start < falcon.shortFastFall.airtime ? signed(aerialAdvantage(strong, start, falcon.shortFastFall.airtime, cancelled)) : "lands first");
@@ -666,7 +666,7 @@ const fighterById = (id: string): Movement => {
   set("knee.normalLanding", attribute(falcon.f, "normal_landing_lag"));
 }
 {
-  // Fox's drill (down air, multi-hit) and shine (grounded down special: hits on frame 1, jump-cancellable from the frame after it ends).
+
   const fox = fighterById("fox"), drill = frameRecord("fox", "attacks", "dair"), shine = frameRecord("fox", "attacks", "down_b");
   const drillDamage = field(drill, "percent") ?? 0, drillLag = attribute(fox.f, "landingairlw_lag"), drillCancelled = Math.trunc(drillLag / commonValue("xE8"));
   set("drill.damage", drillDamage);
@@ -687,7 +687,7 @@ const fighterById = (id: string): Movement => {
   set("fox.oosNair", fox.squat + (field(nair, "start") ?? 0));
   set("fox.grab", f0(field(frameRecord("fox", "grabs", "standing_grab"), "start")));
 }
-// Jump out of shield into each aerial (ftCo_Guard_IASA → KneeBend; the aerial on the takeoff frame): jump squat + startup.
+
 tables.set("oosAerials", table(
   ["Fighter", "Shield grab", "Jump squat", "Neutral air", "Forward air", "Back air", "Up air", "Down air"],
   ["l", "r", "r", "r", "r", "r", "r", "r"],
@@ -695,7 +695,7 @@ tables.set("oosAerials", table(
     ...AERIALS.map((action) => { const s = field(frameRecord(m.f.id, "attacks", action), "start"); return s === null ? "–" : String(m.squat + s); })]),
 ));
 
-// ------------------------------------------------------------------ archetypes
+
 
 interface Profile { readonly f: Fighter; readonly weight: number; readonly run: number; readonly air: number; readonly fall: number; readonly gravity: number; readonly groundStartup: number; readonly bestAerial: number | null; readonly oos: number }
 const profiles: Profile[] = movement.map((m) => {
@@ -716,7 +716,7 @@ tables.set("profiles", table(
 ));
 spread("weight", profiles.map((p) => ({ id: p.f.id, v: p.weight })), f0);
 {
-  // Weight enters ordinary knockback as 200 / (weight + 100) on its percent-driven part (https://www.ssbwiki.com/Knockback).
+
   const weights = profiles.map((p) => p.weight);
   set("weight.knockbackRatio", f2((Math.max(...weights) + 100) / (Math.min(...weights) + 100)));
 }
@@ -729,7 +729,7 @@ correlate("weightOos", (p) => p.weight, (p) => p.oos);
 correlate("runAir", (p) => p.run, (p) => p.air);
 correlate("fallAerialSafety", (p) => p.fall, (p) => p.bestAerial ?? 0);
 {
-  // Quartile groups, named by the measure that sets them apart.
+
   const group = (key: string, measure: (p: Profile) => number, high: boolean, format: (v: number | null) => string) => {
     const cut = quantile(profiles.map(measure), high ? 0.75 : 0.25);
     const members = profiles.filter((p) => (high ? measure(p) >= cut : measure(p) <= cut)).map((p) => name(p.f.id)).sort();
@@ -744,7 +744,7 @@ correlate("fallAerialSafety", (p) => p.fall, (p) => p.bestAerial ?? 0);
   group("fastAir", (p) => p.air, true, f2);
 }
 
-// ------------------------------------------------------------------ documents
+
 
 const VALUE = /<!-- v:([\w.]+) -->[\s\S]*?<!-- \/v -->/g;
 const TABLE = /<!-- table:([\w.]+) -->[\s\S]*?<!-- \/table -->/g;
@@ -761,7 +761,7 @@ function render(text: string, file: string): string {
       return `<!-- table:${key} -->\n${value}\n<!-- /table -->`;
     });
 }
-/** Documents whose computed spans differ from what this script computes. */
+
 export async function staleDocuments(): Promise<string[]> {
   const stale: string[] = [];
   for (const file of readdirSync(CASE_STUDY_DIRECTORY).filter((f) => f.endsWith(".md")).sort()) {

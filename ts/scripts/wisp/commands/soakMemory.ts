@@ -1,8 +1,8 @@
-// `bun wisp soak memory [--minutes N] [--out FILE]` (#168): the playable
-// build's memory soak in 32-bit Lua (scripts/wisp/memoryLua.ts), match after
-// match with every fighter and stage, then the slope check
-// (scripts/wisp/memorySoak.ts): fails when the Lua heap, live Warcraft handles
-// or what the maps' globals reach grow after warm-up.
+
+
+
+
+
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { BunServices } from "@effect/platform-bun";
@@ -21,7 +21,7 @@ class MemorySoakFailure extends Schema.TaggedError<MemorySoakFailure>()("MemoryS
   }
 }
 
-/** #168's soak: 30 game minutes. */
+
 const DEFAULT_MINUTES = 30;
 const MAX_MINUTES = 120;
 
@@ -49,13 +49,13 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
   yield* compile(join(tsDirectory, "tsconfig.memory.json")).pipe(step("compile the memory soak"));
   const lua = yield* stockLua.pipe(Effect.mapError((problem) => new MemorySoakFailure({ problem })));
   const declarations = join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts");
-  // The child belongs to this scope, so an interrupted soak stops the Lua run.
+
   const text = yield* Effect.scoped(Effect.gen(function*() {
     const child = yield* ChildProcess.make(lua, [join(tsDirectory, "build/memory.lua"), givenBundle ?? playable.bundlePath, declarations, String(minutes), ...(matches === undefined ? [] : [String(matches), String(first)])], { stdin: "ignore" });
     const [output, stderr, code] = yield* Effect.all([
       child.stdout.pipe(
         Stream.decodeText,
-        // A line a game minute, so a long run shows it is moving.
+
         Stream.tap((piece) => Effect.sync(() => {
           for (const line of piece.split("\n")) if (line.startsWith("sample kind=minute") || line.startsWith("release match=")) console.error(line.split(" | ")[0]);
         })),

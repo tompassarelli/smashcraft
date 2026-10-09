@@ -1,22 +1,22 @@
-// Summarizes the match results a soak run wrote with SOAK_OUTCOMES
-// (test/soak/game.ts) per fighter pair and player policy: wins with a 95%
-// Wilson interval, time-outs, stock time, the percent a stock was lost at and
-// damage per landed hit; then, per fighter the computer played, the times it
-// left the stage on its own while its opponent stood on it, its
-// self-destructs, the attacks it blocked and dodges it started, and how often
-// each authored move landed. Matches with an absent player or a departure are
-// left out. Without a fuzzed player identical results of one setup count
-// once: the computer has no randomness, so its matches repeat exactly
-// whatever the seed.
-// Usage (from ts/): bun scripts/soakOutcomes.ts FILE...
+
+
+
+
+
+
+
+
+
+
+
 import { Schema } from "effect";
 import soak from "./wisp/soak";
 import { heroDefinition, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 
-/** A stock lost this long after the last hit taken, or with none, was lost without the opponent: a self-destruct. */
+
 const KO_CREDIT_FRAMES = 180;
 const FRAMES_PER_SECOND = 60;
-/** Jab resets one fighter takes in a match that mark a time-out as a reset loop. */
+
 const RESET_LOOP = 5;
 
 const Outcome = Schema.Struct({
@@ -35,22 +35,22 @@ const Outcome = Schema.Struct({
 type Outcome = typeof Outcome.Type;
 const readOutcome = Schema.decodeSync(Schema.fromJsonString(Outcome));
 
-/**
- * Every move a fighter has, by the soak's move names: normals, aerials, grab
- * and throws, get-up and ledge attacks, and specials (the reference body's mount and
- * Illidan's ascent strike nothing; using one counts).
- */
+
+
+
+
+
 const AUTHORED_MOVES = [
   "jab", "forward-tilt", "forward-tilt-up", "forward-tilt-down", "up-tilt", "down-tilt", "forward-smash", "up-smash", "down-smash",
   "neutral-air", "forward-air", "back-air", "up-air", "down-air", "grab", "pummel", "forward-throw", "back-throw", "up-throw",
   "down-throw", "get-up-attack", "ledge-attack", "neutral-special", "side-special", "up-special", "down-special",
 ] as const;
 const FIGHTER_MOVES: Readonly<Record<string, readonly string[]>> = { illidan: [...AUTHORED_MOVES, "dash-attack"] };
-// Every expansion hero has a dash attack of its own.
+
 const movesOf = (fighter: string): readonly string[] =>
   FIGHTER_MOVES[fighter] ?? (heroDefinition(selectableCharacterBySlug(fighter) ?? -1) !== undefined ? [...AUTHORED_MOVES, "dash-attack"] : AUTHORED_MOVES);
 
-/** 95% Wilson score interval of `wins` in `trials`. */
+
 function wilson(wins: number, trials: number): readonly [number, number] {
   if (trials === 0) return [0, 1];
   const z = 1.959964;
@@ -63,7 +63,7 @@ function wilson(wins: number, trials: number): readonly [number, number] {
 
 interface Side {
   wins: number;
-  /** Damage and hits this side's fighter landed. */
+
   dealt: number;
   landed: number;
   koPercents: number[];
@@ -84,11 +84,11 @@ const side = (): Side => ({ wins: 0, dealt: 0, landed: 0, koPercents: [], selfDe
 const mean = (values: readonly number[]) => (values.length === 0 ? Number.NaN : values.reduce((sum, value) => sum + value, 0) / values.length);
 const fixed = (value: number, digits = 1) => (Number.isNaN(value) ? "-" : value.toFixed(digits));
 
-/**
- * The table a pair lands in, and which slot reads as its first side: the
- * computer against the fuzzer, otherwise roster order, and player 1 first in
- * a mirror.
- */
+
+
+
+
+
 function placement(outcome: Outcome, roster: readonly string[]): { readonly group: string; readonly first: number } | undefined {
   const [a = "", b = ""] = outcome.policies;
   if (outcome.policies.length !== 2 || outcome.interrupted || ![a, b].every((policy) => policy === "cpu" || policy === "fuzz")) return undefined;
@@ -97,18 +97,18 @@ function placement(outcome: Outcome, roster: readonly string[]): { readonly grou
   return { group: `${a} vs ${b}`, first: roster.indexOf(x) <= roster.indexOf(y) ? 0 : 1 };
 }
 
-/** Each match the soak played once: a match played again to confirm a costly frame reports twice. */
+
 function playedMatches(outcomes: readonly Outcome[]): Outcome[] {
   return [...new Map(outcomes.map((outcome) => [`${outcome.seed} ${outcome.index} ${outcome.stage} ${outcome.fighters.join()} ${outcome.policies.join()}`, outcome])).values()];
 }
 
-/** One match per result of a setup without a fuzzed player, every match with one. */
+
 function distinctMatches(played: readonly Outcome[]): Outcome[] {
   const distinct = new Map<string, Outcome>();
   for (const outcome of played) {
-    // What a player's record saw between frames varies with how many frames each observation confirmed.
+
     const players = outcome.players.map(({ slot, damageTaken, hitsTaken, stockLosses }) => ({ slot, damageTaken, hitsTaken, stockLosses: stockLosses.map(({ frame, percent }) => ({ frame, percent })) }));
-    // Only the fuzzer draws from the seed: other matches of one setup are the same match.
+
     const seeded = outcome.policies.includes("fuzz");
     const key = JSON.stringify({ ...outcome, index: seeded ? outcome.index : 0, seed: seeded ? outcome.seed : 0, players });
     if (!distinct.has(key)) distinct.set(key, outcome);
@@ -169,17 +169,17 @@ function table(rows: readonly Row[]): string {
   return lines.join("\n");
 }
 
-/**
- * Per fighter the computer played, pooled over every match it played: matches, times it
- * left the stage on its own while the opponent stood on it, self-destructs,
- * attacks blocked and dodges; then each authored move's landings, with the
- * moves that never landed.
- */
+
+
+
+
+
+
 function computerTables(outcomes: readonly Outcome[], roster: readonly string[]): string {
   const conduct = new Map(roster.map((fighter) => [fighter, { matches: 0, departures: 0, selfDestructs: 0, blocked: 0, dodges: 0, timeOuts: 0, resetTimeOuts: 0, landed: new Map<string, number>() }]));
   for (const outcome of outcomes) {
     if (outcome.interrupted) continue;
-    // A match that runs out of time while a fighter lies under jab resets is a reset loop, not a fight.
+
     const resetLoop = outcome.timedOut && outcome.players.some((player) => (player.resets ?? 0) >= RESET_LOOP);
     outcome.policies.forEach((policy, slot) => {
       const record = conduct.get(outcome.fighters[slot] ?? "");
@@ -222,8 +222,8 @@ if (import.meta.main) {
   if (files.length === 0) throw new Error("usage: bun scripts/soakOutcomes.ts FILE...");
   const read = (await Promise.all(files.map((file) => Bun.file(file).text())))
     .flatMap((text) => text.split("\n").filter((line) => line.trim() !== "").map((line) => readOutcome(line)));
-  // The soak plays a match again to confirm a costly frame, and that replay
-  // writes the same result a second time: count each match once.
+
+
   const matchKeys = new Set<string>();
   const outcomes = read.filter(({ index, seed }) => {
     const key = `${index}:${seed}`;

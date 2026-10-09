@@ -1,8 +1,8 @@
-// Foreign model boundary: encode Illidan and verify authored sequence bindings.
+
 import {parseMDL,generateMDX,parseMDX} from 'war3-model';
 import {join} from 'node:path';
 import {typescriptAssetInfo} from './asset-info';
-// For metadata changes, pass the authored asset directory and --metadata-only.
+
 const out=process.argv[2] ?? join(import.meta.dir,'../../build/illidan-animation');
 const metadataOnly=process.argv[3]==='--metadata-only';
 const model=metadataOnly

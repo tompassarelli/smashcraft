@@ -1,15 +1,15 @@
-// `bun scripts/nativeCapture.ts plan PAD|DIR...`: plays each capture script
-// headlessly through the native driver on the capture map's schedule (run to a
-// capture frame, hold it, run to the next) and checks its `#! cue` lines
-// against what the held frames show. No Warcraft client runs.
-//
-//   #! cue FROM[-TO] NAME: CHECK...
-//
-// CHECK is `sound=LABEL` (a sound started on a frame in FROM..TO),
-// `effect=MODEL` (an effect whose file name starts with MODEL is shown on a
-// capture frame in FROM..TO and appeared in FROM..that frame), or `tint=P`,
-// `shake=P`, `recoil=P` (fighter P, a or b, shows its damage tint, hitlag shake
-// or struck shield bubble on a capture frame in FROM..TO).
+
+
+
+
+
+
+
+
+
+
+
+
 import { join } from "node:path";
 import { Effect, Schema } from "effect";
 import type { MapEntry } from "wisp/src/headless/client";
@@ -20,7 +20,7 @@ import { damageTint, hitlagShake } from "../src/game/presentation/hitPresentatio
 import { SMASHCRAFT_HEADLESS } from "./wisp/headless";
 import type { CaptureFixture } from "../src/platform/captureFixtures";
 
-// Map code under src/platform/ declares Warcraft natives the host program doesn't, so it loads by path (as scripts/wisp/standalone.ts does).
+
 const platform = join(import.meta.dir, "../src/platform");
 interface Shell { readonly world: Roster; readonly runtime: { readonly simulationFrame: number } }
 const loadPlatform = async () => {
@@ -67,7 +67,7 @@ interface Held {
   readonly looks: readonly (readonly Look[])[];
 }
 
-/** The headless run of one fixture: each sound with the match frame it started on, and what each held capture frame shows. */
+
 function play({ shell, nativeDriverCommand, entry }: Platform, fixture: CaptureFixture) {
   const runtime = installHeadless(SMASHCRAFT_HEADLESS);
   try {
@@ -89,7 +89,7 @@ function play({ shell, nativeDriverCommand, entry }: Platform, fixture: CaptureF
       read();
       for (const cue of client.soundLog.slice(heard)) if (cue.event === "start") sounds.push({ name: fileName(cue.label ?? cue.source ?? ""), frame });
       heard = client.soundLog.length;
-      // Pooled effects are made hidden at the start and shown when used, so an effect's start is when it last became visible.
+
       const visible = new Set(client.effectPoses({ visibleOnly: true }).map(pose => pose.handle));
       for (const handle of visible) if (!showing.has(handle)) made.set(handle, frame);
       showing = visible;
@@ -122,7 +122,7 @@ function play({ shell, nativeDriverCommand, entry }: Platform, fixture: CaptureF
   }
 }
 
-/** Each cue's verdict: the frames that satisfy each of its checks, or what is missing. */
+
 export function judge(cues: readonly Cue[], run: ReturnType<typeof play>) {
   return cues.map(cue => {
     const inRange = (frame: number) => frame >= cue.from && frame <= cue.to;

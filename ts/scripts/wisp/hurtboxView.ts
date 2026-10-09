@@ -1,9 +1,9 @@
-// Side-view captures of each fighter's hurt volumes over its drawn pose, frame
-// by frame. The simulation plays the move through the production step and
-// pose selection; the fighter's packaged model is skinned at the clip time the
-// pool would show, flattened onto the stage plane and drawn under the
-// volumes. Contact never reads the model: these captures check the authored
-// volumes against what a player sees (smashcraft:docs/hurtboxes.md).
+
+
+
+
+
+
 import { deflateSync } from "node:zlib";
 import { ModelRenderer, type model as mdx } from "war3-model";
 import { parseModelMDX } from "wisp/scripts/wisp/models";
@@ -21,7 +21,7 @@ import { createRoster, neutralControls } from "../../src/game/sim/roster";
 import { advanceFighter } from "../../src/game/sim/step";
 import { beginAttack, beginDownState } from "../../src/game/sim/transitions";
 
-/** Each fighter's packaged model under a build's --assets directory. */
+
 export const FIGHTER_MODELS: Readonly<Record<number, string>> = {
   [Character.rifleman]: "animation-assets/RiflemanFighter.mdx",
   [Character.demonHunter]: "illidan-animation/DemonHunterFighter.mdx",
@@ -34,7 +34,7 @@ interface PlacedPart extends Capsule {
   readonly state: HurtState;
 }
 
-/** One simulated frame: the body, the active strikes and the clip the pool would show. */
+
 export interface PoseFrame {
   readonly frame: number;
   readonly phase: AttackPhase;
@@ -73,7 +73,7 @@ export function capture(f: Fighter, pose: ReturnType<typeof createFighterPose>):
   return { frame: f.attack.frame, phase: attackPhase(f), x: f.motion.x, z: f.motion.z, facing, parts, strikes, clip, seconds };
 }
 
-/** A standing or crouching body for a few frames, as the pose selects it. */
+
 export function sampleState(character: Character, crouching: boolean, facing = 1): PoseFrame {
   const f = createFighter(character, 0.0, facing);
   const world = createRoster(1, [f]);
@@ -86,7 +86,7 @@ export function sampleState(character: Character, crouching: boolean, facing = 1
   return capture(f, pose);
 }
 
-/** Every frame of an attack started from rest, grounded or high in the air. */
+
 export function sampleAttack(character: Character, style: AttackStyle, facing = 1, aerial = false): PoseFrame[] {
   const f = createFighter(character, 0.0, facing);
   const world = createRoster(1, [f]);
@@ -96,10 +96,10 @@ export function sampleAttack(character: Character, style: AttackStyle, facing = 
   }
   const pose = createFighterPose();
   const input = neutralControls();
-  // A get-up attack starts from lying down, not from an attack input.
+
   if (style === AttackStyle.getupAttack) beginDownState(f, DownState.attack, 0);
   else beginFighterAttack(world, 0, style, false);
-  // A ledge attack plays its climbing clip over the whole ledge option.
+
   if (style === AttackStyle.ledgeAttack) {
     beginAttack(f, style, false);
     f.ledge.state = LedgeState.attack;
@@ -116,14 +116,14 @@ export function sampleAttack(character: Character, style: AttackStyle, facing = 
   return frames;
 }
 
-/** The model's visible triangles flattened onto the stage plane, in world units around the fighter's origin. */
+
 interface SkinningState {
   frame: number;
   readonly nodes: readonly { readonly matrix: Float32Array }[];
   readonly geosetAlpha: readonly number[];
 }
 
-// war3-model keeps its frame, posed node matrices and geoset alphas private; reach them through a checked guard.
+
 function isSkinningState(value: unknown): value is SkinningState {
   if (typeof value !== "object" || value === null) return false;
   return typeof Reflect.get(value, "frame") === "number" && Array.isArray(Reflect.get(value, "nodes")) && Array.isArray(Reflect.get(value, "geosetAlpha"));
@@ -143,23 +143,23 @@ export class DrawnModel {
   constructor(bytes: ArrayBuffer, private readonly scale: number) {
     this.model = parseModelMDX(bytes);
     this.renderer = new ModelRenderer(this.model);
-    // Additive and modulated layers are glows and shadows, not the body's silhouette.
+
     this.visible = this.model.Geosets.flatMap((geoset, index) => {
       const material = this.model.Materials[geoset.MaterialID];
       return material !== undefined && material.Layers.some((layer) => Number(layer.FilterMode) <= 2) ? [index] : [];
     });
   }
 
-  /** The skeleton: each node's name and parent by object id. */
+
   nodes(): readonly { readonly name: string; readonly parent: number | undefined }[] {
     return Array.from(this.model.Nodes, (node) => ({ name: node?.Name ?? "", parent: node?.Parent ?? undefined }));
   }
 
-  /**
-   * The pose at the clip's time, flattened onto the stage plane like `triangles`:
-   * every body vertex (visible-material geosets) in one stable order, which of them draw, the drawn
-   * triangles over those vertex indices, and each node's pivot by object id.
-   */
+
+
+
+
+
   posed(sequence: number, seconds: number, facing: number): { readonly vertices: Float32Array; readonly drawn: Uint8Array; readonly faces: Uint32Array; readonly nodes: Float32Array } {
     const data = skinningState(this.renderer);
     this.renderer.setSequence(sequence);
@@ -210,7 +210,7 @@ export class DrawnModel {
     return this.model.Sequences[index]?.Name;
   }
 
-  /** Flat [x1, z1, x2, z2, x3, z3, ...] triangles of the pose at the clip's time. */
+
   triangles(sequence: number, seconds: number, facing: number): Float32Array {
     const data = skinningState(this.renderer);
     this.renderer.setSequence(sequence);
@@ -256,7 +256,7 @@ export async function loadDrawnModel(assets: string, character: Character): Prom
   return new DrawnModel(await Bun.file(path).arrayBuffer(), characterModelScale(character));
 }
 
-/** World window of one panel around the fighter's origin, in units; one pixel per unit. */
+
 const LEFT = -230;
 const RIGHT = 230;
 const BOTTOM = -140;
@@ -283,13 +283,13 @@ function segmentDistance(px: number, pz: number, c: Readonly<Capsule>): number {
   return Math.hypot(px - (c.x1 + t * dx), pz - (c.z1 + t * dz));
 }
 
-/** How much of the drawn body the volumes cover, and how much of the volumes the drawn body fills. */
+
 export interface Coverage {
   readonly covered: number;
   readonly filled: number;
 }
 
-/** Draws one panel into rgb (PANEL_WIDTH x PANEL_HEIGHT) and measures its coverage. */
+
 export function drawPanel(rgb: Uint8Array, frame: PoseFrame, triangles: Float32Array): Coverage {
   const body = new Uint8Array(PANEL_WIDTH * PANEL_HEIGHT);
   for (let t = 0; t + 5 < triangles.length; t += 6) {
@@ -347,7 +347,7 @@ export function drawPanel(rgb: Uint8Array, frame: PoseFrame, triangles: Float32A
   return { covered: bodyPixels === 0 ? 0 : coveredPixels / bodyPixels, filled: volumePixels === 0 ? 0 : filledPixels / volumePixels };
 }
 
-/** Tiles panels into a sheet, `columns` wide, with a two-pixel gutter. */
+
 export function tile(panels: readonly Uint8Array[], columns: number): { width: number; height: number; rgb: Uint8Array } {
   const gutter = 2;
   const rows = Math.ceil(panels.length / columns);
@@ -386,7 +386,7 @@ function chunk(type: string, data: Uint8Array): Uint8Array {
   return out;
 }
 
-/** An 8-bit RGB PNG. */
+
 export function encodePng(width: number, height: number, rgb: Uint8Array): Uint8Array {
   const header = new Uint8Array(13);
   const view = new DataView(header.buffer);
@@ -405,7 +405,7 @@ export function encodePng(width: number, height: number, rgb: Uint8Array): Uint8
   return out;
 }
 
-/** A sheet's frames: every frame of a move, or the standing and crouching bodies. */
+
 export interface SheetResult {
   readonly name: string;
   readonly png: Uint8Array;
@@ -415,7 +415,7 @@ export interface SheetResult {
 const PHASE_NAMES: Readonly<Record<number, string>> = { 0: "idle", 1: "startup", 2: "active", 3: "recovery" };
 const percent = (value: number) => `${Math.round(value * 100)}%`;
 
-/** Draws a list of frames for one fighter into a sheet with one coverage line per frame. */
+
 export function sheet(name: string, model: DrawnModel, frames: readonly PoseFrame[], columns = 6): SheetResult {
   const panels: Uint8Array[] = [];
   const lines: string[] = [];
@@ -431,7 +431,7 @@ export function sheet(name: string, model: DrawnModel, frames: readonly PoseFram
   return { name, png: encodePng(width, height, rgb), lines };
 }
 
-/** Sheet names of the sampled moves, as move data spells them. */
+
 export const STYLE_NAMES: Readonly<Record<number, string>> = {
   [AttackStyle.jab]: "jab", [AttackStyle.downTilt]: "down-tilt", [AttackStyle.forwardSmash]: "forward-smash",
   [AttackStyle.forwardAir]: "forward-air", [AttackStyle.downAir]: "down-air",

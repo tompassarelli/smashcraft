@@ -1,12 +1,12 @@
-// Records the combo explorer's true follow-up fixture
-// (smashcraft:ts/test/fixtures/combo-explorer-follow-up.txt): a seeded match
-// of two expert Wrens, Blademaster on Rifleman, played until the attacker's
-// next attack lands while the defender is still in hitstun from the last hit.
-// The fixture keeps the state the frame that hitstun began, both slots'
-// controls for every frame from there to the follow-up's hit, and the damage
-// it dealt. The follow-up must deal more than the defender takes with nobody
-// pressing anything, so only a search finds it. Rerun it when the saved state's fields change:
-// `bun scripts/comboExplorerFixture.ts [seed]`.
+
+
+
+
+
+
+
+
+
 import { lineTokens, parseRecord, recordTokens, tokenLines } from "wisp/src/runtime/recordText";
 import { type AttackBuffer, clearAttackBuffer, copyAttackBuffer } from "../src/game/input/attackBuffer";
 import { createBotMemory } from "../src/game/match/botPerception";
@@ -30,18 +30,18 @@ export const FIXTURE = new URL("../test/fixtures/combo-explorer-follow-up.txt", 
 export interface FollowUpFixture {
   readonly seed: number;
   readonly setup: ComboSetup;
-  /** The frame the saved state ends; the first recorded frame is the next one. */
+
   readonly rootFrame: number;
   readonly state: ReplayState;
-  /** Slots 0 and 1's controls for each frame after the root, through the follow-up's hit. */
+
   readonly frames: readonly { readonly inputs: readonly Controls[]; readonly commands: readonly AttackBuffer[] }[];
-  /** The defender's damage gained from the root through the follow-up's hit. */
+
   readonly actual: number;
 }
 
 const SETUP: ComboSetup = { stage: 0, attacker: Character.blademaster, defender: Character.rifleman, attackerX: 0.0, defenderX: 0.0, facing: 1, attackerZ: 0.0, defenderZ: 0.0, percent: 0.0 };
 
-/** The seeded match's first true follow-up, or undefined when 1800 frames show none. */
+
 function record(seed: number): string[] | undefined {
   const game = createMatchState();
   setParticipants(game, 0, 3);
@@ -77,7 +77,7 @@ function record(seed: number): string[] | undefined {
     if (!captureFrame(row, n, world.mask, produced, runtime) || !executeMatchFrame(row, game, world, controls, runtime, n)) throw new Error(`frame ${n} did not run`);
     if (root !== undefined && (canStartAttack(defender) || defender.status.stocks !== root.stocks)) root = undefined;
     if (root !== undefined && defender.visuals.hit > root.hits && defender.status.damage > root.damage && attacker.attack.serial !== root.serial) {
-      // The explorer counts damage from the setup's percent.
+
       const setup = { ...SETUP, percent: root.damage };
       const actual = defender.status.damage - root.damage;
       if (idleDamage(setup, snapshot) >= actual) {
@@ -90,7 +90,7 @@ function record(seed: number): string[] | undefined {
     }
     if (beforeLag > 0 && defender.launch.hitlag === 0 && defender.launch.hitstun > 0 && root === undefined) {
       captureReplaySnapshot(snapshot, world, game, controls, runtime);
-      // The computers' perception history is most of a saved state; replaying recorded controls never reads it.
+
       const view = savedView(snapshot);
       const state = recordTokens({ ...view, runtime: { ...view.runtime, botMemory: createBotMemory() } }, KEYED_BY_ACTION);
       if (state === undefined) throw new Error("the saved state has no record text");
@@ -101,7 +101,7 @@ function record(seed: number): string[] | undefined {
   return undefined;
 }
 
-/** The defender's damage gained from `state` while neither fighter touches the controls, until it could act: what the follow-up must beat to show a search. */
+
 export function idleDamage(setup: ComboSetup, state: Readonly<ReplayState>): number {
   const sim = new Sim(setup, state);
   const start = sim.b.status.damage;

@@ -15,8 +15,8 @@ preferences = bpy.context.preferences.addons["export_mdl"].preferences
 preferences.resourceFolder = str(assets / "textures")
 preferences.textureExtension = "png"
 
-# Blender starts with a Cube, camera and light. Import the model into a clean
-# scene so those startup objects never enter the fighter rig or its exports.
+
+
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.object.delete(use_global=False)
 

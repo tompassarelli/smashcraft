@@ -1,5 +1,5 @@
-// Original sky art at the foreign MDX/TGA boundary. The authored colour fields
-// are independent of installed Warcraft textures and private visual references.
+
+
 type Color = readonly [number, number, number];
 interface StageSky { readonly stage: number; readonly theme: string; readonly zenith: Color; readonly horizon: Color; readonly nadir: Color; readonly cloud: number }
 export const STAGE_SKIES: readonly StageSky[] = [
@@ -15,7 +15,7 @@ export const STAGE_SKIES: readonly StageSky[] = [
   { stage: 13, theme: "AhnQiraj", zenith: [76, 72, 84], horizon: [179, 159, 115], nadir: [41, 35, 37], cloud: 7 },
 ];
 const hash = (value: Uint8Array | string) => new Bun.CryptoHasher("sha256").update(value).digest("hex");
-/** Quiet, seamless atmospheric bands; the horizon carries colour, not the action's bright accents. */
+
 export function stageSkyTexture(sky: StageSky) {
   const width = 256, height = 128;
   const bytes = new Uint8Array(18 + width * height * 4);
@@ -32,7 +32,7 @@ export function stageSkyTexture(sky: StageSky) {
   }
   return { bytes, name: `StageSky-${hash(bytes)}.tga` };
 }
-/** A complete inward-facing sphere: sky draws behind the stage without a camera-dependent seam. */
+
 export function stageSkyMdl(texture: string) {
   const segments = 32, rings = 16, radius = 2000;
   const vertices: number[][] = [], uv: number[][] = [], triangles: number[] = [];

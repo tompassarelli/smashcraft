@@ -28,8 +28,8 @@ const phase = (at: number, pose: Gesture = {}): Phase => ({ at, pose });
 const strike = (name: string, frames: number, first: number, last: number, coil: Gesture, hit: Gesture, exit: Gesture = {}, air = false) =>
   add(name, frames, [phase(0), phase(Math.max(0, first - 3), coil), phase(first, hit), phase(last, { ...hit, axe: (hit.axe ?? 0) + 12 }), phase(Math.min(frames - 1, last + 9), exit), phase(frames)], { air });
 
-// The stock axe is attached to the right hand. Its free left hand handles
-// lumber and grips; each attack moves the shoulders, chest and support legs.
+
+
 strike("jab", 17, 3, 4, { axe: -135, chest: -12, twist: -18 }, { axe: -35, elbow: -10, chest: 8, knee: 8 });
 strike("jab2", 25, 5, 6, { axe: -100, chest: -12 }, { axe: 24, elbow: 30, chest: 24, knee: 16 });
 strike("forwardTilt", 29, 7, 9, { axe: -135, chest: -12, twist: -18 }, { axe: -30, elbow: -20, chest: 18, twist: 20, knee: 12 });
@@ -174,7 +174,7 @@ ensure(victimPummel?.index === 70, "Peon victim-pummel index changed");
 const victimSequence = model.Sequences[victimPummel.index]!;
 const [victimFirst, victimLast] = victimSequence.Interval;
 const victimContact = victimFirst! + 1000;
-// Victims share a half-second contact; a separate interval retains every other clip's keys.
+
 tracks(model, track => {
   if (onGlobalClock(track)) return;
   for (const key of track.Keys) if (key.Frame >= victimFirst! && key.Frame <= victimLast!) {
@@ -195,7 +195,7 @@ const lumberToss = bindings.get("neutralSpecial");
 ensure(lumberToss?.index === 38, "Peon Lumber Toss index changed");
 const lumberSequence = model.Sequences[lumberToss.index]!;
 const [lumberFirst, lumberLast] = lumberSequence.Interval;
-// Extra recovery holds the restored idle pose without moving the original throw keys.
+
 tracks(model, track => {
   if (onGlobalClock(track)) return;
   const keys = track.Keys.filter(key => key.Frame >= lumberFirst! && key.Frame <= lumberLast!);

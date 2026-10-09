@@ -1,12 +1,12 @@
-// `wisp online`: direct play by join code (#142; scripts/wisp/online.ts).
-// The client's Online page runs these and shows their output lines, which are
-// written for players; the technical reason for a failure goes to stderr.
-//   setup [--client NAME]                 the menu page and Allow Local Files, after the player agrees
-//   host [--client NAME] [--password VALUE] [--repair]       hosts the newest Smashcraft map, prints "Join code: ABCD-EFGH",
-//                                         starts on a "start" line on stdin (the client's Start now)
-//   join CODE [--client NAME] [--password VALUE] [--repair]  joins by code and waits for the host to start
-// Without --client it is Tom's own install (play's prefix and report port);
-// with it, a client of ~/.local/state/smashcraft/clients.json.
+
+
+
+
+
+
+
+
+
 import { readFileSync } from "node:fs";
 import { Console, Effect, Option, Schema } from "effect";
 import { documentsFolder } from "wisp/scripts/warcraft/battleNet";
@@ -51,7 +51,7 @@ const installOf = (args: readonly string[]) => Effect.gen(function*() {
 
 const say = (line: string) => Console.log(line);
 
-/** A failure, as the player reads it. */
+
 export function playerProblem(failure: MenuFailure): string {
   const { operation, problem } = failure;
   if (operation === "find the menus") return "Warcraft III isn't open, or its menus aren't set up for Smashcraft. Open Warcraft III, sign in and try again; after setting up, restart Warcraft III once.";
@@ -65,10 +65,10 @@ export function playerProblem(failure: MenuFailure): string {
   return "Something went wrong; the client's log has the details.";
 }
 
-/** Prints the player's line for a failure, then fails as before so stderr gets the reason. */
+
 const explained = <A, E, R>(effect: Effect.Effect<A, E, R>) => effect.pipe(Effect.tapError((error) => (error instanceof MenuFailure ? say(playerProblem(error)) : Effect.void)));
 
-/** Succeeds when a "start" line arrives on stdin: the client's Start now. */
+
 const startLine = Effect.callback<void>((resume) => {
   let text = "";
   const read = (chunk: Buffer) => {
@@ -83,7 +83,7 @@ const startLine = Effect.callback<void>((resume) => {
 });
 
 const menusOf = (install: Install, repair: boolean) => Effect.gen(function*() {
-  // A Warcraft III update can drop the page; writing it again takes effect at the game's next start.
+
   if (repair) yield* installMenuPage(retailFolder(install.prefix), install.menuReportPort).pipe(Effect.ignore);
   const menus = yield* reportedMenus(install.menuReportPort);
   if (menus === undefined) return yield* new MenuFailure({ operation: "find the menus", problem: `no menu page reported to 127.0.0.1:${install.menuReportPort} within 3 s` });

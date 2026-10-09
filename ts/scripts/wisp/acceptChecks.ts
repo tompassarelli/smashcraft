@@ -1,7 +1,7 @@
-// Smashcraft's native checks for `bun wisp accept` (wisp:docs/accept.md):
-// each open issue box that needs Warcraft III itself, declared as data next to
-// the issue it closes. Map profiles name the private map each session hosts
-// and the developer command that starts its match; maps stay outside Git.
+
+
+
+
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { AcceptSuite, NativeCheck, Rule } from "wisp/scripts/wisp/accept";
@@ -16,13 +16,13 @@ const inputs = join(homedir(), ".local/share/smashcraft-build-inputs");
 export interface SmashcraftMapProfile {
   readonly describe: string;
   readonly path: string;
-  /** Rebuild the map's script from this checkout with this build profile (`--profile`), once per run, before its first session. */
+
   readonly rebuild?: string;
-  /** The developer command that starts the session's match from fighter selection. */
+
   readonly quick: string;
 }
 
-/** A development map rebuilt from this checkout: diagnostics and `-dev` commands. */
+
 const PRESENTATION = join(inputs, "native-acceptance-20261006/Smashcraft diagnostic native presentation.w3x");
 const LIGHTING = join(inputs, "visuals-170-20261007/Smashcraft diagnostic stage lighting.w3x");
 
@@ -40,12 +40,12 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   "slash-unlit": { describe: "integrity map built at f9d0fbf3, slash hit spark without its contact light", path: join(inputs, "particles-192-20261008/before.w3x"), quick: "-dev quick" },
   "slash-lit": { describe: "integrity map built with the slash hit spark's contact light", path: join(inputs, "particles-192-20261008/after.w3x"), quick: "-dev quick" },
   presentation: { describe: "development map rebuilt from this checkout, `-dev quick` (Illidan and Rifleman idle on the default stage)", path: PRESENTATION, rebuild: "main", quick: "-dev quick" },
-  // smashcraft:docs/player-view.md: CURRENT_BUILD's scenario set to underside, built as a development map.
-  // smashcraft#166: the playable build's keyboard input and pooled fighters (native-perf adds only developer setup and the frame meter).
+
+
   keyboard: { describe: "playable input (native-perf profile) rebuilt from this checkout, `-dev quick cpu wren expert` (Wren Expert, three stocks)", path: join(inputs, "keyboard-native-166-20261007/keyboard-native.w3x"), rebuild: "native-perf", quick: `${QUICK_CPU_COMMAND}wren expert` },
   underside: { describe: "development map built with scenario underside (smashcraft:docs/player-view.md), `-dev quick`", path: join(inputs, "stage-model-20261006/Smashcraft diagnostic underside.w3x"), quick: "-dev quick" },
   training: { describe: "development map rebuilt from this checkout, `-dev quick training` (a computer partner shielding at 40%, hit areas on)", path: PRESENTATION, rebuild: "main", quick: QUICK_TRAINING_COMMAND },
-  // A quick match starts only from fighter selection, so each stage is its own session.
+
   ...Object.fromEntries(rankedStages.map(({ id, name }) => [stageProfile(name), {
     describe: `development map rebuilt from this checkout, a quick match on ${name}`,
     path: PRESENTATION,
@@ -65,11 +65,11 @@ export const MAP_PROFILES: Readonly<Record<string, SmashcraftMapProfile>> = {
   }])),
 };
 
-/** No runtime error report written during the check, on any client. */
+
 const NO_ERRORS: Rule = { kind: "receipt", pattern: "^error \\d+ in ", max: 0 };
-/** Every client's receipt for the developer command. */
+
 const DEV_RECEIPT: Rule = { kind: "receipt", pattern: "^SMASHCRAFT DEV v=1 ", min: 1 };
-/** War3Log lines for imported models the map couldn't create (#73), since the session's map began loading. */
+
 const NO_IMPORT_FAILURES: Rule = { kind: "log", pattern: "^model creation failed - war3mapImported", since: "session", max: 0 };
 
 const EXPECTATIONS: Readonly<Record<number, string>> = {
@@ -89,7 +89,7 @@ const EXPECTATIONS: Readonly<Record<number, string>> = {
   26: "two floor dust puffs (ordinary landing)",
 };
 
-/** smashcraft#109's native look (and #115's decks, #110's camera): each stage's quick match, one whole frame per client once its scene has had 5 s to draw. */
+
 const stageChecks: NativeCheck[] = rankedStages.map(({ name }): NativeCheck => ({
   id: `109-${stageProfile(name)}`,
   closes: "smashcraft#109 box 5",
@@ -100,7 +100,7 @@ const stageChecks: NativeCheck[] = rankedStages.map(({ name }): NativeCheck => (
   look: `${name}: sky, fog and scenery behind the fighting volume, no mirror-twin scenery or creatures, a themed main deck distinct from the fog, both fighters and the HUD drawn`,
 }));
 
-/** One paused scene per stage; the native owner measures the matching masks and frames together. */
+
 const lightingChecks: NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): NativeCheck[] => [
   {
     id: `170-${id}-stock`, closes: "smashcraft#170 box 4", map: "floating-stages", session: "floating-stages",
@@ -122,7 +122,7 @@ const lightingChecks: NativeCheck[] = STAGE_CATALOG.flatMap(({ id, name }): Nati
   },
 ]);
 
-/** smashcraft#82's re-capture: each case 3 s after the last, frames from its receipt to +0.5 s, its model and sound named on screen. */
+
 const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 25, 26].flatMap((index): NativeCheck[] => {
   const scenario = HIT_PRESENTATION_CASES[index];
   if (scenario === undefined) return [];
@@ -136,7 +136,7 @@ const effectChecks: NativeCheck[] = [12, 13, 14, 15, 24, 2, 7, 5, 6, 4, 9, 11, 2
       { kind: "frames", name: "centre", count: 6, everyMs: 50 },
       { kind: "reading", name: "label", pattern: `dev: effects ${index} (\\S+ \\S+)` },
     ],
-    // The label is written by the call that starts the sound: the right label is the sound's evidence.
+
     pass: [DEV_RECEIPT, NO_ERRORS, { kind: "reading", name: "label", pattern: `${model} ${sound}`, orLook: true }],
     look: EXPECTATIONS[index] ?? "the case's effect at stage centre",
   }];
@@ -150,7 +150,7 @@ const contactLightChecks: NativeCheck[] = (["before", "after"] as const).map((ph
   look: `Tech contact ${phase}: compare the same chest-height spark, fighter surface and team colours at 50 ms intervals. The contact light must make the contact easier to read in HD; Classic retains the complete spark. Record graphics mode and native frame cost alongside the original #168 budget.`,
 }));
 
-/** Case 4 is a slash hit: the authored Hit spark, whose contact light is the 3.0 fighter-effect feature. */
+
 const slashLightChecks: NativeCheck[] = (["before", "after"] as const).map((phase): NativeCheck => ({
   id: `192-slash-${phase}`, closes: "smashcraft#192 box 3", map: phase === "before" ? "slash-unlit" : "slash-lit", session: `slash-${phase}`,
   setup: [{ chat: "-dev reset" }, { chat: "-dev quick" }, { chat: "-dev view off" }, { waitMs: 5000 }, { chat: "-dev effects 4" }, { receipt: "^SMASHCRAFT DEV v=1 ", seconds: 4 }],
@@ -191,7 +191,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       id: "161-slot-outfits", closes: "smashcraft#161 box 4", map: "outfits",
       setup: [{ waitMs: 3000 }],
       capture: [{ kind: "frames", name: "stage-and-hud", client: "a" }, { kind: "frames", name: "stage-and-hud", client: "b" }],
-      // The session start already waits for both clients' -dev quick receipts; this check sends no command of its own.
+
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "In the same frame, Illidan's red clothing and Rifleman's blue hood on stage match their HUD busts and stock icons; frames alone are insufficient.",
     },
@@ -233,8 +233,8 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "He raises Frostmourne, plants its point in the floor and pulls it back. A dark pool spreads ahead with a crisp glowing danger edge, dim during warning and violet when armed. The edge flashes on each growth. Cast frames 60/380/560/700 in smashcraft:ts/test/native/pads/lich-king-defile.pad show the plant in both facings; 65/77 show warning/armed pool. The growth frames 696/732/768 in 174/growth.pad show three widening flashes. The cast script also checks repeated casts and an unhurt jump escape.",
     })),
-    // Keys: W R E move, I jump, N attack, U special, O grab (presetBindings standard).
-    // The quick CPU match has a seven-minute limit; allow its ordinary result plus catch-up after loading.
+
+
     {
       id: "166-keyboard-match",
       closes: "smashcraft#166 box 3 (keyboard half)",
@@ -252,7 +252,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       closes: "smashcraft#166 box 3 (controller half)",
       map: "keyboard",
       session: "166-controller",
-      // Client A's pad arrives as keys from `wc3-controller --emit --virtual-pad --gamepad 2` with its private-desktop target (smashcraft:companion/README.md, "Explicit Linux output"), started beside this check.
+
       setup: [{ receipt: "^parts [0-9]+$", client: "a", seconds: 600 }],
       pass: [NO_ERRORS, { kind: "receipt", pattern: "^parts [0-9]+$", min: 1 }],
       look: "the controller log shows its key presses and client A's replay reaches its checksums with player 1's input",
@@ -265,7 +265,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS, { kind: "receipt", pattern: "^render-clock run=[0-9]+ clock=running", min: 1 }],
       look: "native session owner: compare callback bursts and recording cost with renderer telemetry at 60 and 144 fps; a receipt alone does not establish a render-rate hook",
     },
-    // First in its session, so its frames show the map as it loaded.
+
     {
       id: "73-map-load",
       closes: "smashcraft#73 box 1",
@@ -310,7 +310,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
       look: "after the neutral special, the top-left readout's first line names it (for example 'Swift Arrow: 34 total'), not 'Attack' or 'Special'",
     },
-    // #153 box 5, in one Forsaken Paladin mirror in this order, each starting where the last left the fighters (smashcraft:docs/design/mana.md, "The bar"). Keys: W R E move, U special, O grab.
+
     {
       id: "153-mana-full",
       closes: "smashcraft#153 box 5 (full bars)",
@@ -324,7 +324,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       id: "153-mana-spent",
       closes: "smashcraft#153 box 5 (drain on specials)",
       map: heroProfile("Forsaken Paladin"),
-      // Three Crusader Rushes (20 each) toward the other Forsaken Paladin.
+
       setup: [{ keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }],
       capture: [{ kind: "frames", name: "spent", client: "a" }, { kind: "frames", name: "spent", client: "b" }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
@@ -334,7 +334,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       id: "153-mana-escape",
       closes: "smashcraft#153 box 5 (stacked with the escape meter)",
       map: heroProfile("Forsaken Paladin"),
-      // After the rushes player 1 stands at player 2, so a grab press catches.
+
       setup: [{ keys: ["o"] }, { waitMs: 150 }],
       capture: [{ kind: "frames", name: "held", client: "a", count: 4, everyMs: 120 }, { kind: "frames", name: "held", client: "b", count: 4, everyMs: 120 }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],
@@ -344,7 +344,7 @@ export const SMASHCRAFT_ACCEPT: AcceptSuite = {
       id: "153-mana-refused",
       closes: "smashcraft#153 box 5 (refused special)",
       map: heroProfile("Forsaken Paladin"),
-      // Once the hold ends, rushes until one can't be paid: the refused press flashes both of player 1's bars red.
+
       setup: [{ waitMs: 1500 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 900 }, { keys: ["r+u"] }, { waitMs: 300 }, { keys: ["r+u"] }],
       capture: [{ kind: "frames", name: "refused", client: "a", count: 8, everyMs: 100 }],
       pass: [NO_IMPORT_FAILURES, NO_ERRORS],

@@ -1,4 +1,4 @@
-// Independently authored foreign-executable loader; original bytes stay private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/damage-landing-runner';
@@ -19,8 +19,8 @@ const roots=32+dat.readUInt32BE(4)+4*dat.readUInt32BE(8);
 const commonOffset=32+dat.readUInt32BE(32+dat.readUInt32BE(roots));
 const entry=0x81000000,common=entry+0x29000,data=entry+0x30000,stack=entry+0xff000;
 original.writeUInt32BE(common,r13-20812-base);
-// Stop at the selected action consumer. Only authored result labels replace
-// action calls; both original comparisons and their conditional branches run.
+
+
 const actions=[[0x8008fc4c,3,'knockdown'],[0x8008fc68,2,'landing'],[0x8008fc74,1,'grounded-damage']];
 for(const [pc,label]of actions){original.writeUInt32BE(0x38600000|label,pc-base);original.writeUInt32BE(0x4e800020,pc+4-base);}
 const speeds=[0,0.4999999701976776,0.5,0.5000000596046448,4.999999523162842,5,5.000000476837158,8];

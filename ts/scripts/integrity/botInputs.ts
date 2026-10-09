@@ -1,9 +1,9 @@
-// `bun scripts/integrity/botInputs.ts CAPTURE_DIR`: a bot session's pad presses
-// against the rows each helper typed for its client, per match and slot: the
-// presses the script sent (A attack, Y jump, X special, left-trigger shield,
-// full-tilt dashes, C-stick flicks), the rows whose pressed bits carry them,
-// buttons still held in the match's last row, and the helper's input delay at its edit-box receipts outside the 3 s after
-// each stall (frames journaled beyond the last frame its client consumed).
+
+
+
+
+
+
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Action, bit } from "../../src/game/input/actions";
@@ -14,7 +14,7 @@ import { ABS_RX, ABS_RY, ABS_X, ABS_Z, BTN_A, BTN_X, BTN_Y, EV_ABS, EV_KEY } fro
 
 const [directory] = process.argv.slice(2);
 if (directory === undefined) throw new Error("usage: bun scripts/integrity/botInputs.ts CAPTURE_DIR");
-/** Each scripted press (edge type, code, sign of value) and the action bits whose press carries it. */
+
 const BUTTONS = [
   [EV_KEY, BTN_A, 1, "attack", bit(Action.attack)],
   [EV_KEY, BTN_Y, 1, "jump", bit(Action.jump)],
@@ -31,7 +31,7 @@ const HELD_BUTTONS = bit(Action.attack) | bit(Action.jump) | bit(Action.special)
 
 const events = readEvents(directory);
 const edges = readEdges(directory);
-/** #49's script plays in the capture's first match. */
+
 const firstMatch = Math.min(...events.flatMap((event) => (event.event === "start" && event.epoch !== undefined ? [event.epoch] : [])));
 
 const percentile = (values: readonly number[], p: number) => {
@@ -63,7 +63,7 @@ const report = [0, 1].flatMap((slot) => {
     if (emit !== null) {
       frameOf.set(Number(emit[1]), published);
       const rows = current.rows;
-      // A backlog is typed as several records joined by "|" in one envelope.
+
       for (const record of (emit[2] ?? "").split("|")) {
         if (!record.startsWith("I4")) continue;
         const packet = decodePacket(record);

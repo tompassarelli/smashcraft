@@ -1,9 +1,9 @@
-// Keep the aggregate reconciliation together: every count uses the same
-// epoch anchors and matched source/native rows to produce one integrity result.
-// Issue #26's reconciler. From the capture driver's own clock and both clients'
-// native exports it counts lost, duplicated, reordered and stuck input edges,
-// checks that each edge landed on the frame its injection time implies, and
-// measures how late the local player and the opponent saw it.
+
+
+
+
+
+
 import type { KernelEvent, SourceEdge } from "./linuxInput";
 import type { PadLayout } from "./schedule";
 
@@ -11,18 +11,18 @@ export type Slot = 0 | 1;
 export const SLOTS = [0, 1] as const satisfies readonly Slot[];
 export type EpochPair = readonly [number, number];
 
-/** One edge the capture driver wrote to a pad (producer.jsonl). */
+
 interface ProducerEdge extends SourceEdge {
   readonly phase: string;
-  /** Which pad wrote it: "slot-0" or "slot-1". */
+
   readonly source: string;
-  /** The CLOCK_MONOTONIC time stamped into the edge itself, when the driver stamped it. */
+
   readonly injectedNs?: number;
   readonly beforeNs: number;
   readonly afterNs: number;
 }
 
-/** A game file's content and the monotonic time it was published. */
+
 interface Publication {
   readonly contents: string;
   readonly estimateNs: number;
@@ -33,11 +33,11 @@ export interface SlotMode {
   readonly computers: number;
 }
 
-/** The capture journey's events that the reconciler reads (capture.json). */
+
 export type JourneyEvent =
   | { readonly event: "start" | "end" | "integrity-resume"; readonly epoch: number; readonly publications: readonly [Publication, Publication] }
   | { readonly event: "integrity-stall"; readonly epoch: number; readonly kind: string; readonly verifiedStoppedState: boolean; readonly stoppedNs: number; readonly continuedNs: number }
-  /** A bot session's 2 s stop of client B's game (#48). */
+
   | { readonly event: "bot-stall"; readonly epoch: number; readonly slot: number; readonly stoppedNs: number; readonly continuedNs: number }
   | { readonly event: "integrity-pause"; readonly epoch: number | undefined }
   | { readonly event: "integrity-slot-change" | "four-fighter-setup"; readonly epoch: number | undefined; readonly changes: readonly SlotMode[] }
@@ -50,15 +50,15 @@ export interface CaptureMetadata {
   readonly inputIntegrity: boolean;
   readonly padLayout: PadLayout;
   readonly fourFighters: boolean;
-  /** Commanded rollback windows and transport batches, one match and rematch each. */
+
   readonly sweep: readonly (readonly [window: number, batch: number])[];
   readonly epochs: readonly number[] | undefined;
   readonly events: readonly JourneyEvent[];
 }
 
-/** One client's archived native export for one match. */
+
 export interface ClientExport {
-  /** Response pages of the latest export run, in page order. */
+
   readonly pages: readonly string[];
   readonly trace: string | undefined;
 }
@@ -67,7 +67,7 @@ export interface CaptureEvidence {
   readonly metadata: CaptureMetadata;
   readonly producer: readonly ProducerEdge[];
   readonly kernel: readonly [readonly KernelEvent[], readonly KernelEvent[]];
-  /** Keyed by epoch, then client. */
+
   readonly exports: ReadonlyMap<number, readonly [ClientExport, ClientExport]>;
 }
 
@@ -76,36 +76,36 @@ interface Distribution {
   readonly p50: number | undefined;
   readonly p95: number | undefined;
   readonly max: number | undefined;
-  /** Count of each value, in ascending value order. */
+
   readonly counts: readonly (readonly [value: number, count: number])[];
 }
 
-/** The final confirmed frame, its checksum and its match phase. */
+
 type Endpoint = readonly [frame: number, checksum: string, phase: number];
 
-/** Whose process a capture had stopped (game or helper) when a press was made: neither, the other player's, or the presser's own. */
+
 export type StallSide = "none" | "opponent" | "own";
 
-/**
- * One legal press's local start: callbacks from the presser's client
- * capturing it to that client first predicting it. `delay` is undefined when
- * the client recorded no capture for it, or its first prediction did not
- * start the action.
- */
+
+
+
+
+
+
 export interface LocalStart {
   readonly epoch: number;
   readonly slot: Slot;
   readonly frame: number;
   readonly delay: number | undefined;
   readonly stall: StallSide;
-  /** Frames since the latest earlier stop of either player's process ended, when one had. */
+
   readonly afterStall: number | undefined;
-  /** When the first prediction did not start the action: callbacks from capture to the confirmed frame that did. */
+
   readonly confirmedAfter: number | undefined;
-  /**
-   * The presser's client captured it while its prediction was held back by a
-   * remote row R frames behind, or hadn't yet run every local row since (#60).
-   */
+
+
+
+
   readonly held: boolean;
 }
 
@@ -117,20 +117,20 @@ export interface IntegrityResult {
   readonly helperSha256: string;
   readonly injected: readonly [number, number];
   readonly lost: number;
-  /** Each lost or extra edge, for diagnosis: "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
+
   readonly mismatchedEdges: readonly string[];
   readonly duplicated: number;
   readonly reordered: number;
   readonly stuck: number;
   readonly expectedFrame: { readonly correct: number; readonly total: number; readonly percent: number | undefined };
-  /** Legal presses captured while prediction ran; held ones are in heldLocalStart. */
+
   readonly localStart: Distribution;
-  /** Legal presses captured while a remote row held prediction back: reported, not gated. */
+
   readonly heldLocalStart: Distribution;
   readonly heldMissingFirstPrediction: number;
-  /** Each legal press's local start, with whether a process of its own or the other player was stopped when it was pressed. */
+
   readonly localStarts: readonly LocalStart[];
-  /** Workload presses (edges that turn a source on) per slot, and the bindings they pressed. */
+
   readonly presses: readonly [number, number];
   readonly pressedBindings: readonly [readonly string[], readonly string[]];
   readonly legalActionEdges: number;
@@ -140,16 +140,16 @@ export interface IntegrityResult {
   readonly rollbackDepth: Distribution;
   readonly stalls: { readonly count: number; readonly longest: number };
   readonly sameFrameTaps: readonly [number, number];
-  /** Keyed "epoch-E-client-C", in export order. */
+
   readonly checksums: ReadonlyMap<string, Endpoint>;
   readonly gates: { readonly edges: boolean; readonly expectedFrame: boolean; readonly localStart: boolean; readonly checksums: boolean };
-  /** What the capture's player-view checks found wrong, by match and moment; reported, never gated. */
+
   readonly playerViewFailures: readonly string[];
   readonly failures: readonly string[];
   readonly passed: boolean;
 }
 
-/** Thrown when an export row or receipt does not have the shape every capture writes. */
+
 class MalformedEvidence extends Error {}
 
 const requiredBindings = (layout: PadLayout) =>
@@ -168,7 +168,7 @@ function at(values: readonly number[], index: number, what: string): number {
   return value;
 }
 
-/** Floor division for non-negative safe integers, exact where `a / b` would round. */
+
 function floorDiv(a: number, b: number): number {
   return (a - (a % b)) / b;
 }
@@ -183,18 +183,18 @@ function popcount(value: number): number {
   return count;
 }
 
-/** The single-bit masks set among the 15 action bits. */
+
 function bits(mask: number): number[] {
   const set: number[] = [];
   for (let n = 0; n < 15; n++) if (mask & (1 << n)) set.push(1 << n);
   return set;
 }
 
-/**
- * The action bits a source holds after this edge: A attack, B/Y jump, X
- * special, LB walk, RB grab, either trigger shield, stick move, C-stick smash. Under `xpad`
- * stick-up is only up; `compass-tap-jump` swaps 0x133/0x134 and jumps on up.
- */
+
+
+
+
+
 function sourceMask({ type, code, value }: SourceEdge, layout: PadLayout): number {
   if (value === 0) return 0;
   const xpad = layout === "xpad";
@@ -227,7 +227,7 @@ export function distribution(values: readonly number[]): Distribution {
   };
 }
 
-/** A multiset of (frame, action bit, pressed) edges. */
+
 class EdgeCounts {
   readonly counts = new Map<string, number>();
   static key(frame: number, bit: number, pressed: boolean): string {
@@ -239,11 +239,11 @@ class EdgeCounts {
   get(key: string): number {
     return this.counts.get(key) ?? 0;
   }
-  /** Total count by which this multiset exceeds `other`. */
+
   excess(other: EdgeCounts): number {
     return this.excessKeys(other).length;
   }
-  /** Each key by which this multiset exceeds `other`, once per extra count. */
+
   excessKeys(other: EdgeCounts): string[] {
     const keys: string[] = [];
     for (const [key, count] of this.counts) for (let extra = count - other.get(key); extra > 0; extra--) keys.push(key);
@@ -276,10 +276,10 @@ function sameModes(changes: readonly SlotMode[], expected: readonly (readonly [n
   });
 }
 
-/**
- * Reconciles one match and its rematch. `window` is the rollback window the
- * run commanded, when it commanded one.
- */
+
+
+
+
 export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, window?: number): IntegrityResult {
   const { metadata, producer } = evidence;
   const failures: string[] = [];
@@ -307,7 +307,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
   let lost = 0, duplicated = 0, reordered = 0, stuck = 0, correct = 0, total = 0;
   const localDelays: number[] = [], heldDelays: number[] = [], opponentLateness: number[] = [], rollbackDepths: number[] = [], stallLengths: number[] = [];
   const localStarts: LocalStart[] = [];
-  /** Lost and extra edges as "epoch E slot S client C: lost|extra FRAME:BIT:PRESSED". */
+
   const mismatchedEdges: string[] = [];
   let missingLocal = 0, heldMissing = 0, illegalPresses = 0, legalPresses = 0;
   const native = new Map<string, NativeRow[]>();
@@ -367,8 +367,8 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const trace = exported.trace;
       require(trace !== undefined && !trace.includes("journal input fail"), `epoch ${epoch} client ${client}: missing trace or journal failure`);
       for (const match of trace?.matchAll(/common K \d+ confirmed \d+ R (\d+)/g) ?? []) rollbackLimits.add(Number(match[1]));
-      // Final checksums are captured at export, after the result boundary,
-      // even when the ordinary 20-second trace ended earlier in the match.
+
+
       require(endpoints.get(clientKey(epoch, client))?.[2] === 3, `epoch ${epoch} client ${client}: final result checksum absent`);
     }
     require(sameEndpoint(endpoints.get(clientKey(epoch, 0)), endpoints.get(clientKey(epoch, 1))), `epoch ${epoch}: final checksums differ`);
@@ -390,12 +390,12 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const sourceStates = new Map<string, number>();
       const sourceEdges: string[][] = [];
       const previousDown = new Map<string, readonly [frame: number, ns: number]>();
-      /** The frame this slot's client gave a monotonic time: the latest start or resume receipt at or before it, then 60 a second. */
+
       const frameAt = (ns: number) => {
         const [anchor, first] = segments.filter((segment) => segment[0] <= ns).reduce((a, b) => (compareSegments(a, b) >= 0 ? a : b));
         return first + floorDiv((ns - anchor) * 60, NS_PER_SECOND);
       };
-      // Frames during which a capture had stopped a process, and whether it was this slot's own.
+
       const stopped = journey.flatMap((event) => {
         if ((event.event !== "integrity-stall" && event.event !== "bot-stall") || event.epoch !== epoch || event.stoppedNs < firstSegment[0]) return [];
         const stalledSlot = event.event === "bot-stall" ? event.slot : event.kind === "helper" ? 0 : 1;
@@ -416,7 +416,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (before >= finalNs || before < firstSegment[0]) continue;
         const frame = frameAt(before);
         require(frame === frameAt(after), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
-        // A bot's pads play until the end receipt appears, after the match's last simulated frame.
+
         if (frame > finalFrame) continue;
         let old = 0;
         for (const mask of sourceStates.values()) old |= mask;
@@ -502,13 +502,13 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
         if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
           if (wasHeld) heldMissing += popcount(legal);
           else missingLocal += popcount(legal);
-          // A first prediction that did not start the action shows it only once the confirmed frame replays it.
+
           const confirmedAfter = capture === undefined ? undefined : serial - capture;
           for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: afterStall(frame), held: wasHeld });
           continue;
         }
-        // The callback that FIRST executed prediction is compared to the
-        // admission callback. A later rollback replay never creates this row.
+
+
         for (let i = popcount(legal); i > 0; i--) {
           (wasHeld ? heldDelays : localDelays).push(prediction[0] - capture);
           localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: afterStall(frame), held: wasHeld });
@@ -588,7 +588,7 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
   };
 }
 
-/** The match and rematch a capture without a sweep reconciles. */
+
 export function capturePair(metadata: CaptureMetadata): EpochPair {
   const [first = 1, second = 2] = metadata.epochs ?? [];
   return [first, second];
@@ -600,7 +600,7 @@ interface SweepEntry {
   readonly batch: number;
 }
 
-/** One match and rematch per commanded rollback window, in run order. */
+
 export function sweepPairs(metadata: CaptureMetadata): readonly SweepEntry[] {
   const first = metadata.epochs?.[0] ?? 1;
   return metadata.sweep.map(([window, batch], index) => ({ pair: [first + 2 * index, first + 2 * index + 1], window, batch }));
@@ -619,7 +619,7 @@ function brief(d: Distribution): string {
   return `${shown(d.p50)} / ${shown(d.p95)} / ${shown(d.max)}`;
 }
 
-/** #26's claim table. */
+
 export function integrityTable(r: IntegrityResult): string[] {
   return [
     "| Metric | Result |",
@@ -642,7 +642,7 @@ export const SWEEP_HEADER = [
   "|---|---|---|---|---|---|---|---|---|",
 ] as const;
 
-/** One row of the rollback-window sweep table. */
+
 export function sweepRow(window: number, batch: number, r: IntegrityResult): string {
   return `| R${window} batch ${batch} | ${r.lost}/${r.duplicated}/${r.reordered}/${r.stuck} | ${percent(r.expectedFrame.percent)}% | ${brief(r.localStart)} | `
     + `${brief(r.opponentLateness)} | ${brief(r.rollbackDepth)} | ${r.stalls.count} (${r.stalls.longest}) | ${r.gates.checksums ? "Yes" : "No"} | ${r.passed ? "Yes" : "No"} |`;
@@ -654,7 +654,7 @@ function distributionJson(d: Distribution) {
   return { n: d.n, p50: d.p50 ?? null, p95: d.p95 ?? null, max: d.max ?? null, distribution: Object.fromEntries(d.counts) };
 }
 
-/** summary.json, in the stored format's keys and order. */
+
 export function summaryJson(r: IntegrityResult) {
   return {
     scope: r.scope,

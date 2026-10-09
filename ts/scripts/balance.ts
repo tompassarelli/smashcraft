@@ -1,13 +1,13 @@
-// Tom's balance spec as numbers (smashcraft:docs/design/balance.md): the
-// gate, the per-fighter play-style profiles read from the design docs, and the
-// balance score an optimizer minimizes. Pure functions; cpuField prints them.
+
+
+
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-/**
- * The spec's numbers, initial values Tom tunes (balance.md, "Thresholds").
- * Shares are fractions; balance.test.ts checks the doc states each.
- */
+
+
+
+
 export const BALANCE_SPEC = {
   winLow: 0.45,
   winHigh: 0.55,
@@ -23,31 +23,31 @@ export const BALANCE_SPEC = {
   gradientFrames: 1,
   feelMaxPercent: 300,
   feelFlightFrames: 360,
-  /** The spam probe may win at most this against the Expert field. */
+
   spamMax: 0.45,
-  /** No move may deal more than this share of a fighter's damage, unless its profile names it the signature move. */
+
   topMoveMax: 0.40,
-  /** Default move-variety floor (normalized entropy of moves started). */
+
   varietyFloor: 0.55,
-  /**
-   * Openings per kill (Tom, 8 Oct), about 1.5-2x as explosive as master-level
-   * Melee (balance.md, "Openings and punishes"): Slippi's count 3-4, the
-   * combo-potential target; pokes excluded 2-3.
-   */
+
+
+
+
+
   slippiOpeningsLow: 3,
   slippiOpeningsHigh: 4,
   openingsLow: 2,
   openingsHigh: 3,
-  /** A one-hit share of punishes above this is flagged. */
+
   oneHitWarn: 0.5,
 } as const;
 
-/** A punish ends once its victim has been actionable this many frames: Slippi's PUNISH_RESET_FRAMES. */
+
 export const PUNISH_RESET_FRAMES = 45;
-/** A lone hit is an opening, not a poke, when it leaves the victim unable to act this many frames. */
+
 export const DISADVANTAGE_FRAMES = 30;
 
-/** Draft depth/headroom margins; #358 fixes the win bands and sample counts. */
+
 export const CEILING_SPEC = {
   panelLow: 0.45, panelHigh: 0.55, personalityLow: 0.40, personalityHigh: 0.60,
   bestFitMin: 1, bestFitMaxShare: 0.5, depthMargin: 0.05,
@@ -55,12 +55,12 @@ export const CEILING_SPEC = {
   headroomTolerance: 0.10, wrenPerPair: 400, panelPerPair: 100, finalPerPair: 25, depthMatches: 100,
 } as const;
 
-/** Each score term's weight, initial values (balance.md, "Balance score"). */
+
 export const SCORE_WEIGHTS = { win: 1, profile: 0.5, variety: 1, spam: 1, probe: 1, openings: 10, recovery: 1 } as const;
 
 export interface Range { readonly low: number; readonly high: number }
 
-/** One fighter's play-style profile, from a ```balance-profile block in its design doc. Shares are fractions. */
+
 export interface PlayStyleProfile {
   readonly fighter: string;
   readonly archetype: string;
@@ -72,7 +72,7 @@ export interface PlayStyleProfile {
   readonly specials: Readonly<Record<string, Range>>;
   readonly varietyFloor: number;
   readonly topMoveMax: number;
-  /** The signature move, which may carry up to its own share of the damage. */
+
   readonly signature?: { readonly move: string; readonly max: number };
   readonly openings: Range;
 }
@@ -86,7 +86,7 @@ function range(text: string, scale: number, where: string): Range {
   return { low: Number(match[1]) / scale, high: Number(match[2]) / scale };
 }
 
-/** "nair 10-35, fair 20-50" as named ranges, percent to fractions. */
+
 function namedRanges(text: string, names: Readonly<Record<string, string>>, where: string): Record<string, Range> {
   const out: Record<string, Range> = {};
   for (const part of text.split(",")) {
@@ -98,7 +98,7 @@ function namedRanges(text: string, names: Readonly<Record<string, string>>, wher
   return out;
 }
 
-/** Parses one ```balance-profile block's `key: value` lines. */
+
 export function parseProfile(block: string, doc: string): PlayStyleProfile {
   const fields = new Map<string, string>();
   for (const line of block.split("\n")) {
@@ -142,7 +142,7 @@ function markdownFiles(folder: string): string[] {
 
 export const DESIGN_DOCS = join(import.meta.dir, "../../docs/design");
 
-/** Every fighter's profile, from the ```balance-profile blocks under docs/design/. */
+
 export function readProfiles(folder = DESIGN_DOCS): Map<string, PlayStyleProfile> {
   const profiles = new Map<string, PlayStyleProfile>();
   for (const path of markdownFiles(folder).sort()) {
@@ -157,7 +157,7 @@ export function readProfiles(folder = DESIGN_DOCS): Map<string, PlayStyleProfile
   return profiles;
 }
 
-/** What the score and the gate read from a fighter's field summary. */
+
 export interface Measured {
   readonly fighter: string;
   readonly winRate: number;
@@ -170,18 +170,18 @@ export interface Measured {
   readonly rangedShare: number;
   readonly specials: Readonly<Record<string, number>>;
   readonly variety: number;
-  /** The spam probe's win rate against the Expert field, once measured. */
+
   readonly spamWinRate?: number;
-  /** Openings per kill (Slippi's count) from the combo search, once measured; the realized rate is reported, not scored. */
+
   readonly potentialOpeningsPerKill?: number;
-  /** Distance outside the roster's recovery band, once measured (0 inside). */
+
   readonly recoveryDistance?: number;
   readonly matchups?: Readonly<Record<string, { readonly rate: number; readonly matches: number }>>;
 }
 
 const outside = (value: number, band: Range): number => (Number.isNaN(value) ? 0 : value < band.low ? band.low - value : value > band.high ? value - band.high : 0);
 
-/** The move share a fighter's top move may reach: its signature allowance, or the profile's (or spec's) ceiling. */
+
 export function topMoveLimit(profile: PlayStyleProfile | undefined, topMove: string | undefined): number {
   if (profile?.signature !== undefined && profile.signature.move === topMove) return profile.signature.max;
   return profile?.topMoveMax ?? BALANCE_SPEC.topMoveMax;
@@ -195,15 +195,15 @@ export interface ScoreTerms {
   readonly probe: number | undefined;
   readonly openings: number | undefined;
   readonly recovery: number | undefined;
-  /** The weighted sum of the measured terms, in percentage points; 0 meets every target. */
+
   readonly total: number;
-  /** Profile ranges missed, as "name value (low-high)". */
+
   readonly misses: readonly string[];
 }
 
 const pct = (value: number) => `${(100 * value).toFixed(0)}%`;
 
-/** A fighter's balance score (balance.md, "Balance score"); terms are percentage points outside their targets, openings in openings. */
+
 export function balanceScore(measured: Measured, profile: PlayStyleProfile | undefined): ScoreTerms {
   const misses: string[] = [];
   let profileDistance = 0;
@@ -238,18 +238,18 @@ export function balanceScore(measured: Measured, profile: PlayStyleProfile | und
 
 export interface GateResult {
   readonly fighter: string;
-  /** "balanced", or the rules it fails. */
+
   readonly balanced: boolean;
   readonly failures: readonly string[];
-  /** False until the spam probe has measured it. */
+
   readonly measured: boolean;
 }
 
-/**
- * Tom's gate (8 Oct; balance.md, "Gate"): balanced only with a win rate in
- * 45-55%, a spam probe winning at most 45% against Expert, and no move over
- * 40% of its damage except the signature move its profile names.
- */
+
+
+
+
+
 export function balanceGate(measured: Measured, profile: PlayStyleProfile | undefined): GateResult {
   const failures: string[] = [];
   if (!(measured.winRate >= BALANCE_SPEC.winLow && measured.winRate <= BALANCE_SPEC.winHigh)) failures.push(`win rate ${pct(measured.winRate)}`);
@@ -262,7 +262,7 @@ export function balanceGate(measured: Measured, profile: PlayStyleProfile | unde
 }
 
 
-/** Defining profile ranges are hard gates; other ranges contribute only to score. */
+
 export const ARCHETYPE_TRAITS: Readonly<Record<string, readonly string[]>> = {
   rushdown: ["approach"], zoner: ["ranged"], "bait-and-punish": ["approach"],
   heavy: ["air"], grappler: ["approach"], setplay: ["ranged"], "all-rounder": ["approach", "ranged"],
@@ -288,7 +288,7 @@ export function matchupFailures(matchups: NonNullable<Measured["matchups"]>): st
 }
 
 
-/** NIST Student-t 0.975 column; lower degrees of freedom round conservatively. */
+
 export const STUDENT_T95 = [[1,12.706], [2,4.303], [3,3.182], [4,2.776], [5,2.571], [6,2.447], [7,2.365], [8,2.306], [9,2.262], [10,2.228], [15,2.131], [20,2.086], [30,2.042], [60,2.000], [100,1.984]] as const;
 export function scoreIntervalCritical(samples: number): number {
   let critical: number = STUDENT_T95[0][1];
@@ -297,13 +297,13 @@ export function scoreIntervalCritical(samples: number): number {
 }
 
 
-/** Optimizer's win term aims at even while the release gate stays 45–55%. */
+
 export function optimizerScore(measured: Measured, profile: PlayStyleProfile | undefined): number {
   const score = balanceScore(measured, profile);
   return score.total - SCORE_WEIGHTS.win * score.win + SCORE_WEIGHTS.win * 100 * Math.abs(measured.winRate - BALANCE_SPEC.winTarget);
 }
 
-/** Wilson's two-sided 95% interval uses decisive matches, excluding ties. */
+
 export function withinWinTarget(measured: Measured): boolean {
   const n = measured.decisiveMatches;
   if (n === undefined || !Number.isInteger(n) || n < 1 || !Number.isFinite(measured.winRate)) return false;

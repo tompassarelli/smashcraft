@@ -1,15 +1,15 @@
-/**
- * The map's preview in Warcraft's custom-game list and lobby (#317): a
- * line-up of stock-model fighters on a floating stage under the Smashcraft
- * name, drawn from the fighter cards tools/selection/render-fighters.ts
- * renders. Warcraft 3.0.1 displays war3mapMap.blp in the lobby (#317).
- */
+
+
+
+
+
+
 import type { Rgba } from "./blp";
 
 export const PREVIEW_ENTRY = "war3mapMap.blp";
 export const PREVIEW_SIZE = 256;
 
-/** The opaque 3-3-2 palette used by the Classic and Definitive reference candidate. */
+
 export function encodePreview(image: Rgba): Uint8Array {
   const pixels = image.width * image.height;
   const out = new Uint8Array(156 + 1024 + pixels), view = new DataView(out.buffer);
@@ -30,10 +30,10 @@ export function encodePreview(image: Rgba): Uint8Array {
   return out;
 }
 
-/**
- * The fighters in the line-up, back row first; `x` is the centre of the feet.
- * Only stock-model fighters: no community model (importedModelInfo.ts) appears.
- */
+
+
+
+
 export const PREVIEW_FIGHTERS = [
   { card: "FighterCardWarden.tga", x: 30, height: 116, flip: false, shade: 0.72 },
   { card: "FighterCardDreadlord.tga", x: 222, height: 120, flip: true, shade: 0.72 },
@@ -44,7 +44,7 @@ export const PREVIEW_FIGHTERS = [
 
 const DECK_TOP = 214;
 
-type Canvas = Float32Array; // premultiplied RGBA, 0..1
+type Canvas = Float32Array;
 
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
@@ -58,7 +58,7 @@ function blend(canvas: Canvas, x: number, y: number, r: number, g: number, b: nu
   canvas[i + 3] = 1;
 }
 
-/** A dusk sky with a warm burst behind the centre fighter, light rays and embers. */
+
 function drawSky(canvas: Canvas) {
   const top = [0.06, 0.05, 0.16], horizon = [0.78, 0.3, 0.12];
   for (let y = 0; y < PREVIEW_SIZE; y++) {
@@ -84,7 +84,7 @@ function drawSky(canvas: Canvas) {
   }
 }
 
-/** The floating stone deck the fighters stand on, tapering into a rocky underside. */
+
 function drawDeck(canvas: Canvas) {
   const left = 10, right = 246, thick = 12;
   for (let y = DECK_TOP; y < PREVIEW_SIZE; y++) {
@@ -104,7 +104,7 @@ function drawDeck(canvas: Canvas) {
   }
 }
 
-/** The opaque rows and columns of `card`, so its feet can be set on the deck. */
+
 function opaqueBounds(card: Rgba) {
   let x0 = card.width, y0 = card.height, x1 = -1, y1 = -1;
   for (let y = 0; y < card.height; y++) {
@@ -118,7 +118,7 @@ function opaqueBounds(card: Rgba) {
   return { x0, y0, x1, y1 };
 }
 
-/** Draws `card` scaled so its figure is `height` pixels tall, feet centred at (`x`, DECK_TOP), with a contact shadow. */
+
 function drawFighter(canvas: Canvas, card: Rgba, x: number, height: number, flip: boolean, shade: number) {
   const bounds = opaqueBounds(card);
   const scale = (bounds.y1 - bounds.y0 + 1) / height;
@@ -132,7 +132,7 @@ function drawFighter(canvas: Canvas, card: Rgba, x: number, height: number, flip
   }
   for (let py = 0; py < height; py++) {
     for (let px = 0; px < width; px++) {
-      // Box filter over the source pixels this destination pixel covers, premultiplied.
+
       const u = flip ? width - 1 - px : px;
       const sx0 = bounds.x0 + u * scale, sy0 = bounds.y0 + py * scale;
       let r = 0, g = 0, b = 0, a = 0, n = 0;
@@ -149,7 +149,7 @@ function drawFighter(canvas: Canvas, card: Rgba, x: number, height: number, flip
   }
 }
 
-// Our own 5x7 block letters for the title, one string per row.
+
 const GLYPHS: Record<string, readonly string[]> = {
   S: ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
   M: ["10001", "11011", "10101", "10101", "10001", "10001", "10001"],
@@ -161,7 +161,7 @@ const GLYPHS: Record<string, readonly string[]> = {
   T: ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
 };
 
-/** "SMASHCRAFT" in gold block letters with a dark outline and drop shadow. */
+
 function drawTitle(canvas: Canvas, text = "SMASHCRAFT") {
   const cell = 4, gap = 4, letter = 5 * cell, top = 14;
   const total = text.length * letter + (text.length - 1) * gap;
@@ -198,7 +198,7 @@ function drawTitle(canvas: Canvas, text = "SMASHCRAFT") {
   }
 }
 
-/** Composes the preview from the fighter cards, by file name under fighter-renders. */
+
 export function composePreview(cards: (file: string) => Rgba): Rgba {
   const canvas: Canvas = new Float32Array(PREVIEW_SIZE * PREVIEW_SIZE * 4);
   drawSky(canvas);
@@ -210,7 +210,7 @@ export function composePreview(cards: (file: string) => Rgba): Rgba {
   return { width: PREVIEW_SIZE, height: PREVIEW_SIZE, data, alpha: true };
 }
 
-/** An uncompressed 32-bit TGA with rows bottom to top, as the World Editor writes war3mapPreview.tga. */
+
 export function encodeTga(image: Rgba): Uint8Array {
   const out = new Uint8Array(18 + image.width * image.height * 4);
   const view = new DataView(out.buffer);

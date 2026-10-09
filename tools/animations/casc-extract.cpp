@@ -1,4 +1,4 @@
-// Foreign-system boundary: extract an installed Warcraft asset through CascLib.
+
 #include <CascLib.h>
 #include <cstdio>
 #include <algorithm>

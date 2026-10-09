@@ -1,21 +1,21 @@
-// `bun wisp soak memory`'s check (#168): reads what the Lua program
-// (memoryLua.ts) printed and fails when the maps' memory grows after warm-up.
-// At every return to fighter selection the clients hold the same things, so
-// the samples taken there must stay flat: the Lua heap's least-squares slope
-// under 1 MB per 10 game minutes, and every kind of live Warcraft handle,
-// the tables and the functions the maps' globals reach at most their highest
-// count during warm-up (pools may fill then, never after).
+
+
+
+
+
+
+
 
 export interface ClientSample {
   readonly slot: number;
   readonly tables: number;
   readonly functions: number;
-  /** Live handles by kind. */
+
   readonly live: Readonly<Record<string, number>>;
 }
 
 export interface MemorySample {
-  /** start, minute, match (a second into a result) or menu (back at fighter selection). */
+
   readonly kind: string;
   readonly frame: number;
   readonly heapKb: number;
@@ -47,7 +47,7 @@ const whole = (text: string | undefined, what: string) => {
   return value;
 };
 
-/** The samples, problems and totals in the program's output. */
+
 export function parseMemoryRun(text: string): MemoryRun {
   const samples: MemorySample[] = [];
   const problems: string[] = [];
@@ -72,7 +72,7 @@ export function parseMemoryRun(text: string): MemoryRun {
   return { samples, problems, frames: whole(done.frames, "frames"), matches: whole(done.matches, "matches") };
 }
 
-/** The least-squares slope of y over x; 0 for fewer than two distinct x. */
+
 export function slope(points: readonly (readonly [x: number, y: number])[]): number {
   const n = points.length;
   if (n < 2) return 0;
@@ -88,13 +88,13 @@ export function slope(points: readonly (readonly [x: number, y: number])[]): num
 }
 
 export interface MemoryLimits {
-  /** Game minutes before the check starts: every fighter and stage has played by then. */
+
   readonly warmupMinutes: number;
-  /** The heap's largest slope, in KB per 10 game minutes. */
+
   readonly heapKbPer10Minutes: number;
 }
 
-/** #168: Lua heap under 1 MB per 10 minutes after warm-up. */
+
 export const MEMORY_LIMITS: MemoryLimits = { warmupMinutes: 10, heapKbPer10Minutes: 1024 };
 
 export interface MemoryVerdict {
@@ -102,12 +102,12 @@ export interface MemoryVerdict {
   readonly failures: readonly string[];
 }
 
-/** Every count a menu sample holds per client: live handles by kind, tables and functions. */
+
 const counts = (client: ClientSample): Record<string, number> => ({ ...client.live, tables: client.tables, functions: client.functions });
 
 const minutes = (frame: number) => frame / FRAMES_PER_MINUTE;
 
-/** The slope check over the run's fighter-selection samples, and the lines that report it. */
+
 export function checkMemory(run: MemoryRun, limits: MemoryLimits = MEMORY_LIMITS): MemoryVerdict {
   const failures: string[] = [...run.problems.map((problem) => `problem: ${problem}`)];
   const menus = run.samples.filter((sample) => sample.kind === "menu");

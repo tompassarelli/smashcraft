@@ -11,7 +11,7 @@ import type { PadStep } from "../integrity/padScript";
 import { headlessRender } from "./headlessRender";
 type HeadlessClient = Parameters<typeof captureScene>[0];
 
-/** Captures the exact predicted frames that the native pad capture waits for. */
+
 export function padRender(sessionDirectory: string, build: string, steps: readonly PadStep[], token: string, frames?: readonly number[]) {
   const requested = steps.filter((step) => step.kind === "capture" && (frames === undefined || frames.includes(step.frame)));
   const wanted = new Set(requested.map(({ slot, frame }) => `${slot}:${frame}`));

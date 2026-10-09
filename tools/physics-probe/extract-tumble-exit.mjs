@@ -1,4 +1,4 @@
-// Foreign recording intake: retain numerical telemetry, not parser implementation.
+
 import { createHash } from 'node:crypto';
 const project = new URL('../../', import.meta.url);
 const parserRoot = new URL('build/slippi-intake/node_modules/@slippi/slippi-js/', project);

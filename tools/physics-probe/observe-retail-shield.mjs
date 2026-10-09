@@ -1,4 +1,4 @@
-// Independently authored loader; original executable bytes remain private.
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const root = '/home/tom/.local/share/smashcraft-melee-reference/analog-shield-runner';
@@ -31,7 +31,7 @@ const datSha1=createHash('sha1').update(dat).digest('hex');
 if(datSha1!=='c904de0c4c5eb3ef65211a75d8bd70ca5b0f9f41') throw Error('Wrong common data');
 const roots=32+dat.readUInt32BE(4)+4*dat.readUInt32BE(8);
 const commonFileOffset=32+dat.readUInt32BE(32+dat.readUInt32BE(roots));
-// Execute the complete nonbreaking guard update and scalar-only contact fragments.
+
 const returnPatches=[0x80091dbc,0x8006d2d8,0x800930d0];
 for(const address of returnPatches) original.writeUInt32BE(0x4e800020,address-base);
 const rows=[];

@@ -1,5 +1,5 @@
-// `wisp map build` and `wisp map rebuild`: the TypeScript-only map build and the
-// script-only rebuild of a map that build.sh or `build` packaged.
+
+
 import { closeSync, mkdtempSync, openSync, readFileSync, readSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,14 +16,14 @@ import { fighterUnits, fileIoAbility } from "../../objectData";
 import { POST_PROCESSING_FILE } from "../../postProcessing";
 import { checkCueModels, headlessRender } from "../headlessRender";
 
-/** `--profile NAME` removed from the arguments, and that profile's map services. */
+
 export const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
   const { profile, args: remaining } = yield* profileOption(args);
   const services = MapBuild.layer(buildProject(profile)).pipe(Layer.provideMerge(sourceErrorsLayer), Layer.provideMerge(gameFilesLayer));
   return { profile, args: remaining, services };
 });
 
-/** The map's generated root files, which the build writes over the base map's. */
+
 export const generatedFiles = (): readonly GeneratedFile[] => [
   { entry: "war3map.w3u", contents: fighterUnits() },
   { entry: "war3map.w3a", contents: fileIoAbility() },
@@ -32,11 +32,11 @@ export const generatedFiles = (): readonly GeneratedFile[] => [
 
 const MAP_SIZE_BASELINE = join(projectRoot, "ts/map-size-baseline.tsv");
 
-/**
- * The built map's size and each import's stored bytes, from its archive tables.
- * Imports are the declared ones and every entry in a folder, so files the
- * container still carries count too; the map's own root files don't.
- */
+
+
+
+
+
 const measureMap = (out: string, declared: readonly ArchiveEntry[]) => Effect.scoped(Effect.gen(function*() {
   const scratch = yield* Effect.acquireRelease(
     Effect.sync(() => mkdtempSync(join(tmpdir(), "smashcraft-size."))),
@@ -66,7 +66,7 @@ const measureMap = (out: string, declared: readonly ArchiveEntry[]) => Effect.sc
   });
 }));
 
-/** Prints the map's size; the default build fails when it outgrows the committed baseline (docs/commands/map.md). */
+
 const checkMapSize = (out: string, imports: readonly ArchiveEntry[], bounded: boolean) => Effect.gen(function*() {
   const size = yield* measureMap(out, imports);
   yield* Console.log(describeMapSize(size));
@@ -87,7 +87,7 @@ export const build: Command = (args) => Effect.gen(function*() {
   const bounded = options.profile === "main";
   return yield* decodeBuildOptions(options.args).pipe(
     Effect.flatMap((options) => Effect.gen(function*() {
-      // Inputs given override the checkout's build-inputs.json; with all four given it isn't read.
+
       const { base, container, assets, summon, packager, ...map } = options;
       const declared = base !== undefined && container !== undefined && assets !== undefined && summon !== undefined
         ? { base, container, assets, summon }
@@ -108,5 +108,5 @@ export const rebuild: Command = (args) => Effect.gen(function*() {
   return yield* rebuildMap(map).pipe(Effect.provide(options.services));
 });
 
-/** Build and rebuild the map through one noun. */
+
 export const map: Command = ([verb, ...args]) => verb === "build" ? build(args) : verb === "rebuild" ? rebuild(args) : Effect.fail(new UsageFailure({ problem: "map takes build or rebuild" }));

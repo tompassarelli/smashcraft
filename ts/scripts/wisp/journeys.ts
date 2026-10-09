@@ -1,7 +1,7 @@
-// Smashcraft's headless journeys (wisp:docs/headless.md), played by
-// `bun wisp headless` and after every save by `bun wisp dev`: simulated
-// clients of the development build, whose entry starts the scene recorder.
-// It imports no host services, so a journey process loads only the map.
+
+
+
+
 import { join } from "node:path";
 import type { HeadlessProject } from "wisp/scripts/wisp/headless";
 import type { Journey } from "wisp/src/headless/journey";
@@ -10,7 +10,7 @@ import { SMASHCRAFT_HEADLESS } from "./headless";
 import { SMASHCRAFT_SCENE } from "./playerView";
 import { QUICK_MATCH } from "./quickMatch";
 
-/** The quick match with `-dev desync` typed by the second player: the desync it must report. */
+
 const DESYNC: Journey = {
   frames: QUICK_MATCH.frames,
   events: [...QUICK_MATCH.events, { frame: 540, player: 1, chat: DESYNC_COMMAND }],

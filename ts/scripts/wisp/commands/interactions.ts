@@ -1,13 +1,13 @@
-// `wisp interactions`: plays every situation of the interaction graph for each
-// fighter (smashcraft:ts/scripts/interactions.ts, one worker thread a fighter)
-// and writes its rows and pages to smashcraft:tools/move-data/interactions/,
-// which Git ignores: each checkout derives its own graph, so lanes that change
-// moves in parallel never merge, or land, a graph played from another tree.
-// Every selectable fighter's throw roles (smashcraft:ts/scripts/throwRoles.ts)
-// go to throws.jsonl and throws.md beside them.
-// `--check` compares a fresh graph with the files this checkout last wrote and
-// lists what changed; `--move FIGHTER:MOVE` prints one move's place in its
-// fighter's fresh graph and what changed there since the files were written.
+
+
+
+
+
+
+
+
+
+
 import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
@@ -23,7 +23,7 @@ const combosFile = join(directory, "combos.jsonl");
 const comboPageFile = (slug: string): string => join(directory, `combos-${slug}.md`);
 const throwsFile = join(directory, "throws.jsonl");
 const throwsPage = join(directory, "throws.md");
-/** Throw-role workers at once: each fighter's rows take about a minute. */
+
 const THROW_WORKERS = 3;
 
 interface FighterRows {
@@ -39,7 +39,7 @@ class InteractionsFailure extends Schema.TaggedError<InteractionsFailure>()("Int
 
 const failure = (cause: unknown): InteractionsFailure => new InteractionsFailure({ problems: [describeCause(cause)] });
 
-/** One worker thread's reply to `message`; the thread ends with the scope, on a reply, a failure or an interrupt. */
+
 const playWorker = <A>(label: string, message: unknown): Effect.Effect<A, InteractionsFailure> => Effect.scoped(Effect.gen(function* () {
   const worker = yield* Effect.acquireRelease(
     Effect.sync(() => new Worker(new URL("../../interactionsWorker.ts", import.meta.url).href)),
@@ -52,11 +52,11 @@ const playWorker = <A>(label: string, message: unknown): Effect.Effect<A, Intera
   });
 }));
 
-/** Each named fighter's rows, every fighter on its own worker thread. */
+
 const playFighters = (names: readonly string[], combos = true): Effect.Effect<FighterRows[], InteractionsFailure> =>
   Effect.forEach(names, (name) => playWorker<FighterRows>(name, { fighter: name, combos }), { concurrency: "unbounded" });
 
-/** Every selectable fighter's throw-role rows, THROW_WORKERS fighters at a time, in roster order. */
+
 const playThrowRoles: Effect.Effect<ThrowRoleRow[], InteractionsFailure> = Effect.forEach(
   THROW_FIGHTERS,
   (entry) => playWorker<ThrowRoleRow[]>(`${entry.name} throw roles`, { throwRoles: entry.name }),
@@ -77,7 +77,7 @@ const writtenRows = Effect.tryPromise({
 
 const graphWritten = Effect.promise(() => Bun.file(rowsFile).exists());
 
-/** A written file's text, or undefined when this checkout hasn't written it. */
+
 const writtenText = async (file: string): Promise<string | undefined> => ((await Bun.file(file).exists()) ? Bun.file(file).text() : undefined);
 
 const write = (rows: readonly FighterRows[], throws: readonly ThrowRoleRow[]) =>

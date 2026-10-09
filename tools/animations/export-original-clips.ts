@@ -1,13 +1,13 @@
-// Original-sequence clip models for the pooled fighter presentation, and the
-// TypeScript module that names them. The clips derive from the original
-// fighter models, so they stay in private storage outside the checkout.
-// Usage: bun tools/animations/export-original-clips.ts --assets PRIVATE_ASSETS --out OUTPUT
-//   [--extractor CASC_EXTRACT --storage WARCRAFT_DIR] [--metadata-only | --keep-unchanged]
-// --metadata-only checks OUTPUT's retained clips against the current sources
-// and writes only the module. --keep-unchanged keeps OUTPUT's retained clips
-// (hash-checked) for each fighter whose source is unchanged and exports the rest. With --extractor and --storage, a hero's stock
-// model missing from PRIVATE_ASSETS/hero-models is first extracted there from
-// the game's archives (the CascLib extractor smashcraft:tools/animations/extract.sh builds).
+
+
+
+
+
+
+
+
+
+
 import {join, resolve, relative} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import {generateMDX, model as mdx} from 'war3-model';
@@ -29,7 +29,7 @@ const assets = resolve(assetsOption), output = resolve(outputOption);
 ensure(relative(project, output).startsWith('..'), 'Clips derive from the original models: write them outside the checkout');
 const metadataOnly = process.argv.includes('--metadata-only');
 const keepUnchanged = process.argv.includes('--keep-unchanged');
-// --only A,B exports just those fighters' clips and evidence, for parallel exports merged by a later --keep-unchanged run.
+
 const only = option('--only')?.split(',');
 const retained = metadataOnly || keepUnchanged ? await Bun.file(join(output, 'original-clips-evidence.json')).json() : null;
 const moduleClips: string[][] = [], moduleNames: string[][] = [], moduleLights: (string | null)[] = [];
@@ -53,12 +53,12 @@ for (const [character, fighter] of fighters) {
     const retainedThin = isDeepStrictEqual(retainedRecord?.keyThin?.bound, KEY_BOUND);
     if (metadataOnly) ensure(retainedRecord?.sourceSha256 === sourceSha256 && retainedThin, `${fighter.name}: retained clips have a different source or key bound`);
     const reuse = metadataOnly || (keepUnchanged && retainedThin && retainedRecord?.sourceSha256 === sourceSha256);
-    // Clips are cut from the source with redundant transform keys removed (#314).
+
     const thin = reuse ? {model: original, report: retainedRecord.keyThin.report as KeyThinReport} : thinKeys(original);
     const source = thin.model;
-    // An additive recovery pass leaves old clips unchanged. Admit the cache
-    // only when removing its identity helper/suffix reconstructs the exact
-    // previously exported input bytes; changed base art takes the full path.
+
+
+
     const base = !reuse && keepUnchanged && retainedThin && retainedRecord ? attackGestureBaseModel(original) ?? swordGestureBaseModel(original) ?? locomotionBaseModel(original) ?? pounceBaseModel(original) ?? wardenFanBaseModel(original) ?? pitLordSpecialBaseModel(original) ?? jumpBaseModel(original) ?? downAirBaseModel(original) ?? grabBaseModel(original) ?? drillBaseModel(original) ?? damageBaseModel(original) ?? recoveryBaseModel(original) : undefined;
     const reusePrefix = base && hash(generateMDX(base)) === retainedRecord.sourceSha256 ? base.Sequences.length : 0;
     if (reusePrefix) console.log(`${fighter.name}: exact base SHA retained, exporting ${source.Sequences.length - reusePrefix} added clips`);
@@ -131,7 +131,7 @@ for (const [character, fighter] of fighters) {
                     `${fighter.name}/${index}${path}: static backing changed`);
                 else if (color) ensure(isDeepStrictEqual(model.GeosetAnims[Number(color[1])].Color, new Float32Array([1, 1, 1])),
                     `${fighter.name}/${index}${path}: static backing changed`);
-                // Absent attachment visibility keeps the attachment shown.
+
                 else if (!/^\.Attachments\.\d+\.Visibility$/.test(path)) ensure(/^\.(Bones|Helpers|Attachments|CollisionShapes)\.\d+\.(Translation|Rotation|Scaling)$/.test(path), `${path}: unchecked empty-channel backing`);
                 expectedOmissions.push(path);
                 omittedTrackFamilies.add(path.replace(/\.\d+/g, '.*'));
@@ -149,8 +149,8 @@ for (const [character, fighter] of fighters) {
         fighterClips.push(clipLiteral(modelPath, result.interval, result.looping));
         clips.push({...stats, filename, modelPath, sha256, bytes: encoded.byteLength, unthinnedBytes: clipUnthinnedBytes});
     }
-    // Names without a numeric variant choose the first authored variant. This
-    // makes rollback selection stable; native random variant parity is separate.
+
+
     const names = new Map<string, number>();
     source.Sequences.forEach((sequence, index) => names.set(sequence.Name.toLowerCase(), index));
     source.Sequences.forEach((sequence, index) => {

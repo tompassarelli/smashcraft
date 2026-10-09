@@ -1,7 +1,7 @@
-// Menus defined as Wisp frame definitions (wisp:docs/ui.md). Each generates a
-// static FDF and TOC, imported from tools/selection/art, and typed bindings in
-// src/game/ui/. Run `bun scripts/wisp/uiFrames.ts` from ts/ after changing a
-// definition or its layout; test/ui-frames.test.ts fails while they differ.
+
+
+
+
 import { join } from "node:path";
 import type { FrameDefinition, FrameNode } from "wisp/scripts/wisp/frames";
 import { writeFrames } from "wisp/scripts/wisp/frames";
@@ -10,7 +10,7 @@ import { MENU_FONT } from "../../src/game/ui/hudLayout";
 
 const PANEL = CPU_SETTINGS_PANEL;
 const BUTTON_HEIGHT = 0.027;
-/** A point given in the screen's UI coordinates, as an offset from the panel's top-left corner. */
+
 const at = (x: number, y: number) => [{ point: "TOPLEFT", relative: "root", x: x - PANEL.left, y: y - PANEL.top }] as const;
 const label = (key: string, x: number, y: number, width: number, height: number, size: number): FrameNode =>
   ({ key, type: "TEXT", width, height, font: { file: MENU_FONT, size }, enabled: false, points: at(x, y) });
@@ -23,7 +23,7 @@ const row = (name: string, caption: string, y: number): FrameNode[] => [
   label(`${name}Value`, 0.37, y, 0.23, BUTTON_HEIGHT, 0.012),
 ];
 
-/** The CPU slot's Opponent settings panel (smashcraft#185); one copy per participant, told apart by context. */
+
 export const OPPONENT_SETTINGS: FrameDefinition = {
   name: "OpponentSettings",
   type: "FRAME",
@@ -47,7 +47,7 @@ export const UI_FRAMES: readonly { readonly definition: FrameDefinition; readonl
   { definition: OPPONENT_SETTINGS, bindings: "src/game/ui/opponentSettingsFrames.ts" },
 ];
 
-/** Where the generated FDF and TOC files live, imported as war3mapImported\NAME.fdf and .toc. */
+
 export const UI_FRAMES_IMPORTS = "../tools/selection/art";
 
 if (import.meta.main) {

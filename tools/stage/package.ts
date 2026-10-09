@@ -1,5 +1,5 @@
-// Foreign model-format boundary. Simulation owns all world-space platform edges;
-// ts/scripts/stageDeck.ts draws the main deck from them.
+
+
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
 import { STAGE_PALETTE_TEXTURE, mainDeckFaces, mainDeckMdl, mainDeckModelFile, mainDeckOutlineStage, paletteTexture } from "../../ts/scripts/stageDeck";
@@ -16,7 +16,7 @@ const output = join(import.meta.dir, "../../build/stage-assets");
 const { coordinate } = STAGE_PALETTE_TEXTURE;
 const hash = (bytes: Uint8Array) => new Bun.CryptoHasher("sha256").update(bytes).digest("hex");
 const vec = (v: readonly number[]) => `{ ${v.join(", ")} }`;
-// The raised decks' slab: a normalized 100-unit deck that the map scales to each deck.
+
 const extent = 'MinimumExtent { -50, -60, -54 }, MaximumExtent { 50, 60, 0 }, BoundsRadius 96,';
 let geometry = "";
 let count = 0;
@@ -58,7 +58,7 @@ PivotPoints 1 { { 0, 0, 0 }, }
 `;
 const bytes = new Uint8Array(generateMDX(parseMDL(slabMdl(STAGE_PALETTE_TEXTURE.name))));
 const decoded = parseMDX(bytes.buffer);
-// A normalized 100-unit deck has no geometry beyond the collision edges or above its top.
+
 const points = decoded.Geosets.flatMap(g => Array.from(g.Vertices));
 for (let i=0; i<points.length; i+=3) {
     if (points[i] < -50 || points[i] > 50 || points[i+2] > 0) throw new Error("deck geometry exceeds collision plane");
@@ -70,8 +70,8 @@ if (JSON.stringify(walkingFace) !== JSON.stringify([-50,-60,0,50,-60,0,50,60,0,-
 const imports: string[] = [];
 const themed: string[] = [];
 for (const { stage, theme, palette, materials } of STAGE_DECK_PALETTES) {
-    // Each stage's main deck, in arena units at scale 1, from its own outline; its compiled vertices must be the outline's.
-    // A stage whose main deck has no body keeps the reference outline.
+
+
     const mainFaces = mainDeckFaces(mainDeckOutlineStage(stage));
     const authored = mainFaces.flatMap(face => face.corners.flatMap(corner => corner.map(Math.fround)));
     const { bytes: texture, name: textureName } = paletteTexture(palette);
@@ -116,7 +116,7 @@ export const STAGE_MAIN_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${import
 `);
 console.log(`Stage decks: ${STAGE_DECK_PALETTES.length} palettes; slab bounds x=[-50,50], z=[-54,0]; main decks from each stage's collision outline`);
 
-// Imported names change with the geometry; refresh only the deck rows owned by this generator.
+
 const factsPath = join(import.meta.dir, "../../ts/scripts/wisp/modelFacts.ts");
 const factsSource = await Bun.file(factsPath).text();
 const deckFacts: string[] = [];
@@ -126,7 +126,7 @@ for (const name of imports.filter(name => name.startsWith("StageDeck-") || name.
 }
 await Bun.write(factsPath, factsSource.split("\n").filter(line => !line.includes('"war3mapImported\\\\StageDeck-') && !line.includes('"war3mapImported\\\\StageMainDeck-')).join("\n").replace(/\n};\s*$/, `\n${deckFacts.join("\n")}\n};\n`));
 
-// Authored snow uses the game's texture; no game model or texture is imported.
+
 const snowExtent = 'MinimumExtent { -1600, -200, -1500 }, MaximumExtent { 1600, 200, 2800 }, BoundsRadius 3500,';
 const snowMdl = `Version { FormatVersion 800, }
 Model "Smashcraft drifting snow" { BlendTime 0, ${snowExtent} }
@@ -156,7 +156,7 @@ const infoPath = join(import.meta.dir, "../../ts/src/game/assets/stageAssetInfo.
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Drifting snow behind the fighting plane, using the stock snowflake texture. */\nexport const STAGE_SNOW_MODEL = ${JSON.stringify(`war3mapImported\\${snowName}`)};\n`);
 console.log(`Stage snow: three emitters, stock snowflake texture; ${snowName}`);
 
-// Each stage's lighting model: one directional light with constant colours (ts/scripts/stageLight.ts).
+
 const lights: string[] = [];
 const lightNames: string[] = [];
 for (const { stage, theme, light } of STAGE_LIGHTS) {
@@ -171,7 +171,7 @@ for (const { stage, theme, light } of STAGE_LIGHTS) {
     lights.push(`  ${stage}: ${JSON.stringify(`war3mapImported\\${name}`)},`);
 }
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each selectable stage's day/night lighting model, from its light in stageLighting.ts. */\nexport const STAGE_LIGHT_MODELS: Readonly<Record<number, string>> = {\n${lights.join("\n")}\n};\n`);
-// Backdrop omni lights: one light each and no geometry, so Classic, which draws no model omni lights, shows nothing.
+
 const pointLights: string[] = [];
 const pointLightNames: string[] = [];
 for (const { stage, theme, lights } of STAGE_POINT_LIGHTS) {

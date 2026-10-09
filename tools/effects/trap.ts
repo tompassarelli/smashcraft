@@ -1,4 +1,4 @@
-// Foreign MDX boundary: original trap and translucent ice-shell geometry.
+
 import { parseMDL, generateMDX, parseMDX } from "../animations/node_modules/war3-model";
 import { join } from "node:path";
 
@@ -19,13 +19,13 @@ const trap: Face[] = [];
 const ring = (rx: number, ry: number, z: number, i: number): V =>
     [rx*Math.cos(i*Math.PI/4), ry*Math.sin(i*Math.PI/4), z];
 for (let i=0; i<8; i++) {
-    // Unequal shoulder heights make a crystalline cap, while the transparent
-    // front facets keep the trapped fighter's silhouette visible.
+
+
     const a = ring(56,38,4,i), b = ring(56,38,4,i+1);
     const c = ring(49,32,110+(i%3)*7,i+1), d = ring(49,32,110+((i+2)%3)*7,i);
     shell.push({vertices:[a,b,c,d],color:1+i%3,translucent:true});
     shell.push({vertices:[d,c,[8,-3,150]],color:2+i%2,translucent:true});
-    // Narrow bright ribs help read the outline without an opaque ice cube.
+
     const inner: V = [d[0]*.95,d[1]*.95,d[2]];
     shell.push({vertices:[a,d,inner,[a[0]*.95,a[1]*.95,a[2]]],color:3});
     trap.push({vertices:[ring(46,30,2,i),ring(46,30,2,i+1),ring(34,22,3,i+1),ring(34,22,3,i)],color:i%2});

@@ -1,9 +1,9 @@
-// Measures, for every hero normal and special, the moment its clip strikes:
-// the clip time where the drawn silhouette reaches farthest toward the move's
-// first hit region (a special's first shot or placement when it has no
-// region), skinned from the supplied hero model the clients draw. Written as
-// src/game/presentation/heroStrikeMomentInfo.ts, which pose selection uses to
-// land each swing on the move's first active frame (#144).
+
+
+
+
+
+
 import { parseMDX } from "war3-model";
 import { attackPose, clipFor, ownAttackClip } from "../../src/game/presentation/fighterClips";
 import { SPECIAL_KEY } from "../../src/game/presentation/heroStrikeMomentKeys";
@@ -12,22 +12,22 @@ import { AttackStyle } from "../../src/game/sim/codes";
 import { HERO_ROSTER } from "../../src/game/sim/heroes/registry";
 import { DrawnModel } from "./hurtboxView";
 
-/** The body centre a strike's direction is taken from: chest height of the reference. */
+
 const CHEST = 50.0;
-/** Steps of clip time the measurement samples, a sixtieth of a second each. */
+
 const STEP = 1.0 / 60.0;
-/** A later sample replaces the peak only when it reaches this much farther, so a held pose keeps its first moment. */
+
 const FARTHER = 0.5;
 
 export interface StrikeMoment {
   readonly character: number;
-  /** An attack style, or SPECIAL_KEY plus a special slot. */
+
   readonly style: number;
-  /** The clip index measured; a table change makes the moment stale. */
+
   readonly clip: number;
-  /** Clip seconds of the farthest reach toward the strike. */
+
   readonly seconds: number;
-  /** The whole sequence's length in seconds. */
+
   readonly end: number;
 }
 
@@ -35,7 +35,7 @@ interface Sequence {
   readonly Interval: ArrayLike<number>;
 }
 
-/** The clip moment that reaches farthest from the chest toward (x, z). */
+
 function measure(drawn: DrawnModel, character: number, style: number, clip: number, sequence: Sequence, x: number, z: number): StrikeMoment {
   const towardZ = z - CHEST;
   const length = Math.hypot(x, towardZ) || 1;
@@ -56,7 +56,7 @@ function measure(drawn: DrawnModel, character: number, style: number, clip: numb
   return { character, style, clip, seconds: Math.round(moment * 1000) / 1000, end: Math.round(end * 1000) / 1000 };
 }
 
-/** Every hero normal with a hit region and every special that strikes, shoots or places, measured on `modelBytes(hero.presentation.model)`. */
+
 export async function measureStrikeMoments(modelBytes: (model: string) => Promise<ArrayBuffer>): Promise<StrikeMoment[]> {
   const moments: StrikeMoment[] = [];
   for (const hero of HERO_ROSTER) {

@@ -1,5 +1,5 @@
-// Original action gestures over the private classic Pandaren Brewmaster rig.
-// Usage: bun tools/animations/chen-clips.ts STOCK_CHEN.mdx PRIVATE_OUTPUT
+
+
 import { mkdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, parseMDX, ModelRenderer, model as mdx } from "war3-model";
@@ -197,8 +197,8 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
         ...(first.InTan ? {InTan: tangent(), OutTan: tangent()} : {})});
     }
   });
-  // The staff belongs to the left hand; both legs and the keg hand need
-  // their contact points visible in the side view, despite the bind axes.
+
+
   const staffTargets: Partial<Record<HeroPose, readonly [number, number]>> = {
     jab: [-30,160], jab2: [112,58], jab3: [-30,160], upTilt: [-30,160], downTilt: [-30,160], dashAttack: [-30,160],
     forwardTilt: [180,65], forwardTiltUp: [170,98], forwardTiltDown: [175,28],
@@ -297,7 +297,7 @@ for (const [ordinal, action] of [...actions, ...damage].entries()) {
   if (ordinal < actions.length) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
   records.push({pose: name, index, frames: victimContact ? 60 : action.frames, contact: victimContact ? 30 : action.contact});
 }
-// Victim playback shares a half-second contact while holders retain their move timing.
+
 for (const [ordinal, action] of actions.entries()) if (/^victim(Pummel|Throw)/.test(action.pose)) {
   const sequence = model.Sequences[source.Sequences.length + ordinal]!, [first, last] = sequence.Interval;
   const contact = first! + Math.round(action.contact * 1000 / 60), start = cursor;

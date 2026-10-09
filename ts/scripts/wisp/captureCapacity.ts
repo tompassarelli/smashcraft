@@ -10,7 +10,7 @@ import { type PadStep, parsePadScript } from "../integrity/padScript";
 
 const Lease = Schema.Struct({ id: Schema.String, class: Schema.String, owner: Schema.String, kind: Schema.String, expiresAt: Schema.NullOr(Schema.Number) });
 
-/** Only the lease of this process's actual cgroup can be shared by capture lanes. */
+
 export function captureLease() {
   const compact = /\/agent-capacity-([0-9a-f]{32})\.scope(?:\/|$)/m.exec(readFileSync("/proc/self/cgroup", "utf8"))?.[1];
   if (compact === undefined) return undefined;
@@ -20,10 +20,10 @@ export function captureLease() {
   return lease;
 }
 
-/** Visual captures run beside the other lanes; a script without a capture step checks input timing and needs the quiet window. */
+
 export const timingCheck = (scripts: readonly (readonly PadStep[])[]) => scripts.length === 0 || scripts.some((steps) => !steps.some((step) => step.kind === "capture"));
 
-/** An unreadable script counts as a timing check, so its own error surfaces after admission. */
+
 export const timingScripts = (paths: readonly string[]) => {
   try {
     return timingCheck(paths.map((path) => parsePadScript(readFileSync(path, "utf8"))));
@@ -43,7 +43,7 @@ export const requireCaptureLease = (timing: boolean) => !timing ? Effect.void : 
 
 export const captureLoad = () => ({ load_average: loadavg(), capacity_lease: captureLease() });
 
-/** Re-executes a timing check's complete pad command; the helper queues and owns its lifetime. Visual captures run at once. */
+
 export const admitCaptures = (args: readonly string[], timing: boolean) => Effect.scoped(Effect.gen(function*() {
   if (!timing) return false;
   const lease = yield* Effect.try({ try: captureLease, catch: (cause) => new IntegrityFailure({ operation: "quiet capture window", path: capacityHelper, cause }) });

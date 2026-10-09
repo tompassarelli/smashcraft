@@ -1,5 +1,5 @@
-// Independently authored loader. The original executable and execution output
-// stay in private storage; this records five complete retail callbacks.
+
+
 import { mkdirSync, chmodSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
@@ -56,7 +56,7 @@ const data = entry + 0x30000;
 imm(1, stack); imm(2, r2); imm(13, r13); imm(31, state); imm(30, data);
 for (let sample = 0; sample < callbackCount; sample++) {
     imm(3, gobj); call(0x80093bc0);
-    // Emit reflect bit, animation flags, and both counters after each callback.
+
     imm(28, state + 0x2218);
     dform(34, 0, 28, 0); dform(34, 5, 28, 4);
     dform(48, 2, 28, 0x13c); dform(48, 3, 28, 0x140);

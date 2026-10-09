@@ -1,37 +1,37 @@
-// The stage liquids' textures, which tools/stage/liquids.ts compiles into the
-// water and lava surface models; the lava's glow layer is checked against the
-// map-wide bloom threshold (smashcraft:docs/design/visual-quality.md).
+
+
+
 
 export type Liquid = "Water" | "Lava";
 export const LIQUID_TEXTURE_SIZE = 64;
 type Rgba = readonly [red: number, green: number, blue: number, alpha: number];
 
-/** The stock post-processing file's bloom threshold (3.0.1 PostProcessingConfig.txt, [Bloom] BloomThreshold). */
+
 export const STOCK_BLOOM_THRESHOLD = 0.72;
-/**
- * Blackrock's lava glow: an additive layer that lights only the ripple crests,
- * so the map's bloom catches the molten veins and leaves the lava's body,
- * the deck and the fighters unbloomed. Classic draws the same brighter veins
- * without bloom.
- */
+
+
+
+
+
+
 export const LAVA_GLOW = { color: [255, 196, 96] as const, crest: 0.8 };
 
 const ripple = (x: number, y: number) => Math.sin((x + 5 * Math.sin(y * Math.PI / 16)) * Math.PI / 8) * 0.5 + 0.5;
 
-/** The liquid's base texel, red first. */
+
 export function liquidTexel(kind: Liquid, x: number, y: number): Rgba {
   const r = ripple(x, y);
   const rgb = kind === "Water" ? [90 + 45 * r, 161 + 40 * r, 172 + 42 * r] : [190 + 52 * r, 63 + 63 * r, 18 + 19 * r];
   return [Math.round(rgb[0] ?? 0), Math.round(rgb[1] ?? 0), Math.round(rgb[2] ?? 0), kind === "Water" ? 110 : 235];
 }
 
-/** The lava glow layer's texel, red first: the glow colour, opaque only on the crests. */
+
 export function lavaGlowTexel(x: number, y: number): Rgba {
   const strength = Math.min(1, Math.max(0, (ripple(x, y) - LAVA_GLOW.crest) / (1 - LAVA_GLOW.crest)));
   return [LAVA_GLOW.color[0], LAVA_GLOW.color[1], LAVA_GLOW.color[2], Math.round(255 * strength)];
 }
 
-/** A 32-bit TGA of one texel function. */
+
 export function liquidTga(texel: (x: number, y: number) => Rgba): Uint8Array {
   const size = LIQUID_TEXTURE_SIZE;
   const texture = new Uint8Array(18 + size * size * 4);
