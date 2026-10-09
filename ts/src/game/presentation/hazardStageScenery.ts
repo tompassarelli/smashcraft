@@ -1,9 +1,17 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { StageScenery } from "./stageScenery";
 import { STAGE_SKY_MODELS } from "../assets/stageSkyInfo";
-import { STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
+import { STAGE_LAVA_MODEL, STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
 
 const MOUND = "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx";
+const SPIRES0 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires0.mdx";
+const SPIRES2 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires2.mdx";
+const SPIRES7 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires7.mdx";
+const SPIRES8 = "Doodads\\Outland\\Rocks\\Outland_Spires\\Outland_Spires8.mdx";
+const BASALT = "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx";
+const MAGMA = "Doodads\\Outland\\Rocks\\Outland_MagmaRock\\Outland_MagmaRock0.mdx";
+const TRAP = "Doodads\\Cinematic\\FireTrapUp\\FireTrapUp.mdx";
+const PILLAR = "Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx";
 
 export const NORDRASSIL_SCENERY: StageScenery = {
   sky: "Environment\\Sky\\FelwoodSky\\FelwoodSky.mdl",
@@ -48,18 +56,39 @@ export const GRYPHON_SCENERY: StageScenery = {
 
 export const BLACKROCK_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[12] ?? "",
-  fog: { start: 5000.0, end: 10000.0, red: 0.5, green: 0.125, blue: 0.0625 },
+  fog: { start: 8000.0, end: 16000.0, red: 0.5, green: 0.125, blue: 0.0625 },
+  floor: { model: STAGE_LAVA_MODEL, z: -1300.0, color: [118, 73, 64] },
   pieces: [
-
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2000.0, y: 4500.0, z: -4040.0, scale: f32(5.2), yaw: 210.0, matrixScale: [1.0, 1.0, f32(6.994)] },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2300.0, y: 3800.0, z: -2845.0, scale: f32(3.15), yaw: 35.0, matrixScale: [1.0, 1.0, f32(6.202)] },
-
-    { model: "Doodads\\Cinematic\\FireTrapUp\\FireTrapUp.mdx", x: 2050.0, y: 6000.0, z: -1500.0, scale: 1.5, yaw: 0.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: 2055.0, y: 6000.0, z: -4030.0, scale: f32(4.95), yaw: 37.0, matrixScale: [1.0, 1.0, f32(6.414)] },
-    { model: "Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx", x: -2100.0, y: 4600.0, z: -1500.0, scale: 1.25, yaw: 0.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -2095.0, y: 4600.0, z: -3320.0, scale: f32(3.55), yaw: 37.0, matrixScale: [1.0, 1.0, f32(6.392)] },
-    { model: "Doodads\\Dungeon\\Props\\MineCart\\MineCart.mdx", x: -1750.0, y: 2600.0, z: -1150.0, scale: 1.5, yaw: 25.0 },
-    { model: "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx", x: -1750.0, y: 2600.0, z: -2275.0, scale: f32(2.2), yaw: 62.0, matrixScale: [1.0, 1.0, f32(6.497)] },
+    { model: SPIRES0, x: -4000.0, y: 4400.0, z: -1599.0, scale: 3.5, yaw: 190.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES8, x: -3600.0, y: 4250.0, z: -1491.0, scale: 3.25, yaw: 170.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES7, x: -2800.0, y: 4550.0, z: -1632.0, scale: 3.75, yaw: 200.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES2, x: -2000.0, y: 4300.0, z: -1744.0, scale: 3.0, yaw: 165.0, matrixScale: [2.0, 1.0, 2.0] },
+    { model: SPIRES0, x: -1200.0, y: 4600.0, z: -1599.0, scale: 3.25, yaw: 185.0, matrixScale: [1.75, 1.0, 1.75] },
+    { model: SPIRES8, x: -400.0, y: 4350.0, z: -1552.0, scale: 3.5, yaw: 205.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES7, x: 400.0, y: 4500.0, z: -1560.0, scale: 3.0, yaw: 175.0, matrixScale: [2.0, 1.0, 1.75] },
+    { model: SPIRES2, x: 1200.0, y: 4250.0, z: -1694.0, scale: 3.75, yaw: 160.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES0, x: 2000.0, y: 4550.0, z: -1499.0, scale: 3.0, yaw: 195.0, matrixScale: [2.0, 1.0, 1.75] },
+    { model: SPIRES8, x: 2800.0, y: 4300.0, z: -1441.0, scale: 3.25, yaw: 180.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES7, x: 3600.0, y: 4600.0, z: -1410.0, scale: 3.5, yaw: 190.0, matrixScale: [1.75, 1.0, 1.5] },
+    { model: SPIRES2, x: 4000.0, y: 4350.0, z: -1694.0, scale: 3.0, yaw: 170.0, matrixScale: [2.0, 1.0, 2.0] },
+    { model: SPIRES7, x: -3250.0, y: 5300.0, z: -1488.0, scale: 3.25, yaw: 165.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRES0, x: -2400.0, y: 5000.0, z: -1506.0, scale: 4.5, yaw: 175.0, matrixScale: [2.25, 1.0, 1.0] },
+    { model: SPIRES0, x: -1550.0, y: 5300.0, z: -1678.0, scale: 3.25, yaw: 175.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRES8, x: -875.0, y: 5000.0, z: -1702.0, scale: 3.5, yaw: 205.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRES8, x: -75.0, y: 5100.0, z: -1541.0, scale: 3.25, yaw: 200.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRES7, x: 850.0, y: 5100.0, z: -1832.0, scale: 4.5, yaw: 165.0, matrixScale: [2.25, 1.0, 1.25] },
+    { model: SPIRES7, x: 1675.0, y: 5100.0, z: -1488.0, scale: 3.25, yaw: 205.0, matrixScale: [2.25, 1.0, 1.5] },
+    { model: SPIRES2, x: 2400.0, y: 5000.0, z: -1494.0, scale: 4.5, yaw: 165.0, matrixScale: [2.25, 1.0, 1.25] },
+    { model: SPIRES0, x: 3275.0, y: 5100.0, z: -1635.0, scale: 4.0, yaw: 200.0, matrixScale: [2.25, 1.0, 1.25] },
+    { model: BASALT, x: -2500.0, y: 4800.0, z: -1600.0, scale: 7.0, yaw: 190.0, matrixScale: [1.75, 1.0, 5.5], color: [30, 28, 30] },
+    { model: TRAP, x: 2000.0, y: 4550.0, z: 880.0, scale: 2.0, yaw: 0.0 },
+    { model: PILLAR, x: -2800.0, y: 4550.0, z: 930.0, scale: 1.25, yaw: 0.0 },
+    { model: MAGMA, x: -3900.0, y: 3650.0, z: -1650.0, scale: 4.0, yaw: 185.0, matrixScale: [2.5, 1.0, 3.0] },
+    { model: MAGMA, x: -2650.0, y: 3500.0, z: -1569.0, scale: 4.5, yaw: 170.0, matrixScale: [2.25, 1.0, 2.25] },
+    { model: MAGMA, x: -1350.0, y: 3700.0, z: -1578.0, scale: 3.75, yaw: 200.0, matrixScale: [2.5, 1.0, 3.25] },
+    { model: MAGMA, x: 800.0, y: 3550.0, z: -1594.0, scale: 4.25, yaw: 165.0, matrixScale: [2.5, 1.0, 2.5] },
+    { model: MAGMA, x: 2050.0, y: 3700.0, z: -1600.0, scale: 4.0, yaw: 195.0, matrixScale: [2.25, 1.0, 3.0] },
+    { model: MAGMA, x: 4000.0, y: 3500.0, z: -1638.0, scale: 5.0, yaw: 175.0, matrixScale: [2.5, 1.0, 2.25] },
   ],
 };
 

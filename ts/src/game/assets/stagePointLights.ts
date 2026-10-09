@@ -49,9 +49,9 @@ export const STAGE_POINT_LIGHTS: readonly { readonly stage: number; readonly the
   {
     stage: CANNON_TEST_STAGE, theme: "Blackrock", lights: [
 
-      { x: -2100.0, y: 4600.0, z: -1250.0, color: [255, 150, 70], intensity: 1.25, flicker: 0.125, loopMs: 1600, radius: 1100.0, castsShadow: true },
+      { x: -2800.0, y: 4550.0, z: 1100.0, color: [255, 150, 70], intensity: 1.25, flicker: 0.125, loopMs: 1600, radius: 1100.0, castsShadow: true },
 
-      { x: 2050.0, y: 6000.0, z: -1300.0, color: [255, 132, 56], intensity: 0.875, flicker: 0.125, loopMs: 2100, radius: 900.0, castsShadow: false },
+      { x: 2000.0, y: 4550.0, z: 1050.0, color: [255, 132, 56], intensity: 0.875, flicker: 0.125, loopMs: 2100, radius: 900.0, castsShadow: false },
     ],
   },
   {
