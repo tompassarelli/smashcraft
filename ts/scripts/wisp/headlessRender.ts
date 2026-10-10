@@ -16,7 +16,7 @@ import { POST_PROCESSING_FILE } from "../postProcessing";
 import { MapBuildFailure } from "wisp/scripts/wisp/mapBuild";
 import { fighterCueList, MISSING_CUE_MODEL } from "../../src/game/presentation/specialCues";
 import { allAttackCueModels } from "../../src/game/presentation/attackCues";
-import { DEFINITIVE_ACCENT_REDRAWS, DISJOINT_MODELS } from "../../src/game/presentation/disjointCues";
+import { DEFINITIVE_ACCENT_REDRAWS, DISJOINT_CUES } from "../../src/game/presentation/disjointCues";
 import { DEFINITIVE_PROJECTILE_REDRAWS, allProjectileModels } from "../../src/game/presentation/projectileArt";
 import { Character } from "../../src/game/sim/codes";
 import { resolveRenderAsset, type AssetLocation, type AssetLayer, type Graphics, type ResolvedRenderAsset } from "wisp/scripts/wisp/renderAssets";
@@ -55,7 +55,7 @@ export const checkCueModels = Effect.fnUntraced(function*(renderer: { readonly r
   if (missing.length > 0) return yield* new MapBuildFailure({ operation: "check cue models", path: "Classic and Definitive", cause: missing.join("; ") });
   const redrawn: string[] = [];
   const listed = { ...DEFINITIVE_ACCENT_REDRAWS, ...DEFINITIVE_PROJECTILE_REDRAWS };
-  for (const model of new Set([...Object.values(DISJOINT_MODELS), ...allProjectileModels()])) {
+  for (const model of new Set([...Object.values(DISJOINT_CUES).map(cue => cue.model), ...allProjectileModels()])) {
     if (listed[model] !== undefined) continue;
     const [classic, definitive] = yield* Effect.tryPromise({
       try: () => Promise.all([renderer.resolveAsset(model, "classic"), renderer.resolveAsset(model, "definitive")]),
