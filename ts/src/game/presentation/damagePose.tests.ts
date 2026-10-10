@@ -6,7 +6,7 @@ import { contactBatch, hitEffect, testWorld } from "../sim/testWorld";
 import { contactDamageClip } from "./damagePose";
 import { copyFighterState } from "../replay/fighterState";
 
-test("simultaneous contacts keep the strongest hit's pain pose through a snapshot [spec #181] [invariant]", () => {
+test("simultaneous contacts keep the strongest hit's pain pose through a snapshot [k2 property]", () => {
   for (const reversed of [false, true]) {
     const victim = createFighter(Character.rifleman, 0.0, -1);
     const attacker = createFighter(Character.rifleman, -100.0, 1);

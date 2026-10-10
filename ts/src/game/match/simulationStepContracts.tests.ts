@@ -29,7 +29,7 @@ function runToAttackActive(game: ReturnType<typeof createMatchState>, first: Fig
     stepMatch(game, testRoster(first, second), frameControls(firstInput, secondInput, firstCommands, secondCommands), startFrame + i);
 }
 
-test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget [spec docs/design/melee/defense.md]", () => {
+test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget [k3 measure docs/design/melee/defense.md]", () => {
   const game = testMatch();
   const attacker = createFighter(1, 0, 1);
   const target = createFighter(1, 90, -1);
@@ -52,7 +52,7 @@ test("shieldGrabStartsDirectlyFromActiveGuardAndCanCatchShieldingTarget [spec do
   assertFalse(target.shield.raised);
 });
 
-test("shieldstunKeepsTheFighterShieldingAndBlocksActions [reference]", () => {
+test("shieldstunKeepsTheFighterShieldingAndBlocksActions [k4 reference melee]", () => {
   const game = testMatch();
   const attacker = createFighter(1, 0, 1);
   const target = createFighter(1, 100, -1);
@@ -79,7 +79,7 @@ test("shieldstunKeepsTheFighterShieldingAndBlocksActions [reference]", () => {
 
 });
 
-test("simultaneousEligibleAttacksTradeInEitherOrder [invariant]", () => {
+test("simultaneousEligibleAttacksTradeInEitherOrder [k1 scenario]", () => {
   const gameA = testMatch();
   const leftA = createFighter(1, 0, 1);
   const rightA = createFighter(1, 100, -1);
@@ -122,7 +122,7 @@ test("simultaneousEligibleAttacksTradeInEitherOrder [invariant]", () => {
 
 });
 
-test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [invariant]", () => {
+test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [k1 scenario]", () => {
   const gameA = testMatch();
   const grabberA = createFighter(1, 0, 1);
   const strikerA = createFighter(1, 90, -1);
@@ -168,7 +168,7 @@ test("successfulGrabHasPriorityOverSimultaneousStrikeInEitherOrder [invariant]",
 
 });
 
-test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/defense.md]", () => {
+test("grabBreaksShieldButHasShortReachAndTimedRelease [k3 measure docs/design/melee/defense.md]", () => {
   const game = testMatch();
   const attacker = createFighter(1, 0, 1);
   const target = createFighter(1, 90, -1);
@@ -211,7 +211,7 @@ test("grabBreaksShieldButHasShortReachAndTimedRelease [spec docs/design/melee/de
 
 });
 
-test("a grab's release, by mashing or after the pummel, leaves the grabber no head start [spec #101]", () => {
+test("a grab's release, by mashing or after the pummel, leaves the grabber no head start [k3 measure #101]", () => {
   const characters = [Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)];
   for (const character of characters) {
     for (const release of ["mash", "pummel"] as const) {

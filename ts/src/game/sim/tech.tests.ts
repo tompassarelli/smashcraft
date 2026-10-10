@@ -32,7 +32,7 @@ function landTechTest(fighter: Fighter, stage: number, surface: number, input: R
   advanceSolo(fighter, stage, input, 0.0);
 }
 
-test("the tech window includes the press and the twentieth contact but not the twenty-first [reference]", () => {
+test("the tech window includes the press and the twentieth contact but not the twenty-first [k4 reference melee]", () => {
   for (let contact = 1; contact <= TECH_WINDOW_FRAMES + 1; contact++) {
     const fighter = techTestTumbler();
     const input = controls({ techPressed: true, airDodgePressed: true });
@@ -51,7 +51,7 @@ test("the tech window includes the press and the twentieth contact but not the t
   }
 });
 
-test("the tech repeat boundary uses the original prior press age [reference]", () => {
+test("the tech repeat boundary uses the original prior press age [k4 reference melee]", () => {
   for (const gap of [40, 41]) {
     const fighter = techTestTumbler();
     const input = controls({ techPressed: true });
@@ -66,7 +66,7 @@ test("the tech repeat boundary uses the original prior press age [reference]", (
   }
 });
 
-test("a grounded shield edge counts, but only a tumble contact can tech [reference]", () => {
+test("a grounded shield edge counts, but only a tumble contact can tech [k4 reference melee]", () => {
   const input = controls({ shield: true });
   const held = techTestTumbler();
   landTechTest(held, 0, 0, input);
@@ -90,7 +90,7 @@ test("a grounded shield edge counts, but only a tumble contact can tech [referen
   assertEquals(ordinary.landing.lag, 4);
 });
 
-test("original tech-input hitlag aging and accumulation reach the production state [reference]", () => {
+test("original tech-input hitlag aging and accumulation reach the production state [k4 reference melee]", () => {
   const early = techTestTumbler();
   const input = controls({ techPressed: true });
   early.launch.hitlag = 4;
@@ -134,7 +134,7 @@ test("original tech-input hitlag aging and accumulation reach the production sta
   assertEquals(releaseFrame.tech.window, TECH_WINDOW_FRAMES);
 });
 
-test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's shot [reference]", () => {
+test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's shot [k4 reference melee]", () => {
   for (const style of [AttackStyle.jab, AttackStyle.shot]) {
     const fighter = techTestTumbler();
     fighter.motion.x = 100.0;
@@ -153,7 +153,7 @@ test("a tech's vulnerable recovery can be interrupted by melee or the rifleman's
   }
 });
 
-test("a grabbed fighter still tracks digital tech presses and their lockout [reference]", () => {
+test("a grabbed fighter still tracks digital tech presses and their lockout [k4 reference melee]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const input = controls({ techPressed: true });
   fighter.grab.grabbedFrames = 10;

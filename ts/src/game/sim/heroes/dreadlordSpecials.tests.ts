@@ -52,7 +52,7 @@ function play(world: Roster, last: number, first = controls(), second = controls
   for (let f = 2; f <= last; f++) frame(world, first, second);
 }
 
-test("replaying Vampiric Pounce from a restored snapshot reproduces both fighters [invariant]", () => {
+test("replaying Vampiric Pounce from a restored snapshot reproduces both fighters [k1 scenario]", () => {
   const { world, owner, victim } = pair(H);
   const savedOwner = createFighter(Character.dreadlord, 0.0, 1);
   const savedVictim = createFighter(Character.rifleman, 0.0, 1);

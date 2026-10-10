@@ -7,12 +7,12 @@ Where tests live and run:
 - Host tools and assets: `test/*.test.ts` and `scripts/*.tests.ts` with `bun:test`; `bun run test FILE...` runs some, the farm runs all (docs/commands/testing.md).
 - Sweeps: `sweep()` (src/runtime/sweep.ts) for many matches, a whole roster or every stage; the suite skips them and CI runs them with `SWEEPS=1`. A seeded bot sweep is a property with a stated margin that holds at 3 unrelated seed offsets, or a measurement with a tolerance band; never a ranking or count one seed shift can flip (#394).
 
-Oracles, the tag every title ends with:
-- `[native]`: real Warcraft captures or tapes from real matches. Headless code never establishes Warcraft callback timing, controller latency, UI focus or online fairness; those need the native map.
-- `[reference]`: an independent implementation: Bun against Lua32 parity, Wurst parity, and Melee via `scripts/meleeOracle.ts` against the decompilation; its departures are listed in docs/gameplay-design.md.
-- `[spec #N]` / `[spec docs/...]`: a value Tom or a design doc set. Read the tuned constant from the code rather than copying its literal, so retuning never breaks an unrelated test.
-- `[invariant]`: holds however the code computes it: same seed twice, rollback equals straight play, round trips, equal client checksums.
-- `[provisional]`: headless expectation not yet confirmed natively (wisp#69).
-- `[repro #N]`: fold the case into the property or scenario that should have caught it instead of adding a standalone test.
+Kinds, the one tag every title ends with (`bun run check` refuses any other ending; ts/scripts/oracleTags.ts, #422):
+- `[k1 scenario]`: replayed input through the whole system, asserting invariants or agreement (same seed twice, rollback equals straight play, equal client checksums).
+- `[k2 property]`: a property over a pure core: round trips, bounds, every generated input.
+- `[k3 measure #N]` / `[k3 measure docs/<path>.md]`: an owner-decided number, citing the issue or the existing doc that sets it. Read the tuned constant from the code rather than copying its literal, so retuning never breaks an unrelated test.
+- `[k4 reference <source>]`: an external reference such as `melee`, `melee-decomp` (`scripts/meleeOracle.ts`; departures listed in docs/gameplay-design.md), `lua32`, `wurst` or `native` (real Warcraft captures or tapes). Headless code never establishes Warcraft callback timing, controller latency, UI focus or online fairness; those need the native map.
+- `[k5 boundary <name>]`: one integration check per real boundary; each name once in the suite.
+- A regression is folded into the property or scenario that should have caught it instead of becoming a standalone test.
 
 Cost: ts/AGENTS.md sets 4 s CPU per Bun test and 6 s per Lua32 test.

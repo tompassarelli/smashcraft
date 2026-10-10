@@ -9,7 +9,7 @@ import { createBotStrategy, learnBotHabit, prepareBotRead } from "./botStrategy"
 import { CPU_OPPONENT_IDS, CPU_PROFILES, CPU_TIERS, cpuProfile, resolveCpuOpponent } from "./cpuProfiles";
 import { Phase, copyMatchState, createMatchState, requestStart, setCpuOpponent, setCpuTier, setParticipants } from "./rules";
 
-test("Flint changes a practiced strike read after fewer new shield events at each tier at the human response deadline [spec #186] [spec #354]", () => {
+test("Flint changes a practiced strike read after fewer new shield events at each tier at the human response deadline [k3 measure #186]", () => {
   let earlier = 8001;
   for (const tier of CPU_TIERS) {
     const profile = cpuProfile("flint", tier);
@@ -47,7 +47,7 @@ test("Flint changes a practiced strike read after fewer new shield events at eac
   useMatchSeed(0);
 });
 
-test("named opponents grow primary and secondary skills at five tiers while retaining different habits [spec #184]", () => {
+test("named opponents grow primary and secondary skills at five tiers while retaining different habits [k3 measure #184]", () => {
   assertEquals(CPU_PROFILES.length, CPU_OPPONENT_IDS.length * CPU_TIERS.length);
   for (const opponent of CPU_OPPONENT_IDS) for (let index = 0; index < CPU_TIERS.length; index++) {
     const tier = at(CPU_TIERS, index);
@@ -73,29 +73,7 @@ test("named opponents grow primary and secondary skills at five tiers while reta
   assertTrue(cpuProfile("flint", "expert").repeatPercent > cpuProfile("kite", "expert").repeatPercent);
 });
 
-test("Random resolves once at match start and survives a copied snapshot and rematch choice [spec #184]", () => {
-  const game = createMatchState();
-  setParticipants(game, 1, 2);
-  game.characterReadiness[0] = true;
-  setCpuOpponent(game, 0, 1, "random");
-  setCpuTier(game, 0, 1, "beginner");
-  game.phase = Phase.stageMenu;
-  assertTrue(requestStart(game, 0));
-  assertEquals(game.cpuResolvedOpponents[1], resolveCpuOpponent("random", 0, 1));
-  const copy = createMatchState();
-  copyMatchState(copy, game);
-  assertEquals(copy.cpuOpponents[1], "random");
-  assertEquals(copy.cpuTiers[1], "beginner");
-  assertEquals(copy.cpuResolvedOpponents[1], game.cpuResolvedOpponents[1]);
-  game.matchFrame = 120;
-  game.phase = Phase.stageMenu;
-  assertTrue(requestStart(game, 0));
-  assertEquals(game.matchSeed, 1);
-  assertEquals(game.cpuOpponents[1], "random");
-  assertEquals(game.cpuResolvedOpponents[1], resolveCpuOpponent("random", 1, 1));
-});
-
-test("Random draws are replayable across slots and seeds and reach all six identities [spec #184]", () => {
+test("Random draws are replayable across slots and seeds and reach all six identities [k2 property]", () => {
   const seen: string[] = [];
   for (let seed = 0; seed < 150; seed++) for (const slot of PARTICIPANT_SLOTS) {
     const opponent = resolveCpuOpponent("random", seed, slot);

@@ -84,7 +84,7 @@ function networkRow(history: ReplayHistory, epoch: number, frame: number, slot: 
   return used;
 }
 
-test("a late held input re-predicts the tail and an accepted release stops it [invariant]", () => {
+test("a late held input re-predicts the tail and an accepted release stops it [k1 scenario]", () => {
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
   const history = new ReplayHistory();
@@ -148,7 +148,7 @@ test("a late held input re-predicts the tail and an accepted release stops it [i
   }
 });
 
-test("a late jump correction re-adapts a later attack against the air state [invariant]", () => {
+test("a late jump correction re-adapts a later attack against the air state [k1 scenario]", () => {
   const epoch = 920;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -187,7 +187,7 @@ test("a late jump correction re-adapts a later attack against the air state [inv
   assertEquals(playback.reconcile(schedule, epoch, 0, speculative.live, speculativeHistory), "unchanged");
 });
 
-test("a matching late prediction confirms without replaying [spec docs/netcode-proposal.md]", () => {
+test("a matching late prediction confirms without replaying [k1 scenario]", () => {
   const epoch = 921;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -211,7 +211,7 @@ test("a matching late prediction confirms without replaying [spec docs/netcode-p
   assertEquals(live.runtime.simulationFrame, 9);
 });
 
-test("twelve late rows replay at full depth and rebuild every snapshot [invariant]", () => {
+test("twelve late rows replay at full depth and rebuild every snapshot [k1 scenario]", () => {
   const epoch = 922;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -245,7 +245,7 @@ test("twelve late rows replay at full depth and rebuild every snapshot [invarian
   assertTrue(schedule.mayAdvanceSpeculative(0));
 });
 
-test("twenty-four late rows re-predict and rebuild every snapshot [invariant]", () => {
+test("twenty-four late rows re-predict and rebuild every snapshot [k1 scenario]", () => {
   const epoch = 940;
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
@@ -307,7 +307,7 @@ function capture(state: ReplayState): ReplayState {
   return snapshot;
 }
 
-test("sender-only reconciliation equals rebuilding every sender after staggered late rows [invariant]", () => {
+test("sender-only reconciliation equals rebuilding every sender after staggered late rows [k1 scenario]", () => {
   const epoch = 976;
   const make = () => {
     const game = createMatchState();
@@ -347,7 +347,7 @@ test("sender-only reconciliation equals rebuilding every sender after staggered 
   }
 });
 
-test("lobby computers replay from corrected humans without network senders [invariant]", () => {
+test("lobby computers replay from corrected humans without network senders [k1 scenario]", () => {
   // One human with three computers, and sparse two-human, one-computer occupancy.
   const warmFrames = 48;
   const frames = warmFrames + 20;
@@ -448,7 +448,7 @@ function slotModeJournalOutcome(variant: number, heldInactiveInput: boolean, sch
   return stateChecksum(actual);
 }
 
-test("computer and empty slot owners still confirm and replay without phantom senders [invariant]", () => {
+test("computer and empty slot owners still confirm and replay without phantom senders [k1 scenario]", () => {
   const schedule = new ShadowInputSchedule();
   const playback = new ShadowInputPlayback();
   const history = new ReplayHistory();

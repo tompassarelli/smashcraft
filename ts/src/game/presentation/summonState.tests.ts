@@ -18,7 +18,7 @@ import { createSummonState, firstSummonDifference, projectBear } from "./summonS
 
 const TICK = f32(1.0 / 60.0);
 
-test("a bear's clip restores backward from a snapshot and projects read-only [invariant]", () => {
+test("a bear's clip restores backward from a snapshot and projects read-only [k1 scenario]", () => {
   const match = testMatch(9, Character.rifleman);
   const fighter = fighterAt(match.world, 3);
   fighter.bear.life = 500;
@@ -56,7 +56,7 @@ test("a bear's clip restores backward from a snapshot and projects read-only [in
   assertFalse(projectBear(match.runtime.summons, fighterAt(match.world, 3), 3).visible);
 });
 
-test("a late correction removes or restores a bear's spawn and swipe [invariant]", () => {
+test("a late correction removes or restores a bear's spawn and swipe [k1 scenario]", () => {
 
 
   const SHOT = 14;
@@ -111,7 +111,7 @@ test("a late correction removes or restores a bear's spawn and swipe [invariant]
   }
 });
 
-test("sparse and four-slot bears match whether projected or not, and end with their match [invariant]", () => {
+test("sparse and four-slot bears match whether projected or not, and end with their match [k1 scenario]", () => {
   for (const mask of [9, 15]) {
     const sequential = testMatch(mask, Character.rifleman);
     const catchup = testMatch(mask, Character.rifleman);

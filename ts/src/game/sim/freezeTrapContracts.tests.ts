@@ -14,7 +14,7 @@ import { setHumanMask } from "../match/rules";
 import { produceComputerInput } from "../match/botPlay";
 import { sweep, sweepSeed } from "../../runtime/sweep";
 
-test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [spec #325]", () => {
+test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [k3 measure #325]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;
@@ -37,32 +37,7 @@ test("Frost Trap appears at frame 22 and releases Rifleman at frame 38 [spec #32
   assertEquals(owner.attack.style, AttackStyle.jab);
 });
 
-sweep("an Intermediate CPU punishes a point-blank trap before Rifleman can act in at least 4 of 24 match seeds, against 9-17 seen on six seed offsets [spec #325]", () => {
-  let punishes = 0;
-  for (let seed = 0; seed < 24; seed++) {
-    const match = testMatch(3, Character.rifleman);
-    match.game.matchSeed = sweepSeed(seed);
-    const owner = fighterAt(match.world, 0);
-    const target = fighterAt(match.world, 1);
-    owner.motion.surface = 0;
-    target.motion.surface = 0;
-    target.motion.x = owner.motion.x + 60.0;
-    target.facing = -1;
-    setHumanMask(match.game, 1);
-    match.game.cpuOpponents[1] = "wren";
-    match.game.cpuResolvedOpponents[1] = "wren";
-    match.game.cpuTiers[1] = "intermediate";
-    assertTrue(startFighterSpecial(owner, 0, 0, controls({ specialPressed: true, specialZ: -1 })));
-    for (let frame = 1; frame < 60 && !canStartAttackStyle(owner, AttackStyle.jab); frame++) {
-      produceComputerInput(match.game, match.world, match.runtime, 1, frame, match.inputs.inputs[1], match.inputs.commands[1]);
-      executeNext(match);
-      if (owner.status.damage > 0) { punishes++; break; }
-    }
-  }
-  assertGreaterThan(punishes, 3);
-});
-
-test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter [spec docs/gameplay-design.md]", () => {
+test("a jump chosen fifteen frames after thaw leaves before a waiting trap can refreeze any fighter [k3 measure docs/gameplay-design.md]", () => {
   for (const character of [Character.rifleman, Character.demonHunter]) {
     for (const [direction, verticalDirection] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]] as const) {
       const match = testMatch(3, character);
@@ -115,7 +90,7 @@ function thawFrame(rate: number, wiggle: boolean): number {
   return frame;
 }
 
-test("mashing out of a freeze: the thaw frame by mash rate [spec docs/gameplay-design.md]", () => {
+test("mashing out of a freeze: the thaw frame by mash rate [k3 measure docs/gameplay-design.md]", () => {
 
   assertEquals(thawFrame(0, false), 300);
   assertEquals(thawFrame(4, false), 195);

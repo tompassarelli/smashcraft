@@ -8,7 +8,7 @@ import { Character } from "../src/game/sim/codes";
 import { gameplanKeyMovesCheck } from "./cpuField";
 
 for (const [name, character] of [["Pit Lord", Character.pitLord], ["Beastmaster", Character.beastmaster]] as const) {
-  sweep(`${name}'s computer uses his gameplan's key moves most [spec #105]`, () => {
+  sweep(`${name}'s computer uses his gameplan's key moves most [k3 measure #105]`, () => {
     const check = gameplanKeyMovesCheck(character);
     expect(check.missingNames).toEqual([]);
   }, 60_000);

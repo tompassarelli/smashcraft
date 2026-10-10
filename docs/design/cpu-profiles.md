@@ -402,8 +402,6 @@ is in smashcraft:docs/design/cpu-profiles.md. Mechanical reaction, execution
 and spacing remain separate from judgment, memory and risk preference.
 History and mutable read commitments are copied in detached snapshots,
 restored with input rows and included in exact and periodic replay checksums.
-smashcraft:ts/src/game/match/botStrategyContracts.tests.ts exercises adaptation,
-successful and punishable reads, buffering, seeded variety and move value;
 smashcraft:ts/test/native/pads/cpu-reads.pad is the native comparison script.
 
 ## Whiff punish

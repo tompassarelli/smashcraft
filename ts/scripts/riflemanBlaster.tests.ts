@@ -81,6 +81,6 @@ function play(distance: number, defender: "idle" | "shield", press: number | und
   };
 }
 
-test("a short-hop shot meets a held shield rather than passing over it [spec #117]", () => {
+test("a short-hop shot meets a held shield rather than passing over it [k3 measure #117]", () => {
   for (const distance of [60, 240, 480]) expect(play(distance, "shield", SHORT_HOP_PRESS).shieldMet).toBe(true);
 });

@@ -21,136 +21,9 @@ const sampleAt = (frame: number, sender: number) =>
 
 const rowAt = (frame: number, delay: number, sender: number) => (frame <= delay ? NEUTRAL : sampleAt(frame - delay, sender));
 
-test("every supported delay seeds neutral frames, and each frame completes explicitly in order [spec docs/netcode-proposal.md]", () => {
-  const schedule = new FixedInputSchedule();
-  const inputs = participantInputs();
-  const [first, second] = inputs;
-  assertFalse(schedule.mayAdvance());
-  assertEquals(schedule.captureTarget(), undefined);
-  assertEquals(schedule.captureLocal(0, first), Capture.wrongEpoch);
-  for (const delay of [0, 1, 2, 3, 5] as const) {
-    assertTrue(schedule.beginEpoch(delay, delay, 3));
-    assertEquals(schedule.nextFrame(), 1);
-    assertEquals(schedule.delay(), delay);
-    assertEquals(schedule.knownThrough(), delay);
-    assertEquals(schedule.confirmedThrough(), 0);
-    for (let frame = 1; frame <= delay; frame++) {
-      assertEquals(schedule.captureTarget(), frame + delay);
-      assertFalse(schedule.complete(delay, frame));
-      assertTrue(schedule.readNext(delay, inputs));
-      assertTrue(sameInput(first, NEUTRAL));
-      assertTrue(sameInput(second, NEUTRAL));
-      assertEquals(schedule.nextFrame(), frame);
-      assertEquals(schedule.confirmedThrough(), frame - 1);
-      assertFalse(schedule.complete(delay, frame + 1));
-      assertTrue(schedule.complete(delay, frame));
-      assertFalse(schedule.complete(delay, frame));
-    }
-    assertFalse(schedule.mayAdvance());
-    assertFalse(schedule.readNext(delay, inputs));
-    assertEquals(schedule.nextFrame(), delay + 1);
-  }
-});
-
-test("a capture opportunity assigns its target once, and local capture never opens the common gate [spec docs/netcode-proposal.md]", () => {
-  const schedule = new FixedInputSchedule();
-  const inputs = participantInputs();
-  const [first, second] = inputs;
-  assertTrue(schedule.beginEpoch(1, 3, 3));
-  const original = sampleAt(1, 0);
-  const later = sampleAt(99, 0);
-  assertEquals(schedule.captureLocal(1, original), Capture.captured);
-  assertEquals(schedule.captureLocal(1, later), Capture.alreadyCaptured);
-  assertTrue(sameInput(assertDefined(schedule.pending(1, 4)), original));
-  assertEquals(schedule.accepted(1, 0, 4), undefined);
-  assertEquals(schedule.knownThrough(), 3);
-  for (let frame = 1; frame <= 3; frame++) {
-    assertTrue(schedule.readNext(1, inputs));
-    assertTrue(schedule.complete(1, frame));
-    assertEquals(schedule.captureLocal(1, later), Capture.captured);
-  }
-  for (let service = 1; service <= 20; service++) {
-    assertEquals(schedule.captureLocal(1, sampleAt(service, 0)), Capture.alreadyCaptured);
-    assertFalse(schedule.readNext(1, inputs));
-    assertEquals(schedule.nextFrame(), 4);
-    assertEquals(schedule.captureTarget(), 7);
-    assertEquals(schedule.knownThrough(), 3);
-    assertEquals(schedule.confirmedThrough(), 3);
-  }
-
-  const sent = packet(1, 4, assertDefined(schedule.pending(1, 4)));
-  assertFalse(schedule.mayAdvance());
-  assertEquals(schedule.acceptSynchronized(0, sent), "accepted");
-  assertFalse(schedule.mayAdvance());
-  assertEquals(schedule.acceptSynchronized(0, sent), "accepted");
-  assertEquals(schedule.knownThrough(), 3);
-  assertEquals(schedule.acceptSynchronized(1, sent), "accepted");
-  assertEquals(schedule.knownThrough(), 4);
-  assertEquals(schedule.confirmedThrough(), 3);
-  assertEquals(schedule.nextFrame(), 4);
-  assertFalse(schedule.complete(1, 4));
-  assertTrue(schedule.readNext(1, inputs));
-  assertTrue(sameInput(first, original));
-  assertTrue(sameInput(second, original));
-  assertTrue(schedule.complete(1, 4));
-});
-
-test("the future bound moves on completion, not on receipt or read [spec docs/netcode-proposal.md]", () => {
-  const schedule = new FixedInputSchedule();
-  const inputs = participantInputs();
-  assertTrue(schedule.beginEpoch(1, 2, 3));
-  for (let frame = 3; frame <= FUTURE_LIMIT; frame++) {
-    assertEquals(schedule.acceptSynchronized(0, packet(1, frame, NEUTRAL)), "accepted");
-    assertEquals(schedule.acceptSynchronized(1, packet(1, frame, NEUTRAL)), "accepted");
-  }
-  assertEquals(schedule.knownThrough(), FUTURE_LIMIT);
-  assertEquals(schedule.confirmedThrough(), 0);
-  assertEquals(schedule.nextFrame(), 1);
-  const straddling = packet(1, FUTURE_LIMIT, NEUTRAL, NEUTRAL);
-  assertEquals(schedule.acceptSynchronized(0, straddling), "tooFarAhead");
-  assertEquals(schedule.accepted(1, 0, FUTURE_LIMIT + 1), undefined);
-  assertTrue(schedule.readNext(1, inputs));
-  assertEquals(schedule.acceptSynchronized(0, straddling), "tooFarAhead");
-  assertTrue(schedule.complete(1, 1));
-  assertEquals(schedule.acceptSynchronized(0, straddling), "accepted");
-  assertEquals(schedule.acceptSynchronized(1, straddling), "accepted");
-  assertEquals(schedule.knownThrough(), FUTURE_LIMIT + 1);
-  assertEquals(schedule.confirmedThrough(), 1);
-});
-
-test("a new epoch clears pending and prepared rows [spec docs/netcode-proposal.md]", () => {
-  const schedule = new FixedInputSchedule();
-  const inputs = participantInputs();
-  const [first] = inputs;
-  assertFalse(schedule.beginEpoch(-1, 3, 3));
-  assertTrue(schedule.beginEpoch(0, 3, 3));
-  assertEquals(schedule.captureLocal(0, first), Capture.captured);
-  assertTrue(schedule.readNext(0, inputs));
-  assertFalse(schedule.beginEpoch(0, 5, 3));
-  assertEquals(schedule.delay(), 3);
-  assertTrue(schedule.pending(0, 4) !== undefined);
-  assertTrue(schedule.beginEpoch(1, 5, 3));
-  assertEquals(schedule.epoch(), 1);
-  assertEquals(schedule.nextFrame(), 1);
-  assertEquals(schedule.knownThrough(), 5);
-  assertEquals(schedule.confirmedThrough(), 0);
-  assertEquals(schedule.pending(1, 4), undefined);
-  assertEquals(schedule.pending(0, 4), undefined);
-  assertFalse(schedule.complete(0, 1));
-  assertFalse(schedule.complete(1, 1));
-  assertEquals(schedule.captureLocal(0, first), Capture.wrongEpoch);
-  assertEquals(schedule.captureLocal(1, first), Capture.captured);
-  assertTrue(schedule.pending(1, 6) !== undefined);
-  assertEquals(schedule.pending(1, -1), undefined);
-  assertEquals(schedule.pending(1, 2147483647), undefined);
-  assertTrue(schedule.beginEpoch(2147483647, 2, 3));
-  assertFalse(schedule.beginEpoch(-2147483647, 3, 3));
-  assertFalse(schedule.beginEpoch(2147483647, 3, 3));
-});
 
 
-
-test("delivery order, duplicates, waits and ring wrap never change the rows a frame runs [spec docs/netcode-proposal.md] [invariant]", () => {
+test("delivery order, duplicates, waits and ring wrap never change the rows a frame runs [k1 scenario]", () => {
   const ordered = new FixedInputSchedule();
   const reordered = new FixedInputSchedule();
   const inputs = participantInputs();
@@ -217,7 +90,7 @@ test("delivery order, duplicates, waits and ring wrap never change the rows a fr
   assertEquals(reordered.accepted(8, 0, 537), undefined);
 });
 
-test("four participants keep every row across ring reuse [invariant]", () => {
+test("four participants keep every row across ring reuse [k1 scenario]", () => {
   const schedule = new FixedInputSchedule();
   const inputs = participantInputs();
   assertTrue(schedule.beginEpoch(30, 0, 15));

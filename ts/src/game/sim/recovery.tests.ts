@@ -41,7 +41,7 @@ function recordedFloorRecoveryFirstDifference(character: Character, tech: boolea
   return firstDifference;
 }
 
-test("recorded floor recovery skids match a tech and a missed tech on both original hosts [reference]", () => {
+test("recorded floor recovery skids match a tech and a missed tech on both original hosts [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     assertEquals(recordedFloorRecoveryFirstDifference(character, true, 0.0), 0);
     assertEquals(recordedFloorRecoveryFirstDifference(character, false, 0.0), 0);

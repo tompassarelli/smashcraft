@@ -106,48 +106,48 @@ function throws(counts: Counts, styles: readonly AttackStyle[]): void {
 
 const { forwardTiltUp, forwardTiltDown, downTilt, dashAttack, neutralAir, upAir, downAir, forwardAir, forwardTilt, downSmash } = AttackStyle;
 
-sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [spec #155]", () => {
+sweep("computer Blademaster throws Bladestorm, Blade Wheel, his down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [k1 scenario]", () => {
 
   const counts = played(Character.blademaster, Character.blademaster, 2 * MATCHES);
   throws(counts, [downAir, neutralAir, downTilt, dashAttack]);
 });
 
-sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, each at least once; fewest seen 4 on four seed offsets [spec #155]", () => {
+sweep("computer Mountain King angles his forward tilt, throws his down tilt and dash attack, each at least once; fewest seen 4 on four seed offsets [k1 scenario]", () => {
   const counts = played(Character.mountainKing, Character.mountainKing, 2 * MATCHES);
   throws(counts, [forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [spec #155] [repro #242]", () => {
+sweep("computer Warden throws Falling Knives, Sky Crescent, angled forward tilts, her down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [k1 scenario]", () => {
   throws(played(Character.warden), [downAir, upAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Lich throws angled forward tilts, his down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [spec #155]", () => {
+sweep("computer Lich throws angled forward tilts, his down tilt and dash attack, each at least once; fewest seen 3 on four seed offsets [k1 scenario]", () => {
 
 
   throws(played(Character.lich, Character.warden, 2 * MATCHES), [forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Dreadlord throws Batwing Turn, his down tilt and dash attack, each at least once; fewest seen 11 on four seed offsets [spec #155]", () => {
+sweep("computer Dreadlord throws Batwing Turn, his down tilt and dash attack, each at least once; fewest seen 11 on four seed offsets [k1 scenario]", () => {
   const counts = played(Character.dreadlord);
   throws(counts, [neutralAir, downTilt, dashAttack]);
 });
 
-sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, each at least once; fewest seen 10 on four seed offsets [spec #155]", () => {
+sweep("computer Shadow Hunter throws the glaive drill, angled forward tilts, his down tilt and dash attack, each at least once; fewest seen 10 on four seed offsets [k1 scenario]", () => {
   const counts = played(Character.shadowHunter);
   throws(counts, [downAir, forwardTiltUp, forwardTiltDown, downTilt, dashAttack]);
 });
 
-sweep("computer Forsaken Paladin throws his down tilt and dash attack, each at least once; fewest seen 27 on four seed offsets [spec #155]", () => {
+sweep("computer Forsaken Paladin throws his down tilt and dash attack, each at least once; fewest seen 27 on four seed offsets [k1 scenario]", () => {
   throws(played(Character.forsakenPaladin), [downTilt, dashAttack]);
 });
 
-sweep("computer Illidan fires Eye Blast only on a full meter and throws Shear, Flames of Azzinoth and the two-hit forward air, each at least once; fewest seen 11 on four seed offsets [spec #155] [spec #379]", () => {
+sweep("computer Illidan fires Eye Blast only on a full meter and throws Shear, Flames of Azzinoth and the two-hit forward air, each at least once; fewest seen 11 on four seed offsets [k1 scenario]", () => {
   const counts = played(Character.demonHunter);
   throws(counts, [forwardTilt, downSmash, forwardAir]);
   assertGreaterThan(counts.eyeBlast ?? 0, 0);
   assertEquals(counts.eyeBlastWithoutMeter ?? 0, 0);
 });
 
-sweep("computer Illidan and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [spec #155]", () => {
+sweep("computer Illidan and Rifleman never press a special their mana can't pay in a seeded mirror, which replays its counts [k1 scenario]", () => {
   for (const character of [Character.demonHunter, Character.rifleman]) assertEquals(played(character, character, 1).manaDenied ?? 0, 0);
 });

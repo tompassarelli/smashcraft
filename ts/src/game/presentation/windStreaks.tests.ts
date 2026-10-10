@@ -3,7 +3,7 @@ import { WIND_TEST_STAGE, CANNON_TEST_STAGE, STAGE_AT_REST } from "../sim/stage"
 import { WIND_CALM_FRAMES, WIND_CUE_FRAMES, WIND_CYCLE_FRAMES, windPush } from "../sim/stageHazards";
 import { windStreak } from "./stageHazards";
 
-test("wind ribbons warn in the push direction for the whole cue before either gust without pushing fighters [spec #348] [spec #194]", () => {
+test("wind ribbons warn in the push direction for the whole cue before either gust without pushing fighters [k3 measure #348]", () => {
   for (const [start, direction] of [[WIND_CALM_FRAMES + 1, 1], [WIND_CYCLE_FRAMES + WIND_CALM_FRAMES + 1, -1]] as const) {
     assertEquals(windStreak(WIND_TEST_STAGE, start - 1, 0), undefined);
     for (let frame = start; frame < start + WIND_CUE_FRAMES; frame++) {

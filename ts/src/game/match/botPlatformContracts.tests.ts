@@ -72,7 +72,7 @@ function platformUse(tier: CpuTier, layout: Layout): PlatformUse {
   return use;
 }
 
-test("expert computers climb and drop through platforms; rookies climb and stand only [spec #392]", () => {
+test("expert computers climb and drop through platforms; rookies climb and stand only [k1 scenario]", () => {
   assertGreaterThan(platformUse("expert", "under").climbs, 0);
   assertGreaterThan(platformUse("expert", "aboveBelowTarget").drops, 0);
   for (const layout of ["under", "aboveBelowTarget"] as const) {

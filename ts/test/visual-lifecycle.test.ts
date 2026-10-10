@@ -42,7 +42,7 @@ function hiddenInView(client: HeadlessClient): unknown[] {
   return [...effectPoses(client)].filter(([, pose]) => hidden(pose) && pose.z > ground).map(([handle]) => handle);
 }
 
-test("combat effects: rollback, pause/resume and rematch neither replay nor retain effects [invariant]", () => {
+test("combat effects: rollback, pause/resume and rematch neither replay nor retain effects [k1 scenario]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);

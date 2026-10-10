@@ -15,7 +15,7 @@ import { expectNoDivergence, playThroughReload } from "./desync/journeys";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test("desync guard: both clients make the same native calls through a match and a hot reload [invariant]", () => {
+test("desync guard: both clients make the same native calls through a match and a hot reload [k1 scenario]", () => {
   expect(CURRENT_BUILD.devConsole).toBe(true);
   const clients = playThroughReload(headless, { start, install });
   expectNoDivergence(clients);

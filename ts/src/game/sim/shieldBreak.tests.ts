@@ -40,7 +40,7 @@ function dizzyShieldBreakTest(fighter: Fighter, input: Readonly<Controls>): void
   assertEquals(fighter.shield.breakFrame, 0);
 }
 
-test("the forced shield-break sequence rejects actions and techs for both characters [reference]", () => {
+test("the forced shield-break sequence rejects actions and techs for both characters [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     const fighter = shieldBreakTestFighter(character, 0.0);
     const world = testWorld(fighter, createReferenceFighter(character === Character.sylvanas ? Character.rifleman : Character.sylvanas, 100.0, -1));
@@ -107,7 +107,7 @@ test("the forced shield-break sequence rejects actions and techs for both charac
   }
 });
 
-test("dizzy length follows percent, and fresh mash edges shorten its exact tick count [reference]", () => {
+test("dizzy length follows percent, and fresh mash edges shorten its exact tick count [k4 reference melee]", () => {
   for (const mode of [0, 1, 2]) {
     const fighter = shieldBreakTestFighter(Character.sylvanas, mode === 0 ? 100.0 : 0.0);
     const input = controls();
@@ -136,7 +136,7 @@ test("dizzy length follows percent, and fresh mash edges shorten its exact tick 
   assertNear(fractional.shield.breakRemaining, 385.75, f32(0.0001));
 });
 
-test("flinching damage and grabs interrupt every shield-break phase [reference]", () => {
+test("flinching damage and grabs interrupt every shield-break phase [k4 reference melee]", () => {
   for (const state of BREAK_PHASES) {
     for (const attack of [AttackStyle.jab, AttackStyle.grab]) {
       const fighter = shieldBreakTestFighter(Character.sylvanas, 0.0);

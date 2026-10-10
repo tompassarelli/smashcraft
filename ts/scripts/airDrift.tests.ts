@@ -3,7 +3,7 @@ import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/regis
 import { authoredPhysics, melee } from "../src/game/sim/tuning";
 import { AIR_ACCELERATION_BAND, AIR_SPEED_BAND } from "./airDrift";
 
-test("every fighter's air speed and air acceleration sit inside the documented band [spec #190]", () => {
+test("every fighter's air speed and air acceleration sit inside the documented band [k3 measure #190]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const p = authoredPhysics(character);
     const name = fighterName(character);

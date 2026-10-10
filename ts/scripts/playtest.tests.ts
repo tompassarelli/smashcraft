@@ -54,7 +54,7 @@ function breaksByWindows(combo: Combo): boolean {
 
 const key = (runs: readonly Run[]) => JSON.stringify(classify(runs).map(({ kind, subject, detail, frame }) => [kind, subject, detail, frame]).sort());
 
-test("the playtester flags a string exactly when #83's true-combo rule breaks, a match as stuck exactly past 30 s with no damage or stock change, its findings ignore run order, and scaling move usage keeps every overused move [spec docs/gameplay-design.md]", () => {
+test("the playtester flags a string exactly when #83's true-combo rule breaks, a match as stuck exactly past 30 s with no damage or stock change, its findings ignore run order, and scaling move usage keeps every overused move [k3 measure docs/gameplay-design.md]", () => {
   const next = random(403);
   for (let trial = 0; trial < 300; trial++) {
     const runs = Array.from({ length: 1 + Math.floor(next() * 8) }, (_, index) => randomRun(next, index));

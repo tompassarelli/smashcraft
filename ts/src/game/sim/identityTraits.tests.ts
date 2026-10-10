@@ -8,7 +8,7 @@ import { createRoster } from "./roster";
 for (const character of [Character.blademaster, Character.mountainKing, Character.warden, Character.lich, Character.forsakenPaladin,
   Character.dreadlord, Character.shadowHunter, Character.pitLord, Character.beastmaster, Character.lichKing, Character.thrall,
   Character.cairne, Character.chen, Character.peon, Character.tinker]) {
-  test(`fighter ${character} repeated ordinary contacts add no counted damage, healing, chill or jump refund [spec #148]`, () => {
+  test(`fighter ${character} repeated ordinary contacts add no counted damage, healing, chill or jump refund [k3 measure #148]`, () => {
     const source = createFighter(character === Character.forsakenPaladin ? Character.rifleman : character, 0.0, 1);
     const target = createFighter(character, 40.0, -1);
     const world = createRoster(3, [source, target]);

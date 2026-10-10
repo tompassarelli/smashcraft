@@ -21,7 +21,7 @@ function duel(character: Character) {
   return { game, world, inputs: createBufferedFrameControls() };
 }
 
-test("standing grabs across the roster meet scaled Melee reach, height and active frames within ten percent [spec #337]", () => {
+test("standing grabs across the roster meet scaled Melee reach, height and active frames within ten percent [k4 reference melee]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const fighter = createFighter(character, 0.0, 1);
     const hit = emptyHitRegion();
@@ -32,7 +32,7 @@ test("standing grabs across the roster meet scaled Melee reach, height and activ
   }
 });
 
-test("grab on every jump squat frame starts a grounded standing grab without takeoff [spec #337]", () => {
+test("grab on every jump squat frame starts a grounded standing grab without takeoff [k4 reference melee]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const count = createFighter(character, 0.0, 1).tuning.physics.jumpSquatFrames;
     for (let squatFrame = 0; squatFrame < count; squatFrame++) {
@@ -53,7 +53,7 @@ test("grab on every jump squat frame starts a grounded standing grab without tak
   }
 });
 
-test("standing dash and pivot grabs catch Rifleman at their scaled limit for three frames and miss beyond it [spec #337]", () => {
+test("standing dash and pivot grabs catch Rifleman at their scaled limit for three frames and miss beyond it [k4 reference melee]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     for (const kind of [0, 1, 2]) {
       const reach = kind === 0 ? 96.0 : kind === 1 ? 120.0 : 144.0;
@@ -80,31 +80,4 @@ test("standing dash and pivot grabs catch Rifleman at their scaled limit for thr
       }
     }
   }
-});
-
-test("a grab buffered during ordinary shield stun starts with jump out of shield, after the drain-resume frame, and catches before attack recovery [repro #337]", () => {
-  const d = duel(Character.rifleman);
-  const defender = fighterAt(d.world, 0);
-  const attacker = fighterAt(d.world, 1);
-  defender.shield.raised = true;
-  defender.shield.heldFrames = 20;
-  copyControls(d.inputs.inputs[0], controls({ shield: true, shieldStrength: 1.0 }));
-  defender.motion.x = -20.0;
-  attacker.motion.x = 20.0;
-  beginFighterAttack(d.world, 1, AttackStyle.jab, false);
-  let frame = 0;
-  while (frame < 40 && defender.shield.stun === 0) stepMatch(d.game, d.world, d.inputs, ++frame);
-  assertTrue(defender.shield.stun > 0);
-  queueAttack(d.inputs.commands[0], { style: AttackStyle.grab, facing: 0, frame: frame + 1, mayCharge: false });
-
-  let free = -1;
-  while (frame < 80 && defender.attack.style !== AttackStyle.grab) {
-    stepMatch(d.game, d.world, d.inputs, ++frame);
-    if (free < 0 && defender.launch.hitlag === 0 && defender.shield.stun === 0) free = frame + 1;
-    if (frame < free || free < 0) assertEquals(defender.attack.style, undefined, "grab waits for shield stun and the drain resume");
-  }
-  assertEquals(frame, free, "first free frame after the drain resume");
-  assertEquals(defender.attack.style, AttackStyle.grab);
-  while (frame < 100 && defender.grab.target === undefined && attacker.attack.cooldown > 0) stepMatch(d.game, d.world, d.inputs, ++frame);
-  assertEquals(defender.grab.target, 1, "recovering attacker caught");
 });

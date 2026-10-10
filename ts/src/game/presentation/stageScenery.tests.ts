@@ -11,7 +11,7 @@ import { fogProblems, mirrorProblems } from "./stageRules";
 
 const FIGURE_WORDS = ["statue", "totem", "idol", "effigy", "corpse", "skeleton"];
 
-test("each selectable stage has its own sky and fog beyond the fight [spec #170]", () => {
+test("each selectable stage has its own sky and fog beyond the fight [k3 measure #170]", () => {
   const skies: string[] = [];
   const fogs: string[] = [];
   for (const { id, name } of STAGE_CATALOG) {
@@ -28,13 +28,13 @@ test("each selectable stage has its own sky and fog beyond the fight [spec #170]
   }
 });
 
-test("no stage's scenery pairs a piece with its mirror twin [spec docs/design/stage-art.md]", () => {
+test("no stage's scenery pairs a piece with its mirror twin [k3 measure docs/design/stage-art.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     assertEquals(mirrorProblems(name, stageScenery(id).pieces).join("\n"), "");
   }
 });
 
-test("stage scenery shows no creatures [spec docs/design/stage-art.md]", () => {
+test("stage scenery shows no creatures [k3 measure docs/design/stage-art.md]", () => {
   for (const { id, name } of STAGE_CATALOG) {
     for (const { model } of stageScenery(id).pieces) {
       const creature = model.toLowerCase().startsWith("units\\") || FIGURE_WORDS.some((word) => model.toLowerCase().includes(word));

@@ -10,7 +10,7 @@ function twoPlayers() {
   return game;
 }
 
-test("the match waits for every present player's report of this stage; computers send none [spec #129]", () => {
+test("the match waits for every present player's report of this stage; computers send none [k3 measure #129]", () => {
   const load = beginStageLoad(twoPlayers(), 1);
   assertEquals(load.waiting, 0b011);
   assertFalse(stageReported(load, 0, "11"));

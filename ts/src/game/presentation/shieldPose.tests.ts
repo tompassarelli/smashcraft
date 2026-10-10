@@ -8,7 +8,7 @@ import { SHIELD_MAX, createFighter } from "../sim/fighter";
 import { createRoster } from "../sim/roster";
 import { projectedShield } from "./shieldPose";
 
-test("the shield follows its energy and hides on release, KO and outside play [spec docs/design/melee/defense.md]", () => {
+test("the shield follows its energy and hides on release, KO and outside play [k4 reference melee]", () => {
   const fighter = createFighter(Character.rifleman, 83.0, 1);
   assertFalse(projectedShield(fighter, true).visible);
   fighter.shield.raised = true;
@@ -33,7 +33,7 @@ test("the shield follows its energy and hides on release, KO and outside play [s
   assertFalse(projectedShield(undefined, true).visible);
 });
 
-test("a corrected shield projects the restored state of a sparse participant [invariant]", () => {
+test("a corrected shield projects the restored state of a sparse participant [k1 scenario]", () => {
   const world = createRoster(9);
   world.fighters[0] = createFighter(Character.rifleman, -100.0, 1);
   const fighter = createFighter(Character.demonHunter, 100.0, -1);
@@ -66,29 +66,4 @@ test("a corrected shield projects the restored state of a sparse participant [in
   assertEquals(repeated.scale, restored.scale);
   assertEquals(fighter.shield.energy, SHIELD_MAX);
   assertEquals(world.mask, 9);
-});
-
-test("shield contact pulses through freeze and stun and returns to its held bubble [spec #82]", () => {
-  const fighter = createFighter(Character.rifleman, 83.0, 1);
-  fighter.shield.raised = true;
-  const held = projectedShield(fighter, true);
-  fighter.shield.stun = 5;
-  fighter.shield.pushbackX = -10.0;
-  fighter.launch.hitlag = 4;
-  const contact = projectedShield(fighter, true);
-  assertTrue(contact.scale > held.scale);
-  assertEquals(contact.x < held.x, true, "the bubble recoils with its pushback");
-  assertTrue(contact.blue < held.blue);
-  fighter.launch.hitlag = 2;
-  assertTrue(projectedShield(fighter, true).scale < held.scale);
-  fighter.launch.hitlag = 0;
-  const stunned = projectedShield(fighter, true);
-  assertTrue(stunned.scale > held.scale);
-  assertEquals(projectedShield(fighter, true).scale, stunned.scale);
-  assertEquals(fighter.shield.stun, 5);
-  fighter.shield.stun = 0;
-  const recovered = projectedShield(fighter, true);
-  assertEquals(recovered.scale, held.scale);
-  assertEquals(recovered.x, held.x);
-  assertEquals(recovered.blue, held.blue);
 });

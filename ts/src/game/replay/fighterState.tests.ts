@@ -59,7 +59,7 @@ function changed(value: unknown, seed: number): unknown {
   return 1;
 }
 
-test("fighter replay copies preserve every field, absent hit targets included, and detach mutable records [invariant]", () => {
+test("fighter replay copies preserve every field, absent hit targets included, and detach mutable records [k2 property]", () => {
   const source = createFighter(Character.rifleman, -12.0, 1);
   const target = createFighter(Character.rifleman, 4.0, -1);
   const { leaves } = fighterLeaves(target, source);
@@ -84,7 +84,7 @@ test("fighter replay copies preserve every field, absent hit targets included, a
   assertEquals([0, 1, 2, 3].map(i => fresh.special.hitTargets[i] ?? -1).join(","), "-1,-1,-1,-1");
 });
 
-test("every mutable fighter field participates in replay equality [invariant]", () => {
+test("every mutable fighter field participates in replay equality [k2 property]", () => {
   const expected = createFighter(Character.rifleman, 0.0, 1);
   const actual = createFighter(Character.rifleman, 0.0, 1);
   const { leaves } = fighterLeaves(expected, actual);
@@ -127,7 +127,7 @@ function holding(fighter: Fighter): ReplayState {
   return { ...createReplaySnapshot(), world: createRoster(1, [fighter, ...others]) };
 }
 
-test("the comparators repair trusts tell apart every changed fighter field, and a copy satisfies them [invariant]", () => {
+test("the comparators repair trusts tell apart every changed fighter field, and a copy satisfies them [k2 property]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     for (const key of Object.keys(createFighter(character, 0.0, 1).tuning)) assertTrue((TUNING_FIELDS as readonly string[]).includes(key));
   }

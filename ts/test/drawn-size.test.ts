@@ -46,7 +46,7 @@ const LOOK_TOLERANCE = 0.1;
 
 const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const family = join(INPUTS_STORE, "original-clips-static-lights", manifest["original-clips-static-lights"] ?? "missing");
-test("every fighter's drawn Stand height fits its hurt capsule in both looks, and Definitive matches Classic or its capsule within 10% [spec AGENTS.md]", async () => {
+test("every fighter's drawn Stand height fits its hurt capsule in both looks, and Definitive matches Classic or its capsule within 10% [k3 measure docs/design/hd-fighters.md]", async () => {
   if (!existsSync(family)) return;
   const off: string[] = [];
   for (const character of SELECTABLE_CHARACTERS) {

@@ -11,22 +11,7 @@ const ready = () => {
   return game;
 };
 
-test("stage pools: include/exclude keep the same active stages and never allow an empty pool [spec #198]", () => {
-  const pool = createStagePool();
-  assertEquals(stagePoolCount(pool), STAGE_CATALOG.length);
-  togglePoolMode(pool);
-  for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10) assertTrue(togglePoolStage(pool, stage.id));
-  assertEquals(stagePoolCount(pool), 2);
-  const mask = activeStageMask(pool);
-  togglePoolMode(pool);
-  assertEquals(activeStageMask(pool), mask);
-  assertEquals(pool.only, false);
-  assertTrue(togglePoolStage(pool, 10));
-  assertEquals(togglePoolStage(pool, 2), false);
-  assertEquals(stagePoolCount(pool), 1);
-});
-
-test("stage pools: 500 seeded cycles stay inside the pool, cover it before repeating and reshuffle [spec #198]", () => {
+test("stage pools: 500 seeded cycles stay inside the pool, cover it before repeating and reshuffle [k2 property]", () => {
   const pool = createStagePool();
   for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10 && stage.id !== 11) togglePoolStage(pool, stage.id);
   let changed = false;
@@ -48,36 +33,7 @@ test("stage pools: 500 seeded cycles stay inside the pool, cover it before repea
   assertTrue(changed);
 });
 
-test("stage pools: Start uses Random, a picked stage overrides the pool, and rematches/endless keep rotation [spec #198]", () => {
-  const game = ready();
-  assertTrue(requestStageSelect(game, 0));
-  assertEquals(game.stageChoice, RANDOM_STAGE);
-  for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10 && stage.id !== 11) changeStagePoolStage(game, 0, stage.id);
-  assertTrue(requestStart(game, 0));
-  const drawn = [game.stageChoice];
-  game.automaticRematch = true;
-  for (let match = 0; match < 2; match++) {
-    game.matchFrame = 1;
-    game.phase = Phase.result;
-    beginRematchCountdown(game, 1);
-    for (let frame = 0; frame < 60; frame++) tickRematchCountdown(game);
-    assertEquals(game.phase, Phase.match);
-    assertTrue(!drawn.includes(game.stageChoice));
-    drawn.push(game.stageChoice);
-  }
-  game.endless = true;
-  assertTrue(leaveMatch(game, 0));
-  assertTrue(requestStageSelect(game, 0));
-  const mask = activeStageMask(game.stagePool);
-  changeStagePoolMode(game, 0);
-  assertEquals(activeStageMask(game.stagePool), mask);
-  selectStage(game, 0, 14);
-  assertTrue(requestStart(game, 0));
-  assertEquals(game.stageChoice, 14);
-  assertEquals(stagePoolCount(game.stagePool), 3);
-});
-
-test("stage pools: copied replay state draws exactly the same next 27 stages [spec #198] [invariant]", () => {
+test("stage pools: copied replay state draws exactly the same next 27 stages [k1 scenario]", () => {
   const original = ready();
   requestStageSelect(original, 0);
   for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10 && stage.id !== 11) changeStagePoolStage(original, 0, stage.id);

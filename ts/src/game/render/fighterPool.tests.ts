@@ -8,7 +8,7 @@ import { WHITE_FIGHTER_MODELS } from "../assets/whiteFighterModels";
 
 
 
-test("every selectable fighter has a clip pool covering its clip table and a white flash body [invariant]", () => {
+test("every selectable fighter has a clip pool covering its clip table and a white flash body [k2 property]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     const count = originalClipCount(character);

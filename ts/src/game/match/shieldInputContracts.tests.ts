@@ -26,10 +26,10 @@ function wavedashOutOfShield(shield: Pad, dodge: Pad): void {
   assertEquals(Math.sign(fighter.motion.vx), 1);
 }
 
-test("holding shield, jumping and pressing Tilt down-forward wavedashes out of shield in the tom layout [spec melee]", () => {
+test("holding shield, jumping and pressing Tilt down-forward wavedashes out of shield in the tom layout [k3 measure docs/play.md]", () => {
   wavedashOutOfShield({ trigger: true }, { tilt: true });
 });
 
-test("holding one trigger, jumping and pressing the other trigger down-forward wavedashes out of shield [spec melee]", () => {
+test("holding one trigger, jumping and pressing the other trigger down-forward wavedashes out of shield [k4 reference melee]", () => {
   for (const [held, other] of [["trigger", "rightTrigger"], ["rightTrigger", "trigger"]] as const) wavedashOutOfShield({ [held]: true }, { [other]: true });
 });

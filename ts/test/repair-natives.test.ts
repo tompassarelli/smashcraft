@@ -13,7 +13,7 @@ import { install, startBuild } from "../src/platform/main";
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("rollback repair re-simulates corrected frames without a single native call [spec #168]", () => {
+test("rollback repair re-simulates corrected frames without a single native call [k1 scenario]", () => {
   const clients = headless.clients({ start: () => startBuild({ ...PLAYABLE_BUILD, devConsole: true }), install }, [0, 1], {
     delivery: syncDelivery(MEASURED_BATTLE_NET, 7),
   });

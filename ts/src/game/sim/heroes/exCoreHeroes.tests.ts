@@ -41,13 +41,13 @@ function projectileDamage(character: Character, slot: SpecialSlot, ex: boolean):
   return target.status.damage;
 }
 
-test("Wind Cutter, Storm Bolt, Shadow Strike and Death and Decay actually deal 25% more projectile damage [spec #329]", () => {
+test("Wind Cutter, Storm Bolt, Shadow Strike and Death and Decay actually deal 25% more projectile damage [k3 measure #329]", () => {
   for (const [hero, slot] of [[Character.blademaster, SpecialSlot.neutral], [Character.mountainKing, SpecialSlot.neutral], [Character.warden, SpecialSlot.neutral], [Character.lich, SpecialSlot.side]] as const) {
     assertNear(projectileDamage(hero, slot, true), f32(projectileDamage(hero, slot, false) * 1.25), f32(0.001));
   }
 });
 
-test("all four EX recoveries execute 25% farther including steering and airborne forms [spec #329]", () => {
+test("all four EX recoveries execute 25% farther including steering and airborne forms [k3 measure #329]", () => {
   for (const hero of heroes) for (const form of [SpecialForm.ground, SpecialForm.air]) {
     const travel = (ex: boolean) => {
       const fighter = cast(hero, SpecialSlot.up, form, ex);

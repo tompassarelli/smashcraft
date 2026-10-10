@@ -12,7 +12,7 @@ const ATTACK_POSES: readonly HeroPose[] = [
   "neutralSpecialFollowUp", "sideSpecialFollowUp", "upSpecialFollowUp", "downSpecialFollowUp",
   "neutralSpecialFollowUpAir", "sideSpecialFollowUpAir", "upSpecialFollowUpAir", "downSpecialFollowUpAir", "ultimate",
 ];
-test("roster jumps and falls never share an attack or special sequence [spec #230]", () => {
+test("roster jumps and falls never share an attack or special sequence [k2 property]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const table = characterClips(character);
     const actions = character === Character.rifleman

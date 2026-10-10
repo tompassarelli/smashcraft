@@ -142,7 +142,7 @@ const EXPECTED: Readonly<Record<string, readonly [number, number, number, number
   "cap-wiggle": [HIT, Math.sqrt(WIGGLE_NET_X * WIGGLE_NET_X + WIGGLE_NET_Z * WIGGLE_NET_Z), HIT_STEPS, 1],
 };
 
-test("the ten teleport fixtures now stay within 72 world units per hit, 144 per string and 18 per tick [spec #70]", () => {
+test("the ten teleport fixtures now stay within 72 world units per hit, 144 per string and 18 per tick [k3 measure #70]", () => {
   for (const fixture of SDI_FIXTURES) {
     const measured = measureSdiFixture(fixture);
     const [path, net, sdi, asdi] = EXPECTED[fixture.name] ?? [-1, -1, -1, -1];
@@ -160,7 +160,7 @@ test("the ten teleport fixtures now stay within 72 world units per hit, 144 per 
   }
 });
 
-test("a restored snapshot continues queued SDI identically [invariant]", () => {
+test("a restored snapshot continues queued SDI identically [k1 scenario]", () => {
   const original = isolatedVictim();
   seedHit(original, 6);
   advanceSolo(original, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);

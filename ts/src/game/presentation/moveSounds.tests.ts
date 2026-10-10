@@ -5,7 +5,7 @@ import { VERIFIED_STOCK_SOUNDS } from "../assets/stockSoundInfo";
 import { HitElement } from "../sim/hitRegions";
 import { moveSound, playHit, soundFiles, soundedMoves } from "./moveSounds";
 
-test("every move of every fighter has a perform, weak, strong and shield sound, each in the installed game [spec #391]", () => {
+test("every move of every fighter has a perform, weak, strong and shield sound, each in the installed game [k4 reference native]", () => {
   assertEquals(SELECTABLE_CHARACTERS.length, 26, "roster");
   const missing: string[] = [];
   for (const character of SELECTABLE_CHARACTERS) {
@@ -31,7 +31,7 @@ test("every move of every fighter has a perform, weak, strong and shield sound, 
   assertEquals(missing.join("\n"), "");
 });
 
-test("three jabs in a row never sound alike, and the same hit always sounds the same [spec #391]", () => {
+test("three jabs in a row never sound alike, and the same hit always sounds the same [k2 property]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const takes: string[] = [];
     for (let serial = 1; serial <= 3; serial++) {

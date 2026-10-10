@@ -1,25 +1,52 @@
-
-
-
-
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import ts from "typescript";
 
-const TAG = /\[(?:native|reference|invariant|provisional)\]|\[repro (?:wisp)?#\d+\]|\[spec (?:(?:wisp)?#\d+|[\w.:/-]+)\]/;
+/** The one kind tag a title ends with (#422). */
+export const KIND_TAG = / \[(k1 scenario|k2 property|k3 measure (#\d+|docs\/[\w./-]+\.md)|k4 reference [\w.:/#-]+|k5 boundary [a-z0-9-]+)\]$/;
 
-export const hasOracleTag = (title: string): boolean => TAG.test(title);
+const ANY_KIND = /\[k\d[^\]]*\]/g;
 
-export const ORACLE_TAGS = [
-  "Every test title ends with its oracle, the source of its expected value outside the code under test:",
-  "  [native]                   real-game captures, or replay tapes recorded from real matches",
-  "  [reference]                an independent implementation: Wurst parity, Bun vs 32-bit Lua, retail Melee recordings",
-  "  [spec #N] / [spec docs/…]  a value or rule Tom or a design doc set, cited",
-  "  [repro #N]                 reproduces a real defect and fails on the pre-fix code",
-  "  [invariant]                holds however the code computes it: same seed twice, equal client checksums, round trips, rollback equals straight play",
-  "A headless expectation not yet confirmed natively stays as [provisional] and is listed on wisp#69.",
-  "A test with no oracle restates the code: delete it (bun wisp help testing).",
+const ORACLE = /\[(?:native|reference|invariant|provisional)\]|\[repro (?:wisp)?#\d+\]|\[spec [^\]]+\]/;
+
+export const KIND_TAGS = [
+  "Every test title ends with exactly one kind tag (#422):",
+  "  [k1 scenario]                       replayed input through the whole system, asserting invariants or agreement",
+  "  [k2 property]                       a property over a pure core",
+  "  [k3 measure #N] / [k3 measure docs/<path>.md]  an owner-decided number, citing the issue or doc that sets it",
+  "  [k4 reference <source>]             an external reference: melee, melee-decomp, lua32, wurst, native, …",
+  "  [k5 boundary <name>]                one integration check per real boundary; each name once in the suite",
+  "A test that fits no kind is scaffolding: delete it (bun wisp help testing).",
 ].join("\n");
+
+export type TestTitle = { readonly file: string; readonly line: number; readonly title: string | undefined };
+
+export type Refused = { readonly file: string; readonly line: number; readonly title: string; readonly why: string };
+
+
+/** The pure core: every title that breaks the kind-tag rule, and why. `docExists` answers for repo-relative paths. */
+export function kindTagProblems(titles: readonly TestTitle[], docExists: (path: string) => boolean): Refused[] {
+  const refused: Refused[] = [];
+  const boundaries = new Map<string, TestTitle>();
+  for (const entry of titles) {
+    const { file, line, title } = entry;
+    const refuse = (why: string): void => void refused.push({ file, line, title: title ?? "", why });
+    if (title === undefined) { refuse("title is not literal text"); continue; }
+    const tag = KIND_TAG.exec(title);
+    if (tag === null) { refuse("does not end with a kind tag"); continue; }
+    if ((title.match(ANY_KIND) ?? []).length !== 1) { refuse("carries more than one kind tag"); continue; }
+    if (ORACLE.test(title)) { refuse("still carries an oracle tag"); continue; }
+    const [, kind, doc] = tag;
+    if (doc?.startsWith("docs/") === true && !docExists(doc)) refuse(`cites ${doc}, which does not exist`);
+    if (kind?.startsWith("k5 ") === true) {
+      const name = kind.slice("k5 boundary ".length);
+      const first = boundaries.get(name);
+      if (first === undefined) boundaries.set(name, entry);
+      else refuse(`boundary ${name} is already checked at ${first.file}:${first.line}`);
+    }
+  }
+  return refused;
+}
 
 const REGISTRARS = new Set(["test", "it", "sweep"]);
 
@@ -45,19 +72,15 @@ function titleText(node: ts.Expression | undefined): string | undefined {
   return undefined;
 }
 
-export type Untagged = { readonly file: string; readonly line: number; readonly title: string };
 
-
-export function untaggedTests(root: string, files: readonly string[]): Untagged[] {
-  const found: Untagged[] = [];
+/** Every test call site's title in `files`; a title that is not literal text is undefined. */
+export function testTitles(root: string, files: readonly string[]): TestTitle[] {
+  const found: TestTitle[] = [];
   for (const file of files) {
     const source = ts.createSourceFile(file, readFileSync(join(root, file), "utf8"), ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
     const visit = (node: ts.Node): void => {
       if (ts.isCallExpression(node) && registersTest(node)) {
-        const title = titleText(node.arguments[0]);
-        if (title === undefined || !hasOracleTag(title)) {
-          found.push({ file, line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1, title: title ?? node.arguments[0]?.getText(source) ?? "" });
-        }
+        found.push({ file, line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1, title: titleText(node.arguments[0]) });
       }
       ts.forEachChild(node, visit);
     };
@@ -67,11 +90,13 @@ export function untaggedTests(root: string, files: readonly string[]): Untagged[
 }
 
 
+/** Exits 1 naming each refused title; `root` is ts/, and k3 doc paths resolve from the repo root above it. */
 export function refuseUntagged(root: string, files: readonly string[]): void {
-  const untagged = untaggedTests(root, files);
-  if (untagged.length === 0) return;
-  console.error(`refused: ${untagged.length} test${untagged.length === 1 ? " has" : "s have"} no oracle tag; nothing ran.`);
-  for (const { file, line, title } of untagged) console.error(`  ${file}:${line}  ${title}`);
-  console.error(ORACLE_TAGS);
+  const repo = resolve(root, "..");
+  const refused = kindTagProblems(testTitles(root, files), (path) => existsSync(join(repo, path)));
+  if (refused.length === 0) return;
+  console.error(`refused: ${refused.length} test title${refused.length === 1 ? " breaks" : "s break"} the kind-tag rule; nothing ran.`);
+  for (const { file, line, title, why } of refused) console.error(`  ${file}:${line}  ${why}: ${title}`);
+  console.error(KIND_TAGS);
   process.exit(1);
 }

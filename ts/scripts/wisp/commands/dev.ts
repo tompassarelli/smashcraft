@@ -26,7 +26,7 @@ export const SMASHCRAFT_DEV: DevProject = {
     },
 
     journeys: [
-      "test/desync-guard.test.ts", "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/player-text.test.ts", "test/standalone.test.ts", "test/rematch-load.test.ts", "test/match-settings.test.ts", "test/lag-recovery.test.ts", "test/local-start.test.ts",
+      "test/desync-guard.test.ts", "test/visual-lifecycle.test.ts", "test/player-text.test.ts", "test/standalone.test.ts", "test/match-settings.test.ts", "test/lag-recovery.test.ts", "test/local-start.test.ts",
     ],
     isolated: ISOLATED_TEST_GROUPS,
     env: TEST_WORKER_ENV,

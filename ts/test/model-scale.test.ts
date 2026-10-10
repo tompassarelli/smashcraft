@@ -21,7 +21,7 @@ const UNITSKIN_MODEL_SCALE: Readonly<Record<string, number>> = {
   Efur: Math.fround(1.1),
 };
 
-test("every fighter is drawn at its stock unit's model scale times the shared factor [native]", () => {
+test("every fighter is drawn at its stock unit's model scale times the shared factor [k4 reference native]", () => {
   const characters = [...new Set(Object.values(Character))].sort((a, b) => a - b);
   expect([...new Set(SELECTABLE_CHARACTERS)].sort((a, b) => a - b)).toEqual(characters);
   for (const character of characters) {

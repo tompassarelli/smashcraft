@@ -4,7 +4,7 @@ import { selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 import { DEFAULT_OPTIONS, playTextMatch } from "./textMatch";
 import { parseCommands } from "./textMatchView";
 
-test("a fully raised shield blocks Illidan's forward air for every fighter [spec #413]", () => {
+test("a fully raised shield blocks Illidan's forward air for every fighter [k1 scenario]", () => {
   const input = "0 neutral\n46 shield\n70 neutral\n";
   for (const slug of ["warden", "blademaster", "thrall", "dreadlord", "rifleman", "peon"]) {
     const you = selectableCharacterBySlug(slug);
@@ -16,7 +16,7 @@ test("a fully raised shield blocks Illidan's forward air for every fighter [spec
   }
 });
 
-test("an Expert computer hit by a stationary opponent's down smash stops re-approaching into it and punishes [repro #412]", () => {
+test("an Expert computer hit by a stationary opponent's down smash stops re-approaching into it and punishes [k1 scenario]", () => {
   const input = readFileSync(new URL("../test/playtest407/dsmash-loop.in", import.meta.url), "utf8");
   const options = { ...DEFAULT_OPTIONS, seed: 9, cpu: selectableCharacterBySlug("thrall") ?? DEFAULT_OPTIONS.cpu, level: "expert" as const, frames: 3000 };
   const lines = playTextMatch(options, parseCommands(input)).lines.filter((line) => /^\d+ A x/.test(line));

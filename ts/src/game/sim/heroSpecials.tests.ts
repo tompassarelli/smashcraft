@@ -69,7 +69,7 @@ const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const neutral = controls({ specialPressed: true });
 
-test("a regular hero special spends no meter and the fighter acts again the frame after its end [spec #335]", () => {
+test("a regular hero special spends no meter and the fighter acts again the frame after its end [k3 measure #335]", () => {
   const { world, owner } = pair(600.0);
   frame(world, side);
   assertEquals(owner.special.action, SpecialAction.heroSide);
@@ -83,7 +83,7 @@ test("a regular hero special spends no meter and the fighter acts again the fram
   assertEquals(owner.special.action, SpecialAction.heroNeutral);
 });
 
-test("replaying a hero special from a restored snapshot reproduces every fighter field [invariant]", () => {
+test("replaying a hero special from a restored snapshot reproduces every fighter field [k1 scenario]", () => {
   const { world, owner, target } = pair(200.0);
   const savedOwner = createFighter(Character.blademaster, 0.0, 1);
   const savedTarget = createFighter(Character.rifleman, 0.0, 1);

@@ -15,7 +15,7 @@ import { STRONG_SPARK_SCALE, SoundTier, TIER_HIT_VOLUME, TIER_SPARK_SCALE } from
 import { presentImpactSounds } from "../presentation/hitPresentation";
 import { FIGHTER_SOUNDS, playHit, soundFiles } from "../presentation/moveSounds";
 
-test("every fighter has a signature strong/weak move whose strong hit is the harder one to land [spec docs/gameplay-design.md] [spec #389]", () => {
+test("every fighter has a signature strong/weak move whose strong hit is the harder one to land [k3 measure docs/gameplay-design.md]", () => {
   assertEquals(SELECTABLE_CHARACTERS.length, 26);
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
@@ -49,7 +49,7 @@ function strike(effect: Readonly<HitEffect>) {
   return { attacker, victim, world, events, volume, spark: impacts.strength[IMPACT_HIT * IMPACTS_PER_KIND] ?? 0.0 };
 }
 
-test("a strong hit adds hitlag to both bodies and a larger spark and strong sound, and a weak hit keeps ordinary feedback [spec #389] [invariant]", () => {
+test("a strong hit adds hitlag to both bodies and a larger spark and strong sound, and a weak hit keeps ordinary feedback [k3 measure #389]", () => {
   const authored = hitEffect(12.0, 100.0, 20.0, 1.0, 1.0);
   const strong = strike(strongHit(authored));
   const weak = strike(weakHit(authored));
@@ -71,7 +71,7 @@ test("a strong hit adds hitlag to both bodies and a larger spark and strong soun
   assertTrue(copy.visuals.hitStrong);
 });
 
-test("every fighter's signature strong hit plays a louder hit plus its own strong sound that the weak hit never plays [spec #389]", () => {
+test("every fighter's signature strong hit plays a louder hit plus its own strong sound that the weak hit never plays [k3 measure #389]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     const style = SIGNATURE_STRONG_HIT[character];

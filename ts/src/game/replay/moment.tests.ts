@@ -116,12 +116,12 @@ function roundTrip(callback: boolean, frames: number, row = scriptedRow, fighter
 /** The same saved gameplay fixture for the Bun command path and Bun/Lua32 state comparison. */
 const savedInspectionFixture = (): Repro => roundTrip(false, 120, scriptedRow, undefined, true);
 
-test("moment inspection: saved gameplay start, middle, end and one frame back equal ordinary canonical states [invariant]", savedInspectionFixture);
+test("moment inspection: saved gameplay start, middle, end and one frame back equal ordinary canonical states [k1 scenario]", savedInspectionFixture);
 
 
-test("moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum [invariant]", () => roundTrip(false, 839));
+test("moment: a rollback match's last ten seconds replay from their snapshot to the match's checksum [k1 scenario]", () => roundTrip(false, 839));
 
-test("moment: a callback match against a computer replays from frame 0 to the match's checksum [invariant]", () => roundTrip(true, 300));
+test("moment: a callback match against a computer replays from frame 0 to the match's checksum [k1 scenario]", () => roundTrip(true, 300));
 
 
 function frostNovaRow(slot: number, frame: number): InputRow {
@@ -130,5 +130,5 @@ function frostNovaRow(slot: number, frame: number): InputRow {
 }
 
 
-test("moment: a Frost Nova burst replays from the moment's snapshot to the match's checksum [invariant]", () =>
+test("moment: a Frost Nova burst replays from the moment's snapshot to the match's checksum [k1 scenario]", () =>
   roundTrip(false, 120, frostNovaRow, { first: createFighter(Character.lich, -240.0, 1), second: createFighter(Character.lich, 600.0, -1) }));

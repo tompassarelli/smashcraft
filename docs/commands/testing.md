@@ -43,18 +43,16 @@
   speed is a `timingTest`, which the runner runs alone after the suite
   (wisp:docs/testing.md).
 
-- Oracles: every test's title ends with its oracle, where its expected value
-  comes from outside the code under test: `[native]` (real-game captures or
-  replay tapes from real matches), `[reference]` (an independent
-  implementation: Wurst parity, Bun vs 32-bit Lua, retail Melee recordings),
-  `[spec #N]` or `[spec docs/…]` (a value Tom or a design doc set, cited),
-  `[repro #N]` (reproduces a real defect and fails on the pre-fix code) or
-  `[invariant]` (holds however the code computes it: same seed twice, equal
-  client checksums, round trips, rollback equals straight play). A headless
-  expectation no native capture has confirmed yet is `[provisional]` and
-  listed on wisp#69. A test without an oracle restates the code: don't write
-  it. `bun run test` and `bun scripts/lua-tests.ts` refuse to run when a
-  title lacks a tag (smashcraft:ts/scripts/oracleTags.ts), so titles stay
+- Kinds: every test's title ends with exactly one kind tag (#422):
+  `[k1 scenario]` (replayed input through the whole system, asserting
+  invariants or agreement), `[k2 property]` (a property over a pure core),
+  `[k3 measure #N]` or `[k3 measure docs/<path>.md]` (an owner-decided number,
+  citing the issue or an existing doc), `[k4 reference <source>]` (an external
+  reference: `melee`, `melee-decomp`, `lua32`, `wurst`, `native`, …) or
+  `[k5 boundary <name>]` (one integration check per real boundary, each name
+  once in the suite). A test that fits no kind is scaffolding: don't write it.
+  `bun run check`, `bun run test` and `bun scripts/lua-tests.ts` refuse a
+  title that breaks this (smashcraft:ts/scripts/oracleTags.ts), so titles stay
   literal text (#243).
 
 - Literal copies: an expectation reads a tunable constant instead of

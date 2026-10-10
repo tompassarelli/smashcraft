@@ -50,7 +50,7 @@ function framings(visit: (framed: Framed) => void): { changedState: number } {
   return { changedState };
 }
 
-test("within the stage's zoom limit every fighter pair's whole body and head room stay in view under the closest-zoom height share, in both looks at 16:9, 16:10 and 4:3, close and far, without touching match state [spec docs/player-view.md]", () => {
+test("within the stage's zoom limit every fighter pair's whole body and head room stay in view under the closest-zoom height share, in both looks at 16:9, 16:10 and 4:3, close and far, without touching match state [k2 property]", () => {
   const failures: string[] = [];
   let checked = 0, limited = 0;
   const { changedState } = framings(({ stage, aspect, zoom, held, camera, placed }) => {

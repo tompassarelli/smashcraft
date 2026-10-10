@@ -7,7 +7,7 @@ import { advanceFighter } from "./step";
 import { setMeleeKnockback, setMeleePosition, setMeleeRecoil, setMeleeVerticalVelocity, totalVelocityX } from "./motion";
 import { melee } from "./tuning";
 
-test("#9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS [reference]", () => {
+test("#9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS [k4 reference lua32]", () => {
   const positions = [
     9.872425079345703, 9.532424926757812, 9.022424697875977, 8.342424392700195,
     7.492424488067627, 6.472424507141113, 5.282424449920654, 3.922424554824829,
@@ -37,7 +37,7 @@ test("#9 RECORDED_FALL_TEN_FRAMES_BINARY32_EXACT_PASS [reference]", () => {
 
 type AxisDecrementCase = readonly [number, number, number, number, number];
 
-test("#9 AIR_DECREMENT_BINARY32_EXACT_PASS [reference]", () => {
+test("#9 AIR_DECREMENT_BINARY32_EXACT_PASS [k4 reference native]", () => {
   const launchCases: AxisDecrementCase[] = [
     [1, 0, 0.9490000009536743, 0, -58.80099868774414],
     [0, 1, 2.838408397209946e-9, 0.9490000009536743, -59.75],
@@ -86,7 +86,7 @@ test("#9 AIR_DECREMENT_BINARY32_EXACT_PASS [reference]", () => {
   }
 });
 
-test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS [reference]", () => {
+test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS [k4 reference native]", () => {
   const cases: readonly (readonly [number, number, number, number, number])[] = [
     [0.050999999046325684, 0.050999965518713, 0.0000486582939629443, 0, 0],
     [0.050999999046325684, 0.050999965518713, 0.000050994705816265196, 0, 0],
@@ -153,7 +153,7 @@ test("#9 AIR_CUTOFF_BINARY32_EXACT_PASS [reference]", () => {
   }
 });
 
-test("#9 GROUND_MOTION_BINARY32_EXACT_PASS [reference]", () => {
+test("#9 GROUND_MOTION_BINARY32_EXACT_PASS [k4 reference native]", () => {
   type GroundCase = readonly [string, number, number, number, number, number, number, number, number, number, number];
   const cases: readonly GroundCase[] = [
     ["position", -60, .25, .7562744617462158, 0, -.30000001192092896, .07999999821186066, -59.285728454589844, .6762744784355164, 0, -.2120000123977661],

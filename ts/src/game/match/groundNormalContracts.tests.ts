@@ -49,7 +49,7 @@ function forwardReach(character: Character, style: AttackStyle): number {
   return reach;
 }
 
-test("no two designed fighters share a jab, tilt or dash-attack timing [spec #151]", () => {
+test("no two designed fighters share a jab, tilt or dash-attack timing [k3 measure #151]", () => {
   for (const style of GROUND) {
     const seen = new Map<string, string>();
     for (const character of DESIGNED) {
@@ -61,7 +61,7 @@ test("no two designed fighters share a jab, tilt or dash-attack timing [spec #15
   }
 });
 
-test("each fighter's jab is its fastest ground normal and its forward tilt reaches as far as its forward air [spec docs/design/tilts.md]", () => {
+test("each fighter's jab is its fastest ground normal and its forward tilt reaches as far as its forward air [k3 measure docs/design/tilts.md]", () => {
   for (const character of DESIGNED) {
     const moves = movesOf(character);
     const jab = attackStartupFrames(AttackStyle.jab, moves);
@@ -116,7 +116,7 @@ function press(d: Duel, style: AttackStyle): void {
   }
 }
 
-test("a diagonal tilt angles a straight strike and plays a vertical swing's plain tilt [spec #151]", () => {
+test("a diagonal tilt angles a straight strike and plays a vertical swing's plain tilt [k3 measure #151]", () => {
   for (const character of DESIGNED) {
     const moves = movesOf(character);
     const up = normalAttackStyle(1, 1, true, false);
@@ -170,7 +170,7 @@ function hitFrames(d: Duel, frames: number, targetShield = false): number[] {
   return hits;
 }
 
-test("Forsaken Paladin's down tilt knocks the victim down at 0% [spec #151]", () => {
+test("Forsaken Paladin's down tilt knocks the victim down at 0% [k3 measure #151]", () => {
   const d = duel(Character.forsakenPaladin, 90.0);
   press(d, AttackStyle.downTilt);
   let downed = false;
@@ -181,7 +181,7 @@ test("Forsaken Paladin's down tilt knocks the victim down at 0% [spec #151]", ()
   assertTrue(downed);
 });
 
-test("Mountain King's down tilt only bumps at 0% and tumbles at 100% [spec #151]", () => {
+test("Mountain King's down tilt only bumps at 0% and tumbles at 100% [k3 measure #151]", () => {
   for (const [percent, tumbles] of [[0.0, false], [100.0, true]] as const) {
     const d = duel(Character.mountainKing, 70.0, percent);
     press(d, AttackStyle.downTilt);
@@ -195,7 +195,7 @@ test("Mountain King's down tilt only bumps at 0% and tumbles at 100% [spec #151]
   }
 });
 
-test("Warden's down tilt chains: a second one lands before the victim can act [spec #151]", () => {
+test("Warden's down tilt chains: a second one lands before the victim can act [k3 measure #151]", () => {
   const d = duel(Character.warden, 70.0);
   press(d, AttackStyle.downTilt);
   let first = 0;
@@ -221,7 +221,7 @@ test("Warden's down tilt chains: a second one lands before the victim can act [s
   assertEquals(victimActed, false);
 });
 
-test("Blademaster's down-tilt tip leaves him out of reach on shield; its inner blade does not [spec #151]", () => {
+test("Blademaster's down-tilt tip leaves him out of reach on shield; its inner blade does not [k3 measure #151]", () => {
   const advantage = (gap: number): readonly [number, number] => {
     const d = duel(Character.blademaster, gap);
     target(d).shield.raised = true;
@@ -251,7 +251,7 @@ test("Blademaster's down-tilt tip leaves him out of reach on shield; its inner b
   assertLessThan(inner[1], 100.0);
 });
 
-test("Dreadlord's down tilt drags the victim toward him and keeps it grounded [spec docs/design/tilts.md]", () => {
+test("Dreadlord's down tilt drags the victim toward him and keeps it grounded [k3 measure docs/design/tilts.md]", () => {
   const d = duel(Character.dreadlord, 80.0);
   press(d, AttackStyle.downTilt);
   const before = target(d).motion.x;
@@ -261,7 +261,7 @@ test("Dreadlord's down tilt drags the victim toward him and keeps it grounded [s
   assertTrue(target(d).motion.grounded);
 });
 
-test("Shadow Hunter's down tilt reaches below the stage where Blademaster's longer one does not [spec docs/design/tilts.md]", () => {
+test("Shadow Hunter's down tilt reaches below the stage where Blademaster's longer one does not [k3 measure docs/design/tilts.md]", () => {
   const reachesLow = (character: Character): boolean => {
     const d = duel(character, 130.0);
     target(d).motion.z = -120.0;
@@ -281,7 +281,7 @@ test("Shadow Hunter's down tilt reaches below the stage where Blademaster's long
   assertGreaterThan(forwardReach(Character.blademaster, AttackStyle.downTilt), forwardReach(Character.shadowHunter, AttackStyle.downTilt) - 10.0);
 });
 
-test("dash attacks: Warden's is the fastest, Shadow Hunter's hits three times, Dreadlord's crosses up [spec docs/design/tilts.md]", () => {
+test("dash attacks: Warden's is the fastest, Shadow Hunter's hits three times, Dreadlord's crosses up [k3 measure docs/design/tilts.md]", () => {
   for (const character of DESIGNED) {
     if (character === Character.warden) continue;
     assertLessThan(attackStartupFrames(AttackStyle.dashAttack, movesOf(Character.warden)), attackStartupFrames(AttackStyle.dashAttack, movesOf(character)));
@@ -296,7 +296,7 @@ test("dash attacks: Warden's is the fastest, Shadow Hunter's hits three times, D
   assertGreaterThan(attacker(cross).motion.x, target(cross).motion.x);
 });
 
-test("Rifleman's down tilt pops the victim straight up at 0% without a tumble, and tumbles it at high percent [spec docs/design/tilts.md]", () => {
+test("Rifleman's down tilt pops the victim straight up at 0% without a tumble, and tumbles it at high percent [k3 measure docs/design/tilts.md]", () => {
   for (const [percent, tumbles] of [[0.0, false], [140.0, true]] as const) {
     const d = duel(Character.rifleman, 80.0, percent);
     press(d, AttackStyle.downTilt);
@@ -312,7 +312,7 @@ test("Rifleman's down tilt pops the victim straight up at 0% without a tumble, a
   }
 });
 
-test("Rifleman's dashing jab is a dash attack: his lunge pops up and reaches farther than his jab [spec docs/design/tilts.md]", () => {
+test("Rifleman's dashing jab is a dash attack: his lunge pops up and reaches farther than his jab [k3 measure docs/design/tilts.md]", () => {
   const kick = duel(Character.rifleman, 160.0);
   press(kick, AttackStyle.dashAttack);
   let rose = false;
@@ -325,7 +325,7 @@ test("Rifleman's dashing jab is a dash attack: his lunge pops up and reaches far
   assertGreaterThan(forwardReach(Character.rifleman, AttackStyle.dashAttack), forwardReach(Character.rifleman, AttackStyle.jab));
 });
 
-test("Pit Lord's down tilt sends an airborne fighter at his front low and outward, below the horizontal [spec docs/design/tilts.md]", () => {
+test("Pit Lord's down tilt sends an airborne fighter at his front low and outward, below the horizontal [k3 measure docs/design/tilts.md]", () => {
   const d = duel(Character.pitLord, 95.0);
   const moves = movesOf(Character.pitLord);
   const out = emptyHitRegion();
@@ -345,7 +345,7 @@ test("Pit Lord's down tilt sends an airborne fighter at his front low and outwar
   assertGreaterThan(target(d).launch.knockbackX, 0.0);
 });
 
-test("Pit Lord's dash attack launches hardest of every dash attack at 100% [spec docs/design/tilts.md]", () => {
+test("Pit Lord's dash attack launches hardest of every dash attack at 100% [k3 measure docs/design/tilts.md]", () => {
   const strongest = (character: Character): number => {
     const moves = movesOf(character);
     const out = emptyHitRegion();
@@ -362,7 +362,7 @@ test("Pit Lord's dash attack launches hardest of every dash attack at 100% [spec
   for (const character of DESIGNED) if (character !== Character.pitLord) assertLessThan(strongest(character), pitLord);
 });
 
-test("Beastmaster's down tilt pops the victim the same height at 0% and at 100% [spec docs/design/tilts.md]", () => {
+test("Beastmaster's down tilt pops the victim the same height at 0% and at 100% [k3 measure docs/design/tilts.md]", () => {
   const pop = (percent: number): number => {
     const d = duel(Character.beastmaster, 80.0, percent);
     press(d, AttackStyle.downTilt);
@@ -379,7 +379,7 @@ test("Beastmaster's down tilt pops the victim the same height at 0% and at 100% 
   assertEquals(pop(100.0), low);
 });
 
-test("Beastmaster's dash attack heaves the victim behind him [spec docs/design/tilts.md]", () => {
+test("Beastmaster's dash attack heaves the victim behind him [k3 measure docs/design/tilts.md]", () => {
   const d = duel(Character.beastmaster, 70.0);
   press(d, AttackStyle.dashAttack);
   hitFrames(d, 20);

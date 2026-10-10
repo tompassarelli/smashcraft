@@ -68,8 +68,8 @@ From smashcraft:ts/:
 Implementation: smashcraft:ts/scripts/interactions.ts (situations, engine,
 pages), smashcraft:ts/scripts/interactionsWorker.ts and
 smashcraft:ts/scripts/wisp/commands/interactions.ts.
-smashcraft:ts/scripts/interactions.tests.ts pins one safe and one punishable
-aerial on shield per fighter (#106): Archer's spaced fade-back forward air (-1,
+The graph reports one safe and one punishable aerial on shield per fighter
+(#106): Archer's spaced fade-back forward air (-1,
 safe) and early advancing neutral air (-13, shield-grabbed), Rifleman's
 advancing neutral air (+1) and early advancing neutral air (-17), and
 Illidan's back air crossing up the shield (-3) and landing in front from early

@@ -41,7 +41,7 @@ function pair(gap: number, opponent: Character = Character.sylvanas): { world: R
 const side = controls({ specialPressed: true, specialX: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-test("replaying Forsaken Paladin's Consecration and Righteous Fury restores every fighter field [invariant]", () => {
+test("replaying Forsaken Paladin's Consecration and Righteous Fury restores every fighter field [k1 scenario]", () => {
   const { world, owner, target } = pair(70.0);
   frame(world, down);
   const savedOwner = createFighter(Character.forsakenPaladin, 0.0, 1);

@@ -70,7 +70,7 @@ function assertStoodOn(f: Fighter): void {
   assertEquals(f.landing.lag, 0);
 }
 
-test("a full hop under a platform climbs it for the jump squat, carrying its rise, then lands on it [spec #103]", () => {
+test("a full hop under a platform climbs it for the jump squat, carrying its rise, then lands on it [k3 measure #103]", () => {
   for (const character of FIGHTERS) {
     const f = createFighter(character, CENTRE, 1);
     const input = controls({ jumpPressed: true, jumpHeld: true });
@@ -92,7 +92,7 @@ test("a full hop under a platform climbs it for the jump squat, carrying its ris
   }
 });
 
-test("rising, down anywhere past the deadzone stands on the platform, analog or keyboard; short of the deadzone climbs [spec #392]", () => {
+test("rising, down anywhere past the deadzone stands on the platform, analog or keyboard; short of the deadzone climbs [k3 measure #392]", () => {
   for (const character of FIGHTERS) {
     for (const input of [...STAND_DOWN.map((z) => analog(z)), KEY_TILT_DOWN, KEY_DOWN]) {
       const f = risingUnder(character);
@@ -114,7 +114,7 @@ test("rising, down anywhere past the deadzone stands on the platform, analog or 
   }
 });
 
-test("falling with full down drops through the platform, ending each aerial, and is actionable as the drop ends [spec #392]", () => {
+test("falling with full down drops through the platform, ending each aerial, and is actionable as the drop ends [k3 measure #392]", () => {
   for (const character of FIGHTERS) {
     for (const style of AERIALS) {
       for (const input of [analog(-1.0), KEY_DOWN]) {
@@ -150,7 +150,7 @@ test("falling with full down drops through the platform, ending each aerial, and
 const ROUTE_STAGE = 2;
 const TOP = 3;
 
-test("Tom's route: falling down air, drop, up air, drop, double jump, rising up air, climb, down air across two platforms [spec #392]", () => {
+test("Tom's route: falling down air, drop, up air, drop, double jump, rising up air, climb, down air across two platforms [k1 scenario]", () => {
   const f = createFighter(Character.rifleman, f32(surfaceRight(ROUTE_STAGE, TOP, 0) - 10.0), 1);
   f.motion.grounded = false;
   f.motion.z = f32(surfaceZ(ROUTE_STAGE, TOP, 0) + 20.0);
@@ -195,7 +195,7 @@ test("Tom's route: falling down air, drop, up air, drop, double jump, rising up 
   assertEquals(route.join(", "), "drop 1, up air, drop 2, double jump, rising up air, climb, down air");
 });
 
-test("a platform move and its read window survive a snapshot copy [invariant]", () => {
+test("a platform move and its read window survive a snapshot copy [k1 scenario]", () => {
   for (const [original, inputs, stands] of [
     [risingUnder(Character.rifleman), [NONE, analog(f32(-0.5)), KEY_DOWN, NONE, NONE, NONE, NONE, NONE, NONE], true],
     [fallingOnto(Character.rifleman, 1.5), [NONE, NONE, KEY_DOWN, NONE, NONE, NONE, NONE, NONE, NONE], false],

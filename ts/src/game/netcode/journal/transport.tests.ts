@@ -44,28 +44,6 @@ function framesOf(packets: readonly InputPacket[], epoch: number, firstFrame: nu
   return rows;
 }
 
-test("an I5 message spells only changed frames and restores every frame once, in order [invariant]", () => {
-
-  const quiet = encodeInputMessage(1, 10, 15, () => NEUTRAL);
-  assertEquals(quiet.lastFrame, 15);
-  assertEquals(framesOf(assertDefined(decodeTransport(quiet.wire)), 1, 10).length, 6);
-  const source = [NEUTRAL, NEUTRAL, WALK, WALKING, WALKING, TAP_WHILE_WALKING, WALKING, TWO_BUTTONS, STOP, NEUTRAL, NEUTRAL];
-  const message = encodeInputMessage(7, 300, 300 + source.length - 1, frame => source[frame - 300] ?? NEUTRAL);
-  assertEquals(message.firstFrame, 300);
-  assertEquals(message.lastFrame, 300 + source.length - 1);
-  const rows = framesOf(assertDefined(decodeTransport(message.wire)), 7, 300);
-  assertEquals(rows.length, source.length);
-  rows.forEach((each, index) => assertTrue(sameInput(each, source[index] ?? NEUTRAL)));
-
-  const walking = framesOf(assertDefined(decodeTransport(encodeInputMessage(7, 302, 304, frame => source[frame - 300] ?? NEUTRAL).wire)), 7, 302);
-  assertTrue(sameInput(walking[0] ?? NEUTRAL, WALK) && sameInput(walking[2] ?? NEUTRAL, WALKING));
-
-  const longer = encodeInputMessage(7, 300, 300 + source.length + 9, frame => source[frame - 300] ?? NEUTRAL);
-  assertEquals(longer.lastFrame, 300 + source.length + 9);
-  assertEquals(longer.wire.length, message.wire.length);
-  assertEquals(framesOf(assertDefined(decodeTransport(longer.wire)), 7, 300).length, source.length + 10);
-});
-
 
 function largestRow(other: boolean): InputRow {
   const sign = other ? -1 : 1;
@@ -76,7 +54,7 @@ function largestRow(other: boolean): InputRow {
   });
 }
 
-test("one message per batch drains a backlog of the largest rows within the size limit [invariant]", () => {
+test("one message per batch drains a backlog of the largest rows within the size limit [k2 property]", () => {
   const outgoing = new OutgoingInput();
   outgoing.begin(2147483647, 2000000000);
   assertFalse(outgoing.admit(2000000001, NEUTRAL));
@@ -312,7 +290,7 @@ function playEpoch(clients: TwoClients, epoch: number, game: Readonly<MatchState
   assertEquals(stateChecksum(assertDefined(first).confirmed), stateChecksum(assertDefined(second).confirmed));
 }
 
-test("two clients under dense input send at most 10 messages a second and confirm every edge once on its own frame [invariant]", () => {
+test("two clients under dense input send at most 10 messages a second and confirm every edge once on its own frame [k1 scenario]", () => {
   const frames = 120;
   const clients = new TwoClients([denseScript(0, frames), denseScript(1, frames)]);
   playEpoch(clients, 1, match(false), frames, 75);

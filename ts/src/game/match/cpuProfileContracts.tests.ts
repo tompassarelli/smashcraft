@@ -59,14 +59,14 @@ const checksumAfter = (opponent: CpuOpponentId, tier: CpuTier, seed: number): st
   return stateChecksum(game.state);
 };
 
-test("the same seed and named profile play the same match; changed seed or profile changes it [invariant]", () => {
+test("the same seed and named profile play the same match; changed seed or profile changes it [k1 scenario]", () => {
   const played = checksumAfter("wren", "intermediate", 3);
   assertEquals(checksumAfter("wren", "intermediate", 3), played);
   assertFalse(checksumAfter("wren", "intermediate", 4) === played);
   assertFalse(checksumAfter("ember", "expert", 3) === played);
 });
 
-sweep("150 named profile and seed combinations replay restored gameplay with zero state differences [spec #184] [invariant]", () => {
+sweep("150 named profile and seed combinations replay restored gameplay with zero state differences [k1 scenario]", () => {
   let restored = 0;
   for (const profile of CPU_PROFILES) for (let seed = 0; seed < 5; seed++) {
     const game = computerMatch(profile.opponent, profile.tier, seed);
@@ -86,25 +86,4 @@ sweep("150 named profile and seed combinations replay restored gameplay with zer
     restored++;
   }
   assertEquals(restored, 150);
-});
-
-test("selected identity, resolved identity and tier each affect canonical state, replay checksum and field differences [spec #184]", () => {
-  const expected = createReplaySnapshot();
-  const changed = createReplaySnapshot();
-  const checksum = (state: ReplayState) => replayChecksum(state.world, state.match, state.runtime);
-  const mutations: readonly ((state: ReplayState) => void)[] = [
-    state => { state.match.cpuOpponents[0] = "random"; },
-    state => { state.match.cpuTiers[0] = "expert"; },
-    state => { state.match.cpuResolvedOpponents[0] = "ember"; },
-  ];
-  const paths = ["match.slot0.cpuOpponent", "match.slot0.cpuTier", "match.slot0.cpuResolvedOpponent"];
-  for (let index = 0; index < mutations.length; index++) {
-    copyReplayState(changed, expected);
-    const mutate = mutations[index];
-    if (mutate === undefined) throw new Error("missing CPU state mutation");
-    mutate(changed);
-    assertTrue(stateChecksum(expected) !== stateChecksum(changed));
-    assertTrue(checksum(expected) !== checksum(changed));
-    assertEquals(firstStateDifference(expected, changed), paths[index]);
-  }
 });

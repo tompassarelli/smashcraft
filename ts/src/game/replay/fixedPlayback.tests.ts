@@ -113,6 +113,6 @@ function runScheduledGameplayOracle(delay: FixedDelay): void {
   }
 }
 
-test("accepted input rows drive gameplay identical to direct execution at delays 2, 3 and 5 [invariant]", () => {
+test("accepted input rows drive gameplay identical to direct execution at delays 2, 3 and 5 [k1 scenario]", () => {
   for (const delay of [2, 3, 5] as const) runScheduledGameplayOracle(delay);
 });

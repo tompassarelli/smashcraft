@@ -103,7 +103,7 @@ function recordShown(clients: Lockstep, views: readonly FrameView[], shown: Set<
 
 const developerText = (text: string) => DENIED.filter((term) => text.toLowerCase().includes(term));
 
-test("the playable build shows players no developer text through selection, a match and its results [spec docs/playable-0047.md]", () => {
+test("the playable build shows players no developer text through selection, a match and its results [k3 measure docs/playable-0047.md]", () => {
   const clients = headless.clients({ install: installPlayable, start: startPlayable });
   const views = clients.clients.map((client) => new FrameView(client));
   const shown = new Set<string>();

@@ -8,7 +8,7 @@ import { DEFAULT_ROLLBACK_WINDOW, ShadowInputSchedule } from "./shadowSchedule";
 const row = (fields: RowFields = {}) => assertDefined(inputRow(fields), "row");
 const NEUTRAL = row();
 
-test("every captured row reaches the ledger verbatim through pause and window-wait singletons [invariant]", () => {
+test("every captured row reaches the ledger verbatim through pause and window-wait singletons [k1 scenario]", () => {
   const schedule = new ShadowInputSchedule();
   const batch = new InputBatch(73);
   const inputs = participantInputs();

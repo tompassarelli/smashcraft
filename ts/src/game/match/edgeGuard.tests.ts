@@ -28,37 +28,37 @@ function mixedReturns(victim: Character, guarders: readonly Character[]): number
   return returned;
 }
 
-test("Rifleman's predictable recovery at 40% is killed by his own down air in a recorded edge-guard [spec #387]", () => {
+test("Rifleman's predictable recovery at 40% is killed by his own down air in a recorded edge-guard [k3 measure #387]", () => {
   gimped(Character.rifleman);
 });
 
-sweep("every fighter's predictable recovery at 40% is killed by a roster fighter's recorded edge-guard tool [spec #387]", () => {
+sweep("every fighter's predictable recovery at 40% is killed by a roster fighter's recorded edge-guard tool [k3 measure #387]", () => {
   for (const character of SELECTABLE_CHARACTERS) gimped(character);
 });
 
-test("Rifleman's Recoil Shot leaves a 15-frame hittable opening around its intangible frames 4 to 10 [spec #387] [spec #127]", () => {
+test("Rifleman's Recoil Shot leaves a 15-frame hittable opening around its intangible frames 4 to 10 [k3 measure #387]", () => {
   beatable(Character.rifleman);
 });
 
-sweep("every up special leaves a 15-frame hittable opening before it can act [spec #387] [spec #69]", () => {
+sweep("every up special leaves a 15-frame hittable opening before it can act [k3 measure #387]", () => {
   for (const character of SELECTABLE_CHARACTERS) beatable(character);
 });
 
-test("every mixed recovery plan returns unguarded for Thrall and Warden [invariant]", () => {
+test("every mixed recovery plan returns unguarded for Thrall and Warden [k1 scenario]", () => {
   for (const character of [Character.thrall, Character.warden]) {
     for (const plan of MIXED_PLANS) check(unguarded(character, plan).recovered, `${fighterName(character)} wait ${plan.wait} drift ${plan.drift}`);
   }
 });
 
 for (const victim of SELECTABLE_CHARACTERS) {
-  sweep(`${fighterName(victim)}'s well-mixed recovery returns at least half the time against the seeded Wren Expert field [spec #387]`, () => {
+  sweep(`${fighterName(victim)}'s well-mixed recovery returns at least half the time against the seeded Wren Expert field [k3 measure #387]`, () => {
     const returned = mixedReturns(victim, SELECTABLE_CHARACTERS);
     const trials = SELECTABLE_CHARACTERS.length * MIXED_PLANS.length;
     check(returned * 2 >= trials, `${fighterName(victim)} returned ${returned}/${trials}`);
   });
 }
 
-test("Wren Shadow Hunter at Advanced and Expert goes off stage and kills Rifleman's predictable recovery at 40% during its up special; at Intermediate it stays home [spec #387]", () => {
+test("Wren Shadow Hunter at Advanced and Expert goes off stage and kills Rifleman's predictable recovery at 40% during its up special; at Intermediate it stays home [k3 measure #387]", () => {
   for (const tier of ["advanced", "expert"] as const) {
     const outcome = guardedReturn(Character.rifleman, Character.shadowHunter, 0, tier, PREDICTABLE);
     check(outcome.killed && outcome.hitFrame >= PREDICTABLE.wait, `${tier} kills, hit frame ${outcome.hitFrame}`);
@@ -67,7 +67,7 @@ test("Wren Shadow Hunter at Advanced and Expert goes off stage and kills Riflema
   check(home.recovered && home.hitFrame < 0, "Intermediate leaves the recovery alone");
 });
 
-test("Mountain King's mixed recovery returns at least half the time against three Wren Expert edge-guarders [spec #387]", () => {
+test("Mountain King's mixed recovery returns at least half the time against three Wren Expert edge-guarders [k3 measure #387]", () => {
   const guarders = [Character.mountainKing, Character.warden, Character.jaina] as const;
   check(mixedReturns(Character.mountainKing, guarders) * 2 >= guarders.length * MIXED_PLANS.length, "Mountain King mixed returns");
 });

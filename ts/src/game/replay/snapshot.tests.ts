@@ -78,7 +78,7 @@ function snapshotCost(): { bytes: number; replaced: number; live: number } {
   return { bytes: (snappedKb - plainKb) * 1024 / FRAMES, replaced, live };
 }
 
-test("a rollback snapshot of fighters and projectiles copies fields into tables each fighter keeps, allocating no table per entity [invariant]", () => {
+test("a rollback snapshot of fighters and projectiles copies fields into tables each fighter keeps, allocating no table per entity [k2 property]", () => {
   const { bytes, replaced, live } = snapshotCost();
   assertLessThan(30, live);
   assertEquals(replaced, 0);
@@ -100,7 +100,7 @@ function playedRiflemen(): TapeWorld {
   return played;
 }
 
-test("the per-frame state hash agrees with the canonical checksum on which states are equal [invariant]", () => {
+test("the per-frame state hash agrees with the canonical checksum on which states are equal [k2 property]", () => {
   const played = playedRiflemen();
   const copy = createReplaySnapshot();
   copyReplayState(copy, played.live);
@@ -121,7 +121,7 @@ test("the per-frame state hash agrees with the canonical checksum on which state
 
 const HASH_MODULUS = 1_000_003;
 
-test("#400 the state hash tells apart states that hashed equal: seeds a modulus apart, lore for classic, -0 for +0, a toggled computer decision [repro #400]", () => {
+test("#400 the state hash tells apart states that hashed equal: seeds a modulus apart, lore for classic, -0 for +0, a toggled computer decision [k2 property]", () => {
   const played = playedRiflemen();
   const first = createReplaySnapshot();
   const second = createReplaySnapshot();
@@ -164,7 +164,7 @@ function heldPlacedObjects(fighter: Readonly<Fighter>, into: Set<Readonly<Placed
   for (const spare of packSpares(fighter) ?? []) into.add(spare);
 }
 
-test("snapshot copies fill a cold ring with Beastmasters and follow a rematch that swaps them out and back in, creating no pack table and allocating nothing for fighters [invariant]", () => {
+test("snapshot copies fill a cold ring with Beastmasters and follow a rematch that swaps them out and back in, creating no pack table and allocating nothing for fighters [k1 scenario]", () => {
   const ring: ReplayState[] = [];
   for (let index = 0; index < REPLAY_HISTORY_CAPACITY; index++) ring.push(createReplaySnapshot());
   const held = new Set<Readonly<PlacedObject>>();

@@ -1571,8 +1571,7 @@ smashcraft:ts/src/game/sim/shield.ts (`AERIAL_SHIELD_STUN_MULTIPLIER`):
 
 The [interaction graph](design/interaction-graph.md) measures the spread for
 each fighter (aerial on shield rows: advancing, early advancing, fade-back and
-fade-forward, unspaced and spaced). smashcraft:ts/scripts/interactions.tests.ts
-pins one safe and one punishable aerial per fighter.
+fade-forward, unspaced and spaced).
 
 ## Powershield and parry
 

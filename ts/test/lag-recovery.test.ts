@@ -107,7 +107,7 @@ const TYPING_FRAMES_PER_CHARACTER_SQUARED = WARCRAFT_COST.typingUsPerCharacterSq
 const CATCH_UP_CALLBACKS = 10;
 
 
-sweep("after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback [spec #48] [invariant]", () => {
+sweep("after a 2 s stall of one or both games, each client catches up within a second, a bounded number of frames a callback [k1 scenario]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const host = clients.clients[0] as HeadlessClient;
   const read = <T>(client: HeadlessClient, body: () => T): T => {

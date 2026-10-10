@@ -7,7 +7,7 @@ import { stateChecksum } from "./canonical";
 import { firstStateDifference } from "./difference";
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 
-test("rollback restores authored hero moves and diagnoses changed timing geometry and damage [invariant]", () => {
+test("rollback restores authored hero moves and diagnoses changed timing geometry and damage [k1 scenario]", () => {
   const live = createReplaySnapshot();
   const saved = createReplaySnapshot();
   const f = fighterAt(live.world, 0);

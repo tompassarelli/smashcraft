@@ -14,7 +14,7 @@ import { controls } from "./testWorld";
 
 const EYE_BLAST_PRESS = controls({ specialPressed: true, shield: true, shieldStrength: 1.0 });
 
-test("Fel Lunge's full-charge reach stays inside the roster's forward smash band [spec #379]", () => {
+test("Fel Lunge's full-charge reach stays inside the roster's forward smash band [k3 measure #379]", () => {
   const out = emptyHitRegion();
   let illidan = 0.0;
   let widest = 0.0;
@@ -35,7 +35,7 @@ test("Fel Lunge's full-charge reach stays inside the roster's forward smash band
   assertTrue(illidan <= widest);
 });
 
-test("Eye Blast: a grounded EX neutral special spending one meter segment, with a 24-frame windup and ground marker before a beam reaching 645 [spec #379]", () => {
+test("Eye Blast: a grounded EX neutral special spending one meter segment, with a 24-frame windup and ground marker before a beam reaching 645 [k3 measure #379]", () => {
   const d = duel(420.0);
   d.illidan.mana.points = 100;
   d.target.mana.points = 50;

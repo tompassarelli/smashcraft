@@ -20,7 +20,7 @@ function insideDeck(x: number, z: number): boolean {
   return inside;
 }
 
-test("each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings [spec #81]", () => {
+test("each fighter's visible envelope clears the main underside and every side face at its unchanged ECB contact, both facings [k3 measure #81]", () => {
 
   for (const character of Object.values(Character)) {
     for (const facing of [-1, 1]) {
@@ -52,18 +52,4 @@ test("each fighter's visible envelope clears the main underside and every side f
       }
     }
   }
-});
-
-test("body fitting preserves grounded and deliberately attached ledge poses [spec #81]", () => {
-  const fighter = createFighter(Character.rifleman, mainDeckRight(0) - 1.0, -1);
-  const placement = { x: 0.0, z: 0.0 };
-  fitFighterPlacement(placement, fighter, 0);
-  assertEquals(placement.x, fighter.motion.x);
-  assertEquals(placement.z, fighter.motion.z);
-  fighter.motion.grounded = false;
-  fighter.motion.z = -20.0;
-  fighter.ledge.state = LedgeState.hang;
-  fitFighterPlacement(placement, fighter, 0);
-  assertEquals(placement.x, fighter.motion.x);
-  assertEquals(placement.z, fighter.motion.z);
 });

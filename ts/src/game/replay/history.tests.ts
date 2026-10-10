@@ -44,7 +44,7 @@ function tapeDifference(expected: TapeWorld, actual: TapeWorld): string | undefi
   return firstStateDifference(captureTape(expected), captureTape(actual));
 }
 
-test("the history ring wraps by epoch and refuses invalid ranges without touching live state [invariant]", () => {
+test("the history ring wraps by epoch and refuses invalid ranges without touching live state [k1 scenario]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const last = REPLAY_HISTORY_CAPACITY + 1;
@@ -92,13 +92,13 @@ test("the history ring wraps by epoch and refuses invalid ranges without touchin
   assertTrue(history.contains(8, 1));
 });
 
-test("a recorded tape matches an independent run through repeated rollback [invariant]", () => {
+test("a recorded tape matches an independent run through repeated rollback [k1 scenario]", () => {
   // One complete input cycle crosses the history ring and sees every recorded
   // combat event; longer repetitions are the on-demand replay soak.
   runRecordedTape(192, 1, 99);
 });
 
-test("corrected predictions refresh snapshots across the ring wrap and a second rollback [invariant]", () => {
+test("corrected predictions refresh snapshots across the ring wrap and a second rollback [k1 scenario]", () => {
   const wrap = REPLAY_HISTORY_CAPACITY;
   const canonical = createTapeWorld({ stocks: 99 });
   const partiallyCorrected = createTapeWorld({ stocks: 99 });
@@ -181,7 +181,7 @@ test("corrected predictions refresh snapshots across the ring wrap and a second 
   assertTrue(history.saveSpeculative(9, row, predicted.live));
 });
 
-test("the correction window and identical confirmations govern speculation [spec docs/netcode-proposal.md]", () => {
+test("the correction window and identical confirmations govern speculation [k3 measure docs/netcode-proposal.md]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const history = new ReplayHistory();
@@ -233,7 +233,7 @@ test("the correction window and identical confirmations govern speculation [spec
   assertTrue(history.saveSpeculative(3, second, live));
 });
 
-test("correction preflight rejects a whole batch without changing history or live state [invariant]", () => {
+test("correction preflight rejects a whole batch without changing history or live state [k1 scenario]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const { live } = tape;
   const history = new ReplayHistory();
@@ -282,7 +282,7 @@ test("correction preflight rejects a whole batch without changing history or liv
   assertEquals(history.correct(5, corrections, live), "rejected");
 });
 
-test("a confirmed frame takes history's state after it only when history ran the same row from a corrected state [invariant]", () => {
+test("a confirmed frame takes history's state after it only when history ran the same row from a corrected state [k1 scenario]", () => {
   const speculative = createTapeWorld({ stocks: 99 });
   const confirmed = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
@@ -324,7 +324,7 @@ function assertSameFields<T>(expected: T, actual: T): void {
   for (const key in expected) assertEquals(actual[key], expected[key], key);
 }
 
-test("a borrowed confirmed snapshot stays fixed when its history slot is reused [invariant]", () => {
+test("a borrowed confirmed snapshot stays fixed when its history slot is reused [k1 scenario]", () => {
   const tape = createTapeWorld({ stocks: 99 });
   const history = new ReplayHistory();
   assertTrue(history.beginEpoch(1, 1));
@@ -350,7 +350,7 @@ test("a borrowed confirmed snapshot stays fixed when its history slot is reused 
   assertEquals(firstStateDifference(expected, borrowed), undefined);
 });
 
-test("restored and borrowed network frames preserve CPU state and every confirmed impact event [invariant]", () => {
+test("restored and borrowed network frames preserve CPU state and every confirmed impact event [k1 scenario]", () => {
   const predicted = createTapeWorld({ stocks: 99 });
   const restored = createTapeWorld({ stocks: 99 });
   let borrowed = createTapeWorld({ stocks: 99 }).live;
@@ -389,7 +389,7 @@ test("restored and borrowed network frames preserve CPU state and every confirme
   assertGreaterThan(contacts, 0);
 });
 
-test("a repair that repeats unchanged computer decisions reaches the state of play without rollback [invariant]", () => {
+test("a repair that repeats unchanged computer decisions reaches the state of play without rollback [k1 scenario]", () => {
   // The human's stick turns every 15 frames and its rows arrive 4 frames late,
   // so each turn is mispredicted; the computer fights it throughout.
   const late = 4;
@@ -514,7 +514,7 @@ function scopedAgainstWhole(mode: "auto" | "force", jabberX: number, blastAt?: n
   return { scoped: histories[0].scopedRepairSteps(), difference };
 }
 
-test("a fighter-scoped repair of a mispredicted input ends on the same state as repairing every fighter [invariant]", () => {
+test("a fighter-scoped repair of a mispredicted input ends on the same state as repairing every fighter [k1 scenario]", () => {
   // The jabber strikes the air 600 units from the corrected fighter.
   const far = scopedAgainstWhole("auto", 300.0);
   assertGreaterThan(far.scoped, 20);
@@ -633,13 +633,13 @@ function confirmedAgainstStraight(seed: number, frames: number): string | undefi
   return undefined;
 }
 
-test("every confirmed state of a seeded match with late rows equals its straight run [invariant]", () => {
+test("every confirmed state of a seeded match with late rows equals its straight run [k1 scenario]", () => {
   assertEquals(confirmedAgainstStraight(76, 120), undefined);
 });
 
 // At the old 300 reach (#168), seeds 76 and 105 diverged on an earlier main and seed 107 on this one: a strike outran the scoped repair's eligibility distance.
 for (const [seed, frames] of [[107, 760], [76, 1500], [105, 1500]] as const) {
-  sweep(`every confirmed state of seed ${seed}'s match with late rows, scoped repairs among them, equals the straight run [invariant]`, () => {
+  sweep(`every confirmed state of seed ${seed}'s match with late rows, scoped repairs among them, equals the straight run [k1 scenario]`, () => {
     assertEquals(confirmedAgainstStraight(seed, frames), undefined);
   });
 }
@@ -716,7 +716,7 @@ function convergedAgainstWhole(sameState?: ReplayHistory["sameState"]): { kept: 
   return { kept: histories[0].convergedRepairFrames(), difference };
 }
 
-test("a repair that reaches a stored snapshot keeps the later frames and ends as replaying them all [invariant]", () => {
+test("a repair that reaches a stored snapshot keeps the later frames and ends as replaying them all [k1 scenario]", () => {
   const converged = convergedAgainstWhole();
   assertGreaterThan(converged.kept, 20);
   assertEquals(converged.difference, undefined);
@@ -836,13 +836,13 @@ function seededPauses(seed: number): { ontoRepair: number; rewinds: number; diff
   });
 }
 
-test("a seeded match with late inputs and pause rewinds confirms the state of the straight match [invariant]", () => {
+test("a seeded match with late inputs and pause rewinds confirms the state of the straight match [k1 scenario]", () => {
   const result = seededPauses(3);
   assertGreaterThan(result.rewinds, 0);
   assertEquals(result.difference, undefined);
 });
 
-sweep("seeded matches with late inputs and pause rewinds confirm the state of the straight match [invariant]", () => {
+sweep("seeded matches with late inputs and pause rewinds confirm the state of the straight match [k1 scenario]", () => {
   let ontoRepair = 0;
   for (let seed = 1; seed <= 32; seed++) {
     const result = seededPauses(seed);

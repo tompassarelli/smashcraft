@@ -57,7 +57,7 @@ function forecastRecovery(setup: (target: Fighter) => void): void {
   assertEquals(forecast.frames, actual.frames);
 }
 
-test("a delayed punish forecast follows an attack through its observed hitlag into recovery [invariant]", () => {
+test("a delayed punish forecast follows an attack through its observed hitlag into recovery [k1 scenario]", () => {
   forecastRecovery(target => {
 
     target.attack.style = AttackStyle.forwardTiltDown;
@@ -68,7 +68,7 @@ test("a delayed punish forecast follows an attack through its observed hitlag in
   });
 });
 
-test("a delayed punish forecast recognizes an observed aerial's landing recovery [invariant]", () => {
+test("a delayed punish forecast recognizes an observed aerial's landing recovery [k1 scenario]", () => {
   forecastRecovery(target => {
     target.motion.grounded = false;
     target.motion.surface = undefined;
@@ -160,10 +160,10 @@ for (const whiff of WHIFFS) {
   const name = whiff === Whiff.forwardSmash ? "whiffed forward smash" : whiff === Whiff.grab ? "missed grab" : "landing lag";
   const expected = whiff === Whiff.landing ? 0 : HARD_SEEDS;
   const answer = whiff === Whiff.landing ? "cannot react and hit before Pit Lord's 20-frame landing ends" : `punishes Pit Lord's ${name} within the window`;
-  if (whiff !== Whiff.grab) test(`a Wren Expert Rifleman computer ${answer} [spec #157] [spec #354]`, () => {
+  if (whiff !== Whiff.grab) test(`a Wren Expert Rifleman computer ${answer} [k3 measure #157]`, () => {
     assertEquals(punishCount(whiff, Character.rifleman, "expert", HARD_SEEDS), expected);
   });
-  sweep(`Wren Expert computers punish Pit Lord's ${name} more than twice as often as Rookie when human reaction permits; Rookie at most 4 of 208 on four seed offsets [spec #157] [spec #354] [spec #356] [spec #357]`, () => {
+  sweep(`Wren Expert computers punish Pit Lord's ${name} more than twice as often as Rookie when human reaction permits; Rookie at most 4 of 208 on four seed offsets [k3 measure #157]`, () => {
     let easy = 0;
     let hard = 0;
     for (const character of SELECTABLE_CHARACTERS) {
@@ -187,7 +187,7 @@ const PAIRS = [
 const MATCH_FRAMES = 1800;
 const MATCH_SEEDS = 5;
 
-sweep("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more than 12.5 percent of them, 14.2-15.5 percent on four seed offsets against 11.9 without the punish [spec #157] [spec #354] [spec #356] [spec #357]", () => {
+sweep("computers punish in ordinary Wren Expert matches: they attack into open windows and land in more than 12.5 percent of them, 14.2-15.5 percent on four seed offsets against 11.9 without the punish [k3 measure #157]", () => {
   let windowsSeen = 0;
   let attempts = 0;
   let landed = 0;
@@ -258,7 +258,7 @@ sweep("computers punish in ordinary Wren Expert matches: they attack into open w
   assertGreaterThan(landed * 1000, windowsSeen * 125);
 });
 
-test("a grounded sleeper is a punish window for its frames left, and a Wren Expert Dreadlord beside it hits it before it wakes (#105) [spec #146]", () => {
+test("a grounded sleeper is a punish window for its frames left, and a Wren Expert Dreadlord beside it hits it before it wakes (#105) [k1 scenario]", () => {
   for (let seed = 0; seed < HARD_SEEDS; seed++) {
     const world = createRoster(3, [createFighter(Character.pitLord, 0.0, 1), createFighter(Character.dreadlord, 140.0, -1)]);
     const match = createMatchState();
@@ -341,7 +341,7 @@ function techChases(character: Character, tier: CpuTier, knockdown: DownState, s
 
 const CHASE_SEEDS = 8;
 
-test("a Wren Expert Rifleman computer hits Pit Lord lying after a missed tech and after a tech in place's intangibility in at least 1 of 2 seeds [spec #388]", () => {
+test("a Wren Expert Rifleman computer hits Pit Lord lying after a missed tech and after a tech in place's intangibility in at least 1 of 2 seeds [k3 measure #388]", () => {
   for (const knockdown of KNOCKDOWNS) {
     let chased = 0;
     for (let seed = 0; seed < 2; seed++) if (techChases(Character.rifleman, "expert", knockdown, seed)) chased++;
@@ -349,7 +349,7 @@ test("a Wren Expert Rifleman computer hits Pit Lord lying after a missed tech an
   }
 });
 
-sweep("Wren Expert computers hit more than a quarter of a downed Pit Lord's missed techs and techs in place, fewest 69 of 208 on four seed offsets, and more than twice Rookie [spec #388]", () => {
+sweep("Wren Expert computers hit more than a quarter of a downed Pit Lord's missed techs and techs in place, fewest 69 of 208 on four seed offsets, and more than twice Rookie [k3 measure #388]", () => {
   for (const knockdown of KNOCKDOWNS) {
     let hard = 0;
     let easy = 0;

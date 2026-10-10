@@ -37,7 +37,7 @@ function classicClients(idle = false) {
 }
 
 for (const boss of BOSSES) {
-  test(`${boss.name}'s every hit follows a visible area warning for its full reaction window [spec #330]`, () => {
+  test(`${boss.name}'s every hit follows a visible area warning for its full reaction window [k3 measure #330]`, () => {
     const clients = headless.clients({ start: () => {}, install: () => {} }, [0]);
     const client = clients.client(0);
     const game = createMatchState();
@@ -92,7 +92,7 @@ for (const boss of BOSSES) {
 }
 
 
-test("Grom completes six Classic fights, sees his ending and results, and clears his last stand in Lore Battles [spec #349]", () => {
+test("Grom completes six Classic fights, sees his ending and results, and clears his last stand in Lore Battles [k1 scenario]", () => {
   const { clients, frames, until, read } = classicClients(true);
   clients.start(); frames(30);
   clients.chat(0, "-dev classic Grom Hellscream");

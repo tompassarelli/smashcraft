@@ -9,7 +9,7 @@ import { testBeginAttacks, testWorld } from "./testWorld";
 
 const LINGERING_AERIALS = [AttackStyle.neutralAir, AttackStyle.backAir] as const;
 
-test("every fighter has a grounded close strike against an overlapping standing foe in both facings [spec #279]", () => {
+test("every fighter has a grounded close strike against an overlapping standing foe in both facings [k3 measure #279]", () => {
   for (const character of SELECTABLE_CHARACTERS) for (const facing of [-1, 1]) {
     let connects = false;
     for (const style of [AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt]) {
@@ -35,7 +35,7 @@ function prepareHitRegionAttack(world: Roster, attacker: Fighter, style: AttackS
   attacker.attack.cooldown = attacker.attack.duration - frame;
 }
 
-test("aerial lingering windows match the reference frame boundaries [reference]", () => {
+test("aerial lingering windows match the reference frame boundaries [k4 reference melee]", () => {
   for (const style of LINGERING_AERIALS) {
     const neutral = style === AttackStyle.neutralAir;
     const lastActive = neutral ? 31 : 19;

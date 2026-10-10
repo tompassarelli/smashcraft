@@ -4,7 +4,7 @@ import { fighterSlug, SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { advanceSolo, controls } from "./testWorld";
 import { melee } from "./tuning";
 
-test("every fighter's entry dash and run stay within Captain Falcon's speed ceiling [spec #333]", () => {
+test("every fighter's entry dash and run stay within Captain Falcon's speed ceiling [k3 measure #333]", () => {
   const failures: string[] = [];
   // NTSC 1.02 PlCa.dat +0x01C/+0x028, docs/smash-melee-reference/retail-roster.json.
   const dashCeiling = melee(2.0);

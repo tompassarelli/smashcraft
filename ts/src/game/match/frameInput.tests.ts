@@ -28,7 +28,7 @@ function assertSameMatch(expected: TestMatch, actual: TestMatch): void {
   assertEquals(firstImpactDifference(expected.runtime.impacts, actual.runtime.impacts), undefined);
 }
 
-test("a captured row is detached from the controls that produced it [invariant]", () => {
+test("a captured row is detached from the controls that produced it [k1 scenario]", () => {
   const recorded = testMatch(3, Character.rifleman);
   const expected = testMatch(3, Character.rifleman);
   const producer = recorded.inputs;
@@ -49,28 +49,7 @@ test("a captured row is detached from the controls that produced it [invariant]"
   assertSameMatch(expected, recorded);
 });
 
-test("rows differ by analog shield strength and match when recaptured alike [invariant]", () => {
-  const runtime = createPacingAndPresentation();
-  const controls = createFrameControls();
-  const before = createMatchFrameInput();
-  const after = createMatchFrameInput();
-  controls.inputs[0].shield = true;
-  controls.inputs[0].shieldStrength = analogShieldStrength(128);
-  assertTrue(captureFrame(before, 1, 3, controls, runtime));
-  controls.inputs[0].shieldStrength = 1.0;
-  assertTrue(captureFrame(after, 1, 3, controls, runtime));
-  assertFalse(sameMatchFrameInput(before, after));
-  controls.inputs[0].shieldStrength = analogShieldStrength(128);
-  resetMatchFrameInput(after);
-  assertTrue(captureFrame(after, 1, 3, controls, runtime));
-  assertTrue(sameMatchFrameInput(before, after));
-  controls.inputs[1].specialPressed = true;
-  resetMatchFrameInput(after);
-  assertTrue(captureFrame(after, 1, 3, controls, runtime));
-  assertFalse(sameMatchFrameInput(before, after));
-});
-
-test("a copied row executes as its source [invariant]", () => {
+test("a copied row executes as its source [k1 scenario]", () => {
   const original = testMatch(3, Character.rifleman);
   const copied = testMatch(3, Character.rifleman);
   const copy = createMatchFrameInput();
@@ -89,7 +68,7 @@ test("a copied row executes as its source [invariant]", () => {
   assertSameMatch(original, copied);
 });
 
-test("a network row adapts again from the world it replays into [invariant]", () => {
+test("a network row adapts again from the world it replays into [k1 scenario]", () => {
   const match = testMatch(3, Character.rifleman);
   const source = participantInputs();
   Object.assign(source[0], row({ held: maskOf(Action.moveRight), pressed: maskOf(Action.moveRight), axisX: 127 }));

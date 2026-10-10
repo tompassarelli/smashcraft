@@ -4,7 +4,7 @@ import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { fighterCoverage } from "./botCoverage";
 
-sweep("Kaelthas CPU uses all four specials in eight seeded matches [spec #381]", () => {
+sweep("Kaelthas CPU uses all four specials in eight seeded matches [k1 scenario]", () => {
   const choices: Character[] = SELECTABLE_CHARACTERS.filter(character => character !== Character.kaelthas);
   choices.push(Character.kaelthas);
   const report = fighterCoverage(choices.length - 1, undefined, choices);

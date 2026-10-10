@@ -83,7 +83,7 @@ function chainOf(character: Character): AttackStyle[] {
   return steps;
 }
 
-test("pressing jab three times plays the fighter's two- or three-hit jab chain, each jab a hit [spec #163]", () => {
+test("pressing jab three times plays the fighter's two- or three-hit jab chain, each jab a hit [k3 measure #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const chain = chainOf(character);
     assertEquals(chain.length >= 2 && chain.length <= 3, true, `${fighterName(character)} chain of ${chain.length}`);
@@ -93,7 +93,7 @@ test("pressing jab three times plays the fighter's two- or three-hit jab chain, 
   }
 });
 
-test("pressing forward tilt three times plays three separate forward tilts [spec #163]", () => {
+test("pressing forward tilt three times plays three separate forward tilts [k3 measure #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const moves = authoredTuning(character).moves;
 
@@ -118,7 +118,7 @@ function extent(character: Character, style: AttackStyle): { reach: number; area
   return { reach: maxX, area: (maxX - minX) * (maxZ - minZ) };
 }
 
-test("every jab reaches less, covers less and starts no later than the fighter's forward tilt [spec #163]", () => {
+test("every jab reaches less, covers less and starts no later than the fighter's forward tilt [k3 measure #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const moves = authoredTuning(character).moves;
     const tilt = extent(character, AttackStyle.forwardTilt);

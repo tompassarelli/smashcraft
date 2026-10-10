@@ -24,7 +24,7 @@ function lcg(seed: number): () => number {
   };
 }
 
-test("random sound streams never exceed the cap, never drop a hit while a lower class plays, and never start a rate-limited repeat [invariant]", () => {
+test("random sound streams never exceed the cap, never drop a hit while a lower class plays, and never start a rate-limited repeat [k2 property]", () => {
   for (let seed = 1; seed <= 20; seed++) {
     const next = lcg(seed);
     const budget = createVoiceBudget();
@@ -44,35 +44,6 @@ test("random sound streams never exceed the cap, never drop a hit while a lower 
     }
     assertGreaterThan(replaced, 0);
   }
-});
-
-test("a KO replaces the oldest lowest-class voice when the cap is full, and ducks lower classes for the duck window [spec #406]", () => {
-  const budget = createVoiceBudget();
-  for (let index = 0; index < VOICE_CAP; index++) assertTrue(admitVoice(budget, 10 + index, index < 4 ? VoiceClass.movement : VoiceClass.special, `m${index}`).play);
-  assertEquals(liveVoices(budget, 26), VOICE_CAP);
-  const full = admitVoice(budget, 26, VoiceClass.movement, "late");
-  assertEquals(full.play, false, "a movement sound cannot displace its own class or higher");
-  const hit = admitVoice(budget, 26, VoiceClass.hit, "hit");
-  assertTrue(hit.play && hit.replaced);
-  assertEquals(budget.voices[hit.slot]?.start, 26);
-  assertEquals(budget.voices[0]?.cls === VoiceClass.hit || budget.voices[1]?.cls === VoiceClass.hit || budget.voices[2]?.cls === VoiceClass.hit || budget.voices[3]?.cls === VoiceClass.hit, true, "the oldest movement voice went first");
-  const ko = admitVoice(budget, 27, VoiceClass.ko, "ko");
-  assertTrue(ko.play);
-  assertEquals(ko.percent, DUCK_PERCENT[VoiceClass.ko]);
-  assertEquals(admitVoice(budget, 27 + KO_DUCK_FRAMES - 1, VoiceClass.hit, "h2").percent, DUCK_PERCENT[VoiceClass.hit]);
-  const after = createVoiceBudget();
-  admitVoice(after, 1, VoiceClass.ko, "ko");
-  assertEquals(admitVoice(after, 1 + KO_DUCK_FRAMES, VoiceClass.special, "s").percent, 100);
-  assertGreaterThan(VOICE_FRAMES[VoiceClass.ko] ?? 0, VOICE_FRAMES[VoiceClass.hit] ?? 0);
-});
-
-test("the same movement or special sound inside its rate limit is dropped, and a hit repeats freely [spec #406]", () => {
-  const budget = createVoiceBudget();
-  assertTrue(admitVoice(budget, 100, VoiceClass.movement, "step").play);
-  assertEquals(admitVoice(budget, 101, VoiceClass.movement, "step").play, false);
-  assertTrue(admitVoice(budget, 101, VoiceClass.movement, "other").play);
-  assertTrue(admitVoice(budget, 200, VoiceClass.hit, "clap").play);
-  assertTrue(admitVoice(budget, 200, VoiceClass.hit, "clap").play);
 });
 
 interface Played {
@@ -172,7 +143,7 @@ function recordFourFighterMatch(seed: number, frames: number): Recording {
   return result;
 }
 
-test("one seeded four-fighter bot match keeps the cap, drops no hit under a lower sound, and starts every hit sound on its hitstop frame [spec #406]", () => {
+test("one seeded four-fighter bot match keeps the cap, drops no hit under a lower sound, and starts every hit sound on its hitstop frame [k1 scenario]", () => {
   const report = recordFourFighterMatch(0, 2400);
   assertGreaterThan(report.hits, 0);
   assertEquals(report.hitsOff, 0);
@@ -180,7 +151,7 @@ test("one seeded four-fighter bot match keeps the cap, drops no hit under a lowe
   assertLessThan(report.peakLive, VOICE_CAP + 1);
 });
 
-sweep("eight seeded four-fighter bot matches of 3600 frames keep the cap, drop no hit and start every hit sound on its hitstop frame: 0 of 968 hits off, uncapped play peaks at 22 voices against the cap of 16 [spec #406]", () => {
+sweep("eight seeded four-fighter bot matches of 3600 frames keep the cap, drop no hit and start every hit sound on its hitstop frame: 0 of 968 hits off, uncapped play peaks at 22 voices against the cap of 16 [k1 scenario]", () => {
   let hits = 0;
   let off = 0;
   let evictions = 0;

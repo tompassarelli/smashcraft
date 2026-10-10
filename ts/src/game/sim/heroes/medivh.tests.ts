@@ -28,7 +28,7 @@ function frame(world: Roster, input: Readonly<Controls> = controls(), targetInpu
   resolveAttacks(world); advanceSpecials(world, 0, 0, rows); updateProjectiles(world); finishDamageContacts(world);
 }
 
-test("Medivh computer's blink strike prediction agrees with where the real blink lands its hit [invariant] [repro #343]", () => {
+test("Medivh computer's blink strike prediction agrees with where the real blink lands its hit [k1 scenario]", () => {
  for(const [x,specialX,specialZ,form] of [[80.0,1,0,MEDIVH_SPECIALS.side.ground],[240.0,1,0,MEDIVH_SPECIALS.side.ground],[40.0,0,-1,MEDIVH_SPECIALS.down.ground],[-120.0,0,-1,MEDIVH_SPECIALS.down.ground]] as const){
   const {target,world}=pair(x);
   const predicted=strikeMeets(form,target,x,0.0);

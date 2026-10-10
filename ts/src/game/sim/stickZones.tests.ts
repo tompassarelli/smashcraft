@@ -50,7 +50,7 @@ const SAMPLES: readonly Sample[] = [
   [0.0, f32(-0.6249), STALE, TAP_JUMP_WINDOW, S.crouch, Z.deadzone],
 ];
 
-test("stick map: a sample in every zone and on each boundary selects Melee's zone from PlCo.dat's thresholds [reference]", () => {
+test("stick map: a sample in every zone and on each boundary selects Melee's zone from PlCo.dat's thresholds [k4 reference melee]", () => {
   for (const [x, z, sideAge, upAge, state, zone] of SAMPLES) {
     for (const facing of [-1, 1]) {
       const actual = stickZone(f32(x * facing), z, sideAge, upAge, facing, state);
@@ -61,7 +61,7 @@ test("stick map: a sample in every zone and on each boundary selects Melee's zon
   assertEquals(seen.size, Object.keys(StickZone).length);
 });
 
-test("stick map: mirroring the stick and facing keeps the zone over a 81x81 grid in every state [invariant]", () => {
+test("stick map: mirroring the stick and facing keeps the zone over a 81x81 grid in every state [k2 property]", () => {
   for (let i = -40; i <= 40; i++) {
     for (let j = -40; j <= 40; j++) {
       const x = f32(i / 40.0);
@@ -76,7 +76,7 @@ test("stick map: mirroring the stick and facing keeps the zone over a 81x81 grid
   }
 });
 
-test("ground states: an analog walk's speed follows the stick and the walk modifier is one full-speed walk [spec #204]", () => {
+test("ground states: an analog walk's speed follows the stick and the walk modifier is one full-speed walk [k3 measure #204]", () => {
   const speeds: number[] = [];
   for (const x of [f32(0.3), f32(0.5), f32(0.79)]) {
     const f = createFighter(Character.rifleman, -500.0, 1);

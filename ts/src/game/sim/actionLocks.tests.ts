@@ -10,7 +10,7 @@ import { SHIELD_MIN_HOLD_FRAMES, SHIELD_RELEASE_LAG_FRAMES } from "./shield";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { melee } from "./tuning";
 
-test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, then frees them [spec #100]", () => {
+test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, then frees them [k3 measure #100]", () => {
   assertEquals(SHIELD_RELEASE_LAG_FRAMES, 11);
   for (const character of Object.values(Character)) {
     const fighter = createReferenceFighter(character, 0.0, 1);
@@ -31,7 +31,7 @@ test("every fighter's dropped shield blocks attacks for Ultimate's 11 frames, th
   }
 });
 
-test("a shield grab requires an unstunned, grounded, active shield and keeps other attacks locked [spec docs/physics.md]", () => {
+test("a shield grab requires an unstunned, grounded, active shield and keeps other attacks locked [k3 measure docs/physics.md]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.shield.raised = true;
   assertFalse(canAttack(fighter));
@@ -61,7 +61,7 @@ test("a shield grab requires an unstunned, grounded, active shield and keeps oth
   assertFalse(canShieldGrab(fighter));
 });
 
-test("an air dodge protects only frames four through twenty-nine [reference]", () => {
+test("an air dodge protects only frames four through twenty-nine [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let frame = 1; frame <= 30; frame++) {
       const fighter = createReferenceFighter(character, 100.0, -1);
@@ -111,7 +111,7 @@ function airJumpApex(character: Character): number {
   return apex - 100;
 }
 
-test("complete jump trajectories match the reference heights [reference]", () => {
+test("complete jump trajectories match the reference heights [k4 reference melee]", () => {
   assertNear(groundJumpApex(Character.sylvanas, true), melee(31.280000686645508), 0.019999999552965164);
   assertNear(groundJumpApex(Character.sylvanas, false), melee(10.649999618530273), 0.019999999552965164);
   assertNear(airJumpApex(Character.sylvanas), melee(40.20399856567383), 0.019999999552965164);

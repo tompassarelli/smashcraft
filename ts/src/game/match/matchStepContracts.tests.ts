@@ -38,7 +38,7 @@ function testSoloMatch() {
   const game = createMatchState(); setParticipants(game, 1, 2); recallCharacter(game, 0, 1); return game;
 }
 
-test("heldShieldOrderDepletionPrecedesEveryGuardExit [reference]", () => {
+test("heldShieldOrderDepletionPrecedesEveryGuardExit [k4 reference melee]", () => {
   for (let boundary = 0; boundary <= 1; boundary++) {
     for (let action = 0; action <= 3; action++) {
       const game = createMatchState();
@@ -88,7 +88,7 @@ test("heldShieldOrderDepletionPrecedesEveryGuardExit [reference]", () => {
     }
   }
 });
-test("heldShieldOrderEntryDoesNotDrainUntilNextAnimationTick [reference]", () => {
+test("heldShieldOrderEntryDoesNotDrainUntilNextAnimationTick [k4 reference melee-decomp]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -113,7 +113,7 @@ test("heldShieldOrderEntryDoesNotDrainUntilNextAnimationTick [reference]", () =>
   assertNear(first.shield.energy, 0.07000000029802322, 0.00009999999747378752);
   assertNear(second.shield.energy, 19.440000534057617, 0.00009999999747378752);
 });
-test("heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs [reference]", () => {
+test("heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs [k4 reference melee]", () => {
   for (let action = 0; action <= 1; action++) {
     const game = createMatchState();
     game.phase = Phase.match;
@@ -168,7 +168,7 @@ test("heldShieldOrderHitlagAndShieldstunResumeBeforeActionInputs [reference]", (
     assertNear(second.shield.energy, 19.719999313354492, 0.00009999999747378752);
   }
 });
-test("shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth [reference]", () => {
+test("shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -189,7 +189,7 @@ test("shieldBreakBoundaryDrainRequiresStrictlyNegativeHealth [reference]", () =>
   assertFalse(first.shield.raised);
   assertNear(first.shield.energy, 0.07000000029802322, 0.00009999999747378752);
 });
-test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]", () => {
+test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -226,7 +226,7 @@ test("shieldBreakBoundaryDamageAtZeroStillGuardsThenRestoresThirty [reference]",
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 3);
   assertNear(second.shield.energy, 30.06999969482422, 0.00009999999747378752);
 });
-test("shieldRegenMatchContinuesDuringStoppedActions [reference]", () => {
+test("shieldRegenMatchContinuesDuringStoppedActions [k4 reference melee]", () => {
   for (let state = 0; state <= 5; state++) {
     const game = createMatchState();
     game.phase = Phase.match;
@@ -278,7 +278,7 @@ test("shieldRegenMatchContinuesDuringStoppedActions [reference]", () => {
     assertEquals(first.shield.energy, 60.0);
   }
 });
-test("shieldRegenMatchUsesGuardStateAfterGrabInput [reference]", () => {
+test("shieldRegenMatchUsesGuardStateAfterGrabInput [k4 reference melee-decomp]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -306,7 +306,7 @@ test("shieldRegenMatchUsesGuardStateAfterGrabInput [reference]", () => {
   assertNear(first.shield.energy, 19.860000610351562, 0.00009999999747378752);
   assertNear(second.shield.energy, 19.719999313354492, 0.00009999999747378752);
 });
-test("shieldRegenMatchFollowsDizzyRestoreExactlyOnce [reference]", () => {
+test("shieldRegenMatchFollowsDizzyRestoreExactlyOnce [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -334,7 +334,7 @@ test("shieldRegenMatchFollowsDizzyRestoreExactlyOnce [reference]", () => {
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 5);
   assertNear(first.shield.energy, 30.139999389648438, 0.00009999999747378752);
 });
-test("shieldRegenMatchSeesGuardClearedByCapture [reference]", () => {
+test("shieldRegenMatchSeesGuardClearedByCapture [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -355,7 +355,7 @@ test("shieldRegenMatchSeesGuardClearedByCapture [reference]", () => {
   assertFalse(second.shield.raised);
   assertNear(second.shield.energy, 19.790000915527344, 0.00009999999747378752);
 });
-test("humanDirectAttacksReachBothSlotsOnTheNextStep [invariant]", () => {
+test("humanDirectAttacksReachBothSlotsOnTheNextStep [k1 scenario]", () => {
   for (let style = 1; style <= 5; style++) {
     const game = testSoloMatch();
     setHumanCount(game, 2);
@@ -385,7 +385,7 @@ test("humanDirectAttacksReachBothSlotsOnTheNextStep [invariant]", () => {
     assertEquals(second.attack.serial, 1);
   }
 });
-test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [spec docs/design/melee/defense.md]", () => {
+test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [k3 measure docs/design/melee/defense.md]", () => {
   const game = testSoloMatch();
   selectCharacter(game, 0, 1);
   selectCpuCharacter(game, 0, (cpuSlot(game) ?? -1), 1);
@@ -410,7 +410,7 @@ test("activeShieldConsumesGrabButRejectsOrdinaryAttackCommand [spec docs/design/
   assertFalse(first.shield.raised);
   assertEquals(first.shield.releaseLag, 0);
 });
-test("jumpSquatBuffersBackAirUntilFirstAirborneFrame [spec docs/design/melee/aerials-on-shield.md]", () => {
+test("jumpSquatBuffersBackAirUntilFirstAirborneFrame [k3 measure docs/design/melee/aerials-on-shield.md]", () => {
   for (const character of [1, 2] as const) {
     for (let facing = -1; facing <= 1; facing++) {
       if (facing !== 0) {
@@ -447,7 +447,7 @@ test("jumpSquatBuffersBackAirUntilFirstAirborneFrame [spec docs/design/melee/aer
     }
   }
 });
-test("dashGrabUsesTestActorTimingAndWindowIsReplayable [reference]", () => {
+test("dashGrabUsesTestActorTimingAndWindowIsReplayable [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -479,7 +479,7 @@ test("dashGrabUsesTestActorTimingAndWindowIsReplayable [reference]", () => {
   stepMatch(game, testRoster(first, second), testFrameControls(firstInput, secondInput, firstCommands, secondCommands), 11);
   assertGreaterThan(second.grab.grabbedFrames, 0);
 });
-test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab [spec docs/design/tilts.md]", () => {
+test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab [k3 measure docs/design/tilts.md]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, -240, 1);
@@ -509,7 +509,7 @@ test("ordinaryDashAttackStaysAnAttackWhileGrabIntentStartsDashGrab [spec docs/de
   assertTrue(second.attack.dashGrab);
   assertEquals(second.attack.duration, attackDurationFramesForGrounding(5, true));
 });
-test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () => {
+test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, 0, 1);
@@ -583,7 +583,7 @@ test("lateDashGrabGuardEntryOpensCatchDashAndEarlyEntryDoesNot [reference]", () 
   stepMatch(dashLateGame, testRoster(dashLate, dashLateOther), testFrameControls(dashLateInput, dashLateOtherInput, dashLateCommands, dashLateOtherCommands), 1);
   assertEquals(dashLate.ground.dashGrabWindow, 3);
 });
-test("dashGrabWhiffEndsAfterFortySubsequentTicks [reference]", () => {
+test("dashGrabWhiffEndsAfterFortySubsequentTicks [k4 reference melee]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(1, -240, 1);
@@ -619,7 +619,7 @@ test("dashGrabWhiffEndsAfterFortySubsequentTicks [reference]", () => {
   assertGreaterThan(first.jump.squat, 0);
   assertEquals(second.grab.grabbedFrames, 0);
 });
-test("dashGrabSecondActiveTickCapturesButFollowingTickDoesNot [reference]", () => {
+test("dashGrabSecondActiveTickCapturesButFollowingTickDoesNot [k4 reference melee]", () => {
   for (let lateByOne = 0; lateByOne <= 1; lateByOne++) {
     const game = createMatchState();
     game.phase = Phase.match;

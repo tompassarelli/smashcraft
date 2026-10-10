@@ -102,7 +102,7 @@ function expectSameMatch(first: Played, second: Played) {
   }
 }
 
-sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [invariant]", () => {
+sweep("a match after -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [k1 scenario]", () => {
   const { clients, play, reset } = session();
   const first = play("first match");
   expectFirstMatch(first);

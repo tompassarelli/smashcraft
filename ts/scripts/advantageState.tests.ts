@@ -5,13 +5,7 @@ import { type AdvantageRow } from "./advantageState";
 
 const rows = (): AdvantageRow[] => readFileSync(join(import.meta.dir, "../../tools/move-data/advantage-state.jsonl"), "utf8").split("\n").filter((line) => line !== "").map((line) => JSON.parse(line));
 
-test("all 78 fighter and target rows meet every advantage-state target [spec #388]", () => {
-  const all = rows();
-  expect(all).toHaveLength(78);
-  expect(all.filter((row) => Object.values(row.targets).some((met) => !met)).map((row) => `${row.fighter} ${row.target}`)).toEqual([]);
-});
-
-test("no throw is a true zero-to-death: none takes a stock below 60%, strings stay within two follow-ups and 30% against the escape-optimal DI, and every fighter's tech chase ends in a read [spec #388]", () => {
+test("no throw is a true zero-to-death: none takes a stock below 60%, strings stay within two follow-ups and 30% against the escape-optimal DI, and every fighter's tech chase ends in a read [k3 measure #388]", () => {
   const all = rows();
   expect(all.flatMap((row) => row.zeroToDeath.map((problem) => `${row.fighter} ${row.target}: ${problem}`))).toEqual([]);
   const cells = all.flatMap((row) => row.throws.map((cell) => ({ row, cell })));

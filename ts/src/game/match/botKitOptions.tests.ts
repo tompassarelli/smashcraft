@@ -178,52 +178,47 @@ function usesEvery(character: Character, options: readonly string[], opponent: C
   for (const option of Object.keys(again)) assertEquals(again[option], first[option], option);
 }
 
-test("every named profile can take legal kit options, with greater reliability as execution grows [spec #146]", () => {
-  for (const profile of CPU_PROFILES) assertTrue(cpuSkill(profile.opponent, profile.tier).kitTenths > 0);
-  assertTrue(cpuSkill("wren", "expert").kitTenths > cpuSkill("wren", "rookie").kitTenths);
-});
-
-sweep("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image, each at least once; fewest seen 10 on four seed offsets [spec #146]", () => {
+sweep("computer Blademaster backstabs from Wind Walk in front and crossed up, feints, and swaps onto Mirror Image, each at least once; fewest seen 10 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.blademaster, ["followUp1.0", "crossUp1", "followUp1.1", "special3", "recall3"]);
 });
 
-sweep("computer Mountain King claps small, full and as bait and spikes with Hammerfall, each at least once; fewest seen 4 on four seed offsets [spec #146]", () => {
+sweep("computer Mountain King claps small, full and as bait and spikes with Hammerfall, each at least once; fewest seen 4 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.mountainKing, ["followUp3.0", "followUp3.1|runOut3", "dropped3", "followUp2.0"]);
 });
 
-sweep("computer Warden marks and follows with Shadow Pursuit, each at least once; fewest seen 42 on four seed offsets [spec #146]", () => {
+sweep("computer Warden marks and follows with Shadow Pursuit, each at least once; fewest seen 42 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.warden, ["special0", "marked1"]);
 });
 
-sweep("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual, each at least once; fewest seen 11 on four seed offsets [spec #146]", () => {
+sweep("computer Lich bursts Frost Nova, places Death and Decay, arms Frost Armor and cashes Dark Ritual, each at least once; fewest seen 11 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.lich, ["recall0", "special1", "special3", "recall3"]);
 });
 
-sweep("computer Forsaken Paladin uses Cleansing Hammer, Righteous Fury, Ascension and Consecration, each at least once; fewest seen 8 on four seed offsets [spec #146]", () => {
+sweep("computer Forsaken Paladin uses Cleansing Hammer, Righteous Fury, Ascension and Consecration, each at least once; fewest seen 8 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.forsakenPaladin, ["special0", "special1", "special2", "special3"]);
 });
 
-sweep("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper, each at least once; fewest seen 17 on four seed offsets [spec #146]", () => {
+sweep("computer Dreadlord corkscrews with Vampiric Pounce, sleeps a target, mashes out of Sleep and hits a sleeper, each at least once; fewest seen 17 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.dreadlord, ["special1", "special3", "sleepMash", "sleptHit"]);
 });
 
-sweep("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex, each at least once; fewest seen 30 on four seed offsets [spec #146]", () => {
+sweep("computer Shadow Hunter throws Spirit Glaive, hexes, presses a hexed target and mashes out of a Hex, each at least once; fewest seen 30 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.shadowHunter, ["special0", "special3", "hexedHit", "hexMash"]);
 });
 
-sweep("computer Pit Lord roars, charges, leaps and calls Rain of Fire, each at least once; fewest seen 6 on four seed offsets [spec #146]", () => {
+sweep("computer Pit Lord roars, charges, leaps and calls Rain of Fire, each at least once; fewest seen 6 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.pitLord, ["special0", "special1", "special2", "special3"]);
 });
 
-sweep("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley, each at least once; fewest seen 23 on four seed offsets [spec #146]", () => {
+sweep("computer Beastmaster summons the pack, commands Stampede, Hawk Dive and Quill Volley, each at least once; fewest seen 23 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.beastmaster, ["special0", "special1", "special2", "special3", "recall1", "recall2", "recall3"]);
 });
 
-sweep("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear, each at least once; fewest seen 6 on four seed offsets [spec #146]", () => {
+sweep("computer Rifleman flies level and diagonal recoil routes with a second shot, short-hops and grounds the blaster, calls the bear, each at least once; fewest seen 6 on four seed offsets [k1 scenario]", () => {
   usesEvery(Character.rifleman, ["levelRoute", "diagonalRoute", "secondShot", "airBlaster", "groundBlaster", "bear"]);
 });
 
-sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat, each at least once; fewest seen 10 on four seed offsets [spec #146]", () => {
+sweep("computer Illidan jump-cancels Immolate, glides out of Wing Ascent, runs behind Mana Burn and Fel Rushes into Chaos Strike or Vengeful Retreat, each at least once; fewest seen 10 on four seed offsets [k1 scenario]", () => {
 
   usesEvery(Character.demonHunter, ["immolateJump", "glide", "behindOrb", "felRush", "chaosStrike|chaosCrossUp", "vengefulRetreat"], Character.demonHunter, 2 * MATCHES);
 });

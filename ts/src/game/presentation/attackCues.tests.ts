@@ -8,7 +8,7 @@ import { ATTACK_CUES, type AttackCueState, attackCueState } from "./attackCues";
 
 const STYLES = Object.values(AttackStyle);
 
-test("every signature normal shows its cue on its hits and none before them [spec #152]", () => {
+test("every signature normal shows its cue on its hits and none before them [k3 measure #152]", () => {
   const out: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
   for (const key of Object.keys(ATTACK_CUES)) {
     const character = Number(key);

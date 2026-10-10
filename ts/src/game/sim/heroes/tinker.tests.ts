@@ -4,7 +4,7 @@ import { Character } from "../codes";
 import { createFighter } from "../fighter";
 import { AUTHORED_PHYSICS } from "../tuning";
 
-test("Tinker body preserves the named Ultimate ROB weight, run and air speed [reference] [spec docs/design/tinker.md]", () => {
+test("Tinker body preserves the named Ultimate ROB weight, run and air speed [k4 reference ssbu]", () => {
   const f = createFighter(Character.tinker, 0.0, 1);
   const reference = AUTHORED_PHYSICS.reference;
   assertNear(f.tuning.physics.weight, 106.0, f32(0.001));

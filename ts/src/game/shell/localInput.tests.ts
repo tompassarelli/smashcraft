@@ -7,7 +7,7 @@ import { queueLocalRows } from "./localInput";
 import { createTapeWorld } from "../replay/tapeWorld";
 import { replayHistoryPlayback } from "./rollbackPlayback";
 
-test("local keyboard rows survive a one-second send cut at their original frames [invariant]", () => {
+test("local keyboard rows survive a one-second send cut at their original frames [k1 scenario]", () => {
   const schedule = new ShadowInputSchedule();
   const batch = new InputBatch(1);
   assertTrue(schedule.beginEpoch(1, 2, 24, 1));

@@ -48,7 +48,7 @@ function pair(gap: number, facing = 1): { world: Roster; owner: Fighter; target:
   return { world, owner, target };
 }
 
-test("replaying Mountain King's specials from a restored snapshot reproduces every fighter field [invariant]", () => {
+test("replaying Mountain King's specials from a restored snapshot reproduces every fighter field [k1 scenario]", () => {
   const { world, owner, target } = pair(200.0);
   const savedOwner = createFighter(Character.mountainKing, 0.0, 1);
   const savedTarget = createFighter(Character.rifleman, 0.0, 1);

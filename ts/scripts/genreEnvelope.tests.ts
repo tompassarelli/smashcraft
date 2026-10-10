@@ -5,7 +5,7 @@ import { type Envelope, FIELDS, MOVE_CLASSES, type Tolerances, allowance, classi
 const random = (seed: number) => () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
 const TOLERANCES: Tolerances = { frames: 3, shieldAdvantage: 3, killPercentShare: 0.15, special: { frames: 10, shieldAdvantage: 10, killPercentShare: 0.3 }, ex: { frames: 15, shieldAdvantage: 15, killPercentShare: 0.4 } };
 
-test("the classifier puts every attack style, special path and universal option in exactly one class, EX only on an ex segment [spec docs/move-data.md]", () => {
+test("the classifier puts every attack style, special path and universal option in exactly one class, EX only on an ex segment [k2 property]", () => {
   const next = random(426);
   for (const name of Object.keys(AttackStyle)) expect(classify(`normal.${name}`)?.moveClass).toBeDefined();
   for (const name of MOVE_CLASSES.filter((moveClass) => ["spot-dodge", "roll", "shield-drop", "jump-squat"].includes(moveClass))) expect(classify(name)?.moveClass).toBe(name);
@@ -19,7 +19,7 @@ test("the classifier puts every attack style, special path and universal option 
   }
 });
 
-test("a move is an outlier exactly when one field leaves its class range by more than its tier's allowance, at distance above 1 [spec docs/move-data.md]", () => {
+test("a move is an outlier exactly when one field leaves its class range by more than its tier's allowance, at distance above 1 [k2 property]", () => {
   const next = random(355);
   for (let trial = 0; trial < 400; trial++) {
     const low = Math.round(next() * 40) - 20, high = low + Math.round(next() * 30);

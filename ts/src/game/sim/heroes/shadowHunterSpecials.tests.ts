@@ -46,7 +46,7 @@ function placeWard(world: Roster): void {
   for (let f = 2; f <= 26; f++) frame(world);
 }
 
-test("replaying a ward from a restored snapshot reproduces every fighter field [invariant]", () => {
+test("replaying a ward from a restored snapshot reproduces every fighter field [k1 scenario]", () => {
   const { world, owner, target } = pair(400.0);
   placeWard(world);
   const savedOwner = createFighter(Character.shadowHunter, 0.0, 1);

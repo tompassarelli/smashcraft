@@ -46,7 +46,7 @@ Stock attack and cast sequences: "Attack", "Spell".
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: attack jab; jab2: attack jab | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: attack jab; jab2: attack jab | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: forward tilt; f-tilt up: forward tilt up; f-tilt down: forward tilt down; u-tilt: up tilt; d-tilt: down tilt | Keep: "Attack" fires the rifle; melee tilts need bayonet and stock swings |
 | Dash attack, smashes | dash: forward tilt | Keep: same reason |
 | Aerials | nair: aerial neutral; fair: aerial forward; bair: aerial back; uair: aerial up; dair: aerial down | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -86,7 +86,7 @@ Stock attack and cast sequences: "Attack -1", "Attack -2", "Spell Throw", "Spell
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: attack gesture jab; jab2: attack gesture jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: attack gesture jab; jab2: attack gesture jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: attack -2 (stock); f-tilt up: spell throw (stock); f-tilt down: attack -2 (stock); u-tilt: attack gesture uptilt; d-tilt: attack slam alternate (stock) | Already stock for f-tilt, f-tilt up/down, d-tilt; u-tilt keeps its own gesture (#242: one clip per move) |
 | Dash attack, smashes | dash: attack gesture dashattack; f-smash: attack slam (stock); u-smash: attack gesture upsmash; d-smash: spell slam (stock) | Already stock for f-smash, d-smash; dash and u-smash keep distinct gestures (#242) |
 | Aerials | nair: attack gesture neutralair; fair: attack gesture forwardair; bair: attack gesture backair; uair: attack gesture upair; dair: down air boot stomp | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -128,7 +128,7 @@ Stock attack and cast sequences: "Attack 1", "Attack 2", "Attack Slam", "Spell",
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: forsaken paladin jab; jab2: forsaken paladin jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: forsaken paladin jab; jab2: forsaken paladin jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: forsaken paladin forwardtilt; f-tilt up: forsaken paladin forwardtiltup; f-tilt down: forsaken paladin forwardtiltdown; u-tilt: forsaken paladin uptilt; d-tilt: forsaken paladin downtilt | Keep: "Attack 1" reaches the region but starts from the model's hunched stance, a snap from his upright idle |
 | Dash attack, smashes | dash: forsaken paladin dashattack; f-smash: forsaken paladin forwardsmash; u-smash: forsaken paladin upsmash; d-smash: forsaken paladin downsmash | Keep: "Attack Slam" same stance snap |
 | Aerials | nair: forsaken paladin neutralair; fair: forsaken paladin forwardair; bair: forsaken paladin backair; uair: forsaken paladin upair; dair: down air hammer drop | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -198,7 +198,7 @@ Stock attack and cast sequences: "Attack - 1", "Attack - 2", "Spell Throw", "Spe
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: attack jab; jab2: attack jab 2; jab3: attack jab 3 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: attack jab; jab2: attack jab 2; jab3: attack jab 3 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: forward tilt; f-tilt up: forward tilt; f-tilt down: attack gesture forwardtiltdown; u-tilt: up tilt; d-tilt: down tilt | Keep: "Attack - 1" ties the authored sweep; no gain |
 | Dash attack, smashes | dash: dash attack; f-smash: attack - 2; u-smash: up smash; d-smash: down smash | **Swapped f-smash to "Attack - 2"**: the sword rises into the upper region on the first active frame and cuts down into the lower one, where the authored thrust stays level. Others keep |
 | Aerials | nair: aerial neutral; fair: aerial forward; bair: aerial back; uair: aerial up; dair: aerial down | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -212,7 +212,7 @@ Stock attack and cast sequences: "Attack - 1", "Spell".
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: thrall jab; jab2: thrall jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: thrall jab; jab2: thrall jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: thrall forwardtilt; f-tilt up: thrall forwardtiltup; f-tilt down: thrall forwardtiltdown; u-tilt: thrall uptilt; d-tilt: thrall downtilt | Keep: "Attack - 1" lifts the hammer overhead on the first active frame; the authored strike is in the region |
 | Dash attack, smashes | dash: thrall dashattack; f-smash: thrall forwardsmash; u-smash: thrall upsmash; d-smash: thrall downsmash | Keep: the model's one or two stock attacks are full-speed swings without a smash's charge, wind-up or reach; the tilt verdict covers them |
 | Aerials | nair: thrall neutralair; fair: thrall forwardair; bair: thrall backair; uair: thrall upair; dair: thrall downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -226,7 +226,7 @@ Stock attack and cast sequences: "Attack -1", "Spell".
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: jaina jab; jab2: jaina jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: jaina jab; jab2: jaina jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: jaina forwardtilt; f-tilt up: jaina forwardtiltup; f-tilt down: jaina forwardtiltdown; u-tilt: jaina uptilt; d-tilt: jaina downtilt | Keep: "Attack -1" ties the authored thrust, then spins the staff through recovery with no hit |
 | Dash attack, smashes | dash: jaina dashattack; f-smash: jaina forwardsmash; u-smash: jaina upsmash; d-smash: jaina downsmash | Keep: the model's one or two stock attacks are full-speed swings without a smash's charge, wind-up or reach; the tilt verdict covers them |
 | Aerials | nair: jaina neutralair; fair: jaina forwardair; bair: jaina backair; uair: jaina upair; dair: jaina downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -240,7 +240,7 @@ Stock attack and cast sequences: "Spell", "Attack - 1", "Attack - 2".
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: sylvanas jab; jab2: sylvanas jab2; jab3: sylvanas jab3 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: sylvanas jab; jab2: sylvanas jab2; jab3: sylvanas jab3 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: sylvanas forwardtilt; f-tilt up: sylvanas forwardtiltup; f-tilt down: sylvanas forwardtiltdown; u-tilt: sylvanas uptilt; d-tilt: sylvanas downtilt | Keep: "Attack - 1" draws the bow; the bow never reaches the melee region |
 | Dash attack, smashes | dash: sylvanas dashattack; f-smash: sylvanas forwardsmash; u-smash: sylvanas upsmash; d-smash: sylvanas downsmash | Keep: the model's one or two stock attacks are full-speed swings without a smash's charge, wind-up or reach; the tilt verdict covers them |
 | Aerials | nair: sylvanas neutralair; fair: sylvanas forwardair; bair: sylvanas backair; uair: sylvanas upair; dair: sylvanas downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -254,7 +254,7 @@ Stock attack and cast sequences: "Attack - 1", "Attack - 2", "Spell Slam", "Atta
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: cairne jab; jab2: cairne jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: cairne jab; jab2: cairne jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: cairne forwardtilt; f-tilt up: cairne forwardtiltup; f-tilt down: cairne forwardtiltdown; u-tilt: cairne uptilt; d-tilt: cairne downtilt | Keep: "Attack - 1" thrusts level below the region the authored strike fills |
 | Dash attack, smashes | dash: cairne dashattack; f-smash: cairne forwardsmash; u-smash: cairne upsmash; d-smash: cairne downsmash | Keep: "Attack Slam" stays overhead and misses the low region; "Spell Slam" stays at chest height for d-smash |
 | Aerials | nair: cairne neutralair; fair: cairne forwardair; bair: cairne backair; uair: cairne upair; dair: cairne downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -268,7 +268,7 @@ Stock attack and cast sequences: "Spell Slam", "Spell", "Attack", "Attack -2", "
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: chen jab; jab2: chen jab2; jab3: chen jab3 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: chen jab; jab2: chen jab2; jab3: chen jab3 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: chen forwardtilt; f-tilt up: chen forwardtiltup; f-tilt down: chen forwardtiltdown; u-tilt: chen uptilt; d-tilt: chen downtilt | Keep: "Attack" ties the authored staff strike |
 | Dash attack, smashes | dash: chen dashattack; f-smash: chen forwardsmash; u-smash: chen upsmash; d-smash: chen downsmash | Keep: "Spell Slam" does not reach the floor regions the authored sweep fills |
 | Aerials | nair: chen neutralair; fair: chen forwardair; bair: chen backair; uair: chen upair; dair: chen downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -282,7 +282,7 @@ Stock attack and cast sequences: "Attack", "attack gold", "Attack Lumber", "Atta
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: peon jab; jab2: peon jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: peon jab; jab2: peon jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: attack (stock); f-tilt up: peon forwardtiltup; f-tilt down: peon forwardtiltdown; u-tilt: peon uptilt; d-tilt: peon downtilt | **Swapped f-tilt to stock "Attack"**: the pick swings out into the region at chest height, where the authored clip held it high. Up/down angles keep their aimed clips |
 | Dash attack, smashes | dash: peon dashattack; f-smash: peon forwardsmash; u-smash: peon upsmash; d-smash: peon downsmash | Keep: "Attack - 2" is the same chop as "Attack"; the smashes need their charge and reach |
 | Aerials | nair: peon neutralair; fair: peon forwardair; bair: peon backair; uair: peon upair; dair: peon downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -296,7 +296,7 @@ Stock attack and cast sequences: "Attack - 1", "Spell One", "Spell Two", "Spell 
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: tinker jab; jab2: tinker jab2; jab3: tinker jab3 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: tinker jab; jab2: tinker jab2; jab3: tinker jab3 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: tinker forwardtilt; f-tilt up: tinker forwardtiltup; f-tilt down: tinker forwardtiltdown; u-tilt: tinker uptilt; d-tilt: tinker downtilt | Keep: "Attack - 1" ties the claw arm; no gain |
 | Dash attack, smashes | dash: tinker dashattack; f-smash: tinker forwardsmash; u-smash: tinker upsmash; d-smash: tinker downsmash | Keep: "Spell Slam" ties the authored d-smash; neither gains |
 | Aerials | nair: tinker neutralair; fair: tinker forwardair; bair: tinker backair; uair: tinker upair; dair: tinker downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -310,7 +310,7 @@ Stock attack and cast sequences: "Attack", "Attack - 1", "Spell", "Attack - 3", 
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: kaelthas jab; jab2: kaelthas jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: kaelthas jab; jab2: kaelthas jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: kaelthas forwardtilt; f-tilt up: kaelthas forwardtiltup; f-tilt down: kaelthas forwardtiltdown; u-tilt: kaelthas uptilt; d-tilt: kaelthas downtilt | Keep: "Attack - 1" ties the authored strike with a wide wind-up |
 | Dash attack, smashes | dash: kaelthas dashattack; f-smash: kaelthas forwardsmash; u-smash: kaelthas upsmash; d-smash: kaelthas downsmash | Keep: the model's one or two stock attacks are full-speed swings without a smash's charge, wind-up or reach; the tilt verdict covers them |
 | Aerials | nair: kaelthas neutralair; fair: kaelthas forwardair; bair: kaelthas backair; uair: kaelthas upair; dair: kaelthas downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |
@@ -324,7 +324,7 @@ Stock attack and cast sequences: "Attack Spell", "Attack - 1".
 
 | Moves | Clip in use | Verdict |
 | --- | --- | --- |
-| Jabs | jab: murloc jab; jab2: murloc jab2 | Keep: a jab strikes short and close (#163, `test/drawn-reach.test.ts`); every stock attack is a full swing |
+| Jabs | jab: murloc jab; jab2: murloc jab2 | Keep: a jab strikes short and close (#163); every stock attack is a full swing |
 | Tilts | f-tilt: murloc forwardtilt; f-tilt up: murloc forwardtiltup; f-tilt down: murloc forwardtiltdown; u-tilt: murloc uptilt; d-tilt: murloc downtilt | Keep: "Attack - 1" starts from a crouched hop, a snap from his idle |
 | Dash attack, smashes | dash: murloc dashattack; f-smash: murloc forwardsmash; u-smash: murloc upsmash; d-smash: murloc downsmash | Keep: the model's one or two stock attacks are full-speed swings without a smash's charge, wind-up or reach; the tilt verdict covers them |
 | Aerials | nair: murloc neutralair; fair: murloc forwardair; bair: murloc backair; uair: murloc upair; dair: murloc downair | Keep: every stock sequence stands on the ground; aerials need airborne legs |

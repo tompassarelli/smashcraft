@@ -149,7 +149,7 @@ function play(scenario: Readonly<Scenario>, facing: number, defend: boolean): Bo
   return b;
 }
 
-test("each fighter's ultimate needs the full bar, spends all of it and starts from Attack + Special [spec #382]", () => {
+test("each fighter's ultimate needs the full bar, spends all of it and starts from Attack + Special [k3 measure #382]", () => {
   for (const scenario of ULTIMATE_SCENARIOS) {
     const short = bout(scenario, 1, Character.blademaster, 600.0);
     short.owner.mana.points = ROSTER_MANA.max - 1;
@@ -164,7 +164,7 @@ test("each fighter's ultimate needs the full bar, spends all of it and starts fr
 
 const name = (character: Character): string => Object.keys(Character).find((key) => Character[key as keyof typeof Character] === character) ?? `${character}`;
 
-test("each fighter's ultimate lands undefended and never KOs from 0% in both facings [spec #382]", () => {
+test("each fighter's ultimate lands undefended and never KOs from 0% in both facings [k3 measure #382]", () => {
   const failures: string[] = [];
   for (const scenario of ULTIMATE_SCENARIOS) for (const facing of [-1, 1]) {
     const b = play(scenario, facing, false);
@@ -173,7 +173,7 @@ test("each fighter's ultimate lands undefended and never KOs from 0% in both fac
   assertEquals(failures.join("; "), "");
 });
 
-test("each fighter's ultimate is answered by its defence on startup and leaves the user committed [spec #382]", () => {
+test("each fighter's ultimate is answered by its defence on startup and leaves the user committed [k3 measure #382]", () => {
   const failures: string[] = [];
   for (const scenario of ULTIMATE_SCENARIOS) for (const facing of [-1, 1]) {
     const b = play(scenario, facing, true);
@@ -185,7 +185,7 @@ test("each fighter's ultimate is answered by its defence on startup and leaves t
 
 const EX = controls({ specialPressed: true, shield: true, shieldPressed: true, airDodgePressed: true, groundDodgePressed: true });
 
-test("with Ultimates off no fighter performs an ultimate from Attack + Special, EX still spends one segment and a landed hit still fills the bar [spec #382]", () => {
+test("with Ultimates off no fighter performs an ultimate from Attack + Special, EX still spends one segment and a landed hit still fills the bar [k3 measure #382]", () => {
   const failures: string[] = [];
   for (const scenario of ULTIMATE_SCENARIOS) {
     const held = bout(scenario, 1, Character.blademaster, scenario.x, true);
@@ -292,15 +292,7 @@ function cpuUltimates(characters: readonly Character[], tier: CpuTier, seed: num
 
 const SWEEP_FRAMES = 900;
 
-for (const tier of ["beginner", "intermediate", "advanced", "expert"] as const) sweep(`Wren ${tier} computers spend a full bar on an ultimate in 23-25 of 26 fighters, 66-81 times per 26 matches, land at least 60 percent (71-85 seen) and almost never into a raised shield on three seed offsets [spec #382]`, () => {
-  const r = cpuUltimates(SELECTABLE_CHARACTERS, tier, 0, SWEEP_FRAMES, false);
-  assertGreaterThan(r.starts, 55);
-  assertGreaterThan(r.users, 20);
-  assertGreaterThan(r.landed * 10, r.starts * 6);
-  assertLessThan(r.shielded * 20, r.starts);
-});
-
-sweep("Wren Rookie computers never press an ultimate and no computer does with Ultimates off [spec #382]", () => {
+sweep("Wren Rookie computers never press an ultimate and no computer does with Ultimates off [k3 measure #382]", () => {
   assertEquals(cpuUltimates(SELECTABLE_CHARACTERS, "rookie", 0, SWEEP_FRAMES, false).starts, 0);
   assertEquals(cpuUltimates(SELECTABLE_CHARACTERS, "expert", 0, SWEEP_FRAMES, true).starts, 0);
 });

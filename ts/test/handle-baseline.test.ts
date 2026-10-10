@@ -16,7 +16,7 @@ afterAll(headless.restore);
 // Create/Add native and uncounts it at its Destroy/Remove/KillSoundWhenDone native (scripts/wisp/memoryCensus.ts).
 // The first match creates a few handles the menu keeps from then on: the stage-loading cover's frames and one
 // fighter body (unit) per fighter of the last match, so fighter selection after the first match is the baseline.
-test("a four-computer match and its rematch leave every client's live handles of each kind at fighter selection where the first match left them, with one fighter body per fighter [invariant]", () => {
+test("a four-computer match and its rematch leave every client's live handles of each kind at fighter selection where the first match left them, with one fighter body per fighter [k1 scenario]", () => {
   const clients = headless.clients({ start: () => startBuild(INTEGRITY_BUILD), install }, [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 7) });
   const { cold, afterMatches } = playHandleBaseline(clients, declarations.functions, 2, (client) => {
     let game: Game | undefined;

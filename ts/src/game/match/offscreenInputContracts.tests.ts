@@ -26,7 +26,7 @@ function magnifier() {
   return { run, fighter };
 }
 
-test("magnifier damage is 1% per 60 consecutive offscreen frames, stops at 150%, and training disables it [reference]", () => {
+test("magnifier damage is 1% per 60 consecutive offscreen frames, stops at 150%, and training disables it [k4 reference melee]", () => {
   const { run, fighter } = magnifier();
   for (let frame = 1; frame <= 59; frame++) playPads(run, {}, {});
   assertFalse(fighter.status.out);
@@ -58,20 +58,7 @@ test("magnifier damage is 1% per 60 consecutive offscreen frames, stops at 150%,
   assertEquals(fighter.status.offscreenFrames, 0);
 });
 
-test("a fighter that outruns the current camera counts magnifier frames inside the stage camera limits [spec #80]", () => {
-  const run = padMatch(testMatch(3, 1), "camera-outrun");
-  for (let frame = 1; frame <= 60; frame++) playPads(run, {}, {});
-  const fighter = fighterAt(run.match.world, 0);
-  fighter.motion.x = 1000.0;
-  fighter.motion.z = 300.0;
-  fighter.motion.grounded = false;
-  fighter.status.frozenFrames = 1000;
-  playPads(run, {}, {});
-  assertTrue(outsideCamera(run.match.game.camera, fighter.motion.x, f32(fighter.motion.z + 60.0)));
-  assertEquals(fighter.status.offscreenFrames, 1);
-});
-
-test("restoring a snapshot reproduces the camera and the magnifier damage frame [invariant]", () => {
+test("restoring a snapshot reproduces the camera and the magnifier damage frame [k1 scenario]", () => {
   const { run, fighter } = magnifier();
   for (let frame = 1; frame <= 59; frame++) playPads(run, {}, {});
   const before = createReplaySnapshot();

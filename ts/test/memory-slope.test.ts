@@ -14,7 +14,7 @@ function soak(heapKb: (match: number) => number, effects: (match: number) => num
   return lines.join("\n");
 }
 
-test("the soak's slope test passes a flat heap and handle count and names what grows after each match [spec #168]", () => {
+test("the soak's slope test passes a flat heap and handle count and names what grows after each match [k3 measure #168]", () => {
   const flat = checkMemory(parseMemoryRun(soak((match) => 9000 + (match % 4), (match) => 12 + (match % 3))));
   expect(flat.failures).toEqual([]);
   expect(flat.lines.join("\n")).toContain("live handles after each match");

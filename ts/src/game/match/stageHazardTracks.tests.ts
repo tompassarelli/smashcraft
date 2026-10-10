@@ -76,7 +76,7 @@ function hazardTrack(stage: number, seed: number): Track {
 const hazardStages = STAGE_CATALOG.filter(stage => hazardNames(stage.id).length > 0);
 
 for (const stage of hazardStages) {
-  test(`${stage.name}'s hazards follow the match clock: two match seeds give identical hazard tracks every frame [spec #274] [invariant]`, () => {
+  test(`${stage.name}'s hazards follow the match clock: two match seeds give identical hazard tracks every frame [k1 scenario]`, () => {
     const first = hazardTrack(stage.id, SEEDS[0]);
     const second = hazardTrack(stage.id, SEEDS[1]);
     for (const name of hazardNames(stage.id)) {

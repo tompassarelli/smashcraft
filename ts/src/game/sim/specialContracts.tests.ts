@@ -6,7 +6,7 @@ import { controls } from "./testWorld";
 import { executeNext, testMatch } from "../match/testMatch";
 import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
-test("Rifleman casts in his Spell pose for 24 frames before the bear appears (#111) [spec #111]", () => {
+test("Rifleman casts in his Spell pose for 24 frames before the bear appears (#111) [k3 measure #111]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   owner.motion.surface = 0;

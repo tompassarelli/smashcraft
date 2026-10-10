@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { decodeBLP, getBLPImageData } from "war3-model";
 import { PORTRAIT_QUALITY, encodeBlp } from "../scripts/blp";
 
-test("a portrait BLP decodes in war3-model to its source within JPEG error, alpha included [reference]", () => {
+test("a portrait BLP decodes in war3-model to its source within JPEG error, alpha included [k4 reference war3-model]", () => {
   const width = 24, height = 16, data = new Uint8Array(width * height * 4);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) data.set([x * 10, y * 15, 200 - x * 5, x < 6 ? 0 : 255], (y * width + x) * 4);

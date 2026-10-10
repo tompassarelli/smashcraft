@@ -27,13 +27,13 @@ function hopRise(press: Pad, heldFrames: number): number {
   return apex - ground;
 }
 
-test("the short-hop key held for 30 frames rises exactly as high as a tapped jump, below a held full hop [spec docs/gameplay-design.md]", () => {
+test("the short-hop key held for 30 frames rises exactly as high as a tapped jump, below a held full hop [k3 measure docs/gameplay-design.md]", () => {
   const tapped = hopRise({ jump: true }, 1);
   assertEquals(hopRise({ shortHop: true }, 30), tapped);
   assertGreaterThan(hopRise({ jump: true }, 30), tapped);
 });
 
-test("shield pressed on any jump-squat frame air dodges on the first airborne frame, from the jump and short-hop keys [spec docs/physics.md]", () => {
+test("shield pressed on any jump-squat frame air dodges on the first airborne frame, from the jump and short-hop keys [k3 measure docs/physics.md]", () => {
   for (const jump of [{ jump: true }, { shortHop: true }] as const) {
     for (let offset = 0; ; offset++) {
       const { run, fighter } = padRun();
@@ -56,7 +56,7 @@ test("shield pressed on any jump-squat frame air dodges on the first airborne fr
   }
 });
 
-test("holding the tilt button with a direction walks and attack tilts, where the same stick alone dashes [spec docs/gameplay-design.md]", () => {
+test("holding the tilt button with a direction walks and attack tilts, where the same stick alone dashes [k3 measure docs/gameplay-design.md]", () => {
   const dash = padRun();
   playPads(dash.run, { x: 1.0 }, {});
   assertEquals(dash.fighter.ground.action, GroundAction.dash);
@@ -72,7 +72,7 @@ test("holding the tilt button with a direction walks and attack tilts, where the
   assertEquals(fighter.attack.style, AttackStyle.forwardTilt);
 });
 
-test("Meter + Special and Shield + Special each spend one EX segment, Special alone spends none [spec #382]", () => {
+test("Meter + Special and Shield + Special each spend one EX segment, Special alone spends none [k3 measure #382]", () => {
   for (const [hold, spent] of [[{ meter: true }, true], [{ trigger: true }, true], [{}, false]] as const) {
     const { run, fighter } = padRun();
     fighter.mana.points = ROSTER_MANA.max;
@@ -82,7 +82,7 @@ test("Meter + Special and Shield + Special each spend one EX segment, Special al
   }
 });
 
-test("tom layout: grounded right stick tilts where the default right stick smashes [spec docs/gameplay-design.md]", () => {
+test("tom layout: grounded right stick tilts where the default right stick smashes [k3 measure docs/gameplay-design.md]", () => {
   for (const [rightStickTilts, cx, cy, expected] of [
     [true, 1.0, 0.0, AttackStyle.forwardTilt], [true, 0.0, 1.0, AttackStyle.upTilt], [true, 0.0, -1.0, AttackStyle.downTilt],
     [false, 1.0, 0.0, AttackStyle.forwardSmash],
@@ -96,7 +96,7 @@ test("tom layout: grounded right stick tilts where the default right stick smash
   }
 });
 
-test("tom layout: airborne right stick throws the matching aerial [spec docs/gameplay-design.md]", () => {
+test("tom layout: airborne right stick throws the matching aerial [k3 measure docs/gameplay-design.md]", () => {
   for (const [cx, cy, expected] of [
     [1.0, 0.0, AttackStyle.forwardAir], [-1.0, 0.0, AttackStyle.backAir], [0.0, 1.0, AttackStyle.upAir], [0.0, -1.0, AttackStyle.downAir],
   ] as const) {

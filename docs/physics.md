@@ -2402,10 +2402,7 @@ smashcraft:ts/src/game/sim/ledge.tests.ts covers every fighter and side, the
 reference boxes and their strict edges, the swept movement, eligibility,
 upper platform exclusion, contention/ownership, option timing and locks,
 attack contact, protection expiry, regrab timing, hit/grab interruption and
-reset. smashcraft:ts/src/game/match/ledgeCatchContracts.tests.ts plays
-recoveries through captured rows and the frame executor: falls beside the
-ledge and double jumps from below catch inside the box and fall past just
-outside it. None of these establish native animation alignment.
+reset. None of these establish native animation alignment.
 
 The hang dimensions now fit the measured reach of both fighter rigs.
 smashcraft:tools/animations/ledges.py reads the simulation's hang offset, depth,

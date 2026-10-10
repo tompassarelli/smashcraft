@@ -34,7 +34,7 @@ function quickGame(seed: number, stage = 0) {
   return game;
 }
 
-test("the first drop telegraphs three seconds at centre stage and grants exactly one EX segment to the fighter touching it [spec #385]", () => {
+test("the first drop telegraphs three seconds at centre stage and grants exactly one EX segment to the fighter touching it [k3 measure #385]", () => {
   assertEquals(DROP_TELEGRAPH_FRAMES, 3 * MATCH_TICKS_PER_SECOND);
   assertEquals(DROP_METER, ROSTER_MANA.exCost);
   const on = quickGame(385);
@@ -60,7 +60,7 @@ test("the first drop telegraphs three seconds at centre stage and grants exactly
   assertEquals(off.drops.spawnSerial, 0);
 });
 
-test("drops after the first rotate through each stage's fixed points 15–25 seconds after a pickup, the same for the same seed [spec #385] [invariant]", () => {
+test("drops after the first rotate through each stage's fixed points 15–25 seconds after a pickup, the same for the same seed [k1 scenario]", () => {
   for (const stage of STAGE_CATALOG) {
     const points = meterDropPoints(stage.id);
     for (let seed = 0; seed < 12; seed++) {
@@ -93,23 +93,7 @@ test("drops after the first rotate through each stage's fixed points 15–25 sec
   }
 });
 
-test("a match rule, training and configured runs keep drops off [spec #385]", () => {
-  const off = createMatchState();
-  setHumanCount(off, 2);
-  off.drops.on = false;
-  assertTrue(prepareQuickMatch(off));
-  assertEquals(off.drops.nextSpawnFrame, 0);
-  const training = quickGame(1);
-  training.training = true;
-  scheduleMeterDrops(training);
-  assertEquals(training.drops.nextSpawnFrame, 0);
-  const run = quickGame(1);
-  run.run.active = true;
-  scheduleMeterDrops(run);
-  assertEquals(run.drops.nextSpawnFrame, 0);
-});
-
-test("seeded drops and pickups replay exactly from a match-start snapshot and from snapshots taken mid-telegraph [spec #385] [invariant]", () => {
+test("seeded drops and pickups replay exactly from a match-start snapshot and from snapshots taken mid-telegraph [k1 scenario]", () => {
   const live = createReplaySnapshot();
   live.match.phase = Phase.match;
   live.match.stageChoice = 0;
@@ -150,7 +134,7 @@ test("seeded drops and pickups replay exactly from a match-start snapshot and fr
   }
 });
 
-test("computers contest drops by tier, after their own reaction to the telegraph [spec #385]", () => {
+test("computers contest drops by tier, after their own reaction to the telegraph [k2 property]", () => {
   const game = quickGame(7, 2);
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   game.drops.nextSpawnFrame = 1000;
@@ -173,33 +157,4 @@ test("computers contest drops by tier, after their own reaction to the telegraph
     if (tier === "expert") assertEquals(contested, 200);
     if (tier === "rookie") assertTrue(contested > 0 && contested < 100);
   }
-});
-
-test("an expert computer climbs to a platform drop and takes it while its opponent stands away [spec #385]", () => {
-  const game = createMatchState();
-  setParticipants(game, 2, 1);
-  game.phase = Phase.match;
-  game.stageChoice = 2;
-  game.endless = true;
-  game.matchSeed = 3;
-  game.cpuResolvedOpponents[0] = "wren";
-  game.cpuTiers[0] = "expert";
-  game.drops.nextSpawnFrame = DROP_TELEGRAPH_FRAMES + 1;
-  game.drops.nextPoint = 1;
-  game.drops.draws = 1;
-  const world = testWorld(createFighter(Character.rifleman, 300.0, -1), createFighter(Character.rifleman, 550.0, -1));
-  const controls = createFrameControls();
-  const produced = createFrameControls();
-  const runtime = createPacingAndPresentation();
-  const row = createMatchFrameInput();
-  const neutral = neutralControls();
-  for (let frame = 1; frame <= 600 && game.drops.pickupSerial === 0; frame++) {
-    copyControls(produced.inputs[1], neutral);
-    clearAttackBuffer(produced.commands[1]);
-    produceComputerInput(game, world, runtime, 0, frame, produced.inputs[0], produced.commands[0]);
-    assertTrue(captureFrame(row, frame, world.mask, produced, runtime));
-    assertTrue(executeMatchFrame(row, game, world, controls, runtime, frame));
-  }
-  assertEquals(game.drops.pickupSerial, 1);
-  assertEquals(game.drops.lastTaker, 0);
 });

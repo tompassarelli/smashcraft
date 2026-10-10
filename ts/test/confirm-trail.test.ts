@@ -13,7 +13,7 @@ import { confirmedFrame, expectSynchronized, startPlayableMatch, value } from ".
 const headless = installHeadless(PREDICTED_HEADLESS);
 afterAll(headless.restore);
 
-test("every client confirms the same frame in the same callback, never past the rows known a callback earlier [invariant]", () => {
+test("every client confirms the same frame in the same callback, never past the rows known a callback earlier [k1 scenario]", () => {
   const helpers = new JournalHelpers(INTEGRITY_BUILD.id, true);
   helpers.workload = { denseCycles: 2, walkers: [] };
   const { frames, clients, clientA: a, clientB: b } = startPlayableMatch(headless, helpers, false);

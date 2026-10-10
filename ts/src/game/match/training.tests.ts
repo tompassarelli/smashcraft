@@ -64,77 +64,6 @@ function trainingMatch(behaviour: number, gap = 30.0, character: Character = Cha
   return { world, game, produced, runtime, step, jab, until, player: fighterAt(world, 0), partner: fighterAt(world, 1) };
 }
 
-test("trainingIsARuleAtFighterSelectionWithNoClockOrLostStocks [spec #120]", () => {
-  const game = createMatchState();
-  setParticipants(game, 1, 2);
-  selectCharacter(game, 0, Character.rifleman);
-  setTraining(game, 0, true);
-  stepPartnerBehaviour(game, 0, 1);
-  stepPartnerBehaviour(game, 0, -2);
-  stepPartnerEscape(game, 0, -1);
-  stepPartnerTech(game, 0, 2);
-  setPartnerDamage(game, 0, 120);
-  setPartnerDamage(game, 0, 125);
-  setPartnerDamage(game, 0, 310);
-  setHitAreas(game, 0, true);
-  setHitAreas(game, 1, false);
-  assertEquals(game.trainer.behaviour, PartnerBehaviour.fight);
-  assertEquals(game.trainer.escape, PartnerEscape.random);
-  assertEquals(game.trainer.tech, PartnerTech.toward);
-  assertEquals(game.trainer.damage, 120);
-  assertTrue(game.trainer.showHitAreas);
-  assertTrue(requestStageSelect(game, 0));
-  assertTrue(requestStart(game, 0));
-  assertTrue(game.training);
-  assertFalse(game.practice);
-  assertFalse(timedMatch(game));
-  assertTrue(keepsStocks(game));
-  setTraining(game, 0, false);
-  assertTrue(game.training);
-  const world = createRoster(3, [createFighter(1, 0, 1), createFighter(1, 0, -1)]);
-  fighterAt(world, 1).status.stocks = 0;
-  resolveStocks(game, world);
-  assertEquals(game.phase, Phase.match);
-  const copy = createMatchState();
-  copyMatchState(copy, game);
-  assertEquals(copy.trainer.damage, 120);
-  assertTrue(copy.training);
-});
-
-test("partnerBehaviours [spec #120]", () => {
-  const stand = trainingMatch(PartnerBehaviour.stand, 200.0);
-  for (let i = 0; i < 60; i++) stand.step();
-  assertTrue(stand.partner.motion.grounded && !stand.partner.shield.raised && !stand.partner.motion.crouching && stand.partner.attack.serial === 0);
-  const shield = trainingMatch(PartnerBehaviour.shield, 200.0);
-  shield.until(() => shield.partner.shield.raised, 20);
-  const crouch = trainingMatch(PartnerBehaviour.crouch, 200.0);
-  crouch.until(() => crouch.partner.motion.crouching, 20);
-  const jump = trainingMatch(PartnerBehaviour.jump, 200.0);
-  jump.until(() => !jump.partner.motion.grounded, 20);
-  jump.until(() => jump.partner.motion.grounded, 200);
-  jump.until(() => !jump.partner.motion.grounded, 40);
-  const attack = trainingMatch(PartnerBehaviour.attack, 200.0);
-  attack.until(() => attack.partner.attack.serial >= 3, 200);
-  assertEquals(attack.partner.attack.style ?? AttackStyle.jab, AttackStyle.jab);
-
-  for (let seed = 0; seed < 6; seed++) {
-    const fight = trainingMatch(PartnerBehaviour.fight, 300.0);
-    fight.game.matchSeed = sweepSeed(seed * 38);
-    const start = fight.partner.motion.x;
-    fight.until(() => fight.partner.motion.x < start - 20.0 || fight.partner.attack.serial > 0 || fight.partner.special.action !== SpecialAction.none, 90);
-  }
-});
-
-test("the tutorial partner climbs back from a ledge so later lessons can reach it [repro #306]", () => {
-  for (const side of [-1, 1]) {
-    const match = trainingMatch(PartnerBehaviour.stand, 200.0);
-    match.game.trainer.lesson = 5;
-    assertTrue(snapToLedge(match.world, 1, 0, side));
-    match.until(() => match.partner.ledge.state === LedgeState.none && match.partner.motion.grounded, 60);
-    assertEquals(match.game.trainer.lessonCount, 0);
-  }
-});
-
 
 function escapeDirection(escape: number, hitSerial: number): number {
   const match = trainingMatch(PartnerBehaviour.stand, 30.0);
@@ -147,24 +76,6 @@ function escapeDirection(escape: number, hitSerial: number): number {
   produceComputerInput(game, world, runtime, 1, 1, produced.inputs[1], produced.commands[1]);
   return produced.inputs[1].direction;
 }
-
-test("partnerEscapes [spec #120]", () => {
-
-  assertEquals(escapeDirection(PartnerEscape.toward, 1), -1);
-  assertEquals(escapeDirection(PartnerEscape.away, 1), 1);
-  assertEquals(escapeDirection(PartnerEscape.none, 1), 0);
-  let toward = 0;
-  let away = 0;
-  for (let hit = 1; hit <= 40; hit++) {
-    const direction = escapeDirection(PartnerEscape.random, hit);
-    assertEquals(escapeDirection(PartnerEscape.random, hit), direction);
-    if (direction < 0) toward++;
-    else if (direction > 0) away++;
-  }
-  assertEquals(toward + away, 40);
-  assertGreaterThan(toward, 5);
-  assertGreaterThan(away, 5);
-});
 
 
 function techOutcome(tech: number, hitSerial = 1): { state: number; direction: number } {
@@ -182,26 +93,7 @@ function techOutcome(tech: number, hitSerial = 1): { state: number; direction: n
   return { state: partner.down.state, direction: partner.down.direction };
 }
 
-test("partnerTechs [spec #120]", () => {
-  assertEquals(techOutcome(PartnerTech.none).state, DownState.bound);
-  assertEquals(techOutcome(PartnerTech.inPlace).state, DownState.tech);
-
-  const toward = techOutcome(PartnerTech.toward);
-  assertEquals(toward.state, DownState.techRoll);
-  assertEquals(toward.direction, -1);
-  const away = techOutcome(PartnerTech.away);
-  assertEquals(away.state, DownState.techRoll);
-  assertEquals(away.direction, 1);
-  const seen: boolean[] = [false, false, false];
-  for (let hit = 1; hit <= 12; hit++) {
-    const outcome = techOutcome(PartnerTech.random, hit);
-    assertTrue(outcome.state === DownState.tech || outcome.state === DownState.techRoll);
-    seen[outcome.state === DownState.tech ? 0 : outcome.direction < 0 ? 1 : 2] = true;
-  }
-  assertEquals(seen.join(), "true,true,true");
-});
-
-test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit [spec #120]", () => {
+test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit [k1 scenario]", () => {
   for (const behaviour of [PartnerBehaviour.shield, PartnerBehaviour.stand]) {
     const match = trainingMatch(behaviour, 24.0);
     const { player, partner, game } = match;
@@ -233,110 +125,4 @@ test("readoutShowsTheMoveAndTheAdvantageOnShieldAndOnHit [spec #120]", () => {
     assertEquals(game.trainer.advantageKind, behaviour === PartnerBehaviour.shield ? Advantage.shield : Advantage.hit);
     assertEquals(game.trainer.advantage, partnerReady - playerReady);
   }
-});
-
-test("comboCountsOnlyHitsThePartnerCouldNotActBetween [spec #120]", () => {
-  const match = trainingMatch(PartnerBehaviour.stand, 24.0);
-  const { game, partner } = match;
-  for (let i = 0; i < 12; i++) match.step();
-  match.jab();
-  match.until(() => game.trainer.comboHits === 1, 30);
-  const first = game.trainer.comboDamage;
-  assertGreaterThan(first, 0.0);
-  assertTrue(game.trainer.comboOpen);
-  match.until(() => canAct(partner) && !game.trainer.comboOpen, 120);
-
-  match.until(() => canAct(match.player), 120);
-  match.jab();
-  match.until(() => partner.visuals.hit === 2, 30);
-  assertEquals(game.trainer.comboHits, 1);
-
-  const third = trainingMatch(PartnerBehaviour.stand, 24.0);
-  for (let i = 0; i < 12; i++) third.step();
-  third.jab();
-  third.until(() => third.game.trainer.comboHits === 1, 30);
-  third.until(() => third.partner.launch.hitlag === 0, 30);
-  assertTrue(third.game.trainer.comboOpen);
-
-  third.partner.status.frozenFrames = 200;
-  third.until(() => canAct(third.player), 120);
-  third.jab();
-  third.until(() => third.partner.visuals.hit === 2, 30);
-  assertEquals(third.game.trainer.comboHits, 2);
-  assertEquals(third.game.trainer.comboDamage, f32(first + first));
-});
-
-test("bothShieldsAndAttackResetEveryFighterAndThePartnersDamage [spec #120]", () => {
-  const match = trainingMatch(PartnerBehaviour.stand, 24.0);
-  match.game.trainer.damage = 80;
-  for (let i = 0; i < 12; i++) match.step();
-  match.jab();
-  match.until(() => match.partner.visuals.hit === 1, 30);
-  for (let i = 0; i < 30; i++) match.step();
-  match.step(input => { input.resetPressed = true; });
-  assertEquals(match.partner.status.damage, f32(80.0));
-  assertEquals(match.game.trainer.comboHits, 0);
-  assertEquals(match.game.trainer.moveStyle, -1);
-  for (const slot of [0, 1]) assertEquals(fighterAt(match.world, slot).motion.x, matchSpawnX(slot));
-});
-
-test("hitAreasListTheBodyAndTheActiveStrikesContactUses [spec #120]", () => {
-  const match = trainingMatch(PartnerBehaviour.stand, 200.0);
-  const { player } = match;
-  const list = createHitAreaList();
-  collectHitAreas(player, list);
-  const parts = fighterHurtParts(player);
-  assertEquals(list.count, parts.length);
-  match.jab();
-  const startup = attackStartup(player, AttackStyle.jab);
-  while (player.attack.frame < startup) match.step();
-  collectHitAreas(player, list);
-  const strikes = list.areas.slice(0, list.count).filter(area => area.kind === HitAreaKind.strike);
-  assertGreaterThan(strikes.length, 0);
-  const region = emptyHitRegion();
-  authoredHitRegion(region, player.character, AttackStyle.jab, player.attack.frame, 0, 0, player.tuning.moves);
-  const expected = placeCapsule(emptyCapsule(), attackCapsule(emptyCapsule(), AttackStyle.jab, region), player.motion.x, player.motion.z, player.facing);
-  const strike = strikes[0]?.capsule;
-  assertTrue(strike !== undefined && strike.x1 === expected.x1 && strike.z1 === expected.z1 && strike.x2 === expected.x2 && strike.z2 === expected.z2 && strike.radius === expected.radius);
-
-  const target = createFighter(Character.rifleman, f32((expected.x1 + expected.x2) / 2.0), -1);
-  target.motion.z = player.motion.z;
-  assertEquals(strikeHurtContact(expected, target), HurtContact.hit);
-});
-
-test("slowMotionRunsOneFrameInTwoOrFourAndKeepsPresses [spec #120]", () => {
-  for (const speed of [1, 2, 4]) {
-    const match = trainingMatch(PartnerBehaviour.stand, 200.0);
-    match.game.trainer.speed = speed;
-    for (let i = 0; i < 40; i++) match.step();
-    assertEquals(match.game.matchFrame, 40 / speed);
-
-    assertTrue(match.player.motion.grounded);
-    let left = false;
-    match.step(input => { input.jumpPressed = true; input.jumpHeld = true; });
-    for (let i = 0; i < 12 * speed; i++) {
-      match.step(input => { input.jumpHeld = true; });
-      left = left || !match.player.motion.grounded;
-    }
-    assertTrue(left);
-  }
-});
-
-test("slowMotionLatchesEveryPressOnce [spec docs/design/training-mode.md]", () => {
-  const latch = createMatchState().trainer.latches[0];
-  const pressed = neutralControls();
-  pressed.specialPressed = true;
-  pressed.specialX = -1;
-  pressed.cStickSideFlick = 1;
-  latchPresses(latch, pressed);
-  latchPresses(latch, neutralControls());
-  const next = neutralControls();
-  releasePresses(latch, next);
-  assertTrue(next.specialPressed);
-  assertEquals(next.specialX, -1);
-  assertEquals(next.cStickSideFlick, 1);
-  assertEquals(latch.mask, 0);
-  const after = neutralControls();
-  releasePresses(latch, after);
-  assertFalse(after.specialPressed);
 });

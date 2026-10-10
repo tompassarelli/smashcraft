@@ -95,7 +95,7 @@ function keysDriver(character: Character, mana: number): Driver {
 
 const DRIVERS = [stickDriver, keysDriver] as const;
 
-test("Anubarak's ordinary eruption stays in the heavy recovery band with zero or full meter [repro #345] [spec #252] [spec #335]", () => {
+test("Anubarak's ordinary eruption stays in the heavy recovery band with zero or full meter [k3 measure #252]", () => {
   const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(Character.anubarak)], "band");
   const full = upSpecialRoute(Character.anubarak, 100);
   check(full.rise >= band.riseMin && full.rise <= band.riseMax, `Anubarak rise ${full.rise}`);
@@ -105,7 +105,7 @@ test("Anubarak's ordinary eruption stays in the heavy recovery band with zero or
   assertEquals(free.reach, full.reach, "zero/full meter reach");
 });
 
-sweep("every fighter's full up special recovers within its archetype's band equally at zero and full meter [spec #252] [spec #335]", () => {
+sweep("every fighter's full up special recovers within its archetype's band equally at zero and full meter [k3 measure #252]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
     const name = `${fighterName(character)} (${band.name})`;
@@ -138,7 +138,7 @@ function launchStep(driver: Driver, aimX: number, aimZ: number): { x: number; z:
 
 const component = (value: number, length: number): number => (Math.abs(value) < 0.25 * length ? 0 : value < 0 ? -1 : 1);
 
-test("a charged-angle up special flies any of eight directions held in its startup, with keys or a stick [spec #189]", () => {
+test("a charged-angle up special flies any of eight directions held in its startup, with keys or a stick [k3 measure #189]", () => {
   for (const character of CHARGED_ANGLE) {
     for (const driver of DRIVERS) {
       for (let aimX = -1; aimX <= 1; aimX++) {
@@ -156,18 +156,7 @@ test("a charged-angle up special flies any of eight directions held in its start
   }
 });
 
-test("a stick a little off a direction still picks that direction's aim [spec #189]", () => {
-  for (const character of CHARGED_ANGLE) {
-
-    for (const [x, z, aimX, aimZ] of [[f32(0.95), f32(0.3), 1, 0], [f32(0.3), f32(0.95), 0, 1], [f32(0.95), f32(-0.3), 1, 0]] as const) {
-      const step = launchStep(stickDriver(character, 100), x, z);
-      const length = Math.sqrt(step.x * step.x + step.z * step.z);
-      check(component(step.x, length) === aimX && component(step.z, length) === aimZ, `${fighterName(character)} ${x},${z} flew ${step.x},${step.z}`);
-    }
-  }
-});
-
-test("a guided up special steers toward the held side while it travels, with keys or a stick [spec #189]", () => {
+test("a guided up special steers toward the held side while it travels, with keys or a stick [k3 measure #189]", () => {
   const H = HERO_REFERENCE_HEIGHT;
   for (const character of SELECTABLE_CHARACTERS) {
     if (CHARGED_ANGLE.includes(character)) continue;

@@ -8,7 +8,7 @@ import { advanceFighter } from "./step";
 import { controls, testWorld } from "./testWorld";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
-test("a light shield contact uses its strength and freezes it through stun [reference]", () => {
+test("a light shield contact uses its strength and freezes it through stun [k4 reference melee]", () => {
   const owner = createFighter(Character.rifleman, -100.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(owner, target);

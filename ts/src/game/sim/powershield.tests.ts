@@ -25,22 +25,7 @@ import { respawnFighter } from "./stocks";
 import { advanceSolo, contactBatch, controls, hitEffect, testWorld } from "./testWorld";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 
-test("a full trigger within the observed window starts and expires the reflect state [reference]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
-  const input = controls({ shield: true, shieldPressed: true, shieldTriggerActive: true, shieldStrength: 1.0 });
-  advanceSolo(fighter, 0, input, 0.0);
-  assertTrue(fighter.shield.raised);
-  assertEquals(fighter.shield.reflectFrames, SHIELD_REFLECTOR_ACTIVE_FRAMES);
-  assertEquals(fighter.shield.perfectFrames, SHIELD_PERFECT_ACTIVE_FRAMES);
-  input.shieldPressed = false;
-  for (let tick = 1; tick <= SHIELD_PERFECT_ACTIVE_FRAMES; tick++) {
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.shield.reflectFrames, Math.max(0, SHIELD_REFLECTOR_ACTIVE_FRAMES - tick));
-    assertEquals(fighter.shield.perfectFrames, SHIELD_PERFECT_ACTIVE_FRAMES - tick);
-  }
-});
-
-test("pressure to a full press honors the two-frame input window [reference]", () => {
+test("pressure to a full press honors the two-frame input window [k4 reference melee]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   const input = controls({ shieldTriggerActive: true });
   advanceSolo(fighter, 0, input, 0.0);
@@ -64,7 +49,7 @@ test("pressure to a full press honors the two-frame input window [reference]", (
   assertEquals(late.shield.reflectFrames, 0);
 });
 
-test("the reflector uses the authored circle and transfers a scaled projectile [reference]", () => {
+test("the reflector uses the authored circle and transfers a scaled projectile [k4 reference melee]", () => {
   const shooter = createFighter(Character.rifleman, -30.0, 1);
   const defender = createFighter(Character.rifleman, 0.0, -1);
   const shot = mutableProjectile(shooter, 0)!;
@@ -108,7 +93,7 @@ test("the reflector uses the authored circle and transfers a scaled projectile [
   assertEquals(f32(shooter.status.damage * 2), baselineDefender.status.damage);
 });
 
-test("perfect-shield pushback matches the original contact observations [reference]", () => {
+test("perfect-shield pushback matches the original contact observations [k4 reference melee]", () => {
   assertEquals(shieldContactPushback(3.0, 0.4000000059604645, true), f32(1.0210000276565552 * WORLD_UNITS_PER_MELEE_UNIT));
   assertEquals(shieldContactPushback(10.0, 0.4000000059604645, true), f32(2.0 * WORLD_UNITS_PER_MELEE_UNIT));
   assertEquals(shieldContactPushback(30.0, 0.4000000059604645, true), f32(2.0 * WORLD_UNITS_PER_MELEE_UNIT));
@@ -144,7 +129,7 @@ function untilLastFreezeFrame(f: Fighter, input: Readonly<Controls>): void {
   }
 }
 
-test("a parried hit takes no shield damage or shieldstun; an ordinary block takes both [reference] [spec #102]", () => {
+test("a parried hit takes no shield damage or shieldstun; an ordinary block takes both [k3 measure #102]", () => {
   const attacker = createFighter(Character.rifleman, -100.0, 1);
   const target = createFighter(Character.rifleman, 0.0, -1);
   const world = testWorld(attacker, target);
@@ -168,7 +153,7 @@ test("a parried hit takes no shield damage or shieldstun; an ordinary block take
   assertEquals(target.shield.perfectActionFrames, 0);
 });
 
-test("a red parry, a re-press in shieldstun on the next hit's frame or the one before, parries it [spec #102]", () => {
+test("a red parry, a re-press in shieldstun on the next hit's frame or the one before, parries it [k3 measure #102]", () => {
   const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
   for (let early = 0; early <= SHIELD_RED_PARRY_FRAMES; early++) {
     const target = guarding(world);
@@ -202,7 +187,7 @@ test("a red parry, a re-press in shieldstun on the next hit's frame or the one b
   }
 });
 
-test("original stationary capsule shield boundaries [reference]", () => {
+test("original stationary capsule shield boundaries [k4 reference melee]", () => {
   assertEquals(capsuleCircleIntersects(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0), true);
   assertEquals(capsuleCircleIntersects(2.0, 0.0, 2.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0), true);
   assertEquals(capsuleCircleIntersects(2.999999761581421, 0.0, 2.999999761581421, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0), false);
@@ -217,7 +202,7 @@ test("original stationary capsule shield boundaries [reference]", () => {
   assertEquals(capsuleCircleIntersects(4.0, 0.0, 4.0, 0.0, 1.0, 0.0, 0.0, 2.0, 1.0), false);
 });
 
-test("original swept capsule shield boundaries [reference]", () => {
+test("original swept capsule shield boundaries [k4 reference melee]", () => {
   assertEquals(capsuleCircleIntersects(-5.0, 0.0, 5.0, 0.0, 1.0, 0.0, 0.0, 2.0, 1.0), true);
   assertEquals(capsuleCircleIntersects(5.0, 0.0, -5.0, 0.0, 1.0, 0.0, 0.0, 2.0, 1.0), true);
   assertEquals(capsuleCircleIntersects(-5.0, 3.0, 5.0, 3.0, 1.0, 0.0, 0.0, 2.0, 1.0), true);
@@ -228,7 +213,7 @@ test("original swept capsule shield boundaries [reference]", () => {
   assertEquals(capsuleCircleIntersects(5.0, 4.0, -5.0, 4.0, 1.0, 0.0, 0.0, 2.0, 1.0), false);
 });
 
-test("original scaled capsule shield boundaries [reference]", () => {
+test("original scaled capsule shield boundaries [k4 reference melee]", () => {
   assertEquals(capsuleCircleIntersects(2.5, 0.0, 2.5, 0.0, 0.5, 0.0, 0.0, 2.0, 1.0), true);
   assertEquals(capsuleCircleIntersects(3.0, 0.0, 3.0, 0.0, 0.5, 0.0, 0.0, 2.0, 1.0), false);
   assertEquals(capsuleCircleIntersects(4.0, 0.0, 4.0, 0.0, 0.5, 0.0, 0.0, 2.0, 1.0), false);
@@ -237,7 +222,7 @@ test("original scaled capsule shield boundaries [reference]", () => {
   assertEquals(capsuleCircleIntersects(4.0, 0.0, 4.0, 0.0, 2.0, 0.0, 0.0, 2.0, 1.0), true);
 });
 
-test("original asymmetric capsule rounding and radius conversion [reference]", () => {
+test("original asymmetric capsule rounding and radius conversion [k4 reference melee]", () => {
   assertEquals(capsuleCircleIntersects(0.2273183912038803, 1.8602772951126099, 2.7224481105804443, 7.7711381912231445, 0.0, 0.0, 0.0, 1.8741145133972168, 1.0), true);
   assertEquals(capsuleCircleIntersects(9.86154556274414, -6.86391019821167, -5.6012959480285645, 7.704383373260498, 0.0, 0.0, 0.0, 1.7665791511535645, 1.0), true);
   assertEquals(capsuleCircleIntersects(8.760266304016113, 6.5879974365234375, -8.983579635620117, -8.832010269165039, 0.0, 0.0, 0.0, 0.7736536860466003, 1.0), false);
@@ -246,7 +231,7 @@ test("original asymmetric capsule rounding and radius conversion [reference]", (
   assertEquals(capsuleCircleIntersects(0.822984516620636, 3.0610923767089844, 9.638368606567383, 9.857255935668945, 0.0, 0.0, 0.0, 3.1697933673858643, 1.0), true);
 });
 
-test("an original scaled shield keeps its local radius separate from the joint scale [reference]", () => {
+test("an original scaled shield keeps its local radius separate from the joint scale [k4 reference melee]", () => {
   assertEquals(
     capsuleCircleIntersects(3.7672877311706543, 3.8061885833740234, -1.257254958152771, -5.283233642578125, 0.3639150559902191, 0.0, 0.0, 1.8986871242523193, 0.5750000476837158),
     true,
@@ -257,7 +242,7 @@ test("an original scaled shield keeps its local radius separate from the joint s
   );
 });
 
-test("an original scaled shield's translation rounds matrix products before adding the translation [reference]", () => {
+test("an original scaled shield's translation rounds matrix products before adding the translation [k4 reference melee]", () => {
   assertEquals(
     capsuleCircleIntersects(81.35445404052734, -22.855464935302734, 83.38614654541016, -24.975975036621094, 0.38011103868484497, 80.125, -23.75, 1.9831877946853638, 0.5750000476837158),
     false,

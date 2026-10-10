@@ -27,7 +27,7 @@ function onLine(fighter: Fighter): void {
   assertEquals(fighter.motion.z, surfaceZAt(STAGE, 0, 0, fighter.motion.x));
 }
 
-test("walking down and back up a slope keeps the fighter on the line, moving ground speed along it [spec #193]", () => {
+test("walking down and back up a slope keeps the fighter on the line, moving ground speed along it [k1 scenario]", () => {
   for (const side of [-1, 1]) {
     const fighter = standing(Character.sylvanas, f32(side * 380.0), side);
     const input = controls({ direction: side, walking: true });
@@ -53,7 +53,7 @@ test("walking down and back up a slope keeps the fighter on the line, moving gro
   }
 });
 
-test("a fighter falling onto a slope lands on the line under it [spec #193]", () => {
+test("a fighter falling onto a slope lands on the line under it [k1 scenario]", () => {
   for (const x of [-560.0, -510.0, -450.0, 0.0, 450.0, 510.0, 560.0]) {
     const fighter = createReferenceFighter(Character.sylvanas, x, 1);
     fighter.motion.grounded = false;

@@ -27,7 +27,7 @@ function special(character: Character, side: boolean, mana: number, ex: boolean)
   return { f, world, started };
 }
 
-test("every fighter's neutral and side EX spend one 33-point segment, arm one light hit, and keep ordinary duration but Eye Blast [spec #335] [spec #379]", () => {
+test("every fighter's neutral and side EX spend one 33-point segment, arm one light hit, and keep ordinary duration but Eye Blast [k3 measure #335]", () => {
   for (const character of roster) for (const side of [false, true]) {
     const normal = special(character, side, 100, false);
     const ex = special(character, side, 100, true);
@@ -48,7 +48,7 @@ test("every fighter's neutral and side EX spend one 33-point segment, arm one li
   }
 });
 
-test("every fighter's unaffordable EX falls back to a free ordinary special [spec #335]", () => {
+test("every fighter's unaffordable EX falls back to a free ordinary special [k3 measure #335]", () => {
   for (const character of roster) for (const side of [false, true]) {
     const price = 32;
     const attempt = special(character, side, price, true);
@@ -59,7 +59,7 @@ test("every fighter's unaffordable EX falls back to a free ordinary special [spe
   }
 });
 
-test("EX takes one light hit's damage and freeze without interruption; a second, heavy, late hit or throw interrupts [spec #335]", () => {
+test("EX takes one light hit's damage and freeze without interruption; a second, heavy, late hit or throw interrupts [k3 measure #335]", () => {
   for (const kind of ["second", "heavy", "late", "throw"] as const) {
     const { f, world } = special(Character.rifleman, false, 100, true);
     const hit = (damage: number, contact: ContactKind = ContactKind.launch) => contactBatch(world, () => collectDamageContact(world, 1, 0, hitEffect(damage, 90.0, 20.0, 1.0, 0.0), 1, contact, true, undefined, false));
@@ -79,7 +79,7 @@ test("EX takes one light hit's damage and freeze without interruption; a second,
   }
 });
 
-test("parrying earns no meter without body damage [spec #335]", () => {
+test("parrying earns no meter without body damage [k3 measure #335]", () => {
   for (const character of roster) {
     const f = createFighter(character, 0.0, 1);
     const target = createFighter(Character.rifleman, 30.0, -1);
@@ -101,7 +101,7 @@ test("parrying earns no meter without body damage [spec #335]", () => {
   }
 });
 
-test("EX state and spent armor restore exactly, reset on a stock while spent meter carries and up/down can use EX [invariant] [spec #335]", () => {
+test("EX state and spent armor restore exactly, reset on a stock while spent meter carries and up/down can use EX [k3 measure #335]", () => {
   for (const character of roster) {
     const { f } = special(character, false, 100, true);
     f.special.exArmorUsed = true;

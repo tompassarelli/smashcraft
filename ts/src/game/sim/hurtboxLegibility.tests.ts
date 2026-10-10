@@ -198,7 +198,7 @@ function violations(fighter: FighterBodies): string[] {
   return found;
 }
 
-test("every fighter's authored bodies follow the legible-hurtbox rules or name a departure [spec docs/gameplay-design.md]", () => {
+test("every fighter's authored bodies follow the legible-hurtbox rules or name a departure [k3 measure docs/gameplay-design.md]", () => {
   const unexpected: string[] = [];
   const seen: { [key: string]: boolean } = {};
   for (const fighter of everyFighter()) {

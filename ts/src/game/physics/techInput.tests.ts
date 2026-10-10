@@ -7,7 +7,7 @@ function pressedOnce(): TechInput {
   return state;
 }
 
-test("tech input ages through hitlag and repeats a press made while frozen [reference]", () => {
+test("tech input ages through hitlag and repeats a press made while frozen [k4 reference melee]", () => {
   const existing: TechInput = { pressAge: 10, previousPressAge: 255, accumulatedPress: false };
   const early = emptyTechInput();
   const last = emptyTechInput();
@@ -26,7 +26,7 @@ test("tech input ages through hitlag and repeats a press made while frozen [refe
   assertEquals(techContactWindow(last), 19);
 });
 
-test("the repeat lockout compares the previous press's age on the frame before [reference]", () => {
+test("the repeat lockout compares the previous press's age on the frame before [k4 reference melee]", () => {
   for (let gap = 40; gap <= 41; gap++) {
     const state = pressedOnce();
     for (let elapsed = 1; elapsed <= gap - 1; elapsed++) advanceTechInput(state, false, false);
@@ -36,7 +36,7 @@ test("the repeat lockout compares the previous press's age on the frame before [
   }
 });
 
-test("the tech window includes age 19 and excludes age 20 [reference]", () => {
+test("the tech window includes age 19 and excludes age 20 [k4 reference melee]", () => {
   const state = pressedOnce();
   for (let age = 0; age <= 20; age++) {
     assertEquals(state.pressAge, age);

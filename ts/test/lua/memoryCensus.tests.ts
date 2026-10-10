@@ -11,7 +11,7 @@ import { neutralControls } from "../../src/game/sim/roster";
 import { HabitChoice } from "../../src/game/match/botHabits";
 import { reach } from "../../scripts/wisp/memoryCensus";
 
-test("copied bot reads add no reachable tables when reads appear after warmup [invariant]", () => {
+test("copied bot reads add no reachable tables when reads appear after warmup [k2 property]", () => {
   const source = createBotStrategy();
   const snapshots = [createBotStrategy(), createBotStrategy(), createBotStrategy(), createBotStrategy()];
   const environment = new LuaTable<AnyNotNil, unknown>();
@@ -38,7 +38,7 @@ test("copied bot reads add no reachable tables when reads appear after warmup [i
   }
 });
 
-test("first hero rendering and nonzero DI use initialized records without adding reachable tables [invariant]", () => {
+test("first hero rendering and nonzero DI use initialized records without adding reachable tables [k1 scenario]", () => {
   const fighter = createFighter(Character.pitLord, 0.0, 1);
   const input = neutralControls();
   input.direction = -1;

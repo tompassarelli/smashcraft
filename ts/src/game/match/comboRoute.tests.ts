@@ -14,7 +14,7 @@ const routes: readonly { readonly route: ComboRoute; readonly damage: number; re
 
 
 
-test("[invariant] searched combo routes match Bun in Lua32 and preserve pad-frame damage and stock loss", () => {
+test(" searched combo routes match Bun in Lua32 and preserve pad-frame damage and stock loss [k4 reference lua32]", () => {
   for (const recorded of routes) {
     const { route } = recorded;
     const match = comboScene(route.setup);

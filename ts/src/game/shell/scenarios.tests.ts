@@ -17,7 +17,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: AttackB
   return controls;
 }
 
-test("an offstage Flame Crash spikes downward through the ordinary match step [spec docs/design/illidan.md]", () => {
+test("an offstage Flame Crash spikes downward through the ordinary match step [k3 measure docs/design/illidan.md]", () => {
   for (const side of [-1, 1] as const) {
     const game = createMatchState();
     game.phase = Phase.match;

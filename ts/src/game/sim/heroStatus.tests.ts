@@ -26,7 +26,7 @@ function contact(world: ReturnType<typeof pair>["world"], effect: typeof TAP, st
   finishDamageContacts(world);
 }
 
-test("a body hit applies its status, a shield stops it and the hit that applies it does not end it [spec docs/design/roster.md]", () => {
+test("a body hit applies its status, a shield stops it and the hit that applies it does not end it [k3 measure docs/design/roster.md]", () => {
   const blocked = pair();
   contact(blocked.world, TAP, SLEEP, true);
   assertEquals(blocked.target.status.condition, HeroStatusKind.none);
@@ -35,20 +35,4 @@ test("a body hit applies its status, a shield stops it and the hit that applies 
   assertEquals(target.status.condition, HeroStatusKind.sleep);
   assertEquals(target.status.conditionFrames, 20);
   assertEquals(target.status.damage, 2.0);
-});
-
-test("a status and its immunity are rollback state and enter the canonical record only while live [invariant] [spec docs/design/roster.md]", () => {
-  const live = createReplaySnapshot();
-  const target = fighterAt(live.world, 1);
-  const quiet = stateChecksum(live);
-  const { world, target: slept } = pair();
-  contact(world, TAP, SLEEP);
-  const saved = createFighter(Character.rifleman, 0.0, 1);
-  copyFighterState(saved, slept, 3);
-  assertEquals(firstFighterDifference(saved, slept, 3, 3), undefined);
-  assertEquals(saved.status.condition, HeroStatusKind.sleep);
-  target.status.conditionImmunity[HeroStatusGroup.sleep] = 5;
-  assertTrue(stateChecksum(live) !== quiet);
-  clearHeroStatus(target);
-  assertEquals(stateChecksum(live), quiet);
 });

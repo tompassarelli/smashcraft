@@ -30,7 +30,7 @@ function timeline(world: Roster, frames: number): void {
   for (let frame = 0; frame < frames; frame++) advanceSpecials(world, 0, frame);
 }
 
-test("command heroes' projectile EX casts and air forms deal 25% more through body contacts [spec #329]", () => {
+test("command heroes' projectile EX casts and air forms deal 25% more through body contacts [k3 measure #329]", () => {
   const cases = [
     [Character.beastmaster, SpecialSlot.neutral, false],
     [Character.beastmaster, SpecialSlot.side, false],
@@ -76,7 +76,7 @@ test("command heroes' projectile EX casts and air forms deal 25% more through bo
   }
 });
 
-test("command heroes' EX recovery motion rises and steers 25% farther with the same timeline [spec #329]", () => {
+test("command heroes' EX recovery motion rises and steers 25% farther with the same timeline [k3 measure #329]", () => {
   for (const character of [Character.beastmaster, Character.lichKing, Character.thrall, Character.jaina]) {
     const travel: number[][] = [];
     for (const ex of [false, true]) {

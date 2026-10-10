@@ -1,7 +1,7 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { SELECTABLE_CHARACTERS, fighterName, fighterPortrait } from "./registry";
 
-test("every selectable fighter shows its own portrait, tile and name [spec docs/design/fighter-portraits.md]", () => {
+test("every selectable fighter shows its own portrait, tile and name [k2 property]", () => {
   const portraits = new Set<string>();
   const tiles = new Set<string>();
   const names = new Set<string>();

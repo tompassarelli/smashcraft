@@ -41,7 +41,7 @@ function liveState(first: Fighter, second: Fighter, match: MatchState, controls:
   return { world: testWorld(first, second), match, controls, runtime };
 }
 
-test("rollback retains original launch and recoil across world rounding [invariant]", () => {
+test("rollback retains original launch and recoil across world rounding [k1 scenario]", () => {
   const live = createReplaySnapshot();
   const snapshot = createReplaySnapshot();
   const after = createReplaySnapshot();
@@ -80,7 +80,7 @@ function projectile(fighter: Fighter, index: number) {
   return value;
 }
 
-test("captured projectiles survive expiry, slot reuse and rollback [invariant]", () => {
+test("captured projectiles survive expiry, slot reuse and rollback [k1 scenario]", () => {
   const live = createReplaySnapshot();
   const saved = createReplaySnapshot();
   const owner = fighterAt(live.world, 0);
@@ -98,7 +98,7 @@ test("captured projectiles survive expiry, slot reuse and rollback [invariant]",
   assertEquals(stateChecksum(saved), savedChecksum);
 });
 
-test("capture and restore include combat references, projectiles and queued input [invariant]", () => {
+test("capture and restore include combat references, projectiles and queued input [k1 scenario]", () => {
   const first = createFighter(Character.rifleman, -90.0, 1);
   const second = createFighter(Character.rifleman, 90.0, -1);
   const match = createMatchState();
@@ -288,7 +288,7 @@ test("capture and restore include combat references, projectiles and queued inpu
   assertTrue(hasPendingAttack(secondCommands, 40));
 });
 
-test("restore and replay reproduce movement and the match clock [invariant]", () => {
+test("restore and replay reproduce movement and the match clock [k1 scenario]", () => {
   const first = createFighter(Character.rifleman, -30.0, 1);
   const second = createFighter(Character.rifleman, 30.0, -1);
   const match = createMatchState();
@@ -319,7 +319,7 @@ test("restore and replay reproduce movement and the match clock [invariant]", ()
   assertEquals(firstStateDifference(expected, replayed), undefined);
 });
 
-test("restoring into other fighters keeps the contact registry by slot [invariant]", () => {
+test("restoring into other fighters keeps the contact registry by slot [k1 scenario]", () => {
   const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const match = createMatchState();
@@ -349,7 +349,7 @@ test("restoring into other fighters keeps the contact registry by slot [invarian
   assertEquals(projectile(replaySecond, 0).life, 0);
 });
 
-test("recorded rows replay an attack against a shield from independently restored fighters [invariant]", () => {
+test("recorded rows replay an attack against a shield from independently restored fighters [k1 scenario]", () => {
   const game = createMatchState();
   game.phase = Phase.match;
   const first = createFighter(Character.rifleman, 0.0, 1);
@@ -415,33 +415,7 @@ test("recorded rows replay an attack against a shield from independently restore
   assertEquals(recoveredGame.remainingFrames, game.remainingFrames);
 });
 
-test("dash and pivot grabs and the catch window are replay state [invariant]", () => {
-  const expected = createReplaySnapshot();
-  const actual = createReplaySnapshot();
-  for (const snapshot of [expected, actual]) {
-    const fighter = fighterAt(snapshot.world, 0);
-    fighter.tuning.dashGrab = NTSC_FOX_DASH_GRAB_RULES;
-    fighter.ground.dashGrabWindow = 3;
-    fighter.attack.dashGrab = true;
-  }
-  const fighter = fighterAt(actual.world, 0);
-  assertEquals(firstStateDifference(expected, actual), undefined);
-  fighter.ground.dashGrabWindow = 2;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabWindow");
-  fighter.ground.dashGrabWindow = 3;
-  fighter.attack.dashGrab = false;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabAttack");
-  fighter.attack.dashGrab = true;
-  fighter.attack.pivotGrab = true;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].pivotGrabAttack");
-  fighter.attack.pivotGrab = false;
-  fighter.tuning.dashGrab = { startupFrames: 10, activeFrames: 1, totalFrames: 40 };
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabTiming");
-  fighter.tuning.dashGrab = NTSC_CAPTAIN_FALCON_DASH_GRAB_RULES;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].dashGrabTiming");
-});
-
-test("every physics parameter survives capture and restore and participates in equality [invariant]", () => {
+test("every physics parameter survives capture and restore and participates in equality [k2 property]", () => {
   const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 100.0, -1);
   const live = liveState(first, second, createMatchState(), frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());

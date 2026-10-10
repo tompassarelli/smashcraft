@@ -6,7 +6,7 @@ import { cpuSkill } from "./cpuSkill";
 import { ceilingSkill } from "./cpuCeilingProfiles";
 import { chooseHitlagInput, applyAerialExecutionNoise } from "./botExecutionNoise";
 
-test("perfect execution keeps correct DI and short hops in 500 opportunities [spec #358]", () => {
+test("perfect execution keeps correct DI and short hops in 500 opportunities [k2 property]", () => {
   const f = createFighter(Character.demonHunter, 0.0, 1);
   const skill = ceilingSkill(cpuSkill("wren", "expert"), "execution");
   f.launch.diPending = true;

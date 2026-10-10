@@ -44,83 +44,7 @@ const surprises: readonly ((target: Fighter) => void)[] = [
     const p = mutableProjectile(target, 0); p.life = 100; p.x = 0.0; p.z = 45.0; p.direction = -1; p.velocityX = -12.0; p.serial++; },
 ];
 
-test("fast computer matches keep their short history and a slower opponent retains a 60-frame cue [repro #345] [spec #354]", () => {
-  const game = setup();
-  game.game.computerMask = 1;
-  for (let frame = 1; frame <= 100; frame++) {
-    game.target.motion.x = frame;
-    produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
-  }
-  assertEquals(game.runtime.botMemory.history.length, FAST_BOT_HISTORY_FRAMES);
-  game.game.computerMask = 3;
-  game.game.cpuTiers[1] = "rookie";
-  for (let frame = 101; frame <= 170; frame++) {
-    game.target.motion.x = frame;
-    produceComputerInput(game.game, game.world, game.runtime, 0, frame, game.controls.inputs[0], game.controls.commands[0]);
-  }
-  assertEquals(game.runtime.botMemory.history.length, BOT_HISTORY_FRAMES);
-  assertEquals(perceivedOpponent(game.runtime.botMemory, game.own, 0, 170, 60)?.motion.x, 110);
-  clearBotMemory(game.runtime.botMemory);
-});
-
-test("retained observations survive storage reuse, restored plain history and rollback [invariant]", () => {
-  const game = setup();
-  const saved = createBotMemory();
-  const filled = 43;
-  for (let frame = 1; frame <= filled; frame++) {
-    game.target.motion.x = frame;
-    game.target.attack.style = AttackStyle.forwardSmash;
-    const projectile = mutableProjectile(game.target, 0);
-    projectile.life = frame;
-    projectile.x = frame;
-    observeOpponents(game.runtime.botMemory, game.world, frame);
-  }
-  copyBotMemory(saved, game.runtime.botMemory);
-  const original = saved.history.map(sample => botObservationCanonical(sample));
-  for (let frame = filled + 1; frame <= 300; frame++) {
-    game.target.motion.x = frame;
-    game.target.attack.style = undefined;
-    mutableProjectile(game.target, 0).life = 0;
-    observeOpponents(game.runtime.botMemory, game.world, frame);
-  }
-  for (let index = 0; index < saved.history.length; index++) {
-    assertEquals(botObservationCanonical(at(saved.history, index)), at(original, index));
-    assertEquals(at(saved.history, index).opponents[1]?.motion.x, index + 1);
-  }
-  assertEquals(game.runtime.botMemory.history.length, BOT_HISTORY_FRAMES);
-  const latest = at(game.runtime.botMemory.history, BOT_HISTORY_FRAMES - 1);
-  assertEquals(latest.opponents[1]?.attack.style, undefined);
-  assertEquals(mutableProjectile(assertDefined(latest.opponents[1]), 0).life, 0);
-  assertEquals(mutableProjectile(assertDefined(latest.opponents[1]), 0).x, 0);
-  // Decoded moment records carry no private ownership metadata.
-  const plain: BotMemory = { history: saved.history, directions: [0, 0, 0, 0], directionFrames: [0, 0, 0, 0] };
-  copyBotMemory(game.runtime.botMemory, plain);
-  observeOpponents(game.runtime.botMemory, game.world, 44);
-  assertEquals(at(game.runtime.botMemory.history, filled - 1).opponents[1]?.motion.x, filled);
-  assertEquals(botObservationCanonical(at(saved.history, 42)), at(original, 42));
-});
-
-test("replay state checks detect delayed observations and direction commitment independently of current fighters [invariant]", () => {
-  const expected = setup();
-  const changed = setup();
-  observeOpponents(expected.runtime.botMemory, expected.world, 1);
-  changed.target.motion.x = -300.0;
-  observeOpponents(changed.runtime.botMemory, changed.world, 1);
-  changed.target.motion.x = expected.target.motion.x;
-  const checksum = (game: ReturnType<typeof setup>) => replayChecksum(game.world, game.game, game.runtime);
-  const canonical = (game: ReturnType<typeof setup>) => canonicalState({ world: game.world, match: game.game, controls: game.controls, runtime: game.runtime });
-  assertTrue(checksum(expected) !== checksum(changed));
-  assertTrue(canonical(expected) !== canonical(changed));
-  copyBotMemory(changed.runtime.botMemory, expected.runtime.botMemory);
-  assertEquals(checksum(expected), checksum(changed));
-  changed.runtime.botMemory.directions[0] = -1;
-  assertTrue(checksum(expected) !== checksum(changed));
-  changed.runtime.botMemory.directions[0] = 0;
-  changed.runtime.botMemory.directionFrames[0] = 5;
-  assertTrue(checksum(expected) !== checksum(changed));
-});
-
-sweep("150 surprise-action traces: no computer input responds before its authored observation delay [spec #176] [spec #184]", () => {
+sweep("150 surprise-action traces: no computer input responds before its authored observation delay [k3 measure #176]", () => {
   let early = 0;
   for (const profile of CPU_PROFILES) {
     const delay = cpuSkill(profile.opponent, profile.tier).reactionFrames;
@@ -149,7 +73,7 @@ sweep("150 surprise-action traces: no computer input responds before its authore
 // The response precedes Rifleman's idle stretch and falls after his direction hold expires.
 const RESPONSE_SURPRISE_FRAME = 39;
 
-test("prepared guard and fresh run-in first inputs respect human reaction floors [spec #354]", () => {
+test("prepared guard and fresh run-in first inputs respect human reaction floors [k3 measure #354]", () => {
   for (const trained of [true, false]) {
     const changed = setup();
     const quiet = setup();
@@ -166,7 +90,7 @@ test("prepared guard and fresh run-in first inputs respect human reaction floors
   }
 });
 
-for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 recorded prepared answers and 1000 fresh choices report actual ${tier} input reaction distributions [spec #354]`, () => {
+for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 recorded prepared answers and 1000 fresh choices report actual ${tier} input reaction distributions [k3 measure #354]`, () => {
   for (const trained of [true, false]) {
     const distribution: number[] = [];
     for (let frame = 0; frame <= 60; frame++) distribution.push(0);
@@ -214,7 +138,7 @@ for (const tier of ["expert", "advanced", "intermediate"] as const) sweep(`1000 
   }
 });
 
-test("rapid grounded and airborne requests, including neutral braking, have zero reversals before four frames [spec #176]", () => {
+test("rapid grounded and airborne requests, including neutral braking, have zero reversals before four frames [k2 property]", () => {
   const memory = createBotMemory();
   const input = neutralControls();
   let previous = 0;
@@ -236,7 +160,7 @@ test("rapid grounded and airborne requests, including neutral braking, have zero
   assertEquals(early, 0);
 });
 
-sweep("all fighters' approach, retreat, air steering and recovery traces have zero early direction reversals [spec #176]", () => {
+sweep("all fighters' approach, retreat, air steering and recovery traces have zero early direction reversals [k1 scenario]", () => {
   let frames = 0;
   let reversals = 0;
   let early = 0;

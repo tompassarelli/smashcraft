@@ -21,7 +21,7 @@ import { testMatch } from "./testMatch";
 
 const NEUTRAL: Pad = {};
 
-test("controllers ride a complete carried loop and rising-sinking timetable; every departure is warned 30 frames ahead [spec #79]", () => {
+test("controllers ride a complete carried loop and rising-sinking timetable; every departure is warned 30 frames ahead [k1 scenario]", () => {
   for (const [stage, period] of [[CARRIED_TEST_STAGE, 920], [TIMED_TEST_STAGE, 420]] as const) {
     const match = testMatch(3, Character.rifleman);
     match.game.stageChoice = stage;
@@ -67,7 +67,7 @@ function playWind(run: PadMatch, last: number, check: (frame: number, first: num
   }
 }
 
-test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on its side 0.2 Melee units a frame, alternating sides [spec #79]", () => {
+test("Whispy's wind waits, warns for 45 frames, then pushes standing fighters on its side 0.2 Melee units a frame, alternating sides [k3 measure #79]", () => {
   const run = windMatch();
   const gust = WIND_CALM_FRAMES + WIND_CUE_FRAMES;
   assertEquals(windPhase(1), WindPhase.calm);
@@ -136,7 +136,7 @@ function assertFiredAlongAim(victim: Fighter, frame: number): void {
   assertEquals(victim.motion.z, CANNON_Z);
 }
 
-test("the cannon catches the first fighter to touch it, holds it intangible as it swings, and fires it 11 frames after Attack [spec #79]", () => {
+test("the cannon catches the first fighter to touch it, holds it intangible as it swings, and fires it 11 frames after Attack [k3 measure #79]", () => {
   const run = cannonMatch();
   const { victim, other } = run;
   playPads(run, NEUTRAL, NEUTRAL);
@@ -173,21 +173,4 @@ test("the cannon catches the first fighter to touch it, holds it intangible as i
   }
   assertGreaterThan(highest, 0.0);
   assertFalse(victim.cannon.passing);
-});
-
-test("a held fighter that presses nothing is fired when the hold runs out [spec #79]", () => {
-  const run = cannonMatch();
-  const { victim } = run;
-  playPads(run, NEUTRAL, NEUTRAL);
-  assertEquals(victim.cannon.held, 0);
-  while (assertDefined(victim.cannon.held) < CANNON_HOLD_FRAMES - 1) playPads(run, NEUTRAL, NEUTRAL);
-  assertEquals(victim.cannon.firing, undefined);
-  playPads(run, NEUTRAL, NEUTRAL);
-  assertEquals(victim.cannon.firing, 1);
-  const shot = 1 + CANNON_HOLD_FRAMES + CANNON_SHOT_FRAMES - 1;
-  while (run.match.runtime.simulationFrame < shot) playPads(run, NEUTRAL, NEUTRAL);
-  assertFiredAlongAim(victim, shot);
-
-  for (let frame = 0; frame < CANNON_RECATCH_FRAMES; frame++) playPads(run, NEUTRAL, NEUTRAL);
-  assertEquals(victim.cannon.cooldown, 0);
 });

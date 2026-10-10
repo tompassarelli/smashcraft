@@ -4,7 +4,7 @@ import { Character } from "../codes";
 import { HEIGHT_PROBE_OUT, REACH_PROBE_DEPTH, RECOVERY_BANDS, RECOVERY_PLANS, recovers, recoveryArchetype, upSpecialRoute } from "../../match/recoveryEnvelope";
 import { mainDeckRight } from "../stage";
 
-test("Blood Leap meets the heavy recovery floors and route ceilings at zero and full meter [repro #340] [spec #252] [spec #335]", () => {
+test("Blood Leap meets the heavy recovery floors and route ceilings at zero and full meter [k3 measure #252]", () => {
   const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(Character.grom)], "heavy band");
   const full = upSpecialRoute(Character.grom, 100);
   for (const mana of [100, 0]) {

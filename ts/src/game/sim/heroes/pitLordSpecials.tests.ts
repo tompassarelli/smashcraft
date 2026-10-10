@@ -46,7 +46,7 @@ function pair(gap: number, facing = 1, opponent: Character = Character.rifleman)
   return { world, owner, target };
 }
 
-test("rollback restores Pit Lord's falling fire and repeats the same contact [invariant]", () => {
+test("rollback restores Pit Lord's falling fire and repeats the same contact [k1 scenario]", () => {
   const { world, owner, target } = pair(f32(H * f32(1.8)));
   for (let f = 1; f <= 30; f++) frame(world, f === 1 ? down : controls());
   assertTrue(owner.projectiles.some(p => p.life > 0));

@@ -24,7 +24,7 @@ function dashFor(fighter: Fighter, facing: number, frames: number): void {
   for (let frame = 0; frame < frames; frame++) sample(fighter, facing);
 }
 
-test("dash dancing: 512 analog and digital timelines accept thirteen held frames, turn-run on fourteen, with zero transition or rollback mismatches [spec docs/gameplay-design.md] [invariant]", () => {
+test("dash dancing: 512 analog and digital timelines accept thirteen held frames, turn-run on fourteen, with zero transition or rollback mismatches [k2 property]", () => {
   let cases = 0;
   for (const character of [Character.demonHunter, Character.rifleman]) {
     for (const facing of [-1, 1]) {
@@ -64,7 +64,7 @@ test("dash dancing: 512 analog and digital timelines accept thirteen held frames
   assertEquals(cases, 512);
 });
 
-test("dash dancing: recorded analog reversal rows replay through the two-sample boundary [invariant]", () => {
+test("dash dancing: recorded analog reversal rows replay through the two-sample boundary [k1 scenario]", () => {
   for (const facing of [-1, 1]) {
     const make = () => createTapeWorld({ stocks: 1, humans: 2, first: createFighter(Character.rifleman, -240.0, facing), second: createFighter(Character.rifleman, 240.0, -facing) });
     const canonical = make();
@@ -169,7 +169,7 @@ function travelSample(driver: DanceDriver, input: DanceInput, to: number, transi
   return false;
 }
 
-sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads [spec #188]", () => {
+sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboard, 1-4 frame flicks: 0 misreads [k2 property]", () => {
   let dashbacks = 0;
   let misreads = 0;
   const failures: string[] = [];

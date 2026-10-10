@@ -37,4 +37,4 @@ async function matchesNativeDriver(frames: number): Promise<void> {
   } finally { runtime.restore(); }
 }
 
-sweep("standalone CPU fixture matches the native pad driver at all 1070 frames [invariant]", () => matchesNativeDriver(1070), 120000);
+sweep("standalone CPU fixture matches the native pad driver at all 1070 frames [k1 scenario]", () => matchesNativeDriver(1070), 120000);

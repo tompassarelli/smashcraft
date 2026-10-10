@@ -22,7 +22,7 @@ function landTumbling(fighter: Fighter, input: Readonly<Controls>): void {
 
 const MELEE_BOUND_ATTACK_PRESS_AGE_LIMIT = 60;
 
-test("a get-up attack pressed during the bound starts as it ends, ahead of a held roll [reference]", () => {
+test("a get-up attack pressed during the bound starts as it ends, ahead of a held roll [k4 reference melee-decomp]", () => {
   assertGreaterThan(MELEE_BOUND_ATTACK_PRESS_AGE_LIMIT, DOWN_BOUND_FRAMES);
   for (const pressFrame of [1, DOWN_BOUND_FRAMES - 1]) {
     const fighter = createFighter(Character.rifleman, 0.0, 1);
@@ -42,7 +42,7 @@ test("a get-up attack pressed during the bound starts as it ends, ahead of a hel
 
 const analog = (x: number, z: number) => controls({ diStickValid: true, diStickX: x, diStickZ: z });
 
-test("get-up rolls and stands follow Melee's stick tilt and angle [reference]", () => {
+test("get-up rolls and stands follow Melee's stick tilt and angle [k4 reference melee-decomp]", () => {
   // Common +0x248/+0x244 = 0.2 tilt, +0x020 = 50 degrees above horizontal (ftCo_Down.c ftCo_Down_CheckInput, ftCo_DownStand.c).
   const cases: readonly (readonly [number, number, DownState, number])[] = [
     [0.19999998807907104, 0.0, DownState.wait, 0],
@@ -64,7 +64,7 @@ test("get-up rolls and stands follow Melee's stick tilt and angle [reference]", 
   }
 });
 
-test("a floor tech rolls only past Melee's sideways tilt [reference]", () => {
+test("a floor tech rolls only past Melee's sideways tilt [k4 reference melee-decomp]", () => {
   // Common +0x254 = 0.2 (ftCo_PassiveStand.c ftCo_80098928).
   for (const [x, state] of [[0.19999998807907104, DownState.tech], [-0.20000000298023224, DownState.techRoll]] as const) {
     const fighter = createFighter(Character.rifleman, 0.0, 1);
@@ -78,7 +78,7 @@ test("a floor tech rolls only past Melee's sideways tilt [reference]", () => {
   }
 });
 
-test("tumble ends only on a fresh sideways flick past Melee's threshold [reference]", () => {
+test("tumble ends only on a fresh sideways flick past Melee's threshold [k4 reference melee-decomp]", () => {
   // Common +0x210 = 0.8 on the frame the stick crosses +0x008 = 0.25 (+0x214 = 1; ftCo_DamageFall.c ftCo_DamageFall_IASA).
   const sequences: readonly (readonly [readonly Controls[], boolean])[] = [
     [[analog(0.0, 0.0), analog(-0.800000011920929, 0.0)], true],
@@ -98,7 +98,7 @@ test("tumble ends only on a fresh sideways flick past Melee's threshold [referen
   }
 });
 
-test("a jab reset compares the damage summed over the frame's contacts [reference]", () => {
+test("a jab reset compares the damage summed over the frame's contacts [k4 reference melee-decomp]", () => {
   // melee:src/melee/ft/kinds/ftCommon/ftCo_DownDamage.c:290 tests the frame's summed percentTemp (ftcoll.c:370) against +0x428 = 7.
   for (const [contacts, reset] of [[1, true], [2, false]] as const) {
     const attacker = createFighter(Character.rifleman, 0.0, 1);

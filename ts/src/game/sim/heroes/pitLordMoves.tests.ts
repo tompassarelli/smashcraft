@@ -3,7 +3,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character } from "../codes";
 import { heroBody } from "./heroBodies";
 
-test("Pit Lord is the roster's largest, heaviest and slowest body [spec docs/design/roster.md]", () => {
+test("Pit Lord is the roster's largest, heaviest and slowest body [k3 measure docs/design/roster.md]", () => {
   const pitLord = heroBody(Character.pitLord);
   assertTrue(pitLord !== undefined);
   for (const character of [Character.mountainKing, Character.forsakenPaladin, Character.dreadlord]) {

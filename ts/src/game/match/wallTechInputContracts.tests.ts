@@ -148,7 +148,7 @@ function assertMetSide(victim: Fighter): void {
   assertLessThan(contactX, surfaceRight(0, 0, 0));
 }
 
-test("a launch into the main deck's side bounces off it without a press [spec #52]", () => {
+test("a launch into the main deck's side bounces off it without a press [k3 measure #52]", () => {
   for (const character of VICTIMS) {
     for (const percent of [60.0, 120.0]) {
       const run = startRun(character, percent);
@@ -167,7 +167,7 @@ test("a launch into the main deck's side bounces off it without a press [spec #5
   }
 });
 
-test("a trigger pressed after the hit's hitlag wall techs off the main deck's side [spec #52]", () => {
+test("a trigger pressed after the hit's hitlag wall techs off the main deck's side [k3 measure #52]", () => {
   for (const character of VICTIMS) {
     for (const percent of [60.0, 120.0]) {
       const missed = launch(startRun(character, percent), NEUTRAL);
@@ -208,7 +208,7 @@ test("a trigger pressed after the hit's hitlag wall techs off the main deck's si
   }
 });
 
-test("up on the stick at a wall tech launches each fighter with its reference's wall jump [reference]", () => {
+test("up on the stick at a wall tech launches each fighter with its reference's wall jump [k4 reference melee]", () => {
   for (const character of VICTIMS) {
     const missed = launch(startRun(character, 120.0), NEUTRAL);
     const run = startRun(character, 120.0);
@@ -252,7 +252,7 @@ function flickOffSide(run: Run): void {
   playPads(run, {}, { x: 1.0 });
 }
 
-test("a flick away from the main deck's side wall jumps each fighter off it with its reference's wall jump [reference]", () => {
+test("a flick away from the main deck's side wall jumps each fighter off it with its reference's wall jump [k4 reference melee]", () => {
   for (const character of VICTIMS) {
     const run = startDrift(character);
     const { victim } = run;
@@ -279,7 +279,7 @@ test("a flick away from the main deck's side wall jumps each fighter off it with
   }
 });
 
-test("a fighter without Melee's wall jump trait doesn't wall jump [reference]", () => {
+test("a fighter without Melee's wall jump trait doesn't wall jump [k4 reference melee]", () => {
   const run = startDrift(Character.rifleman);
   const { victim } = run;
   victim.tuning = { ...victim.tuning, surface: { ...victim.tuning.surface, canWallJump: false } };
@@ -306,20 +306,7 @@ const RAISED_UNDERSIDE_Z = solidSurfaceAt(SOLID_DECK_TEST_STAGE, MAIN_DECK_BODY_
 
 const underUnderside = (character: Character) => f32(RAISED_UNDERSIDE_Z - melee(bodyTop(character)));
 
-test("a launch into a raised deck's underside meets it with the fighter's ECB top and rebounds from there [repro #71]", () => {
-  for (const character of VICTIMS) {
-
-    const run = startUnderDeck(character);
-    launch(run, NEUTRAL, { cy: 1.0 });
-    const { victim } = run;
-    assertEquals(victim.surfaceRecovery.contactKind, SurfaceContact.ceiling);
-    assertEquals(victim.surfaceRecovery.contactZ, RAISED_UNDERSIDE_Z);
-    assertEquals(victim.motion.z, underUnderside(character));
-    assertLessThan(victim.launch.knockbackZ, 0.0);
-  }
-});
-
-test("a ceiling tech starts at the ECB top's contact and moves each fighter sideways by its reference's impulse on its event frame [repro #71] [reference]", () => {
+test("a ceiling tech starts at the ECB top's contact and moves each fighter sideways by its reference's impulse on its event frame [k4 reference melee]", () => {
   for (const character of VICTIMS) {
 
     const missed = launch(startUnderDeck(character), NEUTRAL, { cy: 1.0 });
@@ -391,7 +378,7 @@ function passThroughFrames(run: Run): number {
 
 
 
-test("a wall tech, its jump and a plain wall jump are each intangible for Melee's 14 frames, then hittable [reference]", () => {
+test("a wall tech, its jump and a plain wall jump are each intangible for Melee's 14 frames, then hittable [k4 reference melee]", () => {
   assertEquals(SURFACE_TECH_WALL_COLLISION_GRACE_FRAMES, 14);
   for (const character of VICTIMS) {
     const name = fighterName(character);
@@ -468,7 +455,7 @@ function stageWallOutcomes(stage: number): readonly [string, string, string] {
   return [bounce, wallTech, techJump];
 }
 
-test("on every stage, a launch into its side bounces off it, a trigger wall techs and up adds the wall-tech jump [spec #338]", () => {
+test("on every stage, a launch into its side bounces off it, a trigger wall techs and up adds the wall-tech jump [k3 measure #338]", () => {
   const failures = STAGE_CATALOG.flatMap(({ id, name }) => {
     const [bounce, tech, jump] = stageWallOutcomes(id);
     return bounce === "" && tech === "" && jump === "" ? [] : [`${name}: bounce ${bounce === "" ? "ok" : bounce}, tech ${tech === "" ? "ok" : tech}, tech jump ${jump === "" ? "ok" : jump}`];

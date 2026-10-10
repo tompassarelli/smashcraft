@@ -39,7 +39,7 @@ function upSpecial(run: RecoveryRun, aim: number, frames: number, each?: (frame:
   }
 }
 
-test("[spec #252] an up special that meets the stage wall level rides up it and gets back", () => {
+test(" an up special that meets the stage wall level rides up it and gets back [k3 measure #252]", () => {
 
   const run = recoveryRun(Character.blademaster, 100, 700.0, -45.0);
   let rose = false;
@@ -51,7 +51,7 @@ test("[spec #252] an up special that meets the stage wall level rides up it and 
   check(recovered(run.fighter), `ended at ${run.fighter.motion.x},${run.fighter.motion.z}`);
 });
 
-test("[invariant] a wall ride replays frame for frame and never enters the stage", () => {
+test(" a wall ride replays frame for frame and never enters the stage [k1 scenario]", () => {
   const path = (): string[] => {
     const run = recoveryRun(Character.rifleman, 100, 660.0, -50.0);
     const rows: string[] = [];
@@ -77,7 +77,7 @@ function blink(x: number, z: number, aim: number, hogged = false): RecoveryRun {
   return run;
 }
 
-test("[spec #252] a Blink that enters the stage through its lip passes it: above the deck, onto the ledge or onto the deck", () => {
+test(" a Blink that enters the stage through its lip passes it: above the deck, onto the ledge or onto the deck [k3 measure #252]", () => {
 
   const over = blink(700.0, -150.0, TOWARD | UP).fighter;
   check(over.motion.z > 0.0 && over.motion.x < LEDGE && !insideMainDeckBody(0, over.motion.x, over.motion.z), `over ${over.motion.x},${over.motion.z}`);
@@ -90,7 +90,7 @@ test("[spec #252] a Blink that enters the stage through its lip passes it: above
   check(land.motion.grounded && land.motion.z === 0.0 && land.motion.x < f32(LEDGE - TELEPORT_LEDGE_INSET), `land ${land.motion.x},${land.motion.z}`);
 });
 
-test("[spec #252] a Blink that meets the stage below its lip stops there, and a taken ledge leaves it outside the lip", () => {
+test(" a Blink that meets the stage below its lip stops there, and a taken ledge leaves it outside the lip [k3 measure #252]", () => {
   const deep = blink(700.0, -300.0, TOWARD | UP).fighter;
   check(!deep.motion.grounded && deep.ledge.state === LedgeState.none && deep.motion.z < f32(-TELEPORT_LIP_DEPTH), `deep ${deep.motion.x},${deep.motion.z}`);
   check(!insideMainDeckBody(0, deep.motion.x, deep.motion.z), "deep ended inside the stage");
@@ -99,7 +99,7 @@ test("[spec #252] a Blink that meets the stage below its lip stops there, and a 
   check(hogged.motion.x > LEDGE && hogged.motion.z < 0.0, `hogged ${hogged.motion.x},${hogged.motion.z}`);
 });
 
-test("[spec #252] an up special that comes down beside the ledge catches it before its helpless fall", () => {
+test(" an up special that comes down beside the ledge catches it before its helpless fall [k3 measure #252]", () => {
 
   const run = recoveryRun(Character.kaelthas, 100, 850.0, 230.0);
   let caughtDuringSpecial = false;
@@ -112,7 +112,7 @@ test("[spec #252] an up special that comes down beside the ledge catches it befo
   assertEquals(run.fighter.attack.cooldown, 0);
 });
 
-test("[spec #252] a hero taller than the reference catches a ledge higher above its feet", () => {
+test(" a hero taller than the reference catches a ledge higher above its feet [k3 measure #252]", () => {
   const tall = ledgeCatchBox(Character.cairne);
   const reference = ledgeCatchBox(Character.rifleman);
   check(tall.highest > reference.highest && tall.reach > reference.reach, `${tall.highest} ${tall.reach}`);
@@ -139,12 +139,12 @@ function staysOutside(character: Character): void {
   }
 }
 
-test("[invariant] Warden's and Blademaster's up specials never end a frame inside the stage", () => {
+test(" Warden's and Blademaster's up specials never end a frame inside the stage [k1 scenario]", () => {
   staysOutside(Character.warden);
   staysOutside(Character.blademaster);
 });
 
-sweep("[invariant] no fighter's up special ends a frame inside the stage", () => {
+sweep(" no fighter's up special ends a frame inside the stage [k1 scenario]", () => {
   for (const character of SELECTABLE_CHARACTERS) staysOutside(character);
 });
 
@@ -158,7 +158,7 @@ function meetsEnvelope(character: Character): void {
   check(free.height === full.height && free.reach === full.reach, `${name} zero meter ${free.height}/${free.reach}, full ${full.height}/${full.reach}`);
 }
 
-test("[spec #252] [spec #335] Warden's recovery envelope meets the vertical band's floors at zero and full meter", () => {
+test(" Warden's recovery envelope meets the vertical band's floors at zero and full meter [k3 measure #252]", () => {
   const character = Character.warden;
   const band = assertDefined(RECOVERY_BANDS[recoveryArchetype(character)], "band");
 
@@ -171,7 +171,7 @@ test("[spec #252] [spec #335] Warden's recovery envelope meets the vertical band
 });
 
 for (const character of SELECTABLE_CHARACTERS) {
-  sweep(`[spec #252] [spec #335] ${fighterName(character)}'s recovery envelope meets its archetype's floors equally at zero and full meter`, () => {
+  sweep(` ${fighterName(character)}'s recovery envelope meets its archetype's floors equally at zero and full meter [k3 measure #252]`, () => {
     meetsEnvelope(character);
   });
 }

@@ -36,7 +36,7 @@ function assertTwiceAsLong(ground: number, water: number): void {
   assertNear(f32(water / ground), f32(1.0 / WATER_FRICTION), f32(0.15));
 }
 
-test("a run released on water brakes at half traction and slides twice as far [spec docs/physics.md]", () => {
+test("a run released on water brakes at half traction and slides twice as far [k3 measure docs/physics.md]", () => {
   const ground = runner(FLAT_STAGE);
   const water = runner(TOMB_OF_SARGERAS_STAGE);
 

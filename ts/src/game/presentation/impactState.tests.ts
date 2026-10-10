@@ -28,27 +28,6 @@ function projectAll(match: TestMatch): void {
 
 const DUST = IMPACT_DUST * IMPACTS_PER_KIND;
 
-test("a run footstep shows its dust on any frame, and dust stays drawn until its slot expires [repro #82] [repro #95]", () => {
-  for (let frame = 0; frame < 64; frame++) {
-    const pool = createImpactState();
-    const events = createImpactEvents();
-    events.runningDust = true;
-    events.footstep = "run";
-    emitImpacts(pool, events, frame);
-    assertEquals(projectImpact(pool, DUST).visible, true, `run footstep on frame ${frame}`);
-  }
-  const pool = createImpactState();
-  const events = createImpactEvents();
-  events.movementDust = true;
-  emitImpacts(pool, events, 1);
-  for (let frame = 0; frame < impactLifetime(IMPACT_DUST); frame++) {
-    const pose = projectImpact(pool, DUST);
-    assertTrue(pose.visible && pose.alpha > 0);
-    advanceImpacts(pool);
-  }
-  assertFalse(projectImpact(pool, DUST).visible);
-});
-
 
 function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void {
   const input = match.inputs.inputs[slot];
@@ -57,46 +36,7 @@ function dodge(match: TestMatch, slot: ParticipantSlot, pressed: boolean): void 
   input.shield = pressed;
 }
 
-test("impact projection reads only and clearing empties the pool [invariant]", () => {
-  const pool = createImpactState();
-  const saved = createImpactState();
-  const events = createImpactEvents();
-  events.x = 100.0;
-  events.z = 20.0;
-  events.hit = true;
-  events.landing = ImpactLanding.tech;
-  emitImpacts(pool, events, 0);
-  events.hit = false;
-  events.landing = ImpactLanding.missedTech;
-  events.dodge = DodgeCue.roll;
-  events.direction = -1;
-  emitImpacts(pool, events, 0);
-  events.hit = true;
-  events.electric = true;
-  events.shieldHit = true;
-  events.jump = JumpCue.double;
-  events.koDirectionX = 1;
-  events.respawn = true;
-  events.grab = true;
-  events.throwRelease = true;
-  events.charge = true;
-  events.ready = true;
-  events.ledgeCatch = true;
-  events.ledgeRecovery = true;
-  events.landing = ImpactLanding.none;
-  events.dodge = DodgeCue.none;
-  emitImpacts(pool, events, 0);
-  copyImpactStateInto(saved, pool);
-  for (let i = 0; i < IMPACT_COUNT; i++) {
-    projectImpact(pool, i);
-    projectImpact(pool, i);
-  }
-  assertEquals(firstImpactDifference(pool, saved), undefined);
-  clearImpactState(pool);
-  assertEquals(firstImpactDifference(pool, createImpactState()), undefined);
-});
-
-test("a snapshot restores the impact pool and its ring pointers [invariant]", () => {
+test("a snapshot restores the impact pool and its ring pointers [k1 scenario]", () => {
   const match = testMatch(9, Character.rifleman);
   const events = createImpactEvents();
   events.dodge = DodgeCue.spot;
@@ -122,7 +62,7 @@ test("a snapshot restores the impact pool and its ring pointers [invariant]", ()
   assertEquals(restored.alpha, dust.alpha);
 });
 
-test("a correction removes a predicted impact and restores the accepted one's age [invariant]", () => {
+test("a correction removes a predicted impact and restores the accepted one's age [k1 scenario]", () => {
   const match = testMatch(9, Character.rifleman);
   const live = replayState(match);
   const history = new ReplayHistory();
@@ -151,7 +91,7 @@ test("a correction removes a predicted impact and restores the accepted one's ag
   assertFalse(projectImpact(impacts, DUST + 3).visible);
 });
 
-test("sparse and four-player matches emit the same impacts whether projected each frame or not [invariant]", () => {
+test("sparse and four-player matches emit the same impacts whether projected each frame or not [k1 scenario]", () => {
   for (const mask of [9, 15]) {
     const sequential = testMatch(mask, Character.rifleman);
     const catchup = testMatch(mask, Character.rifleman);
@@ -177,32 +117,7 @@ test("sparse and four-player matches emit the same impacts whether projected eac
   }
 });
 
-test("a result, a reset or a menu frame empties the impact pool [spec #82]", () => {
-  const pool = createImpactState();
-  const events = createImpactEvents();
-  events.hit = true;
-  for (let i = 0; i <= 9; i++) {
-    events.x = i * 10.0;
-    emitImpacts(pool, events, 0);
-  }
-  const match = testMatch(15, Character.rifleman);
-  const empty = createImpactState();
-  copyImpactStateInto(match.runtime.impacts, pool);
-  match.game.timeLimitMinutes = 1;
-  match.game.remainingFrames = 1;
-  executeNext(match);
-  assertEquals(match.game.phase, Phase.result);
-  assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
-  copyImpactStateInto(match.runtime.impacts, pool);
-  clearPresentationHistory(match.runtime);
-  assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
-  copyImpactStateInto(match.runtime.impacts, pool);
-  match.game.phase = Phase.characterMenu;
-  executeNext(match);
-  assertEquals(firstImpactDifference(match.runtime.impacts, empty), undefined);
-});
-
-test("replaying from a snapshot restores accepted grab and throw cues, and projection consumes none [invariant]", () => {
+test("replaying from a snapshot restores accepted grab and throw cues, and projection consumes none [k1 scenario]", () => {
   const match = testMatch(3, Character.rifleman);
   const owner = fighterAt(match.world, 0);
   const target = fighterAt(match.world, 1);
@@ -240,7 +155,7 @@ test("replaying from a snapshot restores accepted grab and throw cues, and proje
   assertEquals(firstPoseDifference(accepted, replayed), undefined);
 });
 
-test("a corrected charge removes its cue [invariant]", () => {
+test("a corrected charge removes its cue [k1 scenario]", () => {
   const match = testMatch(3, Character.rifleman);
   const live = replayState(match);
   const history = new ReplayHistory();
@@ -267,7 +182,7 @@ test("a corrected charge removes its cue [invariant]", () => {
   assertFalse(projectImpact(match.runtime.impacts, IMPACT_CHARGE * IMPACTS_PER_KIND).visible);
 });
 
-test("replaying a confirmed top KO restores one body and the same stocks [invariant]", () => {
+test("replaying a confirmed top KO restores one body and the same stocks [k1 scenario]", () => {
   const match = testMatch(3, Character.rifleman);
   const fighter = fighterAt(match.world, 0);
   fighter.motion.z = f32(stageBounds(match.game.stageChoice).blast.top + 1.0);

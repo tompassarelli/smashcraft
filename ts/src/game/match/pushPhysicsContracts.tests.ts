@@ -9,7 +9,7 @@ import { executeNext, testMatch } from "./testMatch";
 
 const epsilon = f32(0.001);
 
-test("idle overlapping bodies separate by 1.8 world units per fighter per frame [spec #338]", () => {
+test("idle overlapping bodies separate by 1.8 world units per fighter per frame [k3 measure #338]", () => {
   const m = testMatch(3, Character.rifleman);
   const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
   a.motion.x = 0.0; b.motion.x = 20.0;
@@ -18,7 +18,7 @@ test("idle overlapping bodies separate by 1.8 world units per fighter per frame 
   assertNear(b.motion.x, f32(21.8), epsilon);
 });
 
-test("walking pushes a shielding opponent off the ledge within two frames [spec #338]", () => {
+test("walking pushes a shielding opponent off the ledge within two frames [k3 measure #338]", () => {
   for (const direction of [-1, 1]) {
     const m = testMatch(3, Character.rifleman);
     const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
@@ -36,7 +36,7 @@ test("walking pushes a shielding opponent off the ledge within two frames [spec 
   }
 });
 
-test("dash and run cross an overlapping fighter rather than stopping at its body [spec #338]", () => {
+test("dash and run cross an overlapping fighter rather than stopping at its body [k3 measure #338]", () => {
   for (const run of [false, true]) {
     const m = testMatch(3, Character.rifleman);
     const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
@@ -53,7 +53,7 @@ test("dash and run cross an overlapping fighter rather than stopping at its body
   }
 });
 
-test("four-damage shield contact moves defender 2.196 and attacker 1.272 after hitlag [reference]", () => {
+test("four-damage shield contact moves defender 2.196 and attacker 1.272 after hitlag [k4 reference melee]", () => {
   const m = testMatch(3, Character.rifleman);
   const a = fighterAt(m.world, 0), b = fighterAt(m.world, 1);
   a.motion.x = 0.0; b.motion.x = 90.0;

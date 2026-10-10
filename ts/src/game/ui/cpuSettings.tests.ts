@@ -3,7 +3,7 @@ import { Phase, beginRematchCountdown, confirmRematch, createMatchState, request
 import { Character } from "../sim/codes";
 import { cpuOpponentSummary, resultNotice } from "../shell/messages";
 
-test("CPU choices survive fighter/stage changes, New Match and the automatic rematch; Random reveals the drawn identity [spec #185]", () => {
+test("CPU choices survive fighter/stage changes, New Match and the automatic rematch; Random reveals the drawn identity [k3 measure #185]", () => {
   const game = createMatchState();
   setParticipants(game, 3, 4);
   game.characterReadiness[0] = true;

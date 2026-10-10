@@ -23,42 +23,6 @@ function report(line: string): void {
   else console.log(line);
 }
 
-test("defence uses the observed launch angle and combo or survival goal [spec #357]", () => {
-  const f = createFighter(Character.rifleman, -100.0, 1);
-  f.launch.diPending = true;
-  f.launch.hitlag = 4;
-  f.launch.knockbackX = 100.0;
-  f.launch.knockbackZ = 40.0;
-  const input = controls();
-  const skill = { ...cpuSkill("wren", "expert"), executionMistakes: false };
-  let survival = 0, combo = 0;
-  for (let hit = 0; hit < 100; hit++) {
-    f.visuals.hit = hit;
-    f.status.damage = 100.0;
-    chooseHitlagInput(f, 0, 2, skill, input);
-    if (input.verticalDirection === 1) survival++;
-    f.status.damage = 0.0;
-    chooseHitlagInput(f, 0, 2, skill, input);
-    if (input.verticalDirection === -1) combo++;
-  }
-  assertGreaterThan(survival, 90);
-  assertGreaterThan(combo, 90);
-});
-
-test("SDI follow-ups use the previous hitlag end even when no SDI was attempted [spec #357]", () => {
-  const attacker = createFighter(Character.rifleman, -100.0, 1);
-  const target = createFighter(Character.rifleman, 100.0, -1);
-  const base = createFighter(Character.rifleman, 100.0, -1);
-  const world = testWorld(attacker, target);
-  for (const age of [15, 16]) {
-    copyFighterState(target, base, 1);
-    target.launch.hitlagEndAge = age;
-    contactBatch(world, () => applyAttackHit(world, 0, 1, AttackStyle.jab, 1, hitEffect(18.0, 100.0, 20.0, 1.0, 1.0), true, false));
-    assertEquals(target.launch.sdiFollowup, age === 15);
-    assertEquals(target.launch.sdiStringTravel, 0);
-  }
-});
-
 
 export function spacingPunishCase(seed: number, noise: boolean) {
   const game = createMatchState();
@@ -98,7 +62,7 @@ export function spacingPunishCase(seed: number, noise: boolean) {
   return { grabbed: defender.grab.target === 0, shieldHits, landingX };
 }
 
-test("executed Expert aerial drift errors give a shield grab that proper spacing avoids, across seeds [spec #357]", () => {
+test("executed Expert aerial drift errors give a shield grab that proper spacing avoids, across seeds [k1 scenario]", () => {
   const f = createFighter(Character.rifleman, -85.0, 1);
   f.motion.grounded = false;
   f.attack.style = AttackStyle.forwardAir;

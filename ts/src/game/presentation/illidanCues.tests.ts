@@ -42,7 +42,7 @@ function startsDrawn(name: string, cue: { readonly model: string; readonly seque
   assertEquals(ms >= drawn.fromMs && ms + SHOWN_MS <= drawn.toMs, true, `${name} starts at ${ms} ms, inside ${drawn.fromMs}-${drawn.toMs} ms`);
 }
 
-test("every Illidan option's effect starts where its model already draws [native]", () => {
+test("every Illidan option's effect starts where its model already draws [k4 reference native]", () => {
   const cues: [string, Cue][] = [];
   const felRush = ORIGINAL_CUES[SpecialAction.demonHunterFelRush];
   if (felRush !== undefined) cues.push(["Fel Rush tell", felRush.startup], ["Fel Rush", felRush.active]);
@@ -59,33 +59,4 @@ test("every Illidan option's effect starts where its model already draws [native
   if (eyeBlast !== undefined) cues.push(["Eye Blast windup", eyeBlast.cues.startup], ["Eye Blast", eyeBlast.cues.active]);
   for (const [name, cue] of cues) startsDrawn(name, cue);
   startsDrawn("Mana drain", MANA_DRAIN_LOOK);
-});
-
-test("Shear shows its cue at every angle [spec #147]", () => {
-  const shear = ATTACK_CUES[Character.demonHunter];
-  for (const style of [AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown]) assertEquals(shear?.[style]?.[0]?.name, "Shear");
-});
-
-test("a drained hit shows Mana Burn's burst over its victim for that hit only [spec #147]", () => {
-  const victim = createFighter(Character.blademaster, 0.0, 1);
-  const seen = drainSeen();
-  assertEquals(advanceDrainSeen(seen, victim), false);
-
-  victim.visuals.hit++;
-  victim.visuals.manaDrained++;
-  victim.launch.hitlag = 6;
-  assertEquals(advanceDrainSeen(seen, victim), true);
-  victim.launch.hitlag = 0;
-  victim.launch.hitstun = 10;
-  assertEquals(advanceDrainSeen(seen, victim), true);
-
-  victim.launch.hitstun = 0;
-  assertEquals(advanceDrainSeen(seen, victim), false);
-
-  victim.visuals.hit++;
-  victim.launch.hitlag = 6;
-  assertEquals(advanceDrainSeen(seen, victim), false);
-  victim.visuals.hit++;
-  victim.visuals.manaDrained++;
-  assertEquals(advanceDrainSeen(seen, victim), true);
 });

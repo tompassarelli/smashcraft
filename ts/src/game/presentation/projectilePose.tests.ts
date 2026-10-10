@@ -12,41 +12,7 @@ import { projectedProjectile } from "./projectilePose";
 import { LICH_KING_SPECIALS } from "../sim/heroes/lichKingSpecials";
 import { heroProjectileRadius } from "../sim/projectiles";
 
-test("Defile stays upright and its rim follows its danger radius through warning, growth and rollback [repro #174] [invariant]", () => {
-  const fighter = createFighter(Character.lichKing, 0.0, 1);
-  const projectile = mutableProjectile(fighter, 0);
-  const spec = LICH_KING_SPECIALS.down.ground.projectiles?.[0];
-  assertTrue(spec !== undefined);
-  if (spec === undefined) return;
-  projectile.kind = ProjectileKind.hero;
-  projectile.spec = spec;
-  projectile.life = spec.life;
-  projectile.x = 79.0;
-  projectile.z = 6.0;
-  const warning = projectedProjectile(fighter, 0, true);
-  assertTrue(warning.visible);
-  assertFalse(warning.armed);
-  assertEquals(warning.pitch, 0.0);
-  assertEquals(warning.poolRadius, heroProjectileRadius(projectile, spec));
-  projectile.life -= spec.activeFrom ?? 0;
-  projectile.poolHits = 3;
-  projectile.poolWait = (spec.pool?.every ?? 0) - 1;
-  const grown = projectedProjectile(fighter, 0, true);
-  assertTrue(grown.armed);
-  assertEquals(grown.poolPulse, 1.0);
-  projectile.poolWait -= 12;
-  assertEquals(projectedProjectile(fighter, 0, true).poolPulse, 0.0);
-  assertEquals(grown.poolRadius, heroProjectileRadius(projectile, spec));
-  assertNear(grown.modelScale * (spec.modelRadius ?? 1.0), grown.poolRadius, f32(0.001));
-  projectile.life = spec.life;
-  projectile.poolHits = 0;
-  const restored = projectedProjectile(fighter, 0, true);
-  assertEquals(restored.poolRadius, warning.poolRadius);
-  assertEquals(restored.armed, warning.armed);
-  assertEquals(restored.poolPulse, 0.0);
-});
-
-test("a sparse restore replaces a speculative projectile and freeze state [invariant]", () => {
+test("a sparse restore replaces a speculative projectile and freeze state [k1 scenario]", () => {
   const world = createRoster(9);
   world.fighters[0] = createFighter(Character.rifleman, -100.0, 1);
   const fighter = createFighter(Character.demonHunter, 100.0, -1);

@@ -18,7 +18,7 @@ import {
 
 const STATIC_KINDS = [STATIC_AURA, STATIC_WING_TRAIL, STATIC_DRAIN_FLASH] as const;
 
-test("the drain flash ages by executed frames, restores from a snapshot and projects read-only [invariant]", () => {
+test("the drain flash ages by executed frames, restores from a snapshot and projects read-only [k1 scenario]", () => {
   const match = testMatch(9, Character.demonHunter);
   const f = fighterAt(match.world, 3);
   f.visuals.manaDrained = 1;
@@ -49,7 +49,7 @@ test("the drain flash ages by executed frames, restores from a snapshot and proj
   assertTrue(projectSpecialEffect(match.runtime.specials, fighterAt(match.world, 3), 3, STATIC_DRAIN_FLASH).visible);
 });
 
-test("a late correction removes or restores a drain flash at its completed age [invariant]", () => {
+test("a late correction removes or restores a drain flash at its completed age [k1 scenario]", () => {
   for (const initiallyHits of [0, 1]) {
     const match = testMatch(9, Character.demonHunter);
     const live = replayState(match);
@@ -94,7 +94,7 @@ test("a late correction removes or restores a drain flash at its completed age [
   }
 });
 
-test("sparse and four-player drain flashes match whether projected or not, and reset [invariant]", () => {
+test("sparse and four-player drain flashes match whether projected or not, and reset [k1 scenario]", () => {
   for (const mask of [9, 15]) {
     const sequential = testMatch(mask, Character.demonHunter);
     const catchup = testMatch(mask, Character.demonHunter);

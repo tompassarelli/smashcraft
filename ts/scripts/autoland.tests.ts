@@ -5,7 +5,7 @@ import { QUEUED, TEST_SLOTS, TRAIN_CAP, TRAIN_TITLE, WAITING, laneState, passedA
 const lanes = recorded.lanes as Lane[];
 const runs = recorded.runs as Run[];
 
-test("the recorded queue tests its 7 queued tips at once across both slots and leaves the 6 bisect tips to their live runs, recorded 2026-10-10T03:35Z [spec docs/ci.md]", () => {
+test("the recorded queue tests its 7 queued tips at once across both slots and leaves the 6 bisect tips to their live runs, recorded 2026-10-10T03:35Z [k3 measure docs/ci.md]", () => {
   const result = plan(lanes, runs);
   const queued = lanes.filter((lane) => lane.status?.description === QUEUED).toSorted((a, b) => a.status!.at.localeCompare(b.status!.at));
   expect(result.test.map((order) => order.branch)).toEqual(queued.map((lane) => lane.branch));
@@ -14,7 +14,7 @@ test("the recorded queue tests its 7 queued tips at once across both slots and l
   expect(result.train).toBe(false);
 });
 
-test("a cancelled bisect half or test run never strands its tip: without a live run every pending tip is tested, recorded 2026-10-10T03:35Z [spec docs/ci.md]", () => {
+test("a cancelled bisect half or test run never strands its tip: without a live run every pending tip is tested, recorded 2026-10-10T03:35Z [k3 measure docs/ci.md]", () => {
   const legacyGone = runs.filter((run) => run.title === "Autoland waiting branches");
   expect(plan(lanes, legacyGone).test).toHaveLength(13);
   const waiting = lanes.map((lane): Lane => (lane.status?.state === "pending" ? { ...lane, status: { ...lane.status, description: WAITING } } : lane));
@@ -51,7 +51,7 @@ function scenario(seed: number): { lanes: Lane[]; runs: Run[]; retry: string[] }
   return { lanes: generated, runs: generatedRuns, retry: generated.filter(() => next() < 0.1).map((lane) => lane.branch) };
 }
 
-test("every pending tip without a live run is tested exactly once, nothing held or finished is, slots stay level, and a train is asked for only when a tip passed and none waits [invariant]", () => {
+test("every pending tip without a live run is tested exactly once, nothing held or finished is, slots stay level, and a train is asked for only when a tip passed and none waits [k2 property]", () => {
   for (let seed = 1; seed <= 400; seed++) {
     const { lanes: generated, runs: generatedRuns, retry } = scenario(seed);
     const result = plan(generated, generatedRuns, retry);
@@ -73,7 +73,7 @@ test("every pending tip without a live run is tested exactly once, nothing held 
   }
 });
 
-test("a train holds only tips that passed alone, first passed first, at most the cap [invariant]", () => {
+test("a train holds only tips that passed alone, first passed first, at most the cap [k2 property]", () => {
   for (let seed = 1; seed <= 400; seed++) {
     const generated = scenario(seed).lanes;
     const chosen = train(generated);

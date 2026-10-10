@@ -5,7 +5,7 @@ import { decodePacket, encodePacket, inputPacket } from "./wire";
 import { keyboardCapture, commitEdges } from "./keyboardCapture";
 import { PAD_ACTIVE_KEY, PAD_AXIS_LEVELS, PAD_KEYS, PAD_TRIGGER_LEVELS, cursorWorldPacket, decodePad, padKeyPacket, samplePad } from "./padCapture";
 
-test("both pad carriers decode all 4624 quantized axis and trigger combinations into valid rows [invariant]", () => {
+test("both pad carriers decode all 4624 quantized axis and trigger combinations into valid rows [k2 property]", () => {
   const calibration = { first: { x: -400.0, y: 900.0 }, last: { x: 870.0, y: -370.0 } };
   for (let x = 0; x < PAD_AXIS_LEVELS.length; x++) {
     for (let z = 0; z < PAD_AXIS_LEVELS.length; z++) {
@@ -42,7 +42,7 @@ function replayPadSession(session: readonly { readonly packed: number; readonly 
   }
 }
 
-test("the recorded SDL pad session replays all 16 exact input rows through capture and wire [native]", () => {
+test("the recorded SDL pad session replays all 16 exact input rows through capture and wire [k4 reference native]", () => {
 
 
   const recorded = [

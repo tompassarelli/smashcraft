@@ -4,7 +4,7 @@ import { cardSlot } from "../menu/selectionDrag";
 import { cpuSettingsBox } from "./ruleButtons";
 import { CPU_SETTINGS_DONE, CPU_SETTINGS_PANEL, CPU_SETTINGS_PREVIEW, CPU_SETTINGS_PROMPT, CPU_SETTINGS_ROWS } from "./cpuSettingsLayout";
 
-test("CPU settings hit targets never overlap card chip drag targets, including every edge [spec #185]", () => {
+test("CPU settings hit targets never overlap card chip drag targets, including every edge [k3 measure #185]", () => {
   for (let slot = 0; slot < 4; slot++) {
     const box = cpuSettingsBox(slot);
     for (const x of [box.x, box.x + box.width / 2, box.x + box.width]) for (const y of [box.y, box.y - box.height / 2, box.y - box.height]) {
@@ -13,7 +13,7 @@ test("CPU settings hit targets never overlap card chip drag targets, including e
   }
 });
 
-test("CPU panel controls and copy stay separated and inside the 4:3 safe area on widescreen [spec #185]", () => {
+test("CPU panel controls and copy stay separated and inside the 4:3 safe area on widescreen [k3 measure #185]", () => {
   const panel = CPU_SETTINGS_PANEL;
   for (const aspect of [4.0 / 3.0, 16.0 / 10.0, 16.0 / 9.0, 21.0 / 9.0]) {
     const screenLeft = f32(0.4) - aspect * f32(0.6) / 2;

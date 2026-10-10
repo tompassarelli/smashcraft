@@ -37,7 +37,7 @@ function catchesAfterMovement(character: Character, side: number, outsideBefore:
   return fighter.ledge.state === LedgeState.hang;
 }
 
-test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data [reference]", () => {
+test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data [k4 reference melee]", () => {
   // Ledge box ftData x44 +0x10/+0x14/+0x18: PlFx.dat/PlFc.dat = 11,13,9; PlCa.dat = 9,17,11 (ftData_x44_t).
 
   const references = [
@@ -65,7 +65,7 @@ test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap dat
   assertEquals(ledgeCatchBox(Character.demonHunter).highest, 135.0);
 });
 
-test("the catch box's edges are strict for every fighter and side [reference]", () => {
+test("the catch box's edges are strict for every fighter and side [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     const { reach, lowest, highest } = ledgeCatchBox(character);
     const middle = f32(f32(lowest + highest) * 0.5);
@@ -84,7 +84,7 @@ test("the catch box's edges are strict for every fighter and side [reference]", 
   }
 });
 
-test("the catch box sweeps the frame's movement, and only a downward movement catches [reference]", () => {
+test("the catch box sweeps the frame's movement, and only a downward movement catches [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     const { reach, lowest, highest } = ledgeCatchBox(character);
     const middle = f32(f32(lowest + highest) * 0.5);
@@ -100,7 +100,7 @@ test("the catch box sweeps the frame's movement, and only a downward movement ca
   }
 });
 
-test("falling, running up specials, helpless, post-dodge and tumbling fighters catch; other specials, aerials, air dodges and hitstun don't [spec #252]", () => {
+test("falling, running up specials, helpless, post-dodge and tumbling fighters catch; other specials, aerials, air dodges and hitstun don't [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     const states: readonly (readonly [boolean, (f: Fighter) => void])[] = [
       [true, () => undefined],
@@ -142,7 +142,7 @@ test("falling, running up specials, helpless, post-dodge and tumbling fighters c
   }
 });
 
-test("only a full down passes ledges; a slight downward tilt still catches [reference]", () => {
+test("only a full down passes ledges; a slight downward tilt still catches [k4 reference melee-decomp]", () => {
   // Melee refuses ledge catches at stick y -0.66 (ftCliffCommon_80081298, common +0x480).
 
   const fighter = ledgeTestFighter(Character.sylvanas, -1);
@@ -152,7 +152,7 @@ test("only a full down passes ledges; a slight downward tilt still catches [refe
   assertEquals(fighter.ledge.state, LedgeState.hang);
 });
 
-test("ledge contention uses distance, not argument order, and the owner hogs [spec docs/physics.md] [invariant]", () => {
+test("ledge contention uses distance, not argument order, and the owner hogs [k3 measure docs/physics.md]", () => {
   for (const reversed of [false, true]) {
     const near = ledgeTestFighter(Character.sylvanas, -1);
     const far = ledgeTestFighter(Character.rifleman, -1);
@@ -169,7 +169,7 @@ test("ledge contention uses distance, not argument order, and the owner hogs [sp
   }
 });
 
-test("the ledge release regrab cooldown expires after thirty unfrozen ticks [spec docs/gameplay-design.md] [reference]", () => {
+test("the ledge release regrab cooldown expires after thirty unfrozen ticks [k4 reference melee]", () => {
   const fighter = ledgeTestFighter(Character.sylvanas, -1);
   const input = controls();
   catchTestLedge(fighter, input);
@@ -192,7 +192,7 @@ test("the ledge release regrab cooldown expires after thirty unfrozen ticks [spe
   assertEquals(fighter.ledge.serial, 2);
 });
 
-test("each regrab without touching the stage shortens ledge intangibility until none is left [spec #386]", () => {
+test("each regrab without touching the stage shortens ledge intangibility until none is left [k3 measure #386]", () => {
   const fighter = ledgeTestFighter(Character.rifleman, 1);
   let previous = LEDGE_INTANGIBLE_FRAMES + 1;
   let reachedNone = false;

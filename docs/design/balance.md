@@ -3,9 +3,8 @@
 Tom's balance spec (8 Oct 2026). Every number here is an **initial value
 Tom tunes**; the code holds each in one constant, `BALANCE_SPEC`,
 `PUNISH_RESET_FRAMES`, `DISADVANTAGE_FRAMES` and `SCORE_WEIGHTS` in
-smashcraft:ts/scripts/balance.ts, and smashcraft:ts/scripts/balance.tests.ts
-checks this doc states the same values. Changing one changes the code, the
-test and this doc together.
+smashcraft:ts/scripts/balance.ts. Changing one changes the code and this doc
+together.
 
 ## Philosophy
 

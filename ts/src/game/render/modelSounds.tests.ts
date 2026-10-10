@@ -77,7 +77,7 @@ function selectIndex(pose: FighterPose, index: number): FighterPose {
   return pose;
 }
 
-test("sound sparse four slots and catch-up match sequential [invariant]", () => {
+test("sound sparse four slots and catch-up match sequential [k1 scenario]", () => {
   for (const mask of [9, 15]) {
     const fighters = PARTICIPANT_SLOTS.map((slot) => createFighter(Character.demonHunter, slot * 100.0, 1));
     const poses = PARTICIPANT_SLOTS.map(() => createFighterPose());
@@ -111,7 +111,7 @@ test("sound sparse four slots and catch-up match sequential [invariant]", () => 
   }
 });
 
-test("sound from speculative and corrected numerical rollback never dispatches; confirmation does once [spec docs/design/melee/hit-effects.md] [invariant]", () => {
+test("sound from speculative and corrected numerical rollback never dispatches; confirmation does once [k1 scenario]", () => {
   const game = createMatchState();
   setHumanMask(game, 9);
   game.phase = Phase.match;

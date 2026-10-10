@@ -20,7 +20,7 @@ function airborne(character: Character, vx: number): Fighter {
 }
 
 for (const character of SELECTABLE_CHARACTERS) {
-  test(`${fighterName(character)} aerials keep held-stick air drift through the whole move [spec melee]`, () => {
+  test(`${fighterName(character)} aerials keep held-stick air drift through the whole move [k2 property]`, () => {
     for (const style of AERIALS) {
       for (const [start, stick] of [[0.0, 1], [0.0, -1], [1.0, -1], [-1.0, 0]] as const) {
         const probe = createFighter(character, 0.0, 1);

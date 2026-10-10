@@ -55,7 +55,7 @@ function flickThen(gap: number, press: Readonly<Controls>): Readonly<Controls>[]
   return script;
 }
 
-test("every fighter's airborne neutral special turns to a flick back within the window, and only within it [spec #187]", () => {
+test("every fighter's airborne neutral special turns to a flick back within the window, and only within it [k3 measure #187]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     assertTurned(character, "air neutral, B with the flick", play(character, true, flickThen(0, neutralB)));
     assertTurned(character, "air neutral, B at the window's end", play(character, true, flickThen(TURNAROUND_SPECIAL_WINDOW_FRAMES - 1, neutralB)));

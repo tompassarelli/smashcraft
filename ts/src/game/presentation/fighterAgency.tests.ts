@@ -7,7 +7,7 @@ import { advanceFighterMotion } from "../sim/step";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { sweep } from "../../runtime/sweep";
 
-test("locked input boundaries agree with the replay agency references in Lua32 [invariant]", () => {
+test("locked input boundaries agree with the replay agency references in Lua32 [k4 reference lua32]", () => {
 
   const references = [
     { name: "grounded buffer", letters: ".............AAAAAAAAAA" },
@@ -33,7 +33,7 @@ test("locked input boundaries agree with the replay agency references in Lua32 [
   }
 });
 
-sweep("clearance shortcuts preserve full contact forecasts near stage geometry in Lua32 [invariant]", () => {
+sweep("clearance shortcuts preserve full contact forecasts near stage geometry in Lua32 [k2 property]", () => {
   const bounded = new FighterAgencyForecast();
   const full = new FighterAgencyForecast(false);
   const input = neutralControls();
@@ -62,7 +62,7 @@ sweep("clearance shortcuts preserve full contact forecasts near stage geometry i
   }
 });
 
-test("frozen tech press lockouts preserve the full forecast through hitlag expiry [invariant]", () => {
+test("frozen tech press lockouts preserve the full forecast through hitlag expiry [k2 property]", () => {
   const bounded = new FighterAgencyForecast();
   const full = new FighterAgencyForecast(false);
   const input = neutralControls();

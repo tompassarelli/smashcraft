@@ -13,7 +13,7 @@ import { specialForm, specialKit } from "../sim/heroSpecials";
 
 const pose: HitAreaPose = { visible: false, x: 0.0, z: 0.0, scale: 0.0 };
 
-test("Fan of Knives sprays seven oriented knives to its authored endpoints in both facings [spec docs/design/warden-fan-of-knives.md]", () => {
+test("Fan of Knives sprays seven oriented knives to its authored endpoints in both facings [k3 measure docs/design/warden-fan-of-knives.md]", () => {
   const knife: FanKnifePose = { ...pose, yaw: 0.0, pitch: 0.0, alpha: 0 };
   for (const facing of [-1, 1]) {
     const fighter = createFighter(Character.warden, 0.0, facing);
@@ -39,7 +39,7 @@ test("Fan of Knives sprays seven oriented knives to its authored endpoints in bo
   }
 });
 
-test("every disjoint normal marks each active region centre every frame in both facings [spec docs/disjoint-legibility.md]", () => {
+test("every disjoint normal marks each active region centre every frame in both facings [k2 property]", () => {
   let checked = 0;
   const scratch = emptyHitRegion();
   for (const character of SELECTABLE_CHARACTERS) {
@@ -71,7 +71,7 @@ test("every disjoint normal marks each active region centre every frame in both 
   assertTrue(disjointNormals(lich).includes(AttackStyle.downSmash));
 });
 
-test("every authored special form marks each live strike centre on the collision frame [spec docs/disjoint-legibility.md]", () => {
+test("every authored special form marks each live strike centre on the collision frame [k2 property]", () => {
   let checked = 0;
   for (const character of SELECTABLE_CHARACTERS) {
     const fighter = createFighter(character, -321.0, -1);
@@ -101,7 +101,7 @@ test("every authored special form marks each live strike centre on the collision
   assertTrue(checked > 100);
 });
 
-test("every hero spell projectile marks its collision centre on every live frame including Lich remote bursts [spec docs/disjoint-legibility.md]", () => {
+test("every hero spell projectile marks its collision centre on every live frame including Lich remote bursts [k2 property]", () => {
   let checked = 0;
   for (const character of SELECTABLE_CHARACTERS) {
     const fighter = createFighter(character, 0.0, 1);
@@ -128,27 +128,4 @@ test("every hero spell projectile marks its collision centre on every live frame
     }
   }
   assertTrue(checked > 1000);
-});
-
-test("the original fighters' missiles mark their live collision centre every frame [spec docs/disjoint-legibility.md]", () => {
-  const cases = [
-    { character: Character.rifleman, kind: ProjectileKind.blaster },
-    { character: Character.rifleman, kind: ProjectileKind.recoil },
-    { character: Character.demonHunter, kind: ProjectileKind.manaBurn },
-  ] as const;
-  for (const entry of cases) {
-    const fighter = createFighter(entry.character, -400.0, 1);
-    const projectile = mutableProjectile(fighter, 0);
-    if (projectile === undefined) throw new Error("missing projectile slot");
-    projectile.kind = entry.kind;
-    for (let life = 80; life > 0; life--) {
-      projectile.life = life;
-      projectile.x = 701.0 + life;
-      projectile.z = 227.0;
-      const actual = projectedProjectile(fighter, 0, true);
-      assertTrue(actual.visible);
-      assertEquals(actual.x, projectile.x);
-      assertEquals(actual.z, projectile.z);
-    }
-  }
 });

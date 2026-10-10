@@ -39,13 +39,13 @@ function recover(stage: number, name: string, character: Character, side: number
   assertEquals(fighter.motion.grounded, true, `${where} never landed`);
 }
 
-test("Blademaster stops on Tomb’s raised platform after its ascent cancels his recovery dash [repro #242]", () => {
+test("Blademaster stops on Tomb’s raised platform after its ascent cancels his recovery dash [k1 scenario]", () => {
   recover(TOMB_OF_SARGERAS_STAGE, "Tomb of Sargeras", Character.blademaster, -1, -40.0, 0);
 });
 
 
 
-sweep("every fighter recovers onto every stage's main deck from below either ledge [spec #115]", () => {
+sweep("every fighter recovers onto every stage's main deck from below either ledge [k1 scenario]", () => {
   for (const { id: stage, name } of STAGE_CATALOG) {
     for (const character of SELECTABLE_CHARACTERS) {
       for (const side of [-1, 1]) for (const [z, jumps] of [[-40.0, 0], [-120.0, 1]] as const) {

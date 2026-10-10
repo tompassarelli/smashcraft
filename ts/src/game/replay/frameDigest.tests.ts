@@ -19,7 +19,7 @@ function joinedTape(): string[] {
   }));
 }
 
-test("#69 a test build's replay records every frame's digest and replays with none divergent [invariant]", () => {
+test("#69 a test build's replay records every frame's digest and replays with none divergent [k1 scenario]", () => {
   const result = replayMatch(joinedTape());
   assertEquals(result.problems.join("; "), "");
   assertEquals(result.digests, FRAMES);

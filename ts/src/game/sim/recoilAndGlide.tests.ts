@@ -55,7 +55,7 @@ function firstShot(stick: Readonly<Controls>): { vx: number; vz: number; shotX: 
   return { vx: owner.motion.vx, vz: owner.motion.vz, shotX: shot?.velocityX ?? 0.0, shotZ: shot?.velocityZ ?? 0.0 };
 }
 
-test("Recoil shot: the stick through frame 4 picks one of eight directions (up when neutral), and the shot fires the opposite way [spec #127]", () => {
+test("Recoil shot: the stick through frame 4 picks one of eight directions (up when neutral), and the shot fires the opposite way [k3 measure #127]", () => {
   const up = firstShot(controls());
   assertEquals(up.vx, 0.0);
   assertGreaterThan(up.vz, 25.0);

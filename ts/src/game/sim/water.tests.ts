@@ -45,7 +45,7 @@ function floater(character: Character): Fighter {
   return f;
 }
 
-test("every fighter's water jump and double jump from the surface reach above the deck [spec docs/design/water-stage.md]", () => {
+test("every fighter's water jump and double jump from the surface reach above the deck [k3 measure docs/design/water-stage.md]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const f = floater(character);
     f.water.entries = 1;
@@ -62,7 +62,7 @@ test("every fighter's water jump and double jump from the surface reach above th
   }
 });
 
-test("a hydra strike replays through rollback with no difference, and a dodged lunge at its drifting mark submerges after 18 frames and restores through rollback [invariant] [repro #277]", () => {
+test("a hydra strike replays through rollback with no difference, and a dodged lunge at its drifting mark submerges after 18 frames and restores through rollback [k1 scenario]", () => {
   const live = seaMatch(-1000.0, SEA_SURFACE_Z);
   const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
   play(live, 1, 170);

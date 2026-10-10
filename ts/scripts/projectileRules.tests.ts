@@ -42,7 +42,7 @@ function violations(character: Character, name: string): Map<string, string> {
   return found;
 }
 
-test("the powershield's reflector stays inside the accepted 2-4 frame window [spec docs/gameplay-design.md]", () => {
+test("the powershield's reflector stays inside the accepted 2-4 frame window [k3 measure docs/gameplay-design.md]", () => {
   expect(SHIELD_REFLECTOR_ACTIVE_FRAMES).toBeGreaterThanOrEqual(2);
   expect(SHIELD_REFLECTOR_ACTIVE_FRAMES).toBeLessThanOrEqual(4);
 });

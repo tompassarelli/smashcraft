@@ -17,7 +17,7 @@ function fourWorld() {
   ]);
 }
 
-test("multipleAttackersKeepIndependentVictimHitWindows [spec #12]", () => {
+test("multipleAttackersKeepIndependentVictimHitWindows [k3 measure #12]", () => {
   const world = fourWorld();
   world.fighters[0]!.motion.x = 0.0;
   world.fighters[2]!.motion.x = 0.0;
@@ -34,7 +34,7 @@ test("multipleAttackersKeepIndependentVictimHitWindows [spec #12]", () => {
   assertEquals(world.fighters[3]!.status.damage, attackDamage(AttackStyle.jab) * 2);
 });
 
-test("fourFightersArbitrateBothLedgesByDistance [spec docs/physics.md]", () => {
+test("fourFightersArbitrateBothLedgesByDistance [k3 measure docs/physics.md]", () => {
   const world = fourWorld();
   for (let slot = 0; slot < 4; slot++) {
     const fighter = world.fighters[slot]!;

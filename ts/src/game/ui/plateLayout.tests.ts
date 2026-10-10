@@ -6,7 +6,7 @@ import {
 } from "./plateLayout";
 import { TILE_TEXTURE_PX, unitsForPixels } from "./portraitFrames";
 
-test("the HUD bust draws its tile render 1:1 and four plates fit side by side [spec #149]", () => {
+test("the HUD bust draws its tile render 1:1 and four plates fit side by side [k3 measure #149]", () => {
   assertEquals(BUST_BOX.width, TILE_TEXTURE_PX);
   assertEquals(BUST_BOX.height, BUST_BOX.width);
   for (const count of [2, 3, 4]) {
@@ -17,7 +17,7 @@ test("the HUD bust draws its tile render 1:1 and four plates fit side by side [s
   }
 });
 
-test("the damage readout ramps white to dark red [spec #149]", () => {
+test("the damage readout ramps white to dark red [k3 measure #149]", () => {
   assertEquals(damageColour(0.0), 0xffffff);
   const darkest = damageColour(200.0);
   assertEquals(damageColour(999.0), darkest);
@@ -25,7 +25,7 @@ test("the damage readout ramps white to dark red [spec #149]", () => {
   assertEquals(red > 2 * green && red > 2 * blue && red < 0xff, true, `darkest ${darkest} is not a dark red`);
 });
 
-test("a hit's shake stays within its bound and settles to zero [spec #149]", () => {
+test("a hit's shake stays within its bound and settles to zero [k2 property]", () => {
   assertEquals(shakeStrength(999.0), SHAKE_MAX_PX);
   for (let frame = 0; frame < SHAKE_FRAMES; frame++) {
     assertTrue(Math.abs(shakeX(SHAKE_MAX_PX, frame)) <= SHAKE_MAX_PX && Math.abs(shakeY(SHAKE_MAX_PX, frame)) <= SHAKE_MAX_PX);

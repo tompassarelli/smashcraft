@@ -8,7 +8,7 @@ import { Phase, stageClock } from "./rules";
 import { stepMatch } from "./step";
 
 for (const [stage, period] of [[CARRIED_TEST_STAGE, 920], [TIMED_TEST_STAGE, 420]] as const) {
-  test(`stage ${stage}'s complete platform timetable replays exactly and costs no neutral 0% stock [spec docs/stage-hazards.md] [invariant]`, () => {
+  test(`stage ${stage}'s complete platform timetable replays exactly and costs no neutral 0% stock [k1 scenario]`, () => {
     const live = createReplaySnapshot(); const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
     live.match.phase = Phase.match; live.match.stageChoice = stage;
     live.match.humanMask = 3; live.match.humanFighterMask = 3;
@@ -31,7 +31,7 @@ for (const [stage, period] of [[CARRIED_TEST_STAGE, 920], [TIMED_TEST_STAGE, 420
     assertEquals(firstStateDifference(live, replay), undefined);
     assertEquals(stateChecksum(live), stateChecksum(replay));
   });
-  test(`hazards off keeps stage ${stage}'s platforms stopped through an entire cycle and survives rollback [spec docs/stage-hazards.md]`, () => {
+  test(`hazards off keeps stage ${stage}'s platforms stopped through an entire cycle and survives rollback [k1 scenario]`, () => {
     const live = createReplaySnapshot(); const copy = createReplaySnapshot();
     live.match.phase = Phase.match; live.match.stageChoice = stage; live.match.hazards = false;
     copyReplayState(copy, live);

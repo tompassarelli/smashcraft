@@ -30,7 +30,7 @@ function attackPair(style: AttackStyle, frame: number, targetX: number, targetZ 
   return { owner, target, world };
 }
 
-test("Forsaken Paladin contact paths and attack phase agree on the authored active frames with one shared hit window [spec #96]", () => {
+test("Forsaken Paladin contact paths and attack phase agree on the authored active frames with one shared hit window [k2 property]", () => {
   const region = emptyHitRegion();
   for (const style of NORMAL_TIMINGS) {
     const count = authoredHitRegionCount(style, FORSAKEN_PALADIN_MOVES);

@@ -33,7 +33,7 @@ function retailCombatContact(world: Roster, knockback: number, dx: number, dz: n
   finishDamageContacts(world);
 }
 
-test("retail combat stacking starts on the tenth moving frame and freezes in hitlag [reference]", () => {
+test("retail combat stacking starts on the tenth moving frame and freezes in hitlag [k4 reference melee]", () => {
   for (const age of [9, 10]) {
     const owner = createReferenceFighter(Character.sylvanas, -300.0, 1);
     const target = createReferenceFighter(Character.rifleman, -100.0, -1);
@@ -62,7 +62,7 @@ test("retail combat stacking starts on the tenth moving frame and freezes in hit
   }
 });
 
-test("retail combat stacking merges each axis once after strongest contact selection [reference]", () => {
+test("retail combat stacking merges each axis once after strongest contact selection [k4 reference melee]", () => {
   const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const target = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(owner, target);
@@ -91,7 +91,7 @@ test("retail combat stacking merges each axis once after strongest contact selec
   assertNear(target.launch.knockbackZ, -f32(12.5999999196), f32(0.000001));
 });
 
-test("retail combat ground tangent uses the new contact, then traction rather than air decay [reference]", () => {
+test("retail combat ground tangent uses the new contact, then traction rather than air decay [k4 reference melee]", () => {
   for (const facing of [-1, 1]) {
     const owner = createReferenceFighter(Character.sylvanas, -100.0, 1);
     const target = createReferenceFighter(Character.rifleman, 0.0, -1);
@@ -115,7 +115,7 @@ test("retail combat ground tangent uses the new contact, then traction rather th
   }
 });
 
-test("retail combat damage levels use all three unrounded scaled thresholds [reference]", () => {
+test("retail combat damage levels use all three unrounded scaled thresholds [k4 reference melee]", () => {
   assertEquals(damageLevelForKnockback(24.999000549316406), 0);
   assertEquals(damageLevelForKnockback(25.0), 1);
   assertEquals(damageLevelForKnockback(52.499000549316406), 1);
@@ -128,7 +128,7 @@ test("retail combat damage levels use all three unrounded scaled thresholds [ref
   assertEquals(ordinaryHitstunFrames(80.0), 32);
 });
 
-test("retail combat ground bounce uses a ten-degree threshold and four-fifths vertical speed [reference]", () => {
+test("retail combat ground bounce uses a ten-degree threshold and four-fifths vertical speed [k4 reference melee]", () => {
   for (const grounded of [false, true]) {
     for (const steep of [false, true]) {
       const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
@@ -208,7 +208,7 @@ function recordedFalcoFallFirstDifference(hostCharacter: Character, initialVeloc
   return firstDifference;
 }
 
-test("a recorded NTSC Falco neutral fall matches ten independent positions [reference]", () => {
+test("a recorded NTSC Falco neutral fall matches ten independent positions [k4 reference melee]", () => {
   for (const host of [Character.sylvanas, Character.rifleman]) assertEquals(recordedFalcoFallFirstDifference(host, 0.0), 0);
 });
 
@@ -263,15 +263,15 @@ function recordedFalcoDashFirstDifference(hostCharacter: Character, initialSpeed
   return firstDifference;
 }
 
-test("recorded Falco dash overspeed braking matches both original fighter hosts [reference]", () => {
+test("recorded Falco dash overspeed braking matches both original fighter hosts [k4 reference melee]", () => {
   for (const host of [Character.sylvanas, Character.rifleman]) assertEquals(recordedFalcoDashFirstDifference(host, -1.9000000953674316), 0);
 });
 
-test("recorded Falco dash entry uses the walk self velocity for entry displacement [reference]", () => {
+test("recorded Falco dash entry uses the walk self velocity for entry displacement [k4 reference melee]", () => {
   for (const host of [Character.sylvanas, Character.rifleman]) assertTrue(recordedFalcoDashEntryMatches(host));
 });
 
-test("retail walk uses character acceleration and the common taper [reference]", () => {
+test("retail walk uses character acceleration and the common taper [k4 reference melee]", () => {
   for (const host of [Character.sylvanas, Character.rifleman]) {
     const f = falcoRig(host, 0.0, 1);
     const input = controls({ direction: 1, walking: true });
@@ -282,7 +282,7 @@ test("retail walk uses character acceleration and the common taper [reference]",
   }
 });
 
-test("retail run tapers below target and brakes overspeed by character friction [reference]", () => {
+test("retail run tapers below target and brakes overspeed by character friction [k4 reference melee]", () => {
   const input = controls({ direction: 1 });
   const belowTarget = falcoRig(Character.sylvanas, 0.0, 1);
   belowTarget.motion.vx = melee(0.8999999761581421);
@@ -300,7 +300,7 @@ test("retail run tapers below target and brakes overspeed by character friction 
   assertNear(overspeed.motion.vx, f32(1.82) * 6, f32(0.00001));
 });
 
-test("a recorded NTSC Falco jump has five grounded frames, then a raw takeoff [reference]", () => {
+test("a recorded NTSC Falco jump has five grounded frames, then a raw takeoff [k4 reference melee]", () => {
   for (const host of [Character.sylvanas, Character.rifleman]) assertEquals(recordedFalcoJumpFirstDifference(host, 25), 0);
 });
 
@@ -341,7 +341,7 @@ function recordedGroundedDamageFirstDifference(character: Character, velocityOff
 
 const min12 = (sample: number) => (sample < 12 ? sample : 12);
 
-test("recorded NTSC grounded damage matches freeze release, traction and actionability [reference]", () => {
+test("recorded NTSC grounded damage matches freeze release, traction and actionability [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) assertEquals(recordedGroundedDamageFirstDifference(character, 0.0), 0);
 });
 
@@ -355,7 +355,7 @@ function contactProjectile(owner: Fighter, target: Fighter, index: number, kind:
   projectile.direction = 1;
 }
 
-test("the combat ground contact threshold keeps low downward hits on the floor [reference]", () => {
+test("the combat ground contact threshold keeps low downward hits on the floor [k4 reference melee]", () => {
   for (const airborne of [false, true]) {
     for (const aboveThreshold of [0, 1]) {
       const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
@@ -401,7 +401,7 @@ test("the combat ground contact threshold keeps low downward hits on the floor [
   }
 });
 
-test("combat DI uses the actual launch magnitude for authored non-unit directions [reference]", () => {
+test("combat DI uses the actual launch magnitude for authored non-unit directions [k4 reference melee]", () => {
   const target = createReferenceFighter(Character.demonHunter, 0.0, 1);
   target.motion.grounded = false;
   target.motion.z = 300.0;
@@ -416,7 +416,7 @@ test("combat DI uses the actual launch magnitude for authored non-unit direction
   assertFalse(target.launch.diPending);
 });
 
-test("combat shield damage uses integer power before the shieldstun calculation [reference]", () => {
+test("combat shield damage uses integer power before the shieldstun calculation [k4 reference melee]", () => {
   assertNear(digitalShieldstunDuration(4.0), f32(3.8), f32(0.0001));
   assertNear(digitalShieldstunDuration(4.989999771118164), f32(3.8), f32(0.0001));
   assertEquals(digitalShieldstunFrames(4.0), 3);
@@ -445,7 +445,7 @@ function advanceBoth(world: Roster, first: Readonly<Controls>, second: Readonly<
   advanceFighter(world, 1, 0, second, 0.0);
 }
 
-test("a recorded NTSC digital shield contact matches paired pushback and grounded recoil [reference]", () => {
+test("a recorded NTSC digital shield contact matches paired pushback and grounded recoil [k4 reference melee]", () => {
   for (const sourceCharacter of [Character.sylvanas, Character.rifleman]) {
     for (const targetCharacter of [Character.sylvanas, Character.rifleman]) {
       const source = createReferenceFighter(sourceCharacter, melee(38.56430435180664), 1);
@@ -491,7 +491,7 @@ function prepareAirborneShieldPair(attacker: Fighter, defender: Fighter): void {
   defender.shield.raised = true;
 }
 
-test("an airborne shield contact initializes stacked, weight-scaled relative recoil [reference]", () => {
+test("an airborne shield contact initializes stacked, weight-scaled relative recoil [k4 reference melee]", () => {
   const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
   const defender = createReferenceFighter(Character.rifleman, 100.0, -1);
   const world = testWorld(attacker, defender);
@@ -534,7 +534,7 @@ test("an airborne shield contact initializes stacked, weight-scaled relative rec
   assertNear(oppositeAttacker.shield.recoilZ, oppositeDefender.motion.deltaZ * 0.25, f32(0.0001));
 });
 
-test("a combat shield break uses the character's launch attribute after the contact freeze [reference]", () => {
+test("a combat shield break uses the character's launch attribute after the contact freeze [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const target = createReferenceFighter(character, 85.0, -1);
@@ -558,7 +558,7 @@ test("a combat shield break uses the character's launch attribute after the cont
   }
 });
 
-test("a contact batch collects all damage before choosing a launch, in either traversal [reference] [invariant]", () => {
+test("a contact batch collects all damage before choosing a launch, in either traversal [k4 reference melee]", () => {
   for (const reversed of [false, true]) {
     const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const target = createReferenceFighter(Character.rifleman, 100.0, -1);
@@ -640,7 +640,7 @@ function startObservedRoll(f: Fighter, input: Controls, profile: number, directi
   input.direction = 0;
 }
 
-test("knockback caps before motion modifiers, and fixed power ignores percent [reference]", () => {
+test("knockback caps before motion modifiers, and fixed power ignores percent [k4 reference melee]", () => {
   const twoThirds = f32(2.0 / 3.0);
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, 1.0), 2500.0);
   assertEquals(ordinaryHitKnockback(999.0, 100.0, 80.0, 1000.0, 500.0, twoThirds), f32(2500.0 * twoThirds));
@@ -655,7 +655,7 @@ test("knockback caps before motion modifiers, and fixed power ignores percent [r
   assertEquals(ordinaryHitstunFrames(0.0), 1);
 });
 
-test("crouch and charge are sampled before a hit interrupts the action [reference]", () => {
+test("crouch and charge are sampled before a hit interrupts the action [k4 reference melee]", () => {
   for (const context of [0, 1, 2]) {
     const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const victim = createReferenceFighter(Character.rifleman, 100.0, -1);
@@ -678,7 +678,7 @@ test("crouch and charge are sampled before a hit interrupts the action [referenc
   }
 });
 
-test("air drift preserves opposed overspeed and brakes in the same direction [reference]", () => {
+test("air drift preserves opposed overspeed and brakes in the same direction [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     for (const direction of [-1, 1]) {
       const f = createReferenceFighter(character, 0.0, -direction);
@@ -699,7 +699,7 @@ test("air drift preserves opposed overspeed and brakes in the same direction [re
   }
 });
 
-test("an electric contact preserves the attacker's and victim's pause boundaries [reference]", () => {
+test("an electric contact preserves the attacker's and victim's pause boundaries [k4 reference melee]", () => {
   for (const electric of [false, true]) {
     for (const crouching of [false, true]) {
       for (const direct of [false, true]) {
@@ -743,7 +743,7 @@ test("an electric contact preserves the attacker's and victim's pause boundaries
   }
 });
 
-test("an electric contact batch uses the strongest launch's effect and the largest damage [reference]", () => {
+test("an electric contact batch uses the strongest launch's effect and the largest damage [k4 reference melee]", () => {
   for (const electricWinner of [false, true]) {
     for (const reversed of [0, 1]) {
       const owner = createReferenceFighter(Character.sylvanas, 0.0, 1);
@@ -771,7 +771,7 @@ function airborneFalco(): Fighter {
   return f;
 }
 
-test("a retail aerial fast fall requires down at most three frames before descent [reference]", () => {
+test("a retail aerial fast fall requires down at most three frames before descent [k4 reference melee]", () => {
   for (let lead = 0; lead <= 5; lead++) {
     const f = airborneFalco();
     f.motion.vz = f32(f32(lead - 0.5) * f.tuning.physics.gravity);
@@ -789,7 +789,7 @@ test("a retail aerial fast fall requires down at most three frames before descen
   }
 });
 
-test("a stronger aerial dodge keeps retail decay for every digital direction [spec #347] [reference]", () => {
+test("a stronger aerial dodge keeps retail decay for every digital direction [k4 reference melee]", () => {
   for (const horizontal of [-1, 0, 1]) {
     for (const vertical of [-1, 0, 1]) {
       const f = airborneFalco();
@@ -830,7 +830,7 @@ test("a stronger aerial dodge keeps retail decay for every digital direction [sp
   }
 });
 
-test("a stronger aerial dodge resumes gravity and drift on tick thirty [spec #347] [reference]", () => {
+test("a stronger aerial dodge resumes gravity and drift on tick thirty [k4 reference melee]", () => {
   for (const mode of [0, 1, 2]) {
     for (const steer of [-1, 0, 1]) {
       const f = airborneFalco();
@@ -865,7 +865,7 @@ test("a stronger aerial dodge resumes gravity and drift on tick thirty [spec #34
   }
 });
 
-test("sampled rolls move through their actual entry, a freeze and recovery [reference]", () => {
+test("sampled rolls move through their actual entry, a freeze and recovery [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     for (let profile = 0; profile <= 7; profile++) {
       for (const facing of [-1, 1]) {

@@ -18,7 +18,7 @@ const reconcileRun = async (run: string) => {
 };
 
 
-test("the r8 capture reconciles to #26's measured table [native] [reference]", async () => {
+test("the r8 capture reconciles to #26's measured table [k4 reference native]", async () => {
   const result = await reconcileRun("r8");
   expect(integrityTable(result)).toEqual([
     "| Metric | Result |",

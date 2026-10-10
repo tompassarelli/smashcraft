@@ -64,7 +64,7 @@ const area = (points: readonly OutlinePoint[]) => Math.abs(points.reduce((sum, [
   return sum + x * nextZ - nextX * z;
 }, 0)) / 2;
 
-test("the main deck model's outline is the main deck's collision lines on every shipped stage [invariant]", () => {
+test("the main deck model's outline is the main deck's collision lines on every shipped stage [k2 property]", () => {
   for (const stage of SHIPPED_STAGES) {
     const corners = collisionCorners(stage);
     const [ledge] = corners;

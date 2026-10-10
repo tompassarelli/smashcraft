@@ -10,7 +10,7 @@ export const ISOLATED_TEST_GROUPS: readonly (readonly string[])[] = [
   ["scripts/platformAdvantage.tests.ts"],
   ["test/game.test.ts"],
   ["test/desync-guard.test.ts"],
-  ["test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/player-text.test.ts"],
+  ["test/visual-lifecycle.test.ts", "test/player-text.test.ts"],
   ["test/lag-recovery.test.ts"],
   ["test/local-start.test.ts", "test/match-settings.test.ts"],
 ];

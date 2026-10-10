@@ -14,7 +14,7 @@ import { ROSTER_MANA } from "../src/game/sim/mana";
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
-test.each(SELECTABLE_CHARACTERS)("real Wisp map fires fighter %i's four EX specials with matching two-client state and no errors [spec #329] [invariant]", character => {
+test.each(SELECTABLE_CHARACTERS)("real Wisp map fires fighter %i's four EX specials with matching two-client state and no errors [k1 scenario]", character => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(1);

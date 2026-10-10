@@ -138,15 +138,15 @@ function checkParriedHit(character: Character): void {
   }
 }
 
-test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze [spec #102]", () => {
+test("after a parried hit every grounded option starts on the first actionable frame, pressed during the freeze [k3 measure #102]", () => {
   checkParriedHit(Character.rifleman);
 });
 
-sweep("every fighter starts every grounded option on the first actionable frame after a parried hit [spec #102]", () => {
+sweep("every fighter starts every grounded option on the first actionable frame after a parried hit [k3 measure #102]", () => {
   for (const character of SELECTABLE_CHARACTERS) checkParriedHit(character);
 });
 
-test("a late shield keeps its shieldstun and release lag [spec #102]", () => {
+test("a late shield keeps its shieldstun and release lag [k3 measure #102]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const { duel: d } = jabOnShield(character, 0);
     const defender = defenderOf(d);
@@ -187,7 +187,7 @@ function shotOnShield(character: Character, raise: number): { readonly duel: Due
   return undefined;
 }
 
-sweep("after a parried projectile every grounded option starts on the next frame [spec #102]", () => {
+sweep("after a parried projectile every grounded option starts on the next frame [k3 measure #102]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const name = fighterName(character);
     for (const option of OPTIONS) {

@@ -11,7 +11,7 @@ import { authoredPhysics } from "./tuning";
 
 const jumpSquatFrames = (character: Character) => authoredPhysics(character).jumpSquatFrames;
 
-test("hit regions snapshot different effects before either trade cancels its attack [spec docs/physics.md] [invariant]", () => {
+test("hit regions snapshot different effects before either trade cancels its attack [k3 measure docs/physics.md]", () => {
   for (const reverse of [false, true]) {
     const first = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const second = createReferenceFighter(Character.sylvanas, 100.0, -1);
@@ -30,7 +30,7 @@ test("hit regions snapshot different effects before either trade cancels its att
   }
 });
 
-test("an empty landing recovers once, after four ticks [reference]", () => {
+test("an empty landing recovers once, after four ticks [k4 reference melee]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
     const fighter = createReferenceFighter(character, 0.0, 1);
     const input = controls();
@@ -53,7 +53,7 @@ test("an empty landing recovers once, after four ticks [reference]", () => {
   }
 });
 
-test("a jump accepts the same landing recovery boundary as attacks [spec docs/physics.md]", () => {
+test("a jump accepts the same landing recovery boundary as attacks [k3 measure docs/physics.md]", () => {
   for (let recovery = 4; recovery <= 18; recovery++) {
     const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const input = controls();
@@ -90,7 +90,7 @@ const SHORT_AERIAL_LANDING_LAG = [
   [AttackStyle.neutralAir, 5], [AttackStyle.forwardAir, 7], [AttackStyle.backAir, 8], [AttackStyle.upAir, 7], [AttackStyle.downAir, 9],
 ] as const;
 
-test("every fighter's aerials land with the short lag, pressed shield or not [spec #54]", () => {
+test("every fighter's aerials land with the short lag, pressed shield or not [k3 measure #54]", () => {
   for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
     for (const [style, lag] of SHORT_AERIAL_LANDING_LAG) {
       for (const pressed of [false, true]) {

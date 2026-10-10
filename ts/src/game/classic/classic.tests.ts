@@ -73,7 +73,7 @@ function finish(game: MatchState, world: Roster, won: boolean): void {
   settleConfiguredMatch(game, world);
 }
 
-test("every fighter in the Classic selector has one Classic route: five rival fights, the fifth on its home stage, then a lore boss and a two-or-three-line ending; the selector offers exactly the finished routes [spec docs/design/classic-mode.md] [repro #345]", () => {
+test("every fighter in the Classic selector has one Classic route: five rival fights, the fifth on its home stage, then a lore boss and a two-or-three-line ending; the selector offers exactly the finished routes [k3 measure docs/design/classic-mode.md]", () => {
   for (const fighter of CLASSIC_CHARACTERS) {
     const routes = CLASSIC_ROUTES.filter(route => route.fighter === fighter);
     assertEquals(routes.length, 1, `${fighterName(fighter)} routes`);
@@ -116,7 +116,7 @@ test("every fighter in the Classic selector has one Classic route: five rival fi
   }
 });
 
-test("a Classic run plays every fighter's route in order, climbing the tiers, through its boss to the ending card and results line, and restores the menu [spec docs/design/classic-mode.md]", () => {
+test("a Classic run plays every fighter's route in order, climbing the tiers, through its boss to the ending card and results line, and restores the menu [k3 measure docs/design/classic-mode.md]", () => {
   for (const fighter of CLASSIC_CHARACTERS) {
     const name = fighterName(fighter);
     const route = classicRoute(fighter);
@@ -160,7 +160,7 @@ test("a Classic run plays every fighter's route in order, climbing the tiers, th
   }
 });
 
-test("a lost Classic fight continues as the same fight one tier easier, never below Rookie, and Back ends the run [spec docs/design/classic-mode.md]", () => {
+test("a lost Classic fight continues as the same fight one tier easier, never below Rookie, and Back ends the run [k3 measure docs/design/classic-mode.md]", () => {
   const game = classicSelection(Character.warden, 1);
   assertTrue(startClassic(game, 0));
   let world = begin(game);
@@ -198,7 +198,7 @@ function bossMatch(kind: BossKind, seed: number): ReplayState {
 }
 
 for (const boss of BOSSES) {
-  test(`${boss.name}'s strikes land on the same frames under two match seeds, and replaying from a mid-match snapshot equals straight play [spec #274] [invariant]`, () => {
+  test(`${boss.name}'s strikes land on the same frames under two match seeds, and replaying from a mid-match snapshot equals straight play [k1 scenario]`, () => {
     const frames = BOSS_OPENING_FRAMES + bossCycleFrames(boss) + 180 + 1;
     const tracks: string[] = [];
     for (const seed of [3, 4099]) {
@@ -225,7 +225,7 @@ for (const boss of BOSSES) {
   });
 }
 
-test("a Lore Battles entry built from data alone plays through the configured-match engine: starting damage, its stocks, and survive or KO-within-the-clock judged at time [spec docs/design/classic-mode.md]", () => {
+test("a Lore Battles entry built from data alone plays through the configured-match engine: starting damage, its stocks, and survive or KO-within-the-clock judged at time [k1 scenario]", () => {
 
   const hunt: ConfiguredMatch = {
     id: "lore.warden-hunts-illidan", player: Character.warden,

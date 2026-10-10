@@ -59,12 +59,12 @@ function pressToFrame(choice: number): number {
   throw new Error("the press reached no frame");
 }
 
-test("against the computer a press reaches the simulation 2 frames later by default, and the fixed setting's frames when set [spec #396]", () => {
+test("against the computer a press reaches the simulation 2 frames later by default, and the fixed setting's frames when set [k3 measure #396]", () => {
   expect(pressToFrame(AUTO_DELAY)).toBe(2);
   expect(pressToFrame(0)).toBe(0);
 });
 
-sweep("every fixed delay from 0 to 8 reaches the simulation exactly that many frames after the press [spec #396]", () => {
+sweep("every fixed delay from 0 to 8 reaches the simulation exactly that many frames after the press [k3 measure #396]", () => {
   for (let choice = 0; choice <= 8; choice++) expect(pressToFrame(choice)).toBe(choice);
 });
 
@@ -144,10 +144,10 @@ function expectSettled(rttMs: number, frames: number): void {
   expect(measured.indicator).toEqual(["", ""]);
 }
 
-test("two clients at 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [spec #396]", () => {
+test("two clients at 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [k1 scenario]", () => {
   expectSettled(120, 150);
 });
 
-sweep("two clients at 0, 60 and 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [spec #396]", () => {
+sweep("two clients at 0, 60 and 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [k1 scenario]", () => {
   for (const rttMs of [0, 60, 120]) expectSettled(rttMs, 1200);
 });

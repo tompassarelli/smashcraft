@@ -10,7 +10,7 @@ import { GRAB_HOLD_FRAMES, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_CONTACT_FRAME, PUMME
 import type { Controls, Roster } from "./roster";
 import { controls, testBeginAttacks, testGrabFrame, testWorld } from "./testWorld";
 
-test("simultaneous grabs give neither slot ownership [spec docs/physics.md]", () => {
+test("simultaneous grabs give neither slot ownership [k3 measure docs/physics.md]", () => {
   const first = createFighter(Character.rifleman, 0.0, 1);
   const second = createFighter(Character.rifleman, 90.0, -1);
   const world = testWorld(first, second);
@@ -70,7 +70,7 @@ function holdUntilFree(world: Roster, target: Fighter, mash: Mash, owner: (frame
   return undefined;
 }
 
-test("every grab holds the same time at any percent, and mashing shortens it within its bounds [spec docs/gameplay-design.md]", () => {
+test("every grab holds the same time at any percent, and mashing shortens it within its bounds [k3 measure docs/gameplay-design.md]", () => {
   for (const character of GRABBERS) {
     for (const percent of [0.0, 150.0]) {
       for (const mash of ["none", "slow", "human", "quick", "fastest"] as const) {
@@ -85,7 +85,7 @@ test("every grab holds the same time at any percent, and mashing shortens it wit
   }
 });
 
-test("a victim mashing 8 or more times a second escapes the pummel; 6 a second or caught off guard takes it [spec docs/gameplay-design.md]", () => {
+test("a victim mashing 8 or more times a second escapes the pummel; 6 a second or caught off guard takes it [k3 measure docs/gameplay-design.md]", () => {
   assertTrue(MASH_ESCAPE.human < PUMMEL_CONTACT_FRAME);
   assertTrue(MASH_ESCAPE.slow > PUMMEL_CONTACT_FRAME);
   for (const character of GRABBERS) {

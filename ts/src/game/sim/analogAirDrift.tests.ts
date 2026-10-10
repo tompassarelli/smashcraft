@@ -24,7 +24,7 @@ function drift(character: Character, row: Readonly<InputRow>, frames: number) {
   return fighter;
 }
 
-test("half-pushed input rows drift slower than full rows and keyboard stays at full rate [spec docs/physics.md]", () => {
+test("half-pushed input rows drift slower than full rows and keyboard stays at full rate [k2 property]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     for (const direction of [-1, 1]) {
       const half = assertDefined(inputRow({ axisX: 63 * direction }));
@@ -51,7 +51,7 @@ test("half-pushed input rows drift slower than full rows and keyboard stays at f
   }
 });
 
-test("every quantized pad stick level drifts, and a farther push never drifts slower [spec docs/controller-platforms.md]", () => {
+test("every quantized pad stick level drifts, and a farther push never drifts slower [k2 property]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     let previous = 0.0;
     for (const level of PAD_AXIS_LEVELS) {

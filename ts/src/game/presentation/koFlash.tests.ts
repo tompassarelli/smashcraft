@@ -42,7 +42,7 @@ function playKo(watch: boolean): { readonly frames: readonly string[]; readonly 
   return { frames, kos, hitlag, flash };
 }
 
-test("the KO flash leaves a launch to its KO frame for frame unchanged [invariant]", () => {
+test("the KO flash leaves a launch to its KO frame for frame unchanged [k1 scenario]", () => {
   const plain = playKo(false);
   const watched = playKo(true);
   assertTrue(plain.hitlag > 0);
@@ -52,7 +52,7 @@ test("the KO flash leaves a launch to its KO frame for frame unchanged [invarian
   assertEquals(watched.flash.rise, plain.hitlag, "the flash rises over the KO blow's hitlag");
 });
 
-test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns off after its blur and wash fade [spec docs/design/visual-quality.md]", () => {
+test("the KO flash peaks at Silverpine's caps after the blow's hitlag and turns off after its blur and wash fade [k3 measure docs/design/visual-quality.md]", () => {
   const flash = createKoFlash();
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   const events = createImpactEvents();
@@ -85,7 +85,7 @@ function washedLuma(scene: number, alpha: number, colour: number, reforged: bool
   return 255 * Math.pow(linear * (1 - a) + a * Math.pow(colour / 255, GAMMA), 1 / GAMMA);
 }
 
-test("the KO flash eases out in Classic and Reforged, never stepping more than 6 luma a frame from its peak through the off call, nor 3 over a dark scene in its last 20 frames [repro #289]", () => {
+test("the KO flash eases out in Classic and Reforged, never stepping more than 6 luma a frame from its peak through the off call, nor 3 over a dark scene in its last 20 frames [k2 property]", () => {
 
   const flash = createKoFlash();
   const fighter = createFighter(Character.rifleman, 0.0, 1);
@@ -111,7 +111,7 @@ test("the KO flash eases out in Classic and Reforged, never stepping more than 6
   }
 });
 
-test("the KO blur eases to 0 by its last shown frame, stepping at most 1.5x its average fall rate a frame, for every hitlag [repro #289]", () => {
+test("the KO blur eases to 0 by its last shown frame, stepping at most 1.5x its average fall rate a frame, for every hitlag [k2 property]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
   const events = createImpactEvents();
   events.koDirectionX = 1;

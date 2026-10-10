@@ -14,7 +14,7 @@ const SITUATIONS = 200;
 // origin/main before #386 measures 84-102 on the same seeds. Edge cancels of
 // near-ledge landings: 0-4 per 200 situations (9 of 150 pooled, 6%), below the
 // box's 10% goal because a carry is taken only against a shield (#56).
-sweep("a cornered Expert computer leaves the corner band within 70 frames at the median [spec #386]", () => {
+sweep("a cornered Expert computer leaves the corner band within 70 frames at the median [k3 measure #386]", () => {
   const expert = tallyCorners(FIRST, SITUATIONS, "wren", "expert");
   expect(expert.medianCornered).toBeLessThan(70);
 });
@@ -22,7 +22,7 @@ sweep("a cornered Expert computer leaves the corner band within 70 frames at the
 // Rookie plays the corner as before #386, seed for seed: 0 of 21 near-ledge
 // landings cancelled at offset 0, 0-2 accidental slides per 200 on the other
 // offsets (the counts origin/main measures), corner median 94-100 frames.
-sweep("a Rookie computer keeps its corner play: rare accidental edge cancels and a long corner stay [spec #386]", () => {
+sweep("a Rookie computer keeps its corner play: rare accidental edge cancels and a long corner stay [k3 measure #386]", () => {
   const rookie = tallyCorners(FIRST, SITUATIONS, "wren", "rookie");
   expect(rookie.cancelled * 10).toBeLessThan(rookie.eligible);
   expect(rookie.medianCornered).toBeGreaterThan(80);

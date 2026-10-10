@@ -39,7 +39,7 @@ function recorded0045(change: (capture: RecordedCapture, traces: Map<string, str
   return Effect.runPromise(playableVerdict(root));
 }
 
-test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player | wins!\" names Player 1 [native]", async () => {
+test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player | wins!\" names Player 1 [k4 reference native]", async () => {
   expect(await recorded0045()).toMatchObject({
     build: "playable-0045",
     passed: true,

@@ -9,7 +9,7 @@ import { advanceSolo, controls } from "./testWorld";
 
 const length = (x: number, z: number) => Math.sqrt(x * x + z * z);
 
-test("ASDI uses the C-stick while DI still uses the left stick on the release frame [reference] [spec docs/physics.md]", () => {
+test("ASDI uses the C-stick while DI still uses the left stick on the release frame [k4 reference melee]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 300.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 400.0;
@@ -27,7 +27,7 @@ test("ASDI uses the C-stick while DI still uses the left stick on the release fr
   assertEquals(fighter.launch.sdiSerial, 0);
 });
 
-test("knockback decays by vector magnitude and continues after hitstun [reference] [spec docs/physics.md]", () => {
+test("knockback decays by vector magnitude and continues after hitstun [k4 reference melee]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 100.0, 1);
   const input = controls();
   fighter.motion.grounded = false;
@@ -46,7 +46,7 @@ test("knockback decays by vector magnitude and continues after hitstun [referenc
   assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 99.38800048828125, 0.0010000000474974513);
 });
 
-test("DI reads only the last hitlag frame and preserves launch speed [reference] [spec docs/physics.md]", () => {
+test("DI reads only the last hitlag frame and preserves launch speed [k4 reference melee]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.motion.grounded = false;
   fighter.motion.z = 300.0;
@@ -69,7 +69,7 @@ test("DI reads only the last hitlag frame and preserves launch speed [reference]
   assertEquals(fighter.launch.diSerial, 1);
 });
 
-test("DI normalizes diagonal input and ignores parallel input [reference] [spec docs/physics.md]", () => {
+test("DI normalizes diagonal input and ignores parallel input [k4 reference melee]", () => {
   const diagonal = createReferenceFighter(Character.sylvanas, 0.0, 1);
   diagonal.motion.grounded = false;
   diagonal.motion.z = 300.0;
@@ -96,7 +96,7 @@ test("DI normalizes diagonal input and ignores parallel input [reference] [spec 
   assertEquals(parallel.launch.knockbackZ, 0.0);
 });
 
-test("a held shield drains by the frame-rate amount [reference]", () => {
+test("a held shield drains by the frame-rate amount [k4 reference melee]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
   fighter.shield.energy = 0.5;
   const input = controls({ shield: true });
@@ -107,7 +107,7 @@ test("a held shield drains by the frame-rate amount [reference]", () => {
   assertNear(fighter.shield.energy, 0.2199999988079071, 0.0010000000474974513);
 });
 
-test("the ordinary hit formula uses independent per-hit parameters [reference]", () => {
+test("the ordinary hit formula uses independent per-hit parameters [k4 reference melee]", () => {
   assertNear(ordinaryHitKnockback(0.0, 12.0, 80.0, 100.0, 20.0, 1.0), 51.06666564941406, 0.00009999999747378752);
   assertNear(ordinaryHitKnockback(0.0, 12.0, 80.0, 150.0, 20.0, 1.0), 66.5999984741211, 0.00009999999747378752);
   assertNear(ordinaryHitKnockback(0.0, 12.0, 80.0, 100.0, 30.0, 1.0), 61.06666564941406, 0.00009999999747378752);
@@ -115,7 +115,7 @@ test("the ordinary hit formula uses independent per-hit parameters [reference]",
   assertGreaterThan(ordinaryHitKnockback(0.0, 12.0, 75.0, 100.0, 20.0, 1.0), 51.06666564941406);
 });
 
-test("an ordinary hit separates fractional percent from integer attack power [reference]", () => {
+test("an ordinary hit separates fractional percent from integer attack power [k4 reference melee]", () => {
   const baseline = ordinaryHitKnockback(9.0, 1.5, 80.0, 100.0, 20.0, 1.0);
   assertNear(ordinaryHitKnockback(9.99899959564209, 1.5, 80.0, 100.0, 20.0, 1.0), baseline, 0.00009999999747378752);
   assertNear(baseline, 40.45000076293945, 0.00009999999747378752);

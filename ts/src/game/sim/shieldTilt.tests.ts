@@ -35,7 +35,7 @@ function guarding() {
 }
 
 for (const cardinal of CARDINALS) {
-  test(`Tilt plus shield gives capped ${cardinal.name} reach without a roll, dodge or jump [reference]`, () => {
+  test(`Tilt plus shield gives capped ${cardinal.name} reach without a roll, dodge or jump [k4 reference melee]`, () => {
     const { fighter, controls, attacks } = guarding();
     const row = assertDefined(inputRow({
       held: maskOf(Action.rightTrigger, Action.walk, cardinal.action), pressed: maskOf(cardinal.action),
@@ -63,7 +63,7 @@ for (const cardinal of CARDINALS) {
   });
 }
 
-test("shield tilt moves its projectile contact circle with its drawn bubble [spec docs/smash-melee-reference/shield-tilt-cardinals.md]", () => {
+test("shield tilt moves its projectile contact circle with its drawn bubble [k3 measure docs/smash-melee-reference/shield-tilt-cardinals.md]", () => {
   const { fighter, controls, attacks } = guarding();
   assertFalse(shieldCircleIntersects(fighter, -1.0, 95.0, 1.0, 95.0, 1.0));
   const row = assertDefined(inputRow({ held: maskOf(Action.rightTrigger, Action.walk, Action.moveUp), triggerRight: 255, axisZ: 127 }));

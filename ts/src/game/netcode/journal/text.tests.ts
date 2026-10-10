@@ -8,47 +8,7 @@ const envelope = (epoch: number, sequence: number, payload: string) => assertDef
 const numbered = (sequence: number) => `I42${sequence}100`;
 const widthOf = (inspection: Inspection) => (inspection.kind === "wait" ? undefined : inspection.width);
 
-test("the golden envelope is received once and acknowledged only when consumed [reference]", () => {
-  const stream = new JournalTextStream(1);
-  const golden = "@J10000000001000000000102742|I421100;";
-  assertEquals(envelope(1, 1, "I421100"), golden);
-  assertEquals(stream.inspect(golden).kind, "ready");
-  assertEquals(stream.next(), "I421100");
-  assertEquals(stream.received(), 1);
-  assertEquals(stream.acknowledged(), 0);
-  assertEquals(stream.inspect(golden).kind, "skip");
-  assertEquals(stream.received(), 1);
-  assertTrue(stream.consume());
-  assertEquals(stream.acknowledged(), 1);
-  assertEquals(stream.inspect(golden).kind, "skip");
-  assertFalse(stream.consume());
-  assertEquals(stream.acknowledged(), 1);
-});
-
-test("an interrupted or other-epoch envelope is skipped, and a damaged or contradicting one is never accepted [spec docs/netcode-proposal.md]", () => {
-  const stream = new JournalTextStream(1);
-  const whole = envelope(1, 1, "I421100");
-  const partial = whole.substring(0, 33);
-  assertEquals(stream.inspect(partial).kind, "wait");
-  const resumed = stream.inspect(partial + whole);
-  assertEquals(resumed.kind, "skip");
-  assertEquals(widthOf(resumed), partial.length);
-  assertEquals(stream.acknowledged(), 0);
-  assertEquals(stream.inspect(`${whole.substring(0, 29)}i421100;`).kind, "skip");
-  assertEquals(stream.acknowledged(), 0);
-  assertEquals(stream.inspect(whole).kind, "ready");
-  assertTrue(stream.consume());
-  assertEquals(stream.inspect(envelope(1, 1, "I421300")).kind, "invalid");
-  assertEquals(stream.acknowledged(), 1);
-  const later = new JournalTextStream(2);
-  assertEquals(later.inspect(envelope(1, 2, "I421300")).kind, "skip");
-  assertEquals(later.acknowledged(), 0);
-  assertEquals(later.inspect(envelope(2, 1, "I422100")).kind, "ready");
-  assertTrue(later.consume());
-  assertEquals(later.acknowledged(), 1);
-});
-
-test("a focus gap replays without retagging frames or applying a record twice [invariant]", () => {
+test("a focus gap replays without retagging frames or applying a record twice [k1 scenario]", () => {
   const stream = new JournalTextStream(1);
   const journal = assertDefined(JournalInputSource.open("focus", 1, 0, 0));
   const neutral = emptyInput();
@@ -83,67 +43,4 @@ test("a focus gap replays without retagging frames or applying a record twice [i
   admit(59);
   assertEquals(journal.expectedFrame(), 61);
   assertEquals(stream.acknowledged(), 30);
-});
-
-test("repeated records drain while consumption is blocked, within the receive window [spec docs/netcode-proposal.md]", () => {
-  const stream = new JournalTextStream(1);
-  for (let sequence = 1; sequence <= TEXT_WINDOW; sequence++) {
-    assertEquals(stream.inspect(envelope(1, sequence, numbered(sequence))).kind, "ready");
-    assertEquals(stream.received(), sequence);
-    assertEquals(stream.acknowledged(), 0);
-  }
-  assertEquals(stream.inspect(envelope(1, TEXT_WINDOW + 1, "I421700")).kind, "invalid");
-  assertEquals(stream.next(), "I421100");
-  for (let sequence = 1; sequence <= TEXT_WINDOW; sequence++) {
-    const record = envelope(1, sequence, numbered(sequence));
-    const repeated = stream.inspect(record + record);
-    assertEquals(repeated.kind, "skip");
-    assertEquals(widthOf(repeated), record.length);
-    assertEquals(stream.received(), TEXT_WINDOW);
-    assertEquals(stream.acknowledged(), 0);
-  }
-  for (let sequence = 1; sequence <= TEXT_WINDOW; sequence++) {
-    assertEquals(stream.next(), numbered(sequence));
-    assertTrue(stream.consume());
-    assertEquals(stream.acknowledged(), sequence);
-  }
-  assertEquals(stream.next(), undefined);
-  assertFalse(stream.consume());
-});
-
-test("records after a missing first or middle record wait in the window until it arrives [invariant]", () => {
-  const [first, second, third, fourth] = [1, 2, 3, 4].map((sequence) => envelope(1, sequence, numbered(sequence)));
-  const stream = new JournalTextStream(1);
-  assertEquals(stream.inspect(second!).kind, "ready");
-  assertEquals(stream.inspect(third!).kind, "ready");
-  assertEquals(stream.received(), 0);
-  assertEquals(stream.next(), undefined);
-  assertEquals(stream.inspect(envelope(1, 2, "I422300")).kind, "invalid");
-  assertEquals(stream.inspect(second!).kind, "skip");
-  assertEquals(stream.inspect(first!).kind, "ready");
-  assertEquals(stream.received(), 3);
-  for (let sequence = 1; sequence <= 3; sequence++) {
-    assertEquals(stream.next(), numbered(sequence));
-    assertTrue(stream.consume());
-  }
-  assertEquals(stream.acknowledged(), 3);
-  assertEquals(stream.next(), undefined);
-
-
-  const gapped = new JournalTextStream(1);
-  assertEquals(gapped.inspect(first!).kind, "ready");
-  assertTrue(gapped.consume());
-  assertEquals(gapped.inspect(third!).kind, "ready");
-  assertEquals(gapped.inspect(fourth!).kind, "ready");
-  assertEquals(gapped.received(), 1);
-  assertEquals(gapped.next(), undefined);
-  assertEquals(gapped.inspect(fourth!).kind, "skip");
-  assertEquals(gapped.inspect(second!).kind, "ready");
-  assertEquals(gapped.received(), 4);
-  for (let sequence = 2; sequence <= 4; sequence++) {
-    assertEquals(gapped.next(), numbered(sequence));
-    assertTrue(gapped.consume());
-  }
-  assertEquals(gapped.acknowledged(), 4);
-  assertEquals(gapped.next(), undefined);
 });

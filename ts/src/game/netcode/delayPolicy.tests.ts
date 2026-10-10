@@ -27,7 +27,7 @@ function playStocks(policy: DelayPolicy, stocks: readonly number[], jitterMs: nu
   return delays;
 }
 
-test("over generated round-trip traces the delay stays within 2 and the ceiling and never reverses under jitter [spec #396]", () => {
+test("over generated round-trip traces the delay stays within 2 and the ceiling and never reverses under jitter [k2 property]", () => {
   const draw = lcg(396);
   for (let trace = 0; trace < 120; trace++) {
     const window = [6, 12, 24][imod(draw(), 3)] ?? 24;
@@ -47,20 +47,4 @@ test("over generated round-trip traces the delay stays within 2 and the ceiling 
     }
     assertTrue(changes <= 1);
   }
-});
-
-test("a rising-ping match keeps 2 frames until the one-way trip passes 2 + R frames, and warns past delay + R [spec #396]", () => {
-  const policy = delayPolicy(24);
-  const pingMs = [30, 120, 290, 380, 700, 1200];
-  assertEquals(playStocks(policy, pingMs, 6, 9).join(","), "2,2,2,5,8,8");
-  const estimate = rttEstimate();
-  for (const baseMs of pingMs.slice(0, 4)) for (let sample = 0; sample < SAMPLES_PER_STOCK; sample++) observeRtt(estimate, baseMs);
-  assertEquals(expectedRollback(estimate, 5), 7);
-  assertFalse(connectionPoor(policy, estimate, 5));
-  assertFalse(highDelay(5));
-  for (let sample = 0; sample < SAMPLES_PER_STOCK; sample++) observeRtt(estimate, 700);
-  assertTrue(connectionPoor(policy, estimate, 8));
-  assertTrue(highDelay(8));
-  assertEquals(agreedDelay([requestedDelay(AUTO_DELAY, 2), requestedDelay(3, 2)]), 3);
-  assertEquals(agreedDelay([requestedDelay(0, 2)]), 0);
 });

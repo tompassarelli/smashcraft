@@ -4,7 +4,7 @@ import { originalClipNamed } from "../assets/fighterOriginalClipInfo";
 import { BLADEMASTER_AUTHORED_CLIPS, BLADEMASTER_AUTHORED_CLIP_NAMES } from "./blademasterClipInfo";
 import { characterClips, clipFor } from "./fighterClips";
 
-test("Blademaster normal clips are named, separate gestures and only up B plays the whirlwind [spec #236]", () => {
+test("Blademaster normal clips are named, separate gestures and only up B plays the whirlwind [k3 measure #236]", () => {
   const used: number[] = [];
   for (const pose of Object.keys(BLADEMASTER_AUTHORED_CLIPS) as (keyof typeof BLADEMASTER_AUTHORED_CLIPS)[]) {
     const clip = clipFor(Character.blademaster, pose);

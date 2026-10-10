@@ -7,7 +7,7 @@ import { createFrameScratch, joinReplay, parseReplay, parseReplayHeader, parseRe
 import { copyReplayState, createReplaySnapshot } from "./snapshot";
 import { TAPE_REPLAY_SERIAL, recordTapeReplay } from "./tapeReplay";
 
-test("match replay: a rollback match recorded in parts, paused once, replays to every checksum [invariant]", () => {
+test("match replay: a rollback match recorded in parts, paused once, replays to every checksum [k1 scenario]", () => {
   const frames = 700;
   const recorded = recordTapeReplay(frames, 401);
   assertEquals(recorded.segments, 2);

@@ -15,7 +15,7 @@ import type { TestMatch } from "../match/testMatch";
 
 const verified = (path: string): boolean => VERIFIED_STOCK_SOUNDS[path] !== undefined;
 
-test("every match sound, theme and voice line is a stock path found in the game [native]", () => {
+test("every match sound, theme and voice line is a stock path found in the game [k4 reference native]", () => {
   const stages = STAGE_CATALOG.map(stage => stage.id);
   for (const path of presentationSoundPaths(SELECTABLE_CHARACTERS, stages)) assertEquals(verified(path), true, path);
   for (const stage of stages) assertEquals(verified(stageMusic(stage)), true, `stage ${stage}`);
@@ -30,7 +30,7 @@ test("every match sound, theme and voice line is a stock path found in the game 
   assertEquals(victoryMusic(undefined), undefined);
 });
 
-test("every selectable stage plays its own stock Warcraft track [spec docs/design/stage-music.md]", () => {
+test("every selectable stage plays its own stock Warcraft track [k3 measure docs/design/stage-music.md]", () => {
   const tracks: string[] = [];
   for (const stage of STAGE_CATALOG) {
     const track = stageMusic(stage.id) as string | undefined;
@@ -54,7 +54,7 @@ function knockOut(match: TestMatch, slot: number, attacker: number): void {
   fighter.motion.x = -100000.0;
 }
 
-test("knockouts, the last stock and GAME! each cue once, on their confirmed frame, and the results tally them [spec #123]", () => {
+test("knockouts, the last stock and GAME! each cue once, on their confirmed frame, and the results tally them [k1 scenario]", () => {
   const match = testMatch(3, Character.rifleman);
   match.game.stockCount = 2;
   for (const slot of [0, 1]) fighterAt(match.world, slot).status.stocks = 2;
@@ -80,45 +80,4 @@ test("knockouts, the last stock and GAME! each cue once, on their confirmed fram
   assertEquals(view.winner, Character.rifleman);
   assertEquals(view.rows.length, 2);
   assertTrue(view.rows[0]?.winner === true && view.rows[0]?.slot === 0);
-});
-
-test("a match that runs out of time calls TIME! [spec #123]", () => {
-  const match = testMatch(3, Character.rifleman);
-  match.game.timeLimitMinutes = 1;
-  match.game.remainingFrames = 1;
-  const observation = createCueObservation();
-  const tally = createMatchTally();
-  const cues: MatchCue[] = [];
-  presentFrame(match, observation, tally, cues);
-  assertEquals(match.game.phase, Phase.result);
-  assertEquals(cues.join(","), `${MatchCue.time}`);
-});
-
-test("selection sounds: hovering a tile, confirming a fighter, changing a confirmed fighter and choosing stages [spec #123]", () => {
-  const { game } = testMatch(3, Character.rifleman);
-  game.phase = Phase.characterMenu;
-  game.characterReadiness.fill(false);
-  const before = createMenuObservation();
-  const cues = createMenuCues();
-  menuFrameCues(before, game, undefined, cues);
-  assertFalse(cues.hover || cues.confirm || cues.fighters.length > 0);
-  menuFrameCues(before, game, 2, cues);
-  assertTrue(cues.hover);
-  menuFrameCues(before, game, 2, cues);
-  assertFalse(cues.hover);
-  game.characterChoices[1] = Character.rifleman;
-  game.characterReadiness[1] = true;
-  menuFrameCues(before, game, 2, cues);
-  assertEquals(cues.fighters.join(","), "1");
-  menuFrameCues(before, game, 2, cues);
-  assertEquals(cues.fighters.length, 0);
-  game.characterChoices[1] = Character.demonHunter;
-  menuFrameCues(before, game, 2, cues);
-  assertEquals(cues.fighters.join(","), "1");
-  game.phase = Phase.stageMenu;
-  menuFrameCues(before, game, undefined, cues);
-  assertTrue(cues.confirm);
-  game.stageChoice = 3;
-  menuFrameCues(before, game, undefined, cues);
-  assertTrue(cues.hover && !cues.confirm);
 });

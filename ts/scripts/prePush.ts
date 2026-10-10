@@ -35,8 +35,7 @@ export function checksFor(paths: readonly string[]): Check[] {
   return [
     ...(paths.length > 0 ? [{ name: "clean room", directory: "ts", args: ["scripts/cleanRoom.ts"], fix: "follow wisp:docs/clean-room.md and the line above." }] : []),
     ...(ts ? [
-      { name: "type-check ts", directory: "ts", args: ["run", "check"] },
-      { name: "oracle tags on tests", directory: "ts", args: ["scripts/oracleTagsCheck.ts"], fix: "tag each refused test title with its oracle (listed above) or delete the test." },
+      { name: "kind tags and type-check ts", directory: "ts", args: ["run", "check"], fix: "end each refused test title with its kind tag (listed above) or delete the test; fix each type error." },
     ] : []),
     ...(models ? [
       { name: "generated models stored", directory: "ts", args: ["scripts/storedModels.ts"], fix: "store the regenerated family (smashcraft:docs/build-inputs.md, \"Change art\")." },

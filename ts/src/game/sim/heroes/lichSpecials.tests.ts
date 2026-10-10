@@ -43,7 +43,7 @@ const sideForward = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
 
-test("replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters [invariant]", () => {
+test("replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters [k1 scenario]", () => {
   const { world, lich, target } = lichPair(f32(H * f32(1.5)));
   const savedLich = createFighter(Character.lich, 0.0, 1);
   const savedTarget = createFighter(Character.rifleman, 0.0, 1);

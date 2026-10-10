@@ -22,7 +22,7 @@ const KIT_BODY: FighterHurtboxes = {
   },
 };
 
-test("a kit's hurt volumes are part of its rollback record [invariant]", () => {
+test("a kit's hurt volumes are part of its rollback record [k3 measure docs/commands/testing.md]", () => {
   const live = createReplaySnapshot();
   const saved = createReplaySnapshot();
   const f = fighterAt(live.world, 0);
@@ -54,7 +54,7 @@ function attackingAt(character: Character, style: AttackStyle, frame: number, fa
   return f;
 }
 
-test("each shipped fighter's extended jab arm is hit where its standing body is not, on the side it faces [spec docs/hurtboxes.md] [spec docs/gameplay-design.md]", () => {
+test("each shipped fighter's extended jab arm is hit where its standing body is not, on the side it faces [k3 measure docs/hurtboxes.md]", () => {
   for (const character of SHIPPED) {
     const stand = createFighter(character, 100.0, 1);
     const height = f32(hurtCapsule(character).z2 * f32(0.62));

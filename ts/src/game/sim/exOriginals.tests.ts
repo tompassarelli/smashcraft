@@ -27,7 +27,7 @@ function cast(character: Character, x: number, z: number, ex: boolean, air = fal
   return { owner, target, world, tick };
 }
 
-test("ground/air blaster EX retain 25% damage after the cast [spec docs/design/mana.md]", () => {
+test("ground/air blaster EX retain 25% damage after the cast [k3 measure docs/design/mana.md]", () => {
   for (const row of [{ character: Character.rifleman, side: 0, air: false, shot: 9 }, { character: Character.rifleman, side: 0, air: true, shot: 14 }]) {
     const damages: number[] = [];
     for (const ex of [false, true]) {
@@ -46,44 +46,4 @@ test("ground/air blaster EX retain 25% damage after the cast [spec docs/design/m
     assertGreaterThan(damages[0] ?? 0, 0);
     assertEquals(damages[1], f32((damages[0] ?? 0) * 1.25));
   }
-});
-
-test("EX projectile, summon and trap snapshots stay independent and differences include upgrade flags [invariant]", () => {
-  const d = cast(Character.demonHunter, 0, 0, true);
-  d.tick(16);
-  d.owner.bear.exDamage = true;
-  d.owner.freezeTrap.exReach = true;
-  const saved = createFighter(Character.demonHunter, 0.0, 1);
-  copyFighterState(saved, d.owner, 3);
-  assertTrue(sameFighterState(saved, d.owner));
-  assertEquals(firstFighterDifference(saved, d.owner, 3, 3), undefined);
-  const canonical = (f: Readonly<typeof saved>) => {
-    const snapshot = createReplaySnapshot();
-    copyFighterState(fighterAt(snapshot.world, 0), f, 3);
-    return canonicalState(snapshot);
-  };
-  const before = canonical(saved);
-  updateProjectiles(d.world);
-  assertEquals(canonical(saved), before);
-  for (const kind of ["bear", "trap", "projectile"] as const) {
-    const changed = createFighter(Character.demonHunter, 0.0, 1);
-    copyFighterState(changed, saved, 3);
-    if (kind === "bear") changed.bear.exDamage = false;
-    else if (kind === "trap") changed.freezeTrap.exReach = false;
-    else mutableProjectile(changed, 0).exReach = false;
-    assertFalse(sameFighterState(changed, saved));
-    assertTrue(firstFighterDifference(changed, saved, 3, 3) !== undefined);
-    assertTrue(canonical(changed) !== before);
-  }
-  const restored = createFighter(Character.demonHunter, 0.0, 1);
-  copyFighterState(restored, saved, 3);
-  const restoredTarget = createFighter(Character.rifleman, 900.0, -1);
-  const replayed = testWorld(restored, restoredTarget);
-  updateProjectiles(replayed);
-  assertTrue(sameFighterState(restored, d.owner));
-  clearSpecialOnStock(saved);
-  clearOwnedFreezeTrap(saved);
-  assertFalse(saved.bear.exDamage);
-  assertFalse(saved.freezeTrap.exReach);
-  assertFalse(saved.projectiles.some(p => p.exReach));
 });

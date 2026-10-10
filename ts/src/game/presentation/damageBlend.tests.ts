@@ -8,7 +8,7 @@ import {
   PAIN_ENTRY_BLEND_FRAMES, PAIN_EXIT_BLEND_FRAMES, isContactPainClip, outgoingPoseAlpha, painEntryBlendFrames, poseBlendFrames,
 } from "./damageBlend";
 
-test("every hitstop shows its first pain pose alone before it ends [spec #181]", () => {
+test("every hitstop shows its first pain pose alone before it ends [k2 property]", () => {
   for (const electric of [false, true]) {
     for (const crouching of [false, true]) {
       for (let damage = 1; damage <= 60; damage++) {
@@ -24,7 +24,7 @@ test("every hitstop shows its first pain pose alone before it ends [spec #181]",
   }
 });
 
-test("the previous pose fades monotonically to nothing [spec #181]", () => {
+test("the previous pose fades monotonically to nothing [k2 property]", () => {
   for (const frames of [1, 2, 3, PAIN_EXIT_BLEND_FRAMES]) {
     let last = 256;
     for (let elapsed = 0; elapsed < frames; elapsed++) {
@@ -39,7 +39,7 @@ test("the previous pose fades monotonically to nothing [spec #181]", () => {
   assertEquals(outgoingPoseAlpha(0, 0), 0);
 });
 
-test("only entering or leaving one of the nine pain poses blends [spec #181]", () => {
+test("only entering or leaving one of the nine pain poses blends [k3 measure #181]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     const row = contactDamageClips(character);
     if (row === undefined) throw new Error(`${fighterName(character)} has no pain grid`);

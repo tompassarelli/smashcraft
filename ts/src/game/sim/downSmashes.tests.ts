@@ -64,10 +64,10 @@ function checkDownSmash(character: Character, victims: readonly Character[], per
 for (const character of SELECTABLE_CHARACTERS) {
   // #208 measures the original thirteen-fighter field.
   if (character > Character.lichKing) continue;
-  test(`${fighterName(character)} down smash gives every floor defense at 40 percent [spec #208]`, () => {
+  test(`${fighterName(character)} down smash gives every floor defense at 40 percent [k3 measure #208]`, () => {
     checkDownSmash(character, [Character.rifleman], [40.0], [1]);
   });
-  sweep(`${fighterName(character)} down smash gives floor defense at 20/40/60 percent in both facings against three bodies [spec #208]`, () => {
+  sweep(`${fighterName(character)} down smash gives floor defense at 20/40/60 percent in both facings against three bodies [k3 measure #208]`, () => {
     checkDownSmash(character, [Character.demonHunter, Character.rifleman, Character.pitLord], [20.0, 40.0, 60.0], [-1, 1]);
   });
 }

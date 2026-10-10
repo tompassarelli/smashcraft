@@ -25,7 +25,7 @@ function groundActionFighter(x: number, facing: number, rules: GroundMovementRul
   return fighter;
 }
 
-test("the retail dash-to-run command uses the actor's encoded enable frame [reference] [spec docs/physics.md]", () => {
+test("the retail dash-to-run command uses the actor's encoded enable frame [k4 reference melee]", () => {
   NTSC_RIGS.forEach((rules, rig) => {
     const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
     const input = controls({ direction: 1 });
@@ -45,7 +45,7 @@ test("the retail dash-to-run command uses the actor's encoded enable frame [refe
   });
 });
 
-test("a turn-run waits for the retail facing command boundary [reference] [spec docs/physics.md]", () => {
+test("a turn-run waits for the retail facing command boundary [k4 reference melee]", () => {
   for (const rules of [NTSC_FOX_GROUND_MOVEMENT_RULES, NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES]) {
     const fighter = groundActionFighter(0.0, 1, rules, GroundAction.run, 4, 1, 13.199999809265137);
     const input = controls({ direction: -1 });
@@ -80,7 +80,7 @@ test("a turn-run waits for the retail facing command boundary [reference] [spec 
   }
 });
 
-test("a run-brake turn input closes at the actor's frame-fifteen command [reference] [spec docs/physics.md]", () => {
+test("a run-brake turn input closes at the actor's frame-fifteen command [k4 reference melee]", () => {
   const allowed = groundActionFighter(0.0, 1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.runBrake, 13, 1, 9.0);
   const denied = groundActionFighter(100.0, 1, NTSC_FOX_GROUND_MOVEMENT_RULES, GroundAction.runBrake, 14, 1, 9.0);
   const input = controls({ direction: -1 });
@@ -103,7 +103,7 @@ test("a run-brake turn input closes at the actor's frame-fifteen command [refere
   assertEquals(denied.facing, 1);
 });
 
-test("a turn-run uses the retail velocity threshold in world units [reference] [spec docs/physics.md]", () => {
+test("a turn-run uses the retail velocity threshold in world units [k4 reference melee]", () => {
   const input = controls({ direction: -1 });
 
 
@@ -122,7 +122,7 @@ test("a turn-run uses the retail velocity threshold in world units [reference] [
   }
 });
 
-test("a retail run-brake ends at its clip or its maximum frame count [reference] [spec docs/physics.md]", () => {
+test("a retail run-brake ends at its clip or its maximum frame count [k4 reference melee]", () => {
   NTSC_RIGS.forEach((rules, rig) => {
     const fighter = groundActionFighter(0.0, 1, rules, GroundAction.runBrake, 0, 1, 0.4000000059604645);
     fighter.ground.runBrakeFramesRemaining = rules.runBrakeMaximumFrames;

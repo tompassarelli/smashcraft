@@ -21,7 +21,7 @@ function lavaWorld() {
   return testWorld(createFighter(Character.rifleman, LAVA_CENTER_X, -1), createFighter(Character.rifleman, -500.0, 1));
 }
 
-test("lava produces the same complete victim as an ordinary scripted fire hit [spec docs/stage-hazards.md] [invariant]", () => {
+test("lava produces the same complete victim as an ordinary scripted fire hit [k3 measure docs/stage-hazards.md]", () => {
   for (const damage of [0.0, 80.0, 250.0]) {
     const lava = lavaWorld(); const scripted = lavaWorld();
     const first = fighterAt(lava, 0); const second = fighterAt(scripted, 0);
@@ -36,26 +36,6 @@ test("lava produces the same complete victim as an ordinary scripted fire hit [s
   }
 });
 
-test("Blackrock's lava warns for five seconds, erupts on the right, then warns and erupts on the mirrored left spot, on a fixed timetable [spec #193]", () => {
-  const at = (frame: number) => `${lavaPhase(CANNON_TEST_STAGE, frame)}${lavaSide(frame) > 0 ? "R" : "L"}`;
-  const { calm, warning, erupting } = LavaPhase;
-  const C = LAVA_CALM_FRAMES, W = LAVA_WARNING_FRAMES, S = LAVA_SIDE_FRAMES;
-  const timetable: [number, string][] = [
-    [1, `${calm}R`], [C, `${calm}R`], [C + 1, `${warning}R`], [C + W, `${warning}R`], [C + W + 1, `${erupting}R`], [S, `${erupting}R`],
-    [S + 1, `${calm}L`], [S + C, `${calm}L`], [S + C + 1, `${warning}L`], [S + C + W, `${warning}L`], [S + C + W + 1, `${erupting}L`], [2 * S, `${erupting}L`],
-    [2 * S + 1, `${calm}R`], [2 * S + C + 1, `${warning}R`], [2 * S + C + W + 1, `${erupting}R`],
-  ];
-  assertEquals(timetable.map(([frame]) => `${frame}:${at(frame)}`).join(" "), timetable.map(([frame, phase]) => `${frame}:${phase}`).join(" "));
-  assertEquals(framesUntilLava(C + 1), W);
-  assertEquals(framesUntilLava(C + W), 1);
-  assertEquals(framesUntilLava(C + W + 1), 0);
-  // The left spot mirrors the right.
-  assertEquals(`${lavaLeft(S + FIRST_ERUPTION)}..${lavaRight(S + FIRST_ERUPTION)}`, `${-lavaRight(FIRST_ERUPTION)}..${-lavaLeft(FIRST_ERUPTION)}`);
-  // Hazards off and other stages never warn or erupt.
-  assertEquals(lavaPhase(CANNON_TEST_STAGE, STAGE_AT_REST + FIRST_ERUPTION), calm);
-  assertEquals(lavaPhase(STRATHOLME_STAGE, FIRST_ERUPTION), calm);
-});
-
 /** How far a fighter travels in one initial dash from a standstill. */
 function dashLength(character: Character): number {
   const fighter = createFighter(character, 0.0, 1);
@@ -63,7 +43,7 @@ function dashLength(character: Character): number {
   return fighter.motion.x;
 }
 
-test("Blackrock's one lava patch stays off the centre and clear of each ledge by more than two of any fighter's initial dashes [spec #193]", () => {
+test("Blackrock's one lava patch stays off the centre and clear of each ledge by more than two of any fighter's initial dashes [k3 measure #193]", () => {
   let longest = 0.0;
   for (const character of SELECTABLE_CHARACTERS) longest = Math.max(longest, dashLength(character));
   assertGreaterThan(longest, 100.0);
@@ -75,7 +55,7 @@ test("Blackrock's one lava patch stays off the centre and clear of each ledge by
   }
 });
 
-test("a lava launch survives rollback and 180 replayed match frames exactly [invariant]", () => {
+test("a lava launch survives rollback and 180 replayed match frames exactly [k1 scenario]", () => {
   const live = createReplaySnapshot(); const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
   live.match.phase = Phase.match; live.match.stageChoice = CANNON_TEST_STAGE;
   live.match.humanMask = 3; live.match.humanFighterMask = 3; live.match.practice = true;

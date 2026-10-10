@@ -70,7 +70,7 @@ function session(endless = false, hazardsOff = false, dropsOff = false) {
   until("match", () => read(() => shell().game.phase) === Phase.match, 120);
   return { clients, frames, read, until };
 }
-test("the last rematch countdown frame starts the next seeded pool stage on both copies [spec #74] [invariant]", () => {
+test("the last rematch countdown frame starts the next seeded pool stage on both copies [k1 scenario]", () => {
   const first = createMatchState();
   setParticipants(first, 1, 2);
   first.characterReadiness[0] = true;
@@ -97,7 +97,7 @@ test("the last rematch countdown frame starts the next seeded pool stage on both
   }
   expect(second).toEqual(first);
 });
-sweep("rules agree on both clients and the last countdown frame starts the next seeded pool stage [spec #74] [invariant]", () => {
+sweep("rules agree on both clients and the last countdown frame starts the next seeded pool stage [k1 scenario]", () => {
   const { clients, frames, read, until } = session();
   const rules = () => [shell().game.characterChoices.join(), shell().game.stockCount, shell().game.timeLimitMinutes, shell().game.automaticRematch, shell().game.endless];
   const before = read(rules);

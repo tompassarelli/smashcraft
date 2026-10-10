@@ -23,7 +23,7 @@ function frameControls(first: Controls, second: Controls, firstCommands: ReturnT
   return result;
 }
 
-test("bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey [spec docs/player-guide.md]", () => {
+test("bothFightersCanGrabNormallyAndFromShieldWithAttackOrGrabKey [k3 measure docs/player-guide.md]", () => {
   assertEquals(actionFor(presetBindings("standard"), 79), Action.grab);
   for (const character of [Character.demonHunter, Character.rifleman]) for (let grabInput = 0; grabInput <= 2; grabInput++) {
     const game = createMatchState();

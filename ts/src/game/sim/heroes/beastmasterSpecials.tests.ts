@@ -57,7 +57,7 @@ function withPack() {
   return scene;
 }
 
-test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free route at least 240 on each axis; Hawk survives the helpless fall [spec #335]", () => {
+test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free route at least 240 on each axis; Hawk survives the helpless fall [k3 measure #335]", () => {
   for (const mana of [100, 10]) {
     const route = upSpecialRoute(Character.beastmaster, mana);
     assertTrue(route.rise >= 380.0 && route.rise <= 520.0);
@@ -79,7 +79,7 @@ test("Beastmaster Hawk Lift rises 380–520 and reaches 600–900, its free rout
   }
 });
 
-test("rollback restores Beastmaster's three separate companion positions and commands [invariant]", () => {
+test("rollback restores Beastmaster's three separate companion positions and commands [k1 scenario]", () => {
   const { world, owner, target } = withPack();
   frame(world, down);
   run(world, 8);

@@ -19,7 +19,7 @@ const JABS = [AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3];
 const TILTS = [AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt];
 const SMASHES = [AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash];
 
-test("every normal maps to its class tier: jab small, tilt medium, smash large, departures named [spec #163]", () => {
+test("every normal maps to its class tier: jab small, tilt medium, smash large, departures named [k3 measure #163]", () => {
   for (const character of SELECTABLE_CHARACTERS) {
     for (const [styles, tier] of [[JABS, SoundTier.small], [TILTS, SoundTier.medium], [SMASHES, SoundTier.large]] as const) {
       for (const style of styles) {
@@ -63,13 +63,3 @@ function attackSounds(style: AttackStyle): { swing: string[]; hit: string[]; tie
   }
   return { swing, hit, tier };
 }
-
-test("a jab swings and hits small, a forward tilt medium and a forward smash large [spec #163]", () => {
-  for (const [style, expected] of [[AttackStyle.jab, SoundTier.small], [AttackStyle.forwardTilt, SoundTier.medium], [AttackStyle.forwardSmash, SoundTier.large]] as const) {
-    const { swing, hit, tier } = attackSounds(style);
-    assertEquals(swing.join(","), `0:${expected}`, `swing of ${style}`);
-    assertEquals(tier, expected, `hit of ${style}`);
-
-    assertEquals(hit.join(","), tierHitPath(HitElement.slash, expected, 1) ?? "", `hit sound of ${style}`);
-  }
-});

@@ -12,7 +12,7 @@ import { Phase, createMatchState } from "./rules";
 import { stepMatch } from "./step";
 import { useMatchSeed } from "./botRandom";
 
-test("the computer's Warden blinks back to the stage from every spot in reach under every match seed [spec #184]", () => {
+test("the computer's Warden blinks back to the stage from every spot in reach under every match seed [k1 scenario]", () => {
   const spots = [
     [700.0, 100.0, 0], [700.0, -40.0, 0], [700.0, -150.0, 0], [800.0, 100.0, 0], [800.0, -40.0, 0], [800.0, -150.0, 0],
     [700.0, -300.0, 1], [800.0, -150.0, 1], [950.0, -40.0, 1], [950.0, -150.0, 1], [950.0, -300.0, 1],

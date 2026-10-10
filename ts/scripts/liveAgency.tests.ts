@@ -80,6 +80,6 @@ function compareLiveAgency(victims: readonly Character[], throws: readonly GrabA
   expect(failures).toEqual([]);
 }
 
-sweep("live locked marker matches the agency replay for buffers, tech, grabs, release, hitlag, freeze and forced stand [invariant]", () => {
+sweep("live locked marker matches the agency replay for buffers, tech, grabs, release, hitlag, freeze and forced stand [k1 scenario]", () => {
   compareLiveAgency([Character.rifleman], [GrabAction.throwForward]);
 }, 120_000);

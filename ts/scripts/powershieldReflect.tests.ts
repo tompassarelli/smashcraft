@@ -180,7 +180,7 @@ function table(all: readonly Row[]): string {
   return lines.join("\n");
 }
 
-sweep("a powershield reflects every traveling projectile on the reflector's frames and only then [spec docs/gameplay-design.md]", () => {
+sweep("a powershield reflects every traveling projectile on the reflector's frames and only then [k3 measure docs/gameplay-design.md]", () => {
   const all = rows();
   console.log(table(all));
   expect([...new Set(all.map((row) => row.fighter))].sort()).toEqual(PROJECTILE_USERS.map(({ name }) => name).sort());

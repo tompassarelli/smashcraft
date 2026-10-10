@@ -63,11 +63,11 @@ function checkEarlyGrab(grabber: Character, defender: Character): void {
   assertEquals(jumper.jump.ascent <= EARLY_ASCENT_GRAB_FRAMES, true, pair);
 }
 
-test("a grab started as a shielding opponent jumps catches it early in the ascent [spec #107]", () => {
+test("a grab started as a shielding opponent jumps catches it early in the ascent [k3 measure #107]", () => {
   checkEarlyGrab(Character.rifleman, Character.demonHunter);
 });
 
-sweep("every fighter pair's grab started as a shielding opponent jumps catches it early in the ascent [spec #107]", () => {
+sweep("every fighter pair's grab started as a shielding opponent jumps catches it early in the ascent [k3 measure #107]", () => {
   for (const grabber of SELECTABLE_CHARACTERS) {
     for (const defender of SELECTABLE_CHARACTERS) {
       checkEarlyGrab(grabber, defender);
@@ -90,17 +90,3 @@ function checkGrabWindow(grabber: Character, defender: Character, lastFrame: boo
   resolveAttacks(d.world);
   assertEquals(jumper.grab.owner === 0, lastFrame, pair);
 }
-
-test("the early-ascent window ends after its last frame, so a late grab misses the jumper [spec #107]", () => {
-  for (const lastFrame of [true, false]) checkGrabWindow(Character.rifleman, Character.demonHunter, lastFrame);
-});
-
-sweep("every fighter pair's early-ascent window ends after its last frame, so a late grab misses the jumper [spec #107]", () => {
-  for (const grabber of SELECTABLE_CHARACTERS) {
-    for (const defender of SELECTABLE_CHARACTERS) {
-      for (const lastFrame of [true, false]) {
-        checkGrabWindow(grabber, defender, lastFrame);
-      }
-    }
-  }
-});

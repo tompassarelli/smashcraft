@@ -13,7 +13,7 @@ import { canAttack } from "./conditions";
 import { resolveLedges } from "./ledge";
 import { cancelSpecialState } from "./transitions";
 
-test("simultaneousImmolatesTradeInEitherSlotOrder [invariant]", () => {
+test("simultaneousImmolatesTradeInEitherSlotOrder [k2 property]", () => {
   for (const airborne of [false, true]) for (const reversed of [false, true]) {
     const left = createFighter(Character.demonHunter, 0.0, 1);
     const right = createFighter(Character.demonHunter, 60.0, -1);
@@ -36,7 +36,7 @@ test("simultaneousImmolatesTradeInEitherSlotOrder [invariant]", () => {
   }
 });
 
-test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [spec docs/physics.md]", () => {
+test("wingAscentConsumesJumpsAndEndsInHelplessFallAfterInterruptionRules [k3 measure docs/physics.md]", () => {
   for (const character of [Character.demonHunter, Character.rifleman]) {
     const fighter = createFighter(character, 0.0, 1);
     const target = createFighter(character === Character.rifleman ? Character.rifleman : Character.rifleman, 500.0, -1);
@@ -107,7 +107,7 @@ function castOrb(illidan: Fighter, world: Roster): Projectile {
   return mutableProjectile(illidan, 0)!;
 }
 
-test("aFullJumpClearsManaBurnWhereStandingStillIsHit [spec #116]", () => {
+test("aFullJumpClearsManaBurnWhereStandingStillIsHit [k3 measure #116]", () => {
   for (const jumps of [false, true]) {
     const illidan = createFighter(Character.demonHunter, 0.0, 1);
     const target = createFighter(Character.rifleman, 600.0, -1);

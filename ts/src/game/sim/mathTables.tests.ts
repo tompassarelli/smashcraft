@@ -43,13 +43,13 @@ function arctangentDigest(): number {
   return hash;
 }
 
-test("sine, cosine and arctangent tables return the same bits in Bun and 32-bit Lua over every table segment, its 16 sub-steps, wraps and extremes [invariant]", () => {
+test("sine, cosine and arctangent tables return the same bits in Bun and 32-bit Lua over every table segment, its 16 sub-steps, wraps and extremes [k4 reference lua32]", () => {
   assertEquals(sineDigest(), 27902);
   assertEquals(cosineDigest(), 4804);
   assertEquals(arctangentDigest(), 20513);
 });
 
-test("table sine, cosine and arctangent are exact at the quarter turns and at 45 degrees [invariant]", () => {
+test("table sine, cosine and arctangent are exact at the quarter turns and at 45 degrees [k4 reference math]", () => {
   assertNear(sineTurns(0.25), 1.0, 0.0);
   assertNear(sineTurns(0.5), 0.0, 0.0);
   assertNear(sineTurns(0.75), -1.0, 0.0);

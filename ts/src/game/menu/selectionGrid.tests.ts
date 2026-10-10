@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { cellRect, rosterGrid, tileAt } from "./selectionGrid";
 
 for (const count of [1, 3, 9, 10, 13, 17, 21, 32]) {
-  test(`${count} fighters: centered balanced rows with matching pointer targets [invariant]`, () => {
+  test(`${count} fighters: centered balanced rows with matching pointer targets [k2 property]`, () => {
     const grid = rosterGrid(count);
     const counts: number[] = [];
     let previousTop = -1;

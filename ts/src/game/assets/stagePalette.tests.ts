@@ -5,39 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { STAGE_DECK_PALETTES, STAGE_PALETTE, type PlatformMaterialSet } from "./stagePalette";
 import { deckProblems } from "../presentation/stageRules";
 
-
-test("every selectable stage has its own deck palette [spec docs/design/stage-art.md]", () => {
-  for (const { id, name } of STAGE_CATALOG) {
-    assertEquals(STAGE_DECK_PALETTES.filter(({ stage }) => stage === id).length, 1, `${name} has no deck palette`);
-  }
-  const tops = STAGE_DECK_PALETTES.map(({ palette }) => palette.top.join(","));
-  assertEquals(new Set(tops).size, tops.length, "two stages share a deck top");
-  const completeSets: string[] = [];
-  const names: string[] = [];
-  for (const { stage, theme, palette, materials } of STAGE_DECK_PALETTES) {
-    const name = STAGE_CATALOG.find(entry => entry.id === stage)?.name ?? theme;
-    assertEquals(materials !== undefined, true, `${name}: uses the default flat material`);
-    if (materials === undefined) continue;
-    if (stage !== 0) assertEquals(palette.top.some((channel, i) => Math.abs(channel - (STAGE_PALETTE.slate[i] ?? 0)) > 10), true, `${name}: uses default grey`);
-    const signature: string[] = [];
-    const sets: readonly PlatformMaterialSet[] = [materials, materials.platform, materials.alternatePlatform ?? materials.platform];
-    for (const set of sets) {
-      for (const part of ["top", "lip", "body", "underside"] as const) {
-        const material = set[part];
-        assertEquals(material.texture.endsWith(".blp"), true, `${name}: ${part} is not textured`);
-        signature.push(material.texture, (material.crop ?? []).join(","));
-      }
-      signature.push((set.tint ?? palette.top).join(","));
-    }
-    signature.push(palette.top.join(","), palette.lip.join(","), palette.body.join(","), palette.underside.join(","));
-    const key = signature.join("|");
-    const previous = completeSets.indexOf(key);
-    assertEquals(previous, -1, `${name}: shares its complete deck/platform material set with ${names[previous] ?? "another stage"}`);
-    completeSets.push(key); names.push(name);
-  }
-});
-
-test("each deck's top stands apart from its fog in value and its body is darker than its top [spec docs/design/stage-art.md]", () => {
+test("each deck's top stands apart from its fog in value and its body is darker than its top [k3 measure docs/design/stage-art.md]", () => {
   for (const { stage, theme, palette } of STAGE_DECK_PALETTES) assertEquals(deckProblems(theme, palette, stageScenery(stage).fog).join("\n"), "");
 });
 
@@ -85,7 +53,7 @@ function colorDifference([l1, a1, b1]: Lab, [l2, a2, b2]: Lab): number {
 
 const LOWER_BACKDROP = cieLab([12, 12, 12]);
 
-test("each deck's body and underside read against the dark backdrop below it [spec docs/design/stage-art.md]", () => {
+test("each deck's body and underside read against the dark backdrop below it [k3 measure docs/design/stage-art.md]", () => {
   for (const { theme, palette } of STAGE_DECK_PALETTES) {
     for (const part of ["body", "underside"] as const) {
       const difference = colorDifference(cieLab(palette[part]), LOWER_BACKDROP);

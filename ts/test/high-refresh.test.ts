@@ -48,7 +48,7 @@ function quickMatch(extraDraws: number, cameraTween = false): { checksums: strin
   return { checksums, smoothed, drawnPositions };
 }
 
-sweep("drawing between simulation frames leaves every confirmed checksum unchanged [spec #169] [invariant]", () => {
+sweep("drawing between simulation frames leaves every confirmed checksum unchanged [k1 scenario]", () => {
   const plain = quickMatch(0);
   const smooth = quickMatch(2);
   expect(plain.smoothed).toBe(0);

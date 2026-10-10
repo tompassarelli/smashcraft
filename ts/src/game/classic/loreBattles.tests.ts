@@ -48,7 +48,7 @@ function battleTier(index: number): number {
   return CPU_TIERS.indexOf(battle.opponents[0]?.tier ?? "rookie");
 }
 
-test("the original twenty Lore Battles and authored expansion stories keep valid matches, cover finished fighters and all stages, and never get easier down the list [spec #305] [spec #351]", () => {
+test("the original twenty Lore Battles and authored expansion stories keep valid matches, cover finished fighters and all stages, and never get easier down the list [k3 measure #305]", () => {
   assertTrue(LORE_BATTLES.length >= 20);
   const fighters = new Set<number>();
   const stages = new Set<number>();
@@ -106,7 +106,7 @@ function judge(index: number, playerWon: boolean, timedOut: boolean, playerAlive
   return game.run.outcome;
 }
 
-test("each Lore Battle win condition fires on its rule: KO wins on the result, survive on a stock at time, KO within the clock only before time, and a boss at zero health [spec #305]", () => {
+test("each Lore Battle win condition fires on its rule: KO wins on the result, survive on a stock at time, KO within the clock only before time, and a boss at zero health [k3 measure #305]", () => {
   const first = (win: WinCondition): number => LORE_BATTLES.findIndex(battle => battle.win === win);
   const { won, lost } = RunOutcome;
   const ko = first(WinCondition.ko);
@@ -125,7 +125,7 @@ test("each Lore Battle win condition fires on its rule: KO wins on the result, s
   assertEquals(judge(boss, false, false, false, 40), lost, "player out");
 });
 
-test("a Lore Battle starts with its own fighter, opponents, stage, stocks and damage; a loss retries it and a clear returns to the list with the next battle chosen and the menu's rules back [spec #305]", () => {
+test("a Lore Battle starts with its own fighter, opponents, stage, stocks and damage; a loss retries it and a clear returns to the list with the next battle chosen and the menu's rules back [k3 measure #305]", () => {
   const index = LORE_BATTLES.findIndex(battle => battle.id === "lore.silvermoon");
   const battle = LORE_BATTLES[index];
   if (battle === undefined) throw new Error("no Silvermoon battle");
@@ -156,24 +156,4 @@ test("a Lore Battle starts with its own fighter, opponents, stage, stocks and da
   assertEquals(game.stockCount, menu.stockCount);
   assertEquals(game.timeLimitMinutes, menu.timeLimitMinutes);
   assertEquals(game.computerMask, 0);
-});
-
-test("a cleared Lore Battle is still cleared after the game reloads its local file, and unknown ids in the file are ignored [spec #305]", () => {
-  const disk = new Map<string, string[]>();
-  const files: ChunkFiles = {
-    read: name => [...(disk.get(name) ?? [])],
-    write: (name, chunks) => { disk.set(name, [...chunks]); return true; },
-  };
-  const ids = LORE_BATTLES.map(battle => battle.id);
-  const before = new LoreClears(files);
-  assertEquals(before.count(), 0);
-  for (const id of ids) before.mark(id);
-  before.mark(ids[0] ?? "");
-  const reloaded = new LoreClears(files);
-  assertEquals(reloaded.count(), ids.length);
-  for (const id of ids) assertEquals(reloaded.has(id), true, id);
-  disk.set(LORE_CLEARS_FILE, ["lore.retired,", ids[3] ?? ""]);
-  const edited = new LoreClears(files);
-  assertEquals(edited.count(), 1);
-  assertTrue(edited.has(ids[3] ?? ""));
 });

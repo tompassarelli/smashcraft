@@ -4,7 +4,7 @@ import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { fighterCoverage } from "./botCoverage";
 
-sweep("Murloc CPU uses all four specials in eight seeded Wren Expert matches; fewest of one seen 3 on four seed offsets [spec #262]", () => {
+sweep("Murloc CPU uses all four specials in eight seeded Wren Expert matches; fewest of one seen 3 on four seed offsets [k1 scenario]", () => {
   const choices: Character[] = SELECTABLE_CHARACTERS.filter(character => character !== Character.murloc);
   choices.push(Character.murloc);
   const report = fighterCoverage(choices.length - 1, undefined, choices);

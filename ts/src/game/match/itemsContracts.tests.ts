@@ -49,7 +49,7 @@ function pickup(character: Character, kind: ItemKind, style: AttackStyle = Attac
   return fixture;
 }
 
-test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds ahead [spec #196]", () => {
+test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds ahead [k3 measure #196]", () => {
   for (let seed = -100; seed <= 100; seed++) {
     const game = createMatchState();
     setHumanCount(game, 2);
@@ -75,7 +75,7 @@ test("centre items spawn 30–60 seconds after GO and warn exactly ten seconds a
   }
 });
 
-sweep("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame [spec docs/gameplay-design.md]", () => {
+sweep("every fighter takes every item with a normal attack or grab; expiry includes the pickup frame [k3 measure docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) for (const kind of [ItemKind.speed, ItemKind.heavy]) for (const style of [AttackStyle.jab, AttackStyle.grab]) {
     const { game, first, world, input } = pickup(character, kind, style);
     assertEquals(first.status.buffFrames, 599);
@@ -94,7 +94,7 @@ sweep("every fighter takes every item with a normal attack or grab; expiry inclu
   }
 });
 
-test("Speed raises every fighter's walk dash run and ledge/air/ground jump, without scaling its cap twice [spec docs/gameplay-design.md]", () => {
+test("Speed raises every fighter's walk dash run and ledge/air/ground jump, without scaling its cap twice [k3 measure docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) {
     for (const walking of [true, false]) {
       const plain = createFighter(character, 0.0, 1);
@@ -150,7 +150,7 @@ test("Speed raises every fighter's walk dash run and ledge/air/ground jump, with
   }
 });
 
-test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fall speeds [spec docs/gameplay-design.md]", () => {
+test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fall speeds [k3 measure docs/gameplay-design.md]", () => {
   for (const character of Object.values(Character)) {
     const plain = createFighter(character, 0.0, 1);
     const heavy = createFighter(character, 0.0, 1);
@@ -176,7 +176,7 @@ test("Heavy gives every fighter 1.5 weight and 1.3 gravity terminal and fast-fal
   }
 });
 
-sweep("five minutes of seeded spawns pickups and expiry replay from a saved snapshot exactly [spec #196] [invariant]", () => {
+sweep("five minutes of seeded spawns pickups and expiry replay from a saved snapshot exactly [k1 scenario]", () => {
   const live = createReplaySnapshot();
   live.match.phase = Phase.match;
   live.match.stageChoice = 0;

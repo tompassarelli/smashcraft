@@ -23,7 +23,7 @@ function startedMatch(humans = 3) {
   return { game, world, controls: createFrameControls() };
 }
 
-test("a competitive match holds every fighter for 180 frames, with the clock stopped until GO! [spec #129]", () => {
+test("a competitive match holds every fighter for 180 frames, with the clock stopped until GO! [k3 measure #129]", () => {
   const { game, world, controls } = startedMatch();
   assertEquals(game.startHold, START_HOLD_FRAMES);
   assertEquals(START_HOLD_FRAMES, 3 * MATCH_TICKS_PER_SECOND);
@@ -63,14 +63,14 @@ test("a competitive match holds every fighter for 180 frames, with the clock sto
   assertEquals(fighter.jump.serial > 0, true, "fresh jump");
 });
 
-test("practice starts at once, with no countdown [spec #129]", () => {
+test("practice starts at once, with no countdown [k3 measure #129]", () => {
   const { game } = startedMatch(1);
   assertTrue(game.practice);
   assertEquals(game.startHold, 0);
   assertFalse(holdingStart(game));
 });
 
-test("the countdown calls 3, 2 and 1 a second apart and GO! on the first frame fighters act [spec #129]", () => {
+test("the countdown calls 3, 2 and 1 a second apart and GO! on the first frame fighters act [k3 measure #129]", () => {
   const { game, world, controls } = startedMatch();
   const calls: string[] = [];
   for (let frame = 1; frame <= START_HOLD_FRAMES + MATCH_TICKS_PER_SECOND; frame++) {
