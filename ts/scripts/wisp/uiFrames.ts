@@ -6,7 +6,7 @@ import { join } from "node:path";
 import type { FrameDefinition, FrameNode } from "wisp/scripts/wisp/frames";
 import { writeFrames } from "wisp/scripts/wisp/frames";
 import { CPU_SETTINGS_DONE, CPU_SETTINGS_PANEL, CPU_SETTINGS_PREVIEW, CPU_SETTINGS_PROMPT, CPU_SETTINGS_ROWS } from "../../src/game/ui/cpuSettingsLayout";
-import { MENU_FONT } from "../../src/game/ui/hudLayout";
+import { MENU_FONT, PANEL_TEXTURE } from "../../src/game/ui/hudLayout";
 
 const PANEL = CPU_SETTINGS_PANEL;
 const BUTTON_HEIGHT = 0.027;
@@ -32,7 +32,7 @@ export const OPPONENT_SETTINGS: FrameDefinition = {
   at: { point: "TOPLEFT", x: PANEL.left, y: PANEL.top },
   level: 100,
   children: [
-    { key: "backdrop", type: "BACKDROP", width: PANEL.width, height: PANEL.height, texture: "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", enabled: false, points: at(PANEL.left, PANEL.top) },
+    { key: "backdrop", type: "BACKDROP", width: PANEL.width, height: PANEL.height, texture: PANEL_TEXTURE, enabled: false, points: at(PANEL.left, PANEL.top) },
     label("title", 0.15, 0.431, 0.42, 0.03, 0.014),
     button("close", "Close", 0.575, 0.431, 0.075),
     ...row("opponent", "Opponent", CPU_SETTINGS_ROWS[0]),

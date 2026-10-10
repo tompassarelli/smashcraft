@@ -6,6 +6,7 @@ import { idiv } from "wisp/src/sim/intMath";
 import { ESCAPE_METER_BORDER, ESCAPE_METER_HEIGHT, ESCAPE_METER_SEGMENT_FRAMES, type EscapeMeterView, escapeMeterFill } from "../presentation/escapeMeter";
 import { GRAB_HOLD_FRAMES } from "../sim/moves";
 import { createBackdrop, consoleUi } from "./frames";
+import { PANEL_TEXTURE } from "./hudLayout";
 
 const WIDTH = f32(0.07);
 const HEIGHT = f32(ESCAPE_METER_HEIGHT);
@@ -14,7 +15,6 @@ const LINE_WIDTH = f32(0.0006);
 const MARK_WIDTH = f32(0.0016);
 const MARK_HEIGHT = f32(0.014);
 const SEGMENTS = idiv(GRAB_HOLD_FRAMES, ESCAPE_METER_SEGMENT_FRAMES);
-const DARK = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 const FILL = "ReplaceableTextures\\TeamColor\\TeamColor04.blp";
 const MARK = "ReplaceableTextures\\TeamColor\\TeamColor00.blp";
 
@@ -36,9 +36,9 @@ export class EscapeMeter {
     for (let line = 1; line < SEGMENTS; line++) lines.push(createBackdrop(`EscapeMeterLine${I2S(slot)}`, parent, context + 1 + line));
     this.lines = lines;
     this.mark = createBackdrop(`EscapeMeterMark${I2S(slot)}`, parent, context + 1 + SEGMENTS);
-    BlzFrameSetTexture(this.back, DARK, 0, true);
+    BlzFrameSetTexture(this.back, PANEL_TEXTURE, 0, true);
     BlzFrameSetTexture(this.fill, FILL, 0, true);
-    for (const line of lines) BlzFrameSetTexture(line, DARK, 0, true);
+    for (const line of lines) BlzFrameSetTexture(line, PANEL_TEXTURE, 0, true);
     BlzFrameSetTexture(this.mark, MARK, 0, true);
     BlzFrameSetSize(this.back, WIDTH + 2 * BORDER, HEIGHT + 2 * BORDER);
     for (const line of lines) BlzFrameSetSize(line, LINE_WIDTH, HEIGHT);

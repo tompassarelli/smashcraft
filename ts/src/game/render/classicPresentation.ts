@@ -9,7 +9,7 @@ import { BossKind } from "../classic/runState";
 import { type MatchState, Phase } from "../match/rules";
 import { fighterPortrait } from "../sim/heroes/registry";
 import { createBackdrop, createText, gameUi, placeTopLeft } from "../ui/frames";
-import { MENU_FONT } from "../ui/hudLayout";
+import { MENU_FONT, PANEL_TEXTURE } from "../ui/hudLayout";
 import { type ParkedFlags, type WorldOrigin, parkOnce } from "./effects";
 
 
@@ -18,7 +18,6 @@ export const BOSS_TELEGRAPH_MODEL = "UI\\Feedback\\SelectionCircle\\SelectionCir
 
 const MARKER_HALF = f32(38.168);
 const QUARTER_TURN = f32(1.5707963);
-const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
 const moment: BossMoment = { strike: -1, index: 0, phase: BossPhase.opening, frame: 0 };
 

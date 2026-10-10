@@ -13,7 +13,7 @@ import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTo
 import { RANDOM_STAGE, STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { dropsSetting, hazardsSetting, rulesSummary } from "../shell/messages";
 import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
-import { MENU_FONT } from "./hudLayout";
+import { MENU_FONT, PANEL_TEXTURE } from "./hudLayout";
 import { StageCard } from "./stageCard";
 
 
@@ -110,7 +110,7 @@ export class StagePanel {
     this.poolRoot = BlzCreateFrameByType("FRAME", "MeleeStagePoolRoot", root, "", 0);
     BlzFrameSetLevel(this.poolRoot, 30);
     const poolBackdrop = createBackdrop("MeleeStagePoolBackdrop", this.poolRoot, 0);
-    BlzFrameSetTexture(poolBackdrop, "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", 0, true);
+    BlzFrameSetTexture(poolBackdrop, PANEL_TEXTURE, 0, true);
     placeTopLeft(poolBackdrop, f32(0.1), f32(0.49));
     BlzFrameSetSize(poolBackdrop, f32(0.6), f32(0.35));
     stageText(this.poolRoot, "MeleeStagePoolTitle", f32(0.14), f32(0.47), f32(0.4), f32(0.025), f32(0.016), "Stage pool");

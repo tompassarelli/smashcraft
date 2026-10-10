@@ -8,9 +8,9 @@ import {
   MANA_BAR_SEGMENTS, type ManaFeedback, advanceManaFeedback, manaFeedback, manaFill, manaDrainLit, manaFlashLit, manaGlowLit,
 } from "../presentation/manaBar";
 import { createBackdrop } from "./frames";
+import { PANEL_TEXTURE } from "./hudLayout";
 
 const LINE_WIDTH = f32(0.0006);
-const DARK = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 const FILL = "ReplaceableTextures\\TeamColor\\TeamColor01.blp";
 const FLASH = "ReplaceableTextures\\TeamColor\\TeamColor00.blp";
 const GLOW = "ReplaceableTextures\\TeamColor\\TeamColor04.blp";
@@ -45,10 +45,10 @@ export class ManaBar {
     this.lines = lines;
     this.flash = createBackdrop(`ManaBarFlash${suffix}`, parent, context + 2 + MANA_BAR_SEGMENTS);
     this.drain = createBackdrop(`ManaBarDrain${suffix}`, parent, context + 3 + MANA_BAR_SEGMENTS);
-    BlzFrameSetTexture(this.back, DARK, 0, true);
+    BlzFrameSetTexture(this.back, PANEL_TEXTURE, 0, true);
     BlzFrameSetTexture(this.fill, FILL, 0, true);
     BlzFrameSetTexture(this.glow, GLOW, 0, true);
-    for (const line of lines) BlzFrameSetTexture(line, DARK, 0, true);
+    for (const line of lines) BlzFrameSetTexture(line, PANEL_TEXTURE, 0, true);
     BlzFrameSetTexture(this.flash, FLASH, 0, true);
     BlzFrameSetTexture(this.drain, DRAIN, 0, true);
     BlzFrameSetAlpha(this.drain, 210);

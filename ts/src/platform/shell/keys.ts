@@ -17,7 +17,6 @@ import { fighterAt, isActive } from "../../game/sim/roster";
 import { NO_LESSON, tutorialFinished } from "../../game/match/tutorial";
 import { METER_COMMAND, classicDevRequest, loreDevRequest, LORE_WIN_COMMAND, winLoreBattle, DESYNC_COMMAND, QUICK_CPU_STOCKS, RESET_COMMAND, QUICK_TRAINING_COMMAND, applyDevCommand, prepareQuickCpu, prepareQuickTraining, quickMatchCpuHero, quickMatchCpuProfile, quickMatchHero, quickMatchStocks, quickMatchPair, quickPromoRequest, prepareQuickPromo, quickStageSettings, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../game/shell/devSettings";
 import { fighterName } from "../../game/sim/heroes/registry";
-import { keepMomentEnd } from "../../game/replay/moment";
 import { endReplaySegment } from "./replays";
 import { devReceiptFile } from "../../game/shell/journalFiles";
 import { applySetupCommand } from "../../game/shell/sessionSetup";
@@ -40,7 +39,7 @@ import { back, choose, confirm, openSettingsScreen, resetToStartingSelection, st
 import { LORE_BATTLES } from "../../game/classic/loreBattles";
 import { makePreview } from "./preview";
 import { exportProbe, probeIntegrity, probeRecording, startProbe } from "./responseProbe";
-import { type ShellState, activeRollback, cancelPendingPlaytest, localSlot, playsOnKeyboard } from "./state";
+import { type ShellState, activeRollback, cancelPendingPlaytest, keepShellMomentEnd, localSlot, playsOnKeyboard } from "./state";
 import { clearMatchEffects, views } from "./ui";
 import { ownConfirmedState } from "./confirmedState";
 import { LASTING, pauseMatchPresentation, renderFighter, renderPersistentPresentation, setStatus } from "./view";
@@ -104,7 +103,7 @@ function journalMenuKey(s: ShellState, slot: ParticipantSlot, key: number): bool
 
 function exitPausedMatch(s: ShellState, title: boolean): void {
   ownConfirmedState(s);
-  keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
+  keepShellMomentEnd(s);
   endReplaySegment(s);
   clearMatchEffects(s);
   if (s.game.run.active && s.pauseSelection !== undefined) copyMatchState(s.game, s.pauseSelection);

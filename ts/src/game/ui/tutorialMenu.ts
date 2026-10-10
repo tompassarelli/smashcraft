@@ -6,12 +6,11 @@
 import { f32 } from "wisp/src/sim/f32";
 import { readChunks, writeChunks } from "wisp/src/platform/fileio";
 import { LESSONS, lessonChoiceText } from "../match/tutorial";
-import { MENU_FONT } from "./hudLayout";
+import { MENU_FONT, PANEL_TEXTURE } from "./hudLayout";
 import { createBackdrop, createText, placeTopLeft } from "./frames";
 
 export type TutorialButton = { kind: "tutorialOpen" } | { kind: "tutorialStep"; direction: -1 | 1 } | { kind: "tutorialStart" } | { kind: "tutorialClose" };
 
-const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 const SEEN_FILE = "SmashcraftTutorial.pld";
 const SEEN = "seen";
 

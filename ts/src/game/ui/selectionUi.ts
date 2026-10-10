@@ -51,7 +51,7 @@ import {
   updateSelectionDrag,
 } from "../menu/selectionDrag";
 import { cellRect, rosterGrid } from "../menu/selectionGrid";
-import { MENU_FONT, type TextBox } from "./hudLayout";
+import { MENU_FONT, PANEL_TEXTURE, type TextBox } from "./hudLayout";
 import { MOVES_BODY_BOX, MOVES_BUTTON_HEIGHT, MOVES_BUTTON_TOP, MOVES_TITLE_BOX, selectionTitleBox } from "./selectionLayout";
 import { PLAYABLE_CHARACTERS, fighterName, fighterPortrait, nextSelectableCharacter } from "../sim/heroes/registry";
 import {
@@ -406,7 +406,7 @@ export class SelectionPanel {
     ];
     this.matchRuleFrames = [...this.steps, this.stockValue, this.timeValue, this.endlessToggle, this.rematchToggle, this.itemsToggle, this.ultimatesToggle];
     this.help = createBackdrop(`MeleeRuleHelp${suffix}`, root, 0);
-    BlzFrameSetTexture(this.help, "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp", 0, true);
+    BlzFrameSetTexture(this.help, PANEL_TEXTURE, 0, true);
     BlzFrameSetSize(this.help, RULE_HELP_WIDTH, RULE_HELP_HEIGHT);
     BlzFrameSetLevel(this.help, 20);
     BlzFrameSetEnable(this.help, false);

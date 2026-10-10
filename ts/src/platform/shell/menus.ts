@@ -11,7 +11,7 @@ import {
   returnToCharacters, selectCharacter, selectCpuCharacter, selectStage, setHazards, setMeterDropsOn, setStocks, setTimeLimit, updateConnectedHumans,
   type MatchState, copyMatchState, createMatchState, setParticipants,
 } from "../../game/match/rules";
-import { keepMomentEnd, resetMomentRecorder } from "../../game/replay/moment";
+import { resetMomentRecorder } from "../../game/replay/moment";
 import { resetPacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { clearObservedActions } from "../../game/match/step";
 import { clearAttackBuffer } from "../../game/input/attackBuffer";
@@ -36,7 +36,7 @@ import { chooseDelay } from "../../game/ui/bindingSettings";
 import { cancelStageLoad, requestStageLoad, stageLoading } from "./stageLoad";
 import { endReplaySegment } from "./replays";
 import { makePreview } from "./preview";
-import { type ShellState, cancelPendingPlaytest, shell } from "./state";
+import { type ShellState, cancelPendingPlaytest, keepShellMomentEnd, shell } from "./state";
 import type { PanelActions } from "./ui";
 import { clearMatchEffects, views } from "./ui";
 import { announce, pauseMatchPresentation, setStatus } from "./view";
@@ -340,7 +340,7 @@ export function startingSelection(scenario: Scenario): MatchState {
 
 export function resetToStartingSelection(s: ShellState): void {
   if (s.game.phase === Phase.match) {
-    keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
+    keepShellMomentEnd(s);
     endReplaySegment(s);
     clearMatchEffects(s);
   }

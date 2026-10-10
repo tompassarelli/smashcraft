@@ -20,13 +20,12 @@ import { meterDropPoint } from "../match/meterDrops";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
-import { MENU_FONT } from "../ui/hudLayout";
+import { MENU_FONT, PANEL_TEXTURE } from "../ui/hudLayout";
 import type { WorldOrigin } from "./effects";
 import { SoundBank, SoundKind } from "./soundBank";
 import { fighterModel } from "./combatEffects";
 import { type FighterOriginalClip, originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
-const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
 export const RESULTS_DELAY_FRAMES = 90;
 

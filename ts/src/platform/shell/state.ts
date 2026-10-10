@@ -29,7 +29,7 @@ import { DEFAULT_BATCH, OutgoingInput } from "../../game/netcode/journal/transpo
 import { PENDING_CAPACITY, ShadowInputSchedule } from "../../game/netcode/shadowSchedule";
 import type { WorldOrigin } from "../../game/render/effects";
 import { type ModelSoundCursor, ORIGINAL_MODEL_SOUNDS, createModelSoundCursor } from "../../game/render/modelSounds";
-import { type MomentRecorder, createMomentRecorder } from "../../game/replay/moment";
+import { type MomentRecorder, createMomentRecorder, keepMomentEnd } from "../../game/replay/moment";
 import { type MatchReplayRecorder, createMatchReplayRecorder } from "../../game/replay/matchReplay";
 import { type ReplayState, createReplaySnapshot } from "../../game/replay/snapshot";
 import { type JournalIngress, type MapBuild, type ShadowInputMode, isShadow } from "../../game/shell/build";
@@ -216,6 +216,11 @@ interface MomentSaves {
 }
 
 export const momentSaves = (): MomentSaves => ({ recorder: createMomentRecorder(), saved: 0, notice: 0.0 });
+
+/** Keeps the moment recorder's end at the shell's current frame. */
+export function keepShellMomentEnd(s: ShellState): void {
+  keepMomentEnd(s.moment.recorder, s.world, s.game, s.controls, s.runtime);
+}
 
 
 export interface ReplayRecording {

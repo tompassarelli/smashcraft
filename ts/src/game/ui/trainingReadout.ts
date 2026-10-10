@@ -6,11 +6,10 @@ import { type TrainingState, copyTrainingState, createTrainingState } from "../m
 import { trainingReadout } from "../shell/messages";
 import { tutorialOn, tutorialText } from "../match/tutorial";
 import { createBackdrop, createText, gameUi, placeTopLeft } from "./frames";
-import { MENU_FONT } from "./hudLayout";
+import { MENU_FONT, PANEL_TEXTURE } from "./hudLayout";
 import { TRAINING_READOUT_BOX, TRAINING_READOUT_PANEL, TRAINING_READOUT_PANEL_ALPHA } from "./hudLayout";
 
 
-const PANEL_TEXTURE = "UI\\Widgets\\ToolTips\\Human\\human-tooltip-background.blp";
 
 export class TrainingReadout {
   private readonly panel: framehandle;
