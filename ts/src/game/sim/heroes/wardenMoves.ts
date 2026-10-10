@@ -59,6 +59,7 @@ function throwMove(release: number, recovery: number, damage: number, kind: Para
   return { contactFrame: release, totalFrames: release + recovery, effect: wardenHit(damage, kind, angle, facing) };
 }
 
+const FORWARD_AIR = wardenHit(7.6326799392700195, "EDGE", 40);
 const BACK_AIR = wardenHit(8.39594841003418, "KILL", 35, -1.0);
 
 const SKY_LIFT: readonly Strike[] = [
@@ -113,7 +114,17 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       blade(-2.0908799171447754, 89.08098602294922, 96.76730346679688, 89.08098602294922),
       blade(96.76730346679688, 89.08098602294922, 96.76730346679688, 89.08098602294922),
     ], wardenHit(4.579607963562012, "POKE", 50))),
-    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(7.6326799392700195, "EDGE", 40))),
+    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, [
+      heroRegion(8, 8, blade(37.662445068359375, 148.6592559814453, 58.328670501708984, 135.1438751220703), FORWARD_AIR),
+      heroRegion(8, 8, blade(58.328670501708984, 135.1438751220703, 76.17012023925781, 114.24028778076172), FORWARD_AIR),
+      heroRegion(8, 8, blade(76.17012023925781, 114.24028778076172, 87.3436279296875, 88.04920959472656), FORWARD_AIR),
+      heroRegion(8, 8, blade(87.3436279296875, 88.04920959472656, 89.89668273925781, 60.60640335083008), FORWARD_AIR),
+      heroRegion(9, 9, blade(89.89668273925781, 60.60640335083008, 79.29962921142578, 31.376171112060547), FORWARD_AIR),
+      heroRegion(9, 9, blade(79.29962921142578, 31.376171112060547, 56.640132904052734, 7.324544906616211), FORWARD_AIR),
+      heroRegion(9, 9, blade(56.640132904052734, 7.324544906616211, 27.074600219726562, -6.831627368927002), FORWARD_AIR),
+      heroRegion(9, 9, blade(27.074600219726562, -6.831627368927002, 0.05732898414134979, -8.744290351867676), FORWARD_AIR),
+      heroRegion(10, 10, blade(0.05732898414134979, -8.744290351867676, 0.05732898414134979, -8.744290351867676), FORWARD_AIR),
+    ]),
 
     [AttackStyle.backAir]: heroMove(7, 3, 22, 12, [
       ...cut(7, [54.0, 45.0, 36.0], M, BACK_AIR, undefined, -1.0),

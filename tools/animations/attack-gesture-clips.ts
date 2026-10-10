@@ -127,7 +127,7 @@ const WARDEN_LUNGE: Readonly<Record<string, readonly number[]>> = {
 const wardenWeaponPose = (character: number, pose: HeroPose) => character === 5 && ["jab3", "forwardTiltDown", "downTilt", "dashAttack", "upSmash", "upAir", "upTilt", "forwardTiltUp", "jab", "jab2", "forwardTilt", "forwardSmash", "neutralSpecial", "sideSpecial", "ultimate"].includes(pose);
 
 function aimWeaponContact(model: mdx.Model, index: number, start: number, contact: number, total: number, pose: HeroPose, shadowLow = false) {
-  if (pose === "neutralAir") {
+  if (pose === "neutralAir" || pose === "forwardAir") {
     const nodes = [...model.Bones, ...model.Helpers, ...model.Attachments];
     const named = (name: string) => { const node = nodes.find(n => n.Name === name); ensure(node, name); return node; };
     const root = named("Attack Gesture"), body = named("Bone_Root"), hand = named("Bone_Hand_R"), weapon = named("Object08");
@@ -139,7 +139,7 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
       const m = data.nodes[node.ObjectId]!.matrix;
       return [0, 1, 2].map(i => m[i]!*p[0]!+m[4+i]!*p[1]!+m[8+i]!*p[2]!+m[12+i]!);
     };
-    const at = start + Math.round(contact*1000/60); data.frame = at; renderer.update(0);
+    let at = start + Math.round(contact*1000/60); data.frame = at; renderer.update(0);
     const aim = (node: mdx.Node, target: number[], effector: mdx.Node, point?: Float32Array) => {
       const origin = position(node), a = position(effector, point).map((v,i) => v-origin[i]!), b = target.map((v,i) => v-origin[i]!);
       const an = Math.hypot(...a), bn = Math.hypot(...b), av = a.map(v => v/an), bv = b.map(v => v/bn);
@@ -154,6 +154,42 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
       if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); }
       renderer.update(0);
     };
+    if (pose === "forwardAir") {
+      tracks(model, track => {
+        if (onGlobalClock(track) || track.LineType !== 2) return;
+        for (const key of track.Keys) if (key.Frame >= start && key.Frame <= start+Math.round(total*1000/60) && key.Vector.length !== 4 && key.InTan) {
+          key.InTan = new Float32Array(key.Vector.length); key.OutTan = key.InTan.slice();
+        }
+      });
+      const held = new Map<mdx.Node, Float32Array>();
+      for (let frame = 0; frame <= total; frame++) {
+        at = start + Math.round(frame*1000/60);
+        const recovery = Math.max(0,1-(frame-contact-2)/(total-contact-2));
+        const lean = frame < contact-2 ? -20*frame/(contact-2) : frame <= contact ? -20+35*(frame-contact+2)/2 : 15*recovery;
+        root.Rotation!.Keys.find(k => k.Frame === at)!.Vector = rotate(new Float32Array([0,0,0,1]),lean);
+        data.frame = at; renderer.update(0);
+        if (frame > contact+2) {
+          for (const node of [...arm,hand]) {
+            const key = node.Rotation!.Keys.find(k => k.Frame === at)!;
+            key.Vector = blend(key.Vector,held.get(node)!,recovery);
+            if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); }
+          }
+          continue;
+        }
+        const arc = frame < contact ? 75 : 75-75*(frame-contact), angle = arc*Math.PI/180;
+        const b = position(body), handTarget = [b[0]!+36*Math.cos(angle),-24,85+36*Math.sin(angle)], tipTarget = [b[0]!+96*Math.cos(angle),-24,85+96*Math.sin(angle)];
+        const weight = Math.min(1,frame/Math.max(1,contact-1)), initial = [...arm,hand].map(node => node.Rotation!.Keys.find(k => k.Frame === at)!.Vector.slice());
+        for (let iteration = 0; iteration < 20; iteration++) for (const node of arm) aim(node,handTarget,hand);
+        aim(hand,tipTarget,weapon,tipPoint);
+        [...arm,hand].forEach((node,i) => {
+          const key = node.Rotation!.Keys.find(k => k.Frame === at)!;
+          key.Vector = blend(initial[i]!,key.Vector,weight);
+          if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); }
+          if (frame === contact+2) held.set(node,key.Vector.slice());
+        });
+      }
+      return;
+    }
     for (let iteration = 0; iteration < 20; iteration++) for (const node of arm) aim(node, [48,-24,90], hand);
     aim(hand, [108,-24,90], weapon, tipPoint);
     const h = position(body), tip = position(weapon, tipPoint), yaw = -Math.atan2(tip[1]!-h[1]!,tip[0]!-h[0]!)*180/Math.PI;
@@ -416,13 +452,14 @@ for(const [id,poses]of Object.entries(PLAN)) {
     }
     if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const shadowLow = character === 9 && pose === "downTilt";
-    if (wardenWeaponPose(character,pose) || shadowLow || character === 5 && pose === "neutralAir") aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
-    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow || character === 5 && pose === "neutralAir"?", aligned: true":""} }`;
+    const aligned = wardenWeaponPose(character,pose) || shadowLow || character === 5 && (pose === "neutralAir" || pose === "forwardAir");
+    if (aligned) aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
+    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${aligned?", aligned: true":""} }`;
     bindings.push(`    ${pose}: ${binding},`);
     if(special&&pose!=="ultimate")for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
     const moments=[Math.max(1,contact-3),contact,Math.min(total-1,contact+5)];
     for(const facing of [1,-1])for(const frame of moments)drawnFrames.push({frame,facing,clip:index,seconds:frame/60,phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]});
-    records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:wardenWeaponPose(character,pose) || shadowLow || character === 5 && pose === "neutralAir"});
+    records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned});
   }
   bindings.push("  },");
   const bytes=encodeVerified(parseSource(generateMDX(model))),after=new DrawnModel(bytes,1);
