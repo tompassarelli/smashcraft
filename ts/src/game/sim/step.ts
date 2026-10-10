@@ -227,7 +227,7 @@ function advanceJumpSquat(f: Fighter, input: Readonly<Controls>, squatBeforeInpu
   jump.isDouble = false;
   if (jump.dodgeQueued) {
     jump.dodgeQueued = false;
-    beginAirDodge(f, jump.dodgeX, jump.dodgeZ);
+    beginAirDodge(f, jump.dodgeX, jump.dodgeZ, true);
     jump.dodgeX = 0;
     jump.dodgeZ = 0;
   }
@@ -514,7 +514,7 @@ export function advanceFighterMotion(world: Roster, slot: number, stage: number,
       jump.dodgeX = input.dodgeX;
       jump.dodgeZ = input.dodgeZ;
     } else {
-      beginAirDodge(f, input.dodgeX, input.dodgeZ);
+      beginAirDodge(f, input.dodgeX, input.dodgeZ, false);
     }
   }
   if (jump.dodgeQueued && (input.direction !== 0 || input.verticalDirection !== 0)) {
