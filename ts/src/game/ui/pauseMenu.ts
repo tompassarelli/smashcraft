@@ -89,9 +89,9 @@ export class PauseMenu {
     }
     BlzFrameSetText(this.help, title ? "A / Start / Click: Play" : "Stick / arrows: choose    A: select    Click: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
     BlzFrameSetVisible(this.controls, !title);
-    BlzFrameSetText(this.controls, "Q: full shield · T: light shield · P: tilt · Z / LB (pad): short hop · X / RB (pad): meter\n"
+    BlzFrameSetText(this.controls, "Q: full shield · T: light shield · P: tilt · Z: short hop · X: meter\n"
       + "Shield before landing: tech; + left/right: tech roll.\n"
-      + "Shield + Special: EX (one bar) · Attack + Special (A + X): Ultimate (full bar).\n"
+      + "Shield + Special: EX (one bar) · Attack + Special: Ultimate (full bar).\n"
       + "Shield + left/right: roll · Shield + down: dodge.\n"
       + "Downed: Attack/Special: strike · Up/Jump/Shield: stand · left/right: roll.\n"
       + "Ledge: Up/toward: climb · Jump: leap · Shield: roll · Attack: strike · Down/away: let go."
