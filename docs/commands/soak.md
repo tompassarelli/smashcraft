@@ -42,7 +42,7 @@
   stock lost, and runs whose hashes differ. `--repro N` replays match `N`. The nightly
   Playtest workflow runs it on the newest green main in `ceil(matches / 334)`-sized
   shards (1,200 ms a match with both runs, measured locally on four cores; at most
-  eight at once, within the farm's 20 jobs) and files issues labelled `playtester`,
+  eight at once, within the account's 40 jobs) and files issues labelled `playtester`,
   one per kind under a stable title ("Playtester: matches that never end"): a kind
   with findings updates its open issue's body or opens one, an empty kind comments
   on its open issue. `--issues FINDINGS --open-issues OPEN --dry-run` prints those

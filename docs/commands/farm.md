@@ -17,7 +17,7 @@
   balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core, eight pairs a job and at most 8 jobs at once (the
-  account runs 20 jobs at once; wisp:docs/ci.md, "Runner capacity and
+  account runs 40 jobs at once (GitHub Pro); wisp:docs/ci.md, "Runner capacity and
   waiting"), then each fighter's spam probe (its top damage move only,
   `--probe N` matches a pair, 40 by default, 0 to skip), and with `--wait`
   prints the verdicts, the field table and the damage-by-move, play-style,
