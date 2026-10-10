@@ -4,7 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { PARTICIPANT_CAPACITY, PARTICIPANT_SLOTS } from "../input/participants";
-import type { MatchState } from "../match/rules";
+import { Phase, type MatchState } from "../match/rules";
 import type { Character } from "../sim/codes";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { characterModelScale } from "../presentation/modelScale";
@@ -145,6 +145,13 @@ export class MatchPresentation {
 
 
   presentMenus(game: Readonly<MatchState>, hover: number | undefined): void {
+    if (game.phase === Phase.stageMenu && this.menu.phase === Phase.characterMenu) {
+      for (const slot of PARTICIPANT_SLOTS) {
+        const voice = this.voices[slot];
+        if (voice !== undefined) StopSound(voice, false, false);
+        this.voices[slot] = undefined;
+      }
+    }
     menuFrameCues(this.menu, game, hover, this.menuCues);
     const { hover: hovered, confirm, fighters } = this.menuCues;
     if (hovered) this.cue(MatchCue.hover);
