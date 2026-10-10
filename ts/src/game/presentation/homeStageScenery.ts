@@ -49,7 +49,7 @@ export const TOMB_OF_SARGERAS_SCENERY: StageScenery = {
   heightFog: { start: 5000.0, end: 11000.0, density: 0.25, heightStart: -1800.0, heightEnd: -100.0, maxDensity: 0.375, drawOverSky: false },
   pieces: [
     // Delfino's continuous drowned shoreline, with the temple above the right third.
-    { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 1250.0, y: 4000.0, z: -800.0, scale: 4.0, yaw: 250.0 },
+    { model: "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx", x: 1250.0, y: 4000.0, z: -800.0, scale: 4.0, yaw: 250.0, color: [104, 156, 164] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: -4000.0, y: 3900.0, z: -1900.0, scale: 5.0, yaw: 90.0, matrixScale: [0.5, 2.0, 1.0] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: 0.0, y: 4500.0, z: -2150.0, scale: 6.25, yaw: 270.0, matrixScale: [0.5, 2.0, 1.0] },
     { model: "Doodads\\Ruins\\Structures\\SRuinArch\\SRuinArch.mdx", x: 4000.0, y: 4500.0, z: -1400.0, scale: 4.0, yaw: 85.0, matrixScale: [0.5, 2.0, 1.0] },

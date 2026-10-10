@@ -44,6 +44,6 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
 
   { stage: STRATHOLME_STAGE, theme: "Stratholme", light: { key: [255, 226, 200], ambient: [190, 170, 206], intensity: 1.25 } },
 
-  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180] } },
+  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", light: { key: [226, 244, 255], ambient: [130, 176, 180], intensity: f32(1.15) } },
   { stage: TIMED_TEST_STAGE, theme: "Qiraji", light: { key: [236, 240, 255], ambient: [170, 176, 210], intensity: f32(1.15) } },
 ];

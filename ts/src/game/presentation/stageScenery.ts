@@ -146,7 +146,7 @@ export function shadowCastingLights(stage: number): number {
 export function placedPieces(stage: number, mood = true): readonly SceneryPiece[] {
   const scenery = stageScenery(stage);
   const pieces = scenery.pieces.map(piece => {
-    const color = scenery.tint ?? piece.color ?? [255, 255, 255] as const;
+    const color = piece.color ?? scenery.tint ?? [255, 255, 255] as const;
     return { ...piece, color: mood ? sceneryColor(stage, color) : color };
   });
   return [...pieces, ...terrainPieces(stage), ...pointLightPieces(stage)];
