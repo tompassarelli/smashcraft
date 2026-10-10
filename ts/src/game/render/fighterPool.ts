@@ -141,7 +141,7 @@ export class FighterPoolPresentation {
     const duration = clip.endSeconds - clip.startSeconds;
     const move = startup === undefined ? undefined : runningHeroSpecial(fighter);
     let seconds = startup === undefined ? Math.max(0.0, pose.clipTime)
-      : startup.seconds * Math.max(0, fighter.special.frame - 1) / Math.max(1, move === undefined ? 1 : heroCueWindows(move).startup.last - 1);
+      : (startup.startSeconds ?? 0.0) + startup.seconds * Math.max(0, fighter.special.frame - 1) / Math.max(1, move === undefined ? 1 : heroCueWindows(move).startup.last - 1);
     if (duration <= 0.0) seconds = 0.0;
     else if (clip.looping) seconds -= I2R(R2I(seconds / duration)) * duration;
     else if (seconds > duration) seconds = duration;
