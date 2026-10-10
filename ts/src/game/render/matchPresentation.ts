@@ -305,10 +305,12 @@ export class MatchPresentation {
       BlzSetSpecialEffectYaw(model, FACING_CAMERA);
       BlzSetSpecialEffectScale(model, characterModelScale(pose.character));
       const duration = clip.endSeconds - clip.startSeconds;
+      const start = winning ? duration / 4.0 : 0.0;
+      const cycle = winning ? duration / 2.0 : duration;
       let seconds = I2R(this.resultFrames) / 60.0;
-      if (duration <= 0.0) seconds = 0.0;
-      else seconds -= I2R(R2I(seconds / duration)) * duration;
-      BlzSetSpecialEffectTime(model, (clip.timeline === true ? clip.startSeconds : 0.0) + seconds);
+      if (cycle <= 0.0) seconds = 0.0;
+      else seconds -= I2R(R2I(seconds / cycle)) * cycle;
+      BlzSetSpecialEffectTime(model, (clip.timeline === true ? clip.startSeconds : 0.0) + start + seconds);
     }
   }
 
@@ -367,6 +369,7 @@ export class MatchPresentation {
     for (const slot of PARTICIPANT_SLOTS) {
       const pose = this.poses[slot];
       if (pose?.model !== undefined) {
+        hideEffect(pose.model, this.origin);
         DestroyEffect(pose.model);
       }
       this.poses[slot] = undefined;

@@ -74,8 +74,8 @@ export function arenaFraming(left: number, right: number, bottom: number, top: n
 export const RESULTS_CAMERA_FRAMES = 30;
 
 export function resultFighterPlacement(stage: number, index: number, count: number): { readonly x: number; readonly z: number } {
-  const centre = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0 - (count <= 2 ? 240.0 : 0.0);
-  const spacing = Math.min(240.0, (mainDeckRight(stage) - mainDeckLeft(stage)) / (count + 1));
+  const centre = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0;
+  const spacing = Math.min(200.0, (mainDeckRight(stage) - mainDeckLeft(stage)) / (count + 1));
   const x = centre + (index - (count - 1) / 2.0) * spacing;
   return { x, z: mainDeckZAt(stage, x) };
 }
@@ -83,10 +83,9 @@ export function resultFighterPlacement(stage: number, index: number, count: numb
 export function resultCamera(camera: MatchCamera, stage: number, aspect: number, frame: number): void {
   const goal = createMatchCamera();
   goal.x = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0;
-  goal.z = mainDeckZAt(stage, goal.x) + 160.0;
-  goal.tangent = 0.3443276286125183;
-  const bounds = stageBounds(stage);
-  limitCamera(goal, bounds.camera, aspect, bounds.blast.bottom);
+  goal.z = mainDeckZAt(stage, goal.x) + 80.0;
+  goal.distance = 750.0;
+  goal.tangent = 0.2679491937160492;
   if (frame >= RESULTS_CAMERA_FRAMES - 1) {
     copyMatchCamera(camera, goal);
     return;
