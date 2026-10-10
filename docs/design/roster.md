@@ -1929,8 +1929,8 @@ Original provisional values; F/A/R counts start at simulation frame zero. Volume
 
 | Input and move | F/A/R; landing | Damage | Gesture and purpose |
 |---|---|---:|---|
-| Jab — Royal Rebuke | 6/3/17 | 4 | Short left tusk jab; another tap delivers the right tusk (8/3/20, 6%) |
-| Forward tilt — Mandible Spear | 10/4/24 | 11 | Long front pincer thrust; angled forms aim high or rake ankles |
+| Jab — Royal Rebuke | 6/3/17 | 4 | Shell coils into a descending right-claw rake; another tap scythes the left claw (8/3/20, 6%) |
+| Forward tilt — Mandible Spear | 10/4/24 | 11 | Shell drives a broad pincer scythe; angled forms lift overhead or rake ankles |
 | Up tilt — Crown Lift | 9/5/23 | 10 | Horn lifts prey into a juggle, narrow near the ground |
 | Down tilt — Grave Rake | 8/4/20 | 8 | Low claw scrape launches a tech chase |
 | Dash attack — King’s Advance | 12/5/28 | 12 | Planted forelegs and a committed horn shove |
@@ -1939,8 +1939,8 @@ Original provisional values; F/A/R counts start at simulation frame zero. Volume
 | Down smash — Crypt Sweep | 16/6/32 | 16 | Front sweep then rear sweep; one hit per target |
 | Neutral air — Carapace Wheel | 10/7/24; L18 | 10 | Broad shell twist clears nearby bodies |
 | Forward air — Royal Skewer | 13/4/27; L20 | 13 | Heavy forward tusk thrust |
-| Back air — Hindclaw | 11/4/27; L20 | 14 | Rear legs kick behind the shell |
-| Up air — Horn of the King | 9/4/23; L16 | 10 | Pointed vertical crown poke |
+| Back air — Hindclaw | 11/4/27; L20 | 14 | Shell coils backward and both claws rake behind |
+| Up air — Horn of the King | 9/4/23; L16 | 10 | Coiled shell lift and ascending pincer scythe |
 | Down air — Tombstone | 17/4/30; L24 | 15 | Head-first downward shell strike; airborne spike |
 
 ### Four specials and EX

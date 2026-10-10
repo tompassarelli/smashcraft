@@ -76,6 +76,7 @@ export const ANUBARAK_CLIPS = { idle: ANUBARAK_FALLBACK, walk: { index: 2, secon
   upSpecialAir: { index: 86, seconds: f32(0.767), aligned: true },
   downSpecial: { index: 87, seconds: f32(0.767), aligned: true },
   downSpecialAir: { index: 88, seconds: f32(0.767), aligned: true },
+  ultimate: { index: 98, seconds: 1.0, aligned: true },
 } as const satisfies HeroClipTable;
 export const ANUBARAK_DAMAGE_CLIPS: readonly HeroClip[] = [
   { index: 89, seconds: f32(0.4), aligned: true },

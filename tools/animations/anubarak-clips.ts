@@ -10,6 +10,7 @@ import type { HeroPose } from "../../ts/src/game/sim/heroes/hero";
 import { ANUBARAK_MOVES } from "../../ts/src/game/sim/heroes/anubarakMoves";
 import { ANUBARAK_SPECIALS } from "../../ts/src/game/sim/heroes/anubarakSpecials";
 import { seconds } from "./asset-info";
+import { FIGHTER_ULTIMATES } from "../../ts/src/game/sim/ultimates";
 
 function ensure(ok: unknown, message: string): asserts ok { if (!ok) throw new Error(message); }
 function tracks(value: unknown, visit: (track: mdx.AnimVector, path: string) => void, path = "") {
@@ -63,6 +64,10 @@ const rakes: Partial<Record<HeroPose, Rake>> = {
   throwForward: { first: 16, last: 19, windup: { chest: -20, pelvis: -15, lean: -12, arm: -185, elbow: 20, leftArm: -75 }, strike: { chest: 28, pelvis: 22, lean: 14, arm: -100, elbow: 20, leftArm: -95 }, follow: { chest: 45, pelvis: 32, lean: 20, arm: 100, elbow: 20, leftArm: -115 }, drive: 42 },
   throwBack: { first: 19, last: 22, windup: { chest: 22, pelvis: 15, lean: 12, arm: 190, elbow: 20, leftArm: 70 }, strike: { chest: -28, pelvis: -20, lean: -15, arm: 100, elbow: 20, leftArm: 100 }, follow: { chest: -45, pelvis: -30, lean: -20, arm: -100, elbow: 20, leftArm: -100 }, drive: -42 },
   throwUp: { first: 15, last: 18, windup: { chest: 25, pelvis: 15, lean: 15, arm: 80, elbow: 20, leftArm: 80, thigh: 25, leftThigh: -25 }, strike: { chest: -20, pelvis: -15, lean: -12, arm: 0, elbow: 20, leftArm: 0, thigh: -10, leftThigh: 10 }, follow: { chest: -40, pelvis: -25, lean: -20, arm: -200, elbow: 20, leftArm: -200, thigh: -20, leftThigh: 20 }, drive: 36 },
+  throwDown: { first: 21, last: 24, windup: { chest: -20, pelvis: -15, lean: -12, arm: -180, elbow: 20, leftArm: -80, thigh: 15, leftThigh: -15 }, strike: { chest: 40, pelvis: 22, lean: 15, arm: -100, elbow: 20, leftArm: -100, thigh: 35, leftThigh: -30 }, follow: { chest: 55, pelvis: 32, lean: 20, arm: 100, elbow: 20, leftArm: 100, thigh: 45, leftThigh: -40 }, drive: 40 },
+  getUpAttack: { first: 16, last: 20, windup: { chest: -20, pelvis: -15, lean: -12, arm: -180, elbow: 20, leftArm: -80, thigh: 15, leftThigh: -15 }, strike: { chest: 35, pelvis: 22, lean: 15, arm: -100, elbow: 20, leftArm: -100, thigh: 35, leftThigh: -30 }, follow: { chest: 50, pelvis: 32, lean: 20, arm: 100, elbow: 20, leftArm: 100, thigh: 45, leftThigh: -40 }, drive: 34 },
+  ledgeAttack: { first: 16, last: 18, windup: { chest: -20, pelvis: -15, lean: -12, arm: -185, elbow: 20, leftArm: -75 }, strike: { chest: 28, pelvis: 22, lean: 14, arm: -100, elbow: 20, leftArm: -95 }, follow: { chest: 45, pelvis: 32, lean: 20, arm: 100, elbow: 20, leftArm: -115 }, drive: 42 },
+  ultimate: { first: 16, last: 19, windup: { chest: -25, pelvis: -15, lean: -12, arm: -185, elbow: 20, leftArm: -75 }, strike: { chest: 33, pelvis: 22, lean: 14, arm: -100, elbow: 20, leftArm: -95 }, follow: { chest: 50, pelvis: 32, lean: 20, arm: 100, elbow: 20, leftArm: -115 }, drive: 42 },
 };
 const actions: Action[] = [];
 const normals: readonly [HeroPose, AttackStyle, Gesture, readonly [number, number]][] = [
@@ -181,9 +186,13 @@ const originals = new Map<string, mdx.AnimVector>(); tracks(source, (t, p) => or
 let cursor = Math.max(...source.Sequences.map(s => s.Interval[1])) + 100;
 const cutoff = cursor, bindings: string[] = [], damageBindings: string[] = [];
 const records: { pose: string; index: number; frames: number; contact: number }[] = [];
-for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
+const ultimate = FIGHTER_ULTIMATES[Character.anubarak]!;
+const ultimateContact = ultimate.projectiles?.[0]?.spawnFrame;
+ensure(ultimateContact !== undefined, "Locust Swarm release missing");
+const authoredActions: Action[] = [...actions, ...damageActions, { pose: "ultimate", frames: ultimate.endFrame, contact: ultimateContact, gesture: cast }];
+for (const [ordinal, action] of authoredActions.entries()) {
   const index = model.Sequences.length, start = cursor, end = start + Math.round(action.frames * 1000 / 60); cursor = end + 100;
-  const name = ordinal < actions.length ? `Anubarak ${action.pose}` : `Anubarak Damage ${Math.floor((ordinal - actions.length) / 3)} ${(ordinal - actions.length) % 3}`;
+  const name = !action.pain ? `Anubarak ${action.pose}` : `Anubarak Damage ${Math.floor((ordinal - actions.length) / 3)} ${(ordinal - actions.length) % 3}`;
   model.Sequences.push({ ...stand, Name: name, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
     MinimumExtent: new Float32Array([-300, -300, -200]), MaximumExtent: new Float32Array([300, 300, 350]), BoundsRadius: 400 });
   const rake = rakes[action.pose];
@@ -322,7 +331,7 @@ for (const [ordinal, action] of [...actions, ...damageActions].entries()) {
   }
   const victim = /^victim(Pummel|Throw)/.test(action.pose);
   const binding = `{ index: ${index}, seconds: ${seconds(victim ? 1 : (end - start) / 1000)}, aligned: true${action.paired ? `, contact: ${seconds(victim ? 0.5 : action.contact / 60)}` : ""} }`;
-  if (ordinal < actions.length) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
+  if (!action.pain) bindings.push(`  ${action.pose}: ${binding},`); else damageBindings.push(`  ${binding},`);
   records.push({ pose: name, index, frames: action.frames, contact: action.contact });
 }
 
@@ -380,7 +389,7 @@ mkdirSync(output, { recursive: true }); await Bun.write(join(output, "herocryptl
 const finalDrawn = new DrawnModel(bytes, 0.55);
 const distance = (a: Float32Array, b: Float32Array) => { ensure(a.length === b.length && a.length > 0, "Missing drawn body"); let maximum = 0; for (let i = 0; i < a.length; i += 2) maximum = Math.max(maximum, Math.hypot(a[i]! - b[i]!, a[i + 1]! - b[i + 1]!)); return maximum; };
 let measured = 0;
-for (const [i, action] of [...actions, ...damageActions].entries()) {
+for (const [i, action] of authoredActions.entries()) {
   const index = source.Sequences.length + i;
   const first = finalDrawn.triangles(index, 0, 1), contact = finalDrawn.triangles(index, action.contact / 60, 1);
   ensure(action.pose === "sideSpecial" ? contact.length > 0 : action.hold ? distance(contact, finalDrawn.triangles(index, action.frames / 60, 1)) < 0.01 : distance(first, contact) > 3, `${action.pose}: dead or drifting gesture`);
