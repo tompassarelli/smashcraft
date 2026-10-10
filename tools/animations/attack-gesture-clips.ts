@@ -52,7 +52,13 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
   2: { jab3: [-17, -69, 0, 3, 25, 1, -2, 40] },
   4: { jab: [-7, 1, 78, -1, -90, 15, 10, 1], jab2: [70, -2, -91, -18, -90, -13, 5, -25], upTilt: [34, -145, -103, 15, 35, -5, -1, 0], dashAttack: [30, 10, -60, -40, 0, 15, 20, 12] },
   6: { forwardTilt: [-10, -45, 5, -2, -1, 0, 0, 10], forwardTiltDown: [25, -70, 10, 0, 0, 0, 0, 12], downTilt: [20, -68, 15, -10, -10, 0, 0, 25], dashAttack: [28, -84, -5, 1, 2, 0, 0, 10] },
-  8: { jab2: [-12, -48, -42, 38, -20, 18, -8, 10], jab3: [3, -75, 80, -52, 25, 6, 35, 5], downTilt: [15, 35, 50, -15, -60, -83, 95, 10] },
+  8: {
+    jab2: [-12, -48, -42, 38, -20, 18, -8, 10], downTilt: [15, 35, 50, -15, -60, -83, 95, 10],
+    jab3: [44, -68, -35, -32, 20, -42, 65, 18],
+    neutralAir: [35, -75, -100, -25, 25, -55, 80, 20],
+    upAir: [-44, -145, -100, -25, 40, -55, 80, -22],
+    upTilt: [-38, -135, -90, -20, 30, -35, 55, -18],
+  },
   9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [48, -75, 65, -22, 50, -65, 100, -5], downTilt: [22, 35, 45, -15, -60, -40, 55, 0] },
   10: { forwardTilt: [32, -95, 35, -48, -22, -18, 22, 20] },
   11: {
@@ -72,6 +78,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
 const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
   4: { jab: 0.5, upTilt: 1 }, 8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
 };
+const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt"]);
 const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
 
 const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
@@ -85,7 +92,7 @@ function joint(name: string, pose: HeroPose, character: number): number {
   const left=/(?:_L|ArmL|HandL|LegL|^L(?:hip|knee|shoulder|elbow|hand))$/i.test(name);
   const heavy=character===4||character===7||character===10, scale=heavy?0.8:character===9?1.12:1;
   if(/^(Bone_Chest|Chest|Bone NECK|Stomach)$/.test(name))return p[0]!*scale;
-  if(/^(Bone_Pelvis|Pelvis|Bone Koto Waist01)$/.test(name))return -p[0]!*0.25;
+  if(/^(Bone_Pelvis|Pelvis|Bone Koto Waist01)$/.test(name))return p[0]!*(character===8&&DREADLORD_DRIVE.has(pose)?0.55:-0.25);
   if(/^(Bone_Head|Head)$/.test(name))return -p[0]!*0.45;
   if(/^(Bone_Arm1_[LR]|UpArm[LR]|[RL][Ss]houlder)$/.test(name))return p[left?2:1]!*scale;
   if(/^(Bone_Arm2_[LR]|LowArm[LR]|[RL]elbow)$/.test(name))return p[3]!*(left?-0.5:1);
@@ -332,7 +339,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
   for(const node of [...model.Bones,...model.Helpers,...model.Attachments])if(node.Parent==null)node.Parent=root;
   model.Helpers.push(helper);model.Nodes.push(helper);model.PivotPoints.push(helper.PivotPoint);
   }
-  const hops=HOP[character]??{},hop:mdx.AnimVector|undefined=Object.keys(hops).length?{LineType:1,GlobalSeqId:-1,Keys:[]}:undefined;if(hop)helper.Translation=hop;
+  const hops=HOP[character]??{},hop:mdx.AnimVector|undefined=Object.keys(hops).length||character===8?{LineType:1,GlobalSeqId:-1,Keys:[]}:undefined;if(hop)helper.Translation=hop;
   if (!retainedHelper) for(const sequence of source.Sequences)for(const Frame of sequence.Interval) {
     helper.Rotation?.Keys.push({Frame,Vector:new Float32Array([0,0,0,1])});
     hop?.Keys.push({Frame,Vector:new Float32Array([0,0,0])});
@@ -350,7 +357,8 @@ for(const [id,poses]of Object.entries(PLAN)) {
     ensure(contact>0&&total>contact,`${f.name}/${pose}: invalid timing`);
     const start=cursor,end=start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
     model.Sequences.push({...stand,Name:`Attack Gesture ${pose}`,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400});
-    let articulated=0;const back=DRAW_BACK[character]?.[pose]??0.3;
+    const driven=character===8&&DREADLORD_DRIVE.has(pose);
+    let articulated=0;const back=driven?0.9:DRAW_BACK[character]?.[pose]??0.3;
     tracks(model,(track,path)=>{
       const donor=originals.get(path);if(!donor||onGlobalClock(donor))return;
       const key=donor.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1]);if(!key)return;
@@ -358,18 +366,22 @@ for(const [id,poses]of Object.entries(PLAN)) {
       if (node?.Name === "Attack Gesture") return;
       const amount=node?joint(node.Name,pose,character):0;if(amount)articulated++;
       for(let frame=0;frame<=total;frame++) {
-        const anticipation=Math.max(1,contact-2);
-        const amountAt=frame<anticipation?-back*Math.sin(frame/anticipation*Math.PI/2):frame<=contact?-back+(1+back)*(contact>anticipation?(frame-anticipation)/(contact-anticipation):1):frame<contact+3?1+0.18*(frame-contact)/3:1.18*Math.max(0,1-(frame-contact-3)/(total-contact-3));
+        const body=driven&&/^(Bone_Chest|Bone_Pelvis|Bone_Leg[12]_[LR])$/.test(node?.Name??"");
+        const anticipation=Math.max(1,contact-2),peak=body?Math.max(anticipation+1,contact-1):contact;
+        const follow=driven&&!body&&(pose==="upAir"||pose==="upTilt")?0.5:driven?1.35:1.18;
+        const amountAt=frame<anticipation?-back*Math.sin(frame/anticipation*Math.PI/2):frame<=peak?-back+(1+back)*(peak>anticipation?(frame-anticipation)/(peak-anticipation):1):frame<contact+3?1+(follow-1)*(frame-peak)/(contact+3-peak):follow*Math.max(0,1-(frame-contact-3)/(total-contact-3));
         const Vector=amount?rotate(key.Vector,amount*amountAt):key.Vector.slice();
         track.Keys.push({...key,Frame:start+Math.round(frame*1000/60),Vector,...key.InTan?{InTan:Vector.slice(),OutTan:Vector.slice()}: {}});
       }
     });
     ensure(articulated>=4,`${f.name}/${pose}: only ${articulated} moving joints`);
     for(let frame=0;frame<=total;frame++) {
-      const arc=frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
+      const anticipation=Math.max(1,contact-2),peak=Math.max(anticipation+1,contact-1);
+      const arc=driven?(frame<anticipation?-0.9*Math.sin(frame/anticipation*Math.PI/2):frame<=peak?-0.9+1.9*(frame-anticipation)/(peak-anticipation):frame<contact+3?1+0.35*(frame-peak)/(contact+3-peak):1.35*Math.max(0,1-(frame-contact-3)/(total-contact-3))):frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
       helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),contactProfile(pose,character)![7]!*arc)});
+      if(hop&&driven)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([26*arc,0,pose.endsWith("Air")?10*arc:0])});
     }
-    if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
+    if(hop&&!driven)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const shadowLow = character === 9 && pose === "downTilt";
     if (wardenWeaponPose(character,pose) || shadowLow) aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
     const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow?", aligned: true":""} }`;
