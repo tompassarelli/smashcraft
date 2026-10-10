@@ -32,7 +32,7 @@ function steer(f: Fighter, input: Readonly<Controls>): number {
   return steerHorizontalVelocity(f, FLAT_STAGE, input, stickX(input), true, false, false, false, false, false);
 }
 
-test("launch phase: a buffered parry option is released once, on the frame hitlag ends, for every hitlag length [invariant]", () => {
+test("launch phase: a buffered parry option is released once, on the frame hitlag ends, for every hitlag length [k2 property]", () => {
   for (let hitlag = 1; hitlag <= 8; hitlag++) {
     const f = standing(0.0, 1);
     f.launch.hitlag = hitlag;
@@ -53,7 +53,7 @@ test("launch phase: a buffered parry option is released once, on the frame hitla
   }
 });
 
-test("ground and air steering: a mirrored body with a mirrored stick moves exactly mirrored, frame by frame [invariant]", () => {
+test("ground and air steering: a mirrored body with a mirrored stick moves exactly mirrored, frame by frame [k2 property]", () => {
   for (const direction of [-1, 1]) {
     for (const walking of [false, true]) {
       const pairs = [[standing(0.0, 1), standing(0.0, -1)], [airborne(0.0, 1, 0.5), airborne(0.0, -1, -0.5)]];
@@ -72,7 +72,7 @@ test("ground and air steering: a mirrored body with a mirrored stick moves exact
   }
 });
 
-test("air phase: falling never speeds upward, and a mirrored body falls identically [invariant]", () => {
+test("air phase: falling never speeds upward, and a mirrored body falls identically [k2 property]", () => {
   const right = airborne(0.0, 1, 0.5);
   const left = airborne(0.0, -1, -0.5);
   for (let frame = 0; frame < 40; frame++) {
@@ -84,7 +84,7 @@ test("air phase: falling never speeds upward, and a mirrored body falls identica
   }
 });
 
-test("ledge and edge phase: a body standing still on the deck stays put, grounded on the same deck [invariant]", () => {
+test("ledge and edge phase: a body standing still on the deck stays put, grounded on the same deck [k2 property]", () => {
   for (const x of [-200.0, 0.0, 200.0]) {
     const f = standing(x, 1);
     const { motion } = f;

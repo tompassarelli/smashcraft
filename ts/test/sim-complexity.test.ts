@@ -62,7 +62,7 @@ function complexities(path: string): { name: string; complexity: number }[] {
   return found;
 }
 
-test("no function in sim/step.ts has cyclomatic complexity over 40 [spec #421]", () => {
+test("no function in sim/step.ts has cyclomatic complexity over 40 [k3 measure #421]", () => {
   const measured = complexities(STEP).sort((a, b) => b.complexity - a.complexity);
   expect(measured.length).toBeGreaterThan(0);
   expect(measured.filter(fn => fn.complexity > MAX_COMPLEXITY)).toEqual([]);

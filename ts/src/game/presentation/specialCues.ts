@@ -423,7 +423,7 @@ interface CueWindows {
 }
 
 
-const ACTIVE_CUE_FRAMES = 18;
+export const ACTIVE_CUE_FRAMES = 18;
 
 const widen = (window: { first: number; last: number }, first: number, last: number): void => {
   window.first = Math.min(window.first, first);
