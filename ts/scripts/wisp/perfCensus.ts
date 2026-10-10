@@ -52,7 +52,8 @@ export interface CensusEntry {
   readonly allocatedKb: number;
 }
 
-const SAMPLE = /^frame (\d+) p0 instructions=(\d+) lua-us=\d+ natives=(\d+) alloc-bytes=(\d+) typed=\d+$/;
+// A frame whose collector cycle frees more than it allocates reports negative alloc-bytes (#405).
+const SAMPLE = /^frame (\d+) p0 instructions=(\d+) lua-us=\d+ natives=(\d+) alloc-bytes=(-?\d+) typed=\d+$/;
 
 const predictedMs = (frame: FrameSample) => nativeFrameCost(WARCRAFT_COST, { ...frame, typedCharacters: 0 }).callbacksUs / 1000;
 
@@ -69,7 +70,7 @@ function censusRuns(output: string) {
   const runs = [current];
   for (const line of output.split(/\r?\n/)) {
     const sample = SAMPLE.exec(line);
-    if (sample !== null) current.frames.set(Number(sample[1]), { instructions: Number(sample[2]), natives: Number(sample[3]), allocatedKb: Number(sample[4]) / 1024 });
+    if (sample !== null) current.frames.set(Number(sample[1]), { instructions: Number(sample[2]), natives: Number(sample[3]), allocatedKb: Math.max(0, Number(sample[4])) / 1024 });
     else if (line.startsWith("census\t")) {
 
 
