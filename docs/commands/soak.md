@@ -31,6 +31,8 @@
   each client's counts before, after the first match and after the last rematch per look, and fails
   naming the kind and match that differ. 21 matches a look exceed both suites' per-test ceilings;
   smashcraft:ts/test/handle-baseline.test.ts keeps the match and one rematch in each look.
+  It takes about 20 minutes on four cores (Bun 2.5, Lua32 20 a look) and each Lua run holds
+  about 1.4 GB, compacting the emulator after every match.
   Native handles are checked separately: their emulator-owned record identities
   are excluded from map tables because Warcraft exposes them as opaque handles.
   Overnight playtest (#403): `bun scripts/playtest.ts --first N --count M --out FILE`
