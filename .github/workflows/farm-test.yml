@@ -32,9 +32,8 @@ permissions:
   contents: read
 
 env:
-  # A run holds BUN_SHARDS + the lua job's max-parallel + the four check jobs at
-  # once: 3 + 5 + 4 = 12, so Autoland's two test slots and a train (36) fit the
-  # account's 40 concurrent jobs. One Lua test takes about 140 s, so more than
+  # A run holds BUN_SHARDS + the lua job's max-parallel + the four check jobs +
+  # the six census shards at once: 3 + 5 + 4 + 6 = 18. One Lua test takes about 140 s, so more than
   # 32 Lua shards would not shorten the run.
   BUN_SHARDS: 3
   # Lua runs one core a process: each Lua job runs LUA_PER_JOB shards at once.
@@ -360,10 +359,55 @@ jobs:
             ts/problems-*.txt
           retention-days: 3
 
+  # Per-pair worst-frame census (#405), sharded by fighter: shard N plays every
+  # CENSUS_SHARDS-th fighter of the fixture; the merge job judges the joined pairs.
+  census:
+    needs: plan
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    name: census ${{ matrix.shard }}
+    env:
+      CENSUS_SHARDS: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-install-${{ hashFiles('ts/bun.lock') }}
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/wisp/lua32
+          key: wisp-lua32-${{ runner.environment }}-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
+      # --rise-ms 1000 leaves the census spike check ungated.
+      - name: Census shard ${{ matrix.shard }}
+        working-directory: ts
+        timeout-minutes: 12
+        run: |
+          mkdir -p census-out
+          fighters=$(cut -f2 test/fixtures/perf/census-pairs.txt | sed 's/ vs .*//' | awk -v n="$CENSUS_SHARDS" -v s="${{ matrix.shard }}" '(NR - 1) % n == s { printf " --fighter %s", $0 }')
+          bun wisp perf census $fighters --jobs 4 --rise-ms 1000 --pairs "census-out/census-pairs-${{ matrix.shard }}.txt"
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: farm-test-census-${{ matrix.shard }}
+          path: ts/census-out
+          retention-days: 3
+
   # The summary is uploaded whatever happens, so a red run always names its cause:
   # failing tests, each failing check's output, Lua budget overruns and missing shards.
   merge:
-    needs: [plan, bun, lua, checks]
+    needs: [plan, bun, lua, checks, census]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -402,6 +446,19 @@ jobs:
           fallback "$zero" '"the merge step did not finish: see its log"'
           : > problems.txt
           [ "$PLAN_RESULT" = success ] || echo "the plan job ended $PLAN_RESULT, so no shard ran: see its log" >> problems.txt
+          census_gate() {
+            cat farm/farm-test-census-*/census-pairs-*.txt > census-pairs.txt 2>/dev/null
+            measured=$(wc -l < census-pairs.txt) expected=$(wc -l < test/fixtures/perf/census-pairs.txt)
+            [ "$measured" = "$expected" ] || { echo "the census measured $measured of $expected fighter pairs: see the census jobs"; return 1; }
+            bun wisp perf compare test/fixtures/perf/census-pairs.txt census-pairs.txt
+          }
+          census_gate > census-gate.log 2>&1
+          census=$?
+          cat census-gate.log
+          name="every fighter pair's worst frame within the margin of main's fixture (#405)"
+          printf '%s\t0\tcheck: %s\n' "$([ "$census" = 0 ] && echo pass || echo fail)" "$name" > census-check.tsv
+          bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard 0 --exit-code "$census" census-check.tsv > farm/result-check-census.json
+          [ "$census" = 0 ] || echo "check: $name: $(grep -v '^\s*$' census-gate.log | tail -n 3 | tr '\n' ' ' | cut -c1-700)" >> problems.txt
           bun node_modules/wisp/scripts/wisp/farmShards.ts merge --plan farm/farm-test-plan/plan.json --timings farm-timings.json --out summary.json $(find farm -name 'result*.json') 2> merge.log
           merged=$?
           cat merge.log
@@ -419,7 +476,7 @@ jobs:
           find farm -name 'problems-*.txt' -exec sh -c 'cat "$1"; echo' _ {} \; >> problems.txt
           jq --rawfile extra problems.txt '.problems = ($extra | split("\n") | map(select(test("\\S")))) + .problems' summary.json > summary.next && mv summary.next summary.json
           cat summary.json
-          [ "$merged" = 0 ] && [ "$budget" = 0 ]
+          [ "$merged" = 0 ] && [ "$budget" = 0 ] && [ "$census" = 0 ]
       - if: always()
         uses: actions/upload-artifact@v4
         with:
