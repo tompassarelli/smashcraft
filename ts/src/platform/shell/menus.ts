@@ -28,7 +28,6 @@ import { nextMatchCharacter } from "../../game/match/rules";
 import { stepCpuOpponent, stepCpuTier } from "../../game/match/cpuProfiles";
 import { traceSelectionState } from "./diagnostics";
 import { ClassicStep, continueClassic, quitClassic, skipToClassicBoss, startClassic } from "../../game/classic/classic";
-import { beforeClassicRun } from "./classicOpening";
 import { LORE_BATTLES, LoreStep, continueLore, startLore } from "../../game/classic/loreBattles";
 import { clearParticipantInputs, controlsAvailable, currentComputerMask, currentHumanMask } from "./inputs";
 import { startMatch } from "./matchStart";
@@ -75,7 +74,7 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
   } else if (game.phase === Phase.characterMenu && game.classic) {
     if (!startClassic(game, slot)) return;
     for (const panel of views(s).settings) panel.close();
-    beforeClassicRun(s, () => requestStageLoad(s, slot));
+    requestStageLoad(s, slot);
   } else if (game.phase === Phase.characterMenu) {
     if (requestStageSelect(game, slot)) {
       if (s.dev.stageChoice !== undefined) selectStage(game, slot, s.dev.stageChoice);
