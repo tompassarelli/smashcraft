@@ -8,10 +8,12 @@ import { PunishKind, type PunishWindow, punishWindow } from "./botPunish";
 import { BURN_MEMORY_FRAMES, type BotStrategy } from "./botStrategy";
 
 const BURN_MARGIN = 30.0;
+// Only a move that hits twice running is kept clear of (#412): after one hit the computer plays on, so a full bar still goes to its ultimate (#382).
+const BURN_REPEATS = 2;
 const opening: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0, earliest: 0 };
 
 export function burnedMove(state: Readonly<BotStrategy>, target: Readonly<Fighter>, frame: number, observationAge: number): AttackStyle | undefined {
-  if (state.burnStyle === -1 || state.burnCount <= 0 || frame - state.burnFrame > BURN_MEMORY_FRAMES + observationAge || target.character !== state.burnCharacter) return undefined;
+  if (state.burnStyle === -1 || state.burnCount < BURN_REPEATS || frame - state.burnFrame > BURN_MEMORY_FRAMES + observationAge || target.character !== state.burnCharacter) return undefined;
   if (target.launch.hitstun > 0 || target.down.state !== DownState.none || !target.motion.grounded) return undefined;
   return state.burnStyle;
 }
