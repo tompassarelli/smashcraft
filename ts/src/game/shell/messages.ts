@@ -32,7 +32,7 @@ export function resultMessage(game: Readonly<MatchState>): string {
   return game.timedOut ? "Time! Draw." : "Draw!";
 }
 
-const confirmControl = (start: StartControl) => (start === "Start" ? "A or Start" : "Y");
+const confirmControl = (start: StartControl) => (start === "Start" ? "Start" : "Y");
 
 function rematchStatus(game: Readonly<MatchState>, start: StartControl): string {
   if (game.run.active) return game.lore ? loreResultHelp(game, confirmControl(start)) : classicResultHelp(game, confirmControl(start));
