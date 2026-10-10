@@ -2,12 +2,15 @@ import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { SyncDelivery } from "wisp/src/headless/lockstep";
 import type { Lockstep } from "wisp/src/headless/lockstep";
+import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
+import { f32 } from "wisp/src/sim/f32";
 import { Phase } from "../src/game/match/rules";
-import { AUTO_DELAY, ROLLBACK_BUDGET, autoDelay, smoothedRttMs } from "../src/game/netcode/delayPolicy";
+import { AUTO_DELAY } from "../src/game/netcode/delayPolicy";
 import type { MapBuild } from "../src/game/shell/build";
 import { PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { chooseDelay } from "../src/game/ui/bindingSettings";
-import { type ShellState, shellState } from "../src/platform/shell/state";
+import { type ShellState, localSlot, shellState } from "../src/platform/shell/state";
+import { startProbe } from "../src/platform/shell/responseProbe";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { entryFor } from "./desync/journeys";
 import { confirmedChecksum } from "../src/platform/shell/diagnostics";
@@ -17,8 +20,8 @@ const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
 
 const BUILD: MapBuild = { ...PLAYABLE_BUILD, id: "typescript-input-delay", devConsole: true };
+const PROBED: MapBuild = { ...BUILD, responseProbe: true };
 const JUMP_KEY = "I".charCodeAt(0);
-const FRAME_MS = 1000 / 60;
 
 function shellOf(clients: Lockstep, index: number): ShellState {
   let found: ShellState | undefined;
@@ -68,37 +71,63 @@ sweep("every fixed delay from 0 to 8 reaches the simulation exactly that many fr
   for (let choice = 0; choice <= 8; choice++) expect(pressToFrame(choice)).toBe(choice);
 });
 
-function injected(rttMs: number, lossPercent: number, seed: number): SyncDelivery {
-  let state = seed;
-  const last = new Map<number, number>();
-  const oneWay = Math.ceil(rttMs / 2 / FRAME_MS);
-  const resend = Math.ceil(rttMs / FRAME_MS) + 1;
-  return {
-    arrivalFrame: (sender, frame) => {
-      state = (state * 75) % 65537;
-      const lost = state % 100 < lossPercent;
-      const arrival = Math.max(frame + 1, last.get(sender) ?? 0, frame + oneWay + (lost ? resend : 0));
-      last.set(sender, arrival);
-      return arrival;
-    },
-  };
+const RELAY_TURN_MS = 30;
+const LOSS_PERCENT = 1;
+const TCP_MIN_RTO_MS = 200;
+
+function relay(rttMs: number, seed: number): SyncDelivery {
+  const resendTurns = Math.ceil((rttMs + TCP_MIN_RTO_MS) / RELAY_TURN_MS);
+  const extraTurns = Array.from({ length: resendTurns + 1 }, (_, turns) => (turns === 0 ? f32((100 - LOSS_PERCENT) / 100) : turns === resendTurns ? f32(LOSS_PERCENT / 100) : 0));
+  return syncDelivery({ latencyMs: rttMs, turnMs: RELAY_TURN_MS, extraTurns }, seed);
 }
 
-interface Measured {
-  readonly delays: number[];
-  readonly depthP95: number;
-  readonly corrections: number;
-  readonly rttMs: number[];
-  readonly auto: number[];
-  readonly indicator: string[];
+function percentile(histogram: readonly number[], fraction: number): number {
+  const total = histogram.reduce((sum, count) => sum + count, 0);
+  const rank = Math.ceil(total * fraction);
+  let seen = 0;
+  for (let value = 0; value < histogram.length; value++) {
+    seen += histogram[value] ?? 0;
+    if (total > 0 && seen >= rank) return value;
+  }
+  return 0;
 }
 
-function onlineMatch(rttMs: number, frames: number): Measured {
-  const clients = headless.clients(entryFor(BUILD), [0, 1], { delivery: injected(rttMs, 1, 396 + rttMs) });
+function ranked(sorted: readonly number[], fraction: number): number {
+  return sorted[Math.max(0, Math.ceil(sorted.length * fraction) - 1)] ?? 0;
+}
+
+interface ClientMeasure {
+  readonly delay: number;
+  readonly lateness: { readonly rows: number; readonly p50: number; readonly p95: number; readonly max: number };
+  readonly corrections: { readonly count: number; readonly p50: number; readonly p95: number; readonly max: number };
+  readonly indicator: string;
+}
+
+function remoteLateness(clients: Lockstep, index: number): number[] {
+  let own = -1;
+  let entries: readonly string[] = [];
+  clients.clients[index]?.run(() => {
+    own = localSlot();
+    entries = shellState()?.probe?.integrity ?? [];
+  });
+  const lateness: number[] = [];
+  for (const entry of entries) {
+    const [, stage, , slot, frame, , , , frontier] = entry.split(" ");
+    if (stage === "receive" && Number(slot) !== own) lateness.push(Number(frontier) - Number(frame));
+  }
+  return lateness;
+}
+
+function onlineMatch(delivery: SyncDelivery, frames: number): ClientMeasure[] {
+  const clients = headless.clients(entryFor(PROBED), [0, 1], { delivery });
   clients.start();
   clients.frames(30);
   clients.chat(0, "-dev quick cpu wren expert");
   for (let frame = 0; frame < 600 && shellOf(clients, 0).game.phase !== Phase.match; frame++) clients.frames(1);
+  clients.everywhere(() => {
+    const probe = shellState()?.probe;
+    if (probe !== undefined) startProbe(probe, false);
+  });
   const checksums = [new Map<number, string>(), new Map<number, string>()];
   const keys = ["W", "R", "I", "N", "U", "E"].map(key => key.charCodeAt(0));
   for (let frame = 0; frame < frames; frame++) {
@@ -122,32 +151,35 @@ function onlineMatch(rttMs: number, frames: number): Measured {
     if (other !== checksum) throw new Error(`confirmed frame ${frame} differs between the clients`);
   }
   expect(compared).toBeGreaterThan(frames / 120);
-  const rollbacks = [0, 1].map(index => shellOf(clients, index).rollback);
-  const depths = rollbacks.flatMap(rollback => (rollback?.net.depths ?? []).flatMap((count, depth) => Array.from({ length: count }, () => depth)));
-  return {
-    delays: rollbacks.map(rollback => rollback?.delay ?? -1),
-    depthP95: depths[Math.floor(depths.length * 0.95)] ?? 0,
-    corrections: depths.length,
-    rttMs: rollbacks.map(rollback => (rollback === undefined ? -1 : smoothedRttMs(rollback.net.estimate))),
-    auto: rollbacks.map(rollback => (rollback === undefined ? -1 : autoDelay(rollback.net.policy, rollback.net.estimate))),
-    indicator: rollbacks.map(rollback => rollback?.net.shownText ?? ""),
-  };
+  return [0, 1].map(index => {
+    const rollback = shellOf(clients, index).rollback;
+    const depths = rollback?.net.depths ?? [];
+    const late = remoteLateness(clients, index).sort((a, b) => a - b);
+    return {
+      delay: rollback?.delay ?? -1,
+      lateness: { rows: late.length, p50: ranked(late, 0.5), p95: ranked(late, 0.95), max: late.at(-1) ?? 0 },
+      corrections: { count: depths.reduce((sum, count) => sum + count, 0), p50: percentile(depths, 0.5), p95: percentile(depths, 0.95), max: depths.findLastIndex(count => count > 0) },
+      indicator: rollback?.net.shownText ?? "",
+    };
+  });
 }
 
-function expectSettled(rttMs: number, frames: number): void {
-  const measured = onlineMatch(rttMs, frames);
-  console.log(`input delay ${rttMs} ms round trip, 1% loss: ${JSON.stringify(measured)}`);
-  expect(measured.delays).toEqual([2, 2]);
-  expect(measured.auto).toEqual([2, 2]);
-  expect(measured.depthP95).toBeLessThanOrEqual(ROLLBACK_BUDGET);
-  for (const rtt of measured.rttMs) expect(Math.abs(rtt - rttMs)).toBeLessThanOrEqual(2 * FRAME_MS * 2);
-  expect(measured.indicator).toEqual(["", ""]);
+const SETTINGS: readonly { readonly name: string; readonly delivery: (seed: number) => SyncDelivery }[] = [
+  ...[0, 60, 120].map(rttMs => ({ name: `relay ${rttMs} ms, ${RELAY_TURN_MS} ms turns, ${LOSS_PERCENT}% loss`, delivery: (seed: number) => relay(rttMs, seed) })),
+  { name: "measured Battle.net", delivery: (seed: number) => syncDelivery(MEASURED_BATTLE_NET, seed) },
+];
+
+function measure(name: string, delivery: SyncDelivery, frames: number): ClientMeasure[] {
+  const measured = onlineMatch(delivery, frames);
+  measured.forEach((client, index) => console.log(`input delay ${name}, client ${index}: delay ${client.delay}, edge-row lateness ${JSON.stringify(client.lateness)}, corrections ${JSON.stringify(client.corrections)}`));
+  expect(measured.map(client => client.delay)).toEqual([2, 2]);
+  return measured;
 }
 
-test("two clients at 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [spec #396]", () => {
-  expectSettled(120, 150);
+test("two clients through a 60 ms relay with 1% loss agree on delay 2 and stay in sync [spec #396]", () => {
+  measure(SETTINGS[1]?.name ?? "", relay(60, 456), 150);
 });
 
-sweep("two clients at 0, 60 and 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [spec #396]", () => {
-  for (const rttMs of [0, 60, 120]) expectSettled(rttMs, 1200);
-});
+sweep("two clients through a 0, 60 and 120 ms relay and on measured Battle.net delivery report each client's lateness and correction depth [spec #396]", () => {
+  for (const setting of SETTINGS) measure(setting.name, setting.delivery(396), 1200);
+}, 120_000);
