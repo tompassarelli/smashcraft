@@ -259,4 +259,4 @@ export function encodeBlp(image: Rgba, quality: number): Uint8Array {
 }
 
 
-export const PORTRAIT_QUALITY = 78;
+export const PORTRAIT_QUALITY = 75;
