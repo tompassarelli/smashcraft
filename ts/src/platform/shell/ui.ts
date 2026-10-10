@@ -37,6 +37,7 @@ import { ItemPresentation } from "../../game/render/itemPresentation";
 import { MeterDropPresentation } from "../../game/render/meterDropPresentation";
 import { BodyFlash } from "../../game/render/bodyFlash";
 import { ClassicPresentation } from "../../game/render/classicPresentation";
+import { selectPauseMenu } from "./keys";
 import { PauseMenu } from "../../game/ui/pauseMenu";
 
 
@@ -114,7 +115,7 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
   let combat: CombatEffects;
   const ui: UiObjects = {
-    pause: new PauseMenu(),
+    pause: new PauseMenu((choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice)),
     items: new ItemPresentation(s.origin),
     drops: new MeterDropPresentation(s.origin),
     clock: new MatchClock(),
@@ -195,8 +196,11 @@ export function layoutHuds(s: ShellState): void {
 export function recreateUi(s: ShellState, actions: PanelActions): void {
   const ui = s.ui;
   if (ui === undefined) return;
-  if (ui.pause === undefined) ui.pause = new PauseMenu();
-  else bindPrototype(ui.pause, PauseMenu.prototype);
+  if (ui.pause === undefined) ui.pause = new PauseMenu((choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice));
+  else {
+    bindPrototype(ui.pause, PauseMenu.prototype);
+    ui.pause.bindActions((choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice));
+  }
   const retainedItems: { readonly items?: ItemPresentation } = ui;
   if (retainedItems.items === undefined) ui.items = new ItemPresentation(s.origin);
   else bindPrototype(ui.items, ItemPresentation.prototype);

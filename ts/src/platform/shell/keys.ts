@@ -120,6 +120,19 @@ function exitPausedMatch(s: ShellState, title: boolean): void {
   pauseMatchPresentation(s, false);
 }
 
+export function selectPauseMenu(s: ShellState, actor: number, choice: number): void {
+  if (!isParticipantSlot(actor) || !humanActive(s.game, actor)) return;
+  if (s.pauseMenu?.title) {
+    s.pauseMenu.title = false;
+    return;
+  }
+  if (s.game.phase !== Phase.match || !s.session.paused) return;
+  if (choice === 0) {
+    startDown(s, actor);
+    startKeyUp(s.session, actor);
+  } else exitPausedMatch(s, choice === 2);
+}
+
 function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
@@ -151,11 +164,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     else if (key === 0x28 || key === 69) menu.choice = menu.choice === 2 ? 0 : menu.choice + 1;
     else if (key === Key.escape || key === Key.u) exitPausedMatch(s, false);
     else if (key === Key.n) {
-      if (menu.choice === 0) {
-        startDown(s, slot);
-        startKeyUp(s.session, slot);
-      }
-      else exitPausedMatch(s, menu.choice === 2);
+      selectPauseMenu(s, slot, menu.choice);
     }
     return;
   }
