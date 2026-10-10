@@ -58,18 +58,31 @@ interface Button<T> {
 export class ButtonClicks<T> {
   private readonly trigger = CreateTrigger();
   private readonly buttons: Button<T>[] = [];
+  private hovered: Button<T> | undefined;
+  private hover: ((target: T | undefined, clicker: player) => void) | undefined;
 
-  constructor(private readonly name: string, handle: (target: T, clicker: player) => void) {
+  constructor(private readonly name: string, handle: (target: T, clicker: player) => void, hover?: (target: T | undefined, clicker: player) => void) {
+    this.hover = hover;
     TriggerAddAction(this.trigger, trampoline(name));
     this.bindHandler(handle);
   }
 
-  bindHandler(handle: (target: T, clicker: player) => void): void {
+  bindHandler(handle: (target: T, clicker: player) => void, hover = this.hover): void {
+    this.hover = hover;
     on(this.name, () => {
       const id = GetHandleId(BlzGetTriggerFrame());
       const clicker = GetTriggerPlayer();
       for (const button of this.buttons) {
         if (button.id !== id) continue;
+        const event = BlzGetTriggerFrameEvent();
+        if (event !== FRAMEEVENT_CONTROL_CLICK) {
+          if (GetLocalPlayer() !== clicker) return;
+          if (this.hovered !== undefined) BlzFrameSetTextColor(this.hovered.frame, -1);
+          this.hovered = event === FRAMEEVENT_MOUSE_ENTER ? button : undefined;
+          if (this.hovered !== undefined) BlzFrameSetTextColor(button.frame, -13312);
+          this.hover?.(this.hovered?.target, clicker);
+          return;
+        }
         releaseFocus(button.frame, clicker);
         handle(button.target, clicker);
         return;
@@ -79,6 +92,8 @@ export class ButtonClicks<T> {
 
   add(frame: framehandle, target: T): framehandle {
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_CONTROL_CLICK);
+    BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_ENTER);
+    BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_LEAVE);
     this.buttons.push({ id: GetHandleId(frame), frame, target });
     return frame;
   }

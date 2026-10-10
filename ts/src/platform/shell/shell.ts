@@ -27,7 +27,7 @@ import { clearAllInputs, clearParticipantInputs, currentHumanMask } from "./inpu
 import { INPUT_PREFIX, journalEpoch, publishMenu, serviceJournalEnd } from "./journal";
 import * as journalPause from "./journalPause";
 import { KEY_DOWN, KEY_UP, Key, registerKey, removeKeyEvents, syncKeyEvents } from "./keyEvents";
-import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart } from "./keys";
+import { onDevCommand, onDeveloperRestart, onDeveloperTrace, onKeyDown, onKeyUp, onProbeExport, onProbeStart, selectPauseMenu } from "./keys";
 import { panelActions, serviceAutomaticRematch, startingSelection } from "./menus";
 import { PLAYER_FILE_RECEIVED, bindingFiles, playerFileReceived, playerFilesOwnerLeft, startPlayerFiles } from "./playerFiles";
 import { PLAYTEST, PLAYTEST_PREFIX, playtestRequested, readPlaytestRequest, servicePlaytestRequest } from "./playtest";
@@ -319,7 +319,7 @@ function initialize(): void {
     editbox: journalIngress(build) === "editbox" ? new EditboxIngress() : undefined,
   });
   copyMatchState(s.game, startingSelection(build.scenario));
-  createUi(s, panelActions());
+  createUi(s, panelActions(), (choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice));
   preloadStageAssets(s);
   view.drawStage(s);
   CameraSetSmoothingFactor(0.0);
@@ -382,7 +382,7 @@ export function installShell(): void {
   on(PLAYTEST, withShell(playtestRequested));
   on(STAGE_READY, withShell(stageReadyEvent));
   const s = shellState();
-  if (s?.ui !== undefined) recreateUi(s, panelActions());
+  if (s?.ui !== undefined) recreateUi(s, panelActions(), (choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice));
 
   if (s !== undefined && s.moment === undefined) s.moment = momentSaves();
   if (s !== undefined && s.replay === undefined) s.replay = replayRecording();

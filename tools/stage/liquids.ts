@@ -17,18 +17,27 @@ export async function packageLiquids(output: string): Promise<readonly string[]>
 
     const glow = kind === "Lava" ? liquidTga(lavaGlowTexel) : undefined;
     const glowName = glow === undefined ? undefined : `Stage${kind}Glow-${hash(glow)}.tga`;
+    const highlights = tomb ? liquidTga((x, y) => {
+      const [red] = tombWaterTexel(x, y);
+      const crest = Math.max(0, (red - 111) / 31);
+      return [104, 166, 180, Math.round(255 * crest * crest)];
+    }, TOMB_LIQUID_TEXTURE_SIZE) : undefined;
+    const highlightsName = highlights === undefined ? undefined : `Stage${kind}Highlights-${hash(highlights)}.tga`;
     const extent = 'MinimumExtent { -50, -60, 0 }, MaximumExtent { 50, 60, 0 }, BoundsRadius 80,';
     const mdl = `Version { FormatVersion 800, }
 Model "Smashcraft ${kind}" { NumGeosets 1, NumBones 1, BlendTime 0, ${extent} }
 Sequences 1 { Anim "Stand" { Interval { 0, 12000 }, ${extent} } }
 ${tomb ? "GlobalSequences 1 { Duration 240000, }" : ""}
-Textures ${glowName === undefined ? 1 : 2} { Bitmap { Image "war3mapImported\\${textureName}", WrapWidth, WrapHeight, } ${glowName === undefined ? "" : `Bitmap { Image "war3mapImported\\${glowName}", WrapWidth, WrapHeight, }`} }
-TextureAnims 1 { TVertexAnim { Translation 2 { Linear, ${tomb ? "GlobalSeqId 0," : ""} 0: { 0, 0, 0 }, ${tomb ? 240000 : 12000}: { 1, 0, 0 }, } } }
-Materials 1 { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 0, TVertexAnimId 0, static Alpha 1, } ${glowName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 0, static Alpha 1, }"} } }
+Textures ${glowName === undefined && highlightsName === undefined ? 1 : 2} { Bitmap { Image "war3mapImported\\${textureName}", WrapWidth, WrapHeight, } ${glowName === undefined ? "" : `Bitmap { Image "war3mapImported\\${glowName}", WrapWidth, WrapHeight, }`} ${highlightsName === undefined ? "" : `Bitmap { Image "war3mapImported\\${highlightsName}", WrapWidth, WrapHeight, }`} }
+TextureAnims ${tomb ? 2 : 1} {
+  TVertexAnim { Translation 2 { Linear, ${tomb ? "GlobalSeqId 0," : ""} 0: { 0, 0, 0 }, ${tomb ? 240000 : 12000}: { ${tomb ? "2, 1" : "1, 0"}, 0 }, } }
+  ${tomb ? "TVertexAnim { Translation 2 { Linear, GlobalSeqId 0, 0: { 0.37, 0.61, 0 }, 240000: { -2.63, 2.61, 0 }, } Scaling 1 { DontInterp, 0: { 1.375, 0.875, 1 }, } }" : ""}
+}
+Materials 1 { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 0, TVertexAnimId 0, static Alpha 1, } ${glowName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 0, static Alpha 1, }"} ${highlightsName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 1, Alpha 9 { Linear, GlobalSeqId 0, 0: 0.22, 30000: 0.38, 60000: 0.26, 90000: 0.34, 120000: 0.22, 150000: 0.38, 180000: 0.26, 210000: 0.34, 240000: 0.22, } }"} } }
 Geoset {
 Vertices 4 { { -50, -60, 0 }, { 50, -60, 0 }, { 50, 60, 0 }, { -50, 60, 0 }, }
 Normals 4 { { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, }
-TVertices 4 { { 0, 0 }, { ${tomb ? 1 : kind === "Sea" ? 96 : 4}, 0 }, { ${tomb ? 1 : kind === "Sea" ? 96 : 4}, ${kind === "Sea" ? 64 : 1} }, { 0, ${kind === "Sea" ? 64 : 1} }, }
+TVertices 4 { { 0, 0 }, { ${kind === "TombSea" ? 10 : tomb ? 0.5 : kind === "Sea" ? 96 : 4}, 0 }, { ${kind === "TombSea" ? 10 : tomb ? 0.5 : kind === "Sea" ? 96 : 4}, ${kind === "TombSea" ? 7 : tomb ? 0.05 : kind === "Sea" ? 64 : 1} }, { 0, ${kind === "TombSea" ? 7 : tomb ? 0.05 : kind === "Sea" ? 64 : 1} }, }
 VertexGroup { 0, 0, 0, 0, }
 Faces 1 6 { Triangles { { 0, 1, 2, 0, 2, 3 }, } }
 Groups 1 1 { Matrices { 0 }, }
@@ -44,6 +53,10 @@ PivotPoints 1 { { 0, 0, 0 }, }
     if (glow !== undefined && glowName !== undefined) {
       await Bun.write(join(output, glowName), glow);
       names.push(glowName);
+    }
+    if (highlights !== undefined && highlightsName !== undefined) {
+      await Bun.write(join(output, highlightsName), highlights);
+      names.push(highlightsName);
     }
     names.push(textureName, modelName);
     models.push(`export const STAGE_${kind.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase()}_MODEL = ${JSON.stringify(`war3mapImported\\${modelName}`)};`);

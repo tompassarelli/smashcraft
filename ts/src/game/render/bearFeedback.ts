@@ -13,7 +13,7 @@ export class BearFeedback {
   private readonly sounds = new SoundBank();
 
   constructor(private readonly origin: WorldOrigin) {
-    this.sounds.prepare(SoundKind.label, ["BattleRoar", "MetalHeavySliceFlesh"]);
+    this.sounds.prepare(SoundKind.label, ["MetalHeavySliceFlesh"]);
     this.slots = PARTICIPANT_SLOTS.map(() => ({ roar: AddSpecialEffect(BEAR_ROAR_MODEL, origin.x, origin.y), impact: AddSpecialEffect(BEAR_IMPACT_MODEL, origin.x, origin.y), cursor: createBearFeedbackCursor() }));
     for (const slot of this.slots) {
       BlzSetSpecialEffectAnimation(slot.roar, "Stand");
@@ -45,7 +45,6 @@ export class BearFeedback {
     const play = (label: string): void => {
       this.sounds.playAt(SoundKind.label, label, this.origin.x + fighter.placed.x, this.origin.y, this.origin.z + fighter.placed.z, 127);
     };
-    if (cues.roar) play("BattleRoar");
     if (cues.hit) {
       play("MetalHeavySliceFlesh");
       BlzSetSpecialEffectAnimation(slot.impact, "Birth");

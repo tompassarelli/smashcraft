@@ -21,9 +21,9 @@ import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
 import { MENU_FONT, PANEL_TEXTURE } from "../ui/hudLayout";
-import type { WorldOrigin } from "./effects";
+import { hideEffect, type WorldOrigin } from "./effects";
 import { SoundBank, SoundKind } from "./soundBank";
-import { fighterModel } from "./combatEffects";
+import { resultFighterPlacement } from "../presentation/arenaCamera";
 import { type FighterOriginalClip, originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
 
 
@@ -53,7 +53,9 @@ const createDropSounds = (): sound[] => [MatchCue.itemSpawn, MatchCue.meterReady
 
 interface VictoryPose {
   readonly character: Character;
-  readonly model: effect;
+  model: effect | undefined;
+  readonly winnerClip: FighterOriginalClip;
+  readonly idleClip: FighterOriginalClip;
 }
 
 export class MatchPresentation {
@@ -75,13 +77,14 @@ export class MatchPresentation {
   private readonly panel: framehandle;
   private readonly title: framehandle;
   private readonly lines: readonly framehandle[];
-  private victory: effect | undefined;
   private readonly poses: (VictoryPose | undefined)[] = [];
-  private shown = false;
   private pending: ResultsView | undefined;
   private delay = 0;
 
   posing: number | undefined;
+  resultFrames = 0;
+  private resultStage = 0;
+  private resultView: ResultsView | undefined;
 
   constructor(private readonly origin: Readonly<WorldOrigin>) {
     SetSoundDuration(this.hoverSound, GetSoundFileDuration(cueSound(MatchCue.hover)));
@@ -163,6 +166,7 @@ export class MatchPresentation {
   beginMatch(stageMusic: string, game: Readonly<MatchState>, world: Readonly<Roster>): void {
     this.hideResults();
     this.preparePoses(world);
+    this.resultStage = game.stageChoice;
     clearMatchTally(this.tally);
     observeForCues(this.observation, game, world);
     this.itemSounds ??= createItemSounds();
@@ -210,12 +214,18 @@ export class MatchPresentation {
 
   beginResults(view: ResultsView, delay: number): void {
     this.pending = view;
+    this.resultView = view;
+    this.resultFrames = 0;
     this.delay = delay;
+    this.placeResultPoses();
   }
 
 
   tick(): boolean {
-    this.playVictory();
+    if (this.resultView !== undefined) {
+      this.resultFrames++;
+      this.placeResultPoses();
+    }
     if (this.pending === undefined) return false;
     if (this.delay > 0) {
       this.delay--;
@@ -228,7 +238,6 @@ export class MatchPresentation {
   }
 
   private showResults(view: ResultsView): void {
-    this.hideResults();
     const { winner } = view;
     BlzFrameSetText(this.title, winner === undefined ? "No contest" : "Results");
     for (let index = 0; index < this.lines.length; index++) {
@@ -236,7 +245,6 @@ export class MatchPresentation {
       BlzFrameSetText(at(this.lines, index), row === undefined ? "" : row.winner ? `|cffffcc00${row.text}|r` : row.text);
     }
     BlzFrameSetVisible(this.panel, true);
-    this.shown = true;
     this.music = undefined;
     StopMusic(true);
     const theme = victoryMusic(winner);
@@ -245,75 +253,59 @@ export class MatchPresentation {
     this.cue(MatchCue.cheer);
     this.playFile(warcryVoice(winner));
     this.posing = view.rows[0]?.slot;
-
-    this.victory = this.pose(winner, view.winnerSlot, GetCameraTargetPositionX() - this.origin.x - 240.0, 0.0);
   }
 
-  /** The winner's victory clip on its match body, when it plays from a timeline; otherwise undefined. */
-  private victoryClip: FighterOriginalClip | undefined;
-  private victoryFrames = 0;
-
-  // A match start is synchronized, so every client makes the winner's handle there rather than when its results arrive.
   preparePoses(world: Readonly<Roster>): void {
     this.releasePoses();
     for (const slot of PARTICIPANT_SLOTS) {
       if (!isActive(world, slot)) continue;
       const character = fighterAt(world, slot).character;
-      const index = originalClipNamed(character, victoryAnimation(character));
-      const clip = index === undefined ? undefined : originalClip(character, index);
-      const model = AddSpecialEffect(clip?.timeline === true ? clip.modelPath : fighterModel(character), this.origin.x, this.origin.y);
-      BlzSetSpecialEffectScale(model, 0.0);
-      BlzSetSpecialEffectColorByPlayer(model, Player(slot));
-      this.poses[slot] = { character, model };
+      const winnerIndex = originalClipNamed(character, victoryAnimation(character));
+      const idleIndex = originalClipNamed(character, "stand") ?? originalClipNamed(character, "stand -1")
+        ?? originalClipNamed(character, "stand - 1") ?? originalClipNamed(character, "stand 1");
+      const winnerClip = winnerIndex === undefined ? undefined : originalClip(character, winnerIndex);
+      const idleClip = idleIndex === undefined ? undefined : originalClip(character, idleIndex);
+      if (winnerClip === undefined || idleClip === undefined) continue;
+      this.poses[slot] = { character, model: undefined, winnerClip, idleClip };
     }
   }
 
-  private pose(winner: Character, slot: number | undefined, x: number, z: number): effect | undefined {
-    const prepared = slot === undefined ? undefined : this.poses[slot];
-    let model = prepared?.character === winner ? prepared.model : undefined;
-    for (const other of PARTICIPANT_SLOTS) if (model === undefined && this.poses[other]?.character === winner) model = this.poses[other]?.model;
-    if (model === undefined) return undefined;
-    const index = originalClipNamed(winner, victoryAnimation(winner));
-    const clip = index === undefined ? undefined : originalClip(winner, index);
-    this.victoryClip = clip?.timeline === true ? clip : undefined;
-    this.victoryFrames = 0;
-    BlzSetSpecialEffectX(model, this.origin.x + x);
-    BlzSetSpecialEffectZ(model, this.origin.z + z);
-    BlzSetSpecialEffectScale(model, characterModelScale(winner));
-    BlzSetSpecialEffectYaw(model, FACING_CAMERA);
-    if (this.victoryClip === undefined) BlzSetSpecialEffectAnimation(model, victoryAnimation(winner));
-    else {
-      BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
-      BlzSetSpecialEffectAnimation(model, "Stand");
-      BlzSetSpecialEffectTimeScale(model, 0.0);
-      BlzSetSpecialEffectTime(model, this.victoryClip.startSeconds);
+  private placeResultPoses(): void {
+    const view = this.resultView;
+    if (view === undefined) return;
+    for (const [index, row] of view.rows.entries()) {
+      const pose = this.poses[row.slot];
+      if (pose === undefined) continue;
+      const winning = row.slot === view.winnerSlot;
+      const clip = winning ? pose.winnerClip : pose.idleClip;
+      if (pose.model === undefined) {
+        pose.model = AddSpecialEffect(clip.modelPath, this.origin.x, this.origin.y);
+        hideEffect(pose.model, this.origin);
+        BlzSetSpecialEffectColorByPlayer(pose.model, Player(row.slot));
+        BlzSetSpecialEffectAnimationBlendTime(pose.model, 0.0);
+        BlzSetSpecialEffectAnimation(pose.model, "Stand");
+        BlzSetSpecialEffectTimeScale(pose.model, 0.0);
+      }
+      const model = pose.model;
+      const placement = resultFighterPlacement(this.resultStage, index, view.rows.length);
+      BlzSetSpecialEffectPosition(model, this.origin.x + placement.x, this.origin.y, this.origin.z + placement.z);
+      BlzSetSpecialEffectYaw(model, FACING_CAMERA);
+      BlzSetSpecialEffectScale(model, characterModelScale(pose.character));
+      const duration = clip.endSeconds - clip.startSeconds;
+      let seconds = I2R(this.resultFrames) / 60.0;
+      if (duration <= 0.0) seconds = 0.0;
+      else seconds -= I2R(R2I(seconds / duration)) * duration;
+      BlzSetSpecialEffectTime(model, (clip.timeline === true ? clip.startSeconds : 0.0) + seconds);
     }
-    return model;
-  }
-
-
-  private playVictory(): void {
-    const clip = this.victoryClip;
-    if (clip === undefined || this.victory === undefined) return;
-    this.victoryFrames++;
-    const duration = clip.endSeconds - clip.startSeconds;
-    let seconds = I2R(this.victoryFrames) / 60.0;
-    if (duration <= 0.0) seconds = 0.0;
-    else seconds -= I2R(R2I(seconds / duration)) * duration;
-    BlzSetSpecialEffectTime(this.victory, clip.startSeconds + seconds);
   }
 
   hideResults(): void {
     this.pending = undefined;
+    this.resultView = undefined;
+    this.resultFrames = 0;
     this.posing = undefined;
-    if (!this.shown) return;
-    this.shown = false;
     BlzFrameSetVisible(this.panel, false);
-    if (this.victory !== undefined) {
-      BlzSetSpecialEffectScale(this.victory, 0.0);
-      this.victory = undefined;
-      this.victoryClip = undefined;
-    }
+    this.releasePoses();
   }
 
 
@@ -357,14 +349,15 @@ export class MatchPresentation {
   private releasePoses(): void {
     for (const slot of PARTICIPANT_SLOTS) {
       const pose = this.poses[slot];
-      if (pose !== undefined) DestroyEffect(pose.model);
+      if (pose?.model !== undefined) {
+        DestroyEffect(pose.model);
+      }
       this.poses[slot] = undefined;
     }
   }
 
   enterMenus(): void {
     this.hideResults();
-    this.releasePoses();
     this.playMusic(MENU_MUSIC);
   }
 }

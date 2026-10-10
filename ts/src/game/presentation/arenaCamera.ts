@@ -4,6 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { copyMatchCamera, createMatchCamera, limitCamera, MATCH_CAMERA_ASPECT, type MatchCamera } from "../sim/matchCamera";
 import { arctangentDegrees } from "../sim/mathTables";
+import { mainDeckLeft, mainDeckRight, mainDeckZAt } from "../sim/stage";
 import { stageBounds } from "../sim/stageBounds";
 import { TOMB_OF_SARGERAS_STAGE } from "../sim/stage";
 
@@ -68,4 +69,35 @@ export function arenaFraming(left: number, right: number, bottom: number, top: n
   camera.distance = Math.max(1450.0, right - left, top - bottom);
   limitCamera(camera, stageBounds(0).camera, MATCH_CAMERA_ASPECT);
   return { x: camera.x, z: camera.z, distance: camera.distance, fieldOfView: cameraFieldOfView(camera, MATCH_CAMERA_ASPECT) };
+}
+
+export const RESULTS_CAMERA_FRAMES = 30;
+
+export function resultFighterPlacement(stage: number, index: number, count: number): { readonly x: number; readonly z: number } {
+  const centre = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0 - (count <= 2 ? 240.0 : 0.0);
+  const spacing = Math.min(240.0, (mainDeckRight(stage) - mainDeckLeft(stage)) / (count + 1));
+  const x = centre + (index - (count - 1) / 2.0) * spacing;
+  return { x, z: mainDeckZAt(stage, x) };
+}
+
+export function resultCamera(camera: MatchCamera, stage: number, aspect: number, frame: number): void {
+  const goal = createMatchCamera();
+  goal.x = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0;
+  goal.z = mainDeckZAt(stage, goal.x) + 160.0;
+  goal.tangent = 0.3443276286125183;
+  const bounds = stageBounds(stage);
+  limitCamera(goal, bounds.camera, aspect, bounds.blast.bottom);
+  if (frame >= RESULTS_CAMERA_FRAMES - 1) {
+    copyMatchCamera(camera, goal);
+    return;
+  }
+  const before = frame / RESULTS_CAMERA_FRAMES;
+  const after = (frame + 1) / RESULTS_CAMERA_FRAMES;
+  const easedBefore = before * before * (3.0 - 2.0 * before);
+  const easedAfter = after * after * (3.0 - 2.0 * after);
+  const rate = (easedAfter - easedBefore) / (1.0 - easedBefore);
+  camera.x += (goal.x - camera.x) * rate;
+  camera.z += (goal.z - camera.z) * rate;
+  camera.distance += (goal.distance - camera.distance) * rate;
+  camera.tangent += (goal.tangent - camera.tangent) * rate;
 }
