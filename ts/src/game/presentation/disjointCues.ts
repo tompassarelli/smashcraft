@@ -5,38 +5,40 @@ import type { Fighter } from "../sim/fighter";
 import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegion, NO_HIT_REGION } from "../sim/hitRegions";
 import { fighterHurtParts } from "../sim/hurtboxes";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
-import { FAN_KNIFE_CUE, type CueBirth } from "./specialCues";
+import { FAN_KNIFE_CUE, type Cue, type CueBirth } from "./specialCues";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { DEMONHUNTER_GLIDE_SLASH_FIRST, DEMONHUNTER_GLIDE_SLASH_LAST, DEMONHUNTER_GLIDE_SLASH_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, felRushRegion, flameCrashRegion, immolationRegion, glideSlashRegion } from "../sim/specials";
 
 
-export const DISJOINT_MODELS: { readonly [character: number]: string } = {
-  [Character.rifleman]: "Abilities\\Weapons\\FlyingMachine\\FlyingMachineImpact.mdx",
-  [Character.demonHunter]: "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx",
-  [Character.blademaster]: "Abilities\\Weapons\\SentinelMissile\\SentinelMissile.mdx",
-  [Character.mountainKing]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
-  [Character.warden]: FAN_KNIFE_CUE.model,
-  [Character.lich]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
-  [Character.forsakenPaladin]: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx",
-  [Character.dreadlord]: "Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx",
-  [Character.shadowHunter]: "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx",
-  [Character.pitLord]: "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx",
-  [Character.beastmaster]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
-  [Character.lichKing]: "Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx",
-  [Character.chen]: "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx",
-  [Character.kaelthas]: "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx",
-  [Character.kobold]: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
-  [Character.thrall]: "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx",
-  [Character.jaina]: "Abilities\\Spells\\Other\\FrostDamage\\FrostDamage.mdx",
-  [Character.sylvanas]: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl",
-  [Character.cairne]: "Abilities\\Weapons\\RockBoltMissile\\RockBoltMissile.mdx",
-  [Character.peon]: "Abilities\\Weapons\\catapult\\CatapultMissile.mdx",
-  [Character.tinker]: "Abilities\\Spells\\Other\\AcidBomb\\BottleMissile.mdx",
-  [Character.murloc]: "Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx",
-  [Character.grom]: "Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx",
-  [Character.anubarak]: "Abilities\\Weapons\\CryptFiendMissile\\CryptFiendMissile.mdx",
-  [Character.malfurion]: "Abilities\\Weapons\\KeeperGroveMissile\\KeeperGroveMissile.mdx",
-  [Character.medivh]: "Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx",
+const disjointCue = (model: string): Cue => ({ model, anchor: "body", scale: 0.5, sequence: "stand", seconds: f32(0.3), timeScale: 0.0 });
+
+export const DISJOINT_CUES: { readonly [character: number]: Cue } = {
+  [Character.rifleman]: disjointCue("Abilities\\Weapons\\FlyingMachine\\FlyingMachineImpact.mdx"),
+  [Character.demonHunter]: disjointCue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx"),
+  [Character.blademaster]: disjointCue("Abilities\\Weapons\\SentinelMissile\\SentinelMissile.mdx"),
+  [Character.mountainKing]: disjointCue("Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx"),
+  [Character.warden]: disjointCue(FAN_KNIFE_CUE.model),
+  [Character.lich]: { ...disjointCue("Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx"), scale: f32(0.2) },
+  [Character.forsakenPaladin]: disjointCue("Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx"),
+  [Character.dreadlord]: disjointCue("Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx"),
+  [Character.shadowHunter]: disjointCue("Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx"),
+  [Character.pitLord]: disjointCue("Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdx"),
+  [Character.beastmaster]: disjointCue("Abilities\\Weapons\\Axe\\AxeMissile.mdx"),
+  [Character.lichKing]: disjointCue("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx"),
+  [Character.chen]: { ...disjointCue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx"), sequence: "birth", seconds: f32(0.2), birth: { eachFrame: false } },
+  [Character.kaelthas]: disjointCue("Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx"),
+  [Character.kobold]: disjointCue("Abilities\\Weapons\\Axe\\AxeMissile.mdx"),
+  [Character.thrall]: disjointCue("Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx"),
+  [Character.jaina]: disjointCue("Abilities\\Spells\\Other\\FrostDamage\\FrostDamage.mdx"),
+  [Character.sylvanas]: disjointCue("Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl"),
+  [Character.cairne]: disjointCue("Abilities\\Weapons\\RockBoltMissile\\RockBoltMissile.mdx"),
+  [Character.peon]: disjointCue("Abilities\\Weapons\\catapult\\CatapultMissile.mdx"),
+  [Character.tinker]: disjointCue("Abilities\\Spells\\Other\\AcidBomb\\BottleMissile.mdx"),
+  [Character.murloc]: disjointCue("Abilities\\Weapons\\MurgulMagicMissile\\MurgulMagicMissile.mdx"),
+  [Character.grom]: { ...disjointCue("Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx"), seconds: f32(0.2), birth: { eachFrame: false } },
+  [Character.anubarak]: disjointCue("Abilities\\Weapons\\CryptFiendMissile\\CryptFiendMissile.mdx"),
+  [Character.malfurion]: disjointCue("Abilities\\Weapons\\KeeperGroveMissile\\KeeperGroveMissile.mdx"),
+  [Character.medivh]: disjointCue("Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx"),
 };
 
 
