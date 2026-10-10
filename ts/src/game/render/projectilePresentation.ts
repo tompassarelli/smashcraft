@@ -24,6 +24,7 @@ interface Pool {
 }
 
 export class ProjectilePresentation {
+  private readonly definitive: boolean;
   private readonly models: effect[] = [];
   private readonly visible: boolean[] = [];
   private readonly pools: Pool[] = [];
@@ -41,7 +42,8 @@ export class ProjectilePresentation {
   ) {
     const hero = heroDefinition(character) !== undefined;
     const paths = fighterProjectileModels(character);
-    const swaps = definitiveCues() ? DEFINITIVE_ULTIMATE_MODELS[character] : undefined;
+    this.definitive = definitiveCues();
+    const swaps = this.definitive ? DEFINITIVE_ULTIMATE_MODELS[character] : undefined;
     const ultimateOnly = paths.filter((path, index) => index > 0 && !hero && ultimateProjectiles(character).some((spec) => spec.model === path));
     paths.forEach((path, index) => {
 
@@ -121,10 +123,14 @@ export class ProjectilePresentation {
       taken[slot] = true;
       parked[slot] = false;
       const projectile = fighter?.projectiles[index];
-      if (projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot])) {
+      const shadowStrike = this.definitive && fighter?.character === Character.warden && pool?.path === "Abilities\\Spells\\NightElf\\ShadowStrike\\ShadowStrikeMissile.mdx";
+      const starts = projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot]);
+      if (starts && projectile !== undefined) {
         const birth = pool?.path.includes("FreezingBreathMissile") === true || pool?.path.includes("WaterElementalMissile") === true || pool?.path.includes("FrostWyrmMissile") === true;
-        BlzSetSpecialEffectAnimation(model, pose.animationSequence ?? (birth ? "birth" : "stand"));
-        BlzSetSpecialEffectTime(model, 0.0);
+        if (!shadowStrike) {
+          BlzSetSpecialEffectAnimation(model, pose.animationSequence ?? (birth ? "birth" : "stand"));
+          BlzSetSpecialEffectTime(model, 0.0);
+        }
         this.serials[slot] = projectile.serial;
         this.specs[slot] = projectile.spec;
       }
@@ -134,6 +140,10 @@ export class ProjectilePresentation {
       BlzSetSpecialEffectScale(model, pose.modelScale * (pool === undefined ? 1.0 : PROJECTILE_DRAW_SCALES[pool.drawn] ?? 1.0));
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+      if (shadowStrike && starts) {
+        BlzSpecialEffectClearSubAnimations(model);
+        BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+      }
       if (pose.animationSeconds !== undefined) {
         if (!this.visible[slot] && pose.animationSequence !== undefined) BlzSetSpecialEffectAnimation(model, pose.animationSequence);
         BlzSetSpecialEffectTime(model, pose.animationSeconds);

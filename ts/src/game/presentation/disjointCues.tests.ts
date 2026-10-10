@@ -21,7 +21,7 @@ test("Fan of Knives sprays seven oriented knives to its authored endpoints in bo
     for (let index = 0; index < 7; index++) {
       fighter.special.frame = 8;
       assertEquals(fanKnifePose(fighter, index, knife).visible, false);
-      fighter.special.frame = 9;
+      fighter.special.frame = 10;
       const start = fanKnifePose(fighter, index, knife).x;
       assertTrue(knife.visible);
       fighter.special.frame = 11;

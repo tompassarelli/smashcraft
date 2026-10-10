@@ -48,9 +48,9 @@ export class HitAreaEffects {
           BlzSetSpecialEffectPitch(model, pose.pitch);
           BlzSetSpecialEffectScale(model, pose.scale);
           BlzSetSpecialEffectAlpha(model, pose.alpha);
-          BlzSetSpecialEffectAnimation(model, "stand");
-          BlzSetSpecialEffectTime(model, f32(0.3));
-          BlzSetSpecialEffectTimeScale(model, 0.0);
+          BlzSetSpecialEffectTimeScale(model, 1.0);
+          BlzSpecialEffectClearSubAnimations(model);
+          BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
           continue;
         }
         const region = normal ? authoredHitRegion(this.region, fighter.character, style, fighter.attack.frame, fighter.attack.smashChargeFrames, index, fighter.tuning.moves) : specialAreaRegion(fighter, index);
