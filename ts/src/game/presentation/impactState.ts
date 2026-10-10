@@ -11,11 +11,11 @@ export const IMPACT_HIT = 0;
 const IMPACT_TECH = 1;
 const IMPACT_MISSED_TECH = 2;
 export const IMPACT_DUST = 3;
-export const IMPACT_DODGE = 4;
+const IMPACT_DODGE = 4;
 const IMPACT_ELECTRIC_HIT = 5;
 const IMPACT_SHIELD_HIT = 6;
 const IMPACT_AIR_JUMP = 7;
-export const IMPACT_SIDE_KO = 8;
+const IMPACT_SIDE_KO = 8;
 const IMPACT_RESPAWN = 9;
 export const IMPACT_GRAB = 10;
 export const IMPACT_THROW = 11;
@@ -34,9 +34,9 @@ export const IMPACT_PUMMEL = 22;
 export const IMPACTS_PER_KIND = 8;
 export const IMPACT_KIND_COUNT = 23;
 export const IMPACT_COUNT = IMPACTS_PER_KIND * IMPACT_KIND_COUNT;
-export const KO_STAR_FLIGHT_FRAMES = 90;
-export const KO_STAR_FRAMES = 108;
-export const KO_SCREEN_FRAMES = 100;
+const KO_STAR_FLIGHT_FRAMES = 90;
+const KO_STAR_FRAMES = 108;
+const KO_SCREEN_FRAMES = 100;
 
 const PI = f32(3.141592654);
 const HALF_PI = f32(1.570796327);
@@ -196,7 +196,7 @@ export function clearImpactState(state: ImpactState): void {
 const CONTACT_FRAMES = 9;
 
 
-export const ELECTRIC_CONTACT_FRAMES = 24;
+const ELECTRIC_CONTACT_FRAMES = 24;
 
 
 export function impactLifetime(kind: number): number {

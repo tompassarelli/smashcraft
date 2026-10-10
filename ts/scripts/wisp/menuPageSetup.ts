@@ -21,7 +21,7 @@ const VALUE = `"Allow Local Files"=dword:00000001`;
 
 
 
-export function allowLocalFiles(userReg: string, now: number): string | undefined {
+function allowLocalFiles(userReg: string, now: number): string | undefined {
   const lines = userReg.split("\n");
   const header = lines.findIndex((line) => line.toLowerCase().startsWith(KEY.toLowerCase()));
   if (header === -1) {
@@ -49,7 +49,7 @@ const prefixInUse = (prefix: string) => {
   return prefixUse(runPlatformSync(ProcessTable.use((table) => table.list)), prefix, serverDirectoryName(stats.dev, stats.ino)).runtimes.length > 0;
 };
 
-export type SetupResult = "ready" | "page written; close Warcraft III and Battle.net once to finish";
+type SetupResult = "ready" | "page written; close Warcraft III and Battle.net once to finish";
 
 
 

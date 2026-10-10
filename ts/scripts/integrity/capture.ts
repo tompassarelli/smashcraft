@@ -44,7 +44,7 @@ function wholeNumber(text: string, option: string): number {
 }
 
 
-export function parseSweep(text: string): readonly (readonly [window: number, batch: number])[] {
+function parseSweep(text: string): readonly (readonly [window: number, batch: number])[] {
   return text.split(",").map((entry) => {
     const [window = "", batch = ""] = `${entry}:${DEFAULT_BATCH}`.split(":");
     return [wholeNumber(window, "--sweep"), wholeNumber(batch, "--sweep")] as const;
@@ -52,7 +52,7 @@ export function parseSweep(text: string): readonly (readonly [window: number, ba
 }
 
 
-export function captureEpochs(sweepEntries: number, firstEpoch: number): readonly number[] {
+function captureEpochs(sweepEntries: number, firstEpoch: number): readonly number[] {
   return Array.from({ length: sweepEntries > 0 ? 2 * sweepEntries : 2 }, (_, index) => firstEpoch + index);
 }
 

@@ -21,7 +21,7 @@ export type GameplanThrow = (typeof GameplanThrow)[keyof typeof GameplanThrow];
 export type GameplanMove = AttackStyle | GameplanSpecial | GameplanThrow;
 
 
-export interface SpacedMove {
+interface SpacedMove {
   readonly move: GameplanMove;
   readonly near: number;
   readonly far: number;
@@ -32,7 +32,7 @@ export interface SpacedMove {
 
 
 
-export interface ApproachOption {
+interface ApproachOption {
   readonly via: "run" | "jump" | "shoot";
   readonly moves: readonly GameplanMove[];
   readonly weight?: number | undefined;
@@ -47,13 +47,13 @@ export interface ApproachOption {
 export type DefenseOption = "shield" | "spotDodge" | "roll" | "stance" | "jump" | "retreat";
 
 
-export interface ComboRoute {
+interface ComboRoute {
   readonly starter: GameplanMove;
   readonly followUps: readonly GameplanMove[];
 }
 
 
-export interface KillMove {
+interface KillMove {
   readonly move: GameplanMove;
   readonly fromPercent: number;
 
@@ -65,7 +65,7 @@ export interface KillMove {
 
 
 
-export interface RecoveryRoute {
+interface RecoveryRoute {
   readonly aim: "ledge" | "deck" | "mixed";
   readonly upSpecial: "first" | "last" | "mixed";
 }

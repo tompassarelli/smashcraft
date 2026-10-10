@@ -5,22 +5,22 @@ import {
   defenderMask, expand, landingSetup, measureCell, openerRoot,
 } from "./comboExplorer";
 
-export const ADVANTAGE_PERCENTS = [0, 20, 40, 60] as const;
-export const GRAB_PERCENTS = [0, 20, 40] as const;
+const ADVANTAGE_PERCENTS = [0, 20, 40, 60] as const;
+const GRAB_PERCENTS = [0, 20, 40] as const;
 
 export const TARGETS = [
   { weight: "light", character: Character.lich },
   { weight: "medium", character: Character.rifleman },
   { weight: "heavy", character: Character.cairne },
 ] as const;
-export type TargetWeight = (typeof TARGETS)[number]["weight"];
+type TargetWeight = (typeof TARGETS)[number]["weight"];
 
 const THROW_OPENERS = OPENERS.filter((opener) => opener.throw !== undefined);
 const KNOCKDOWN_OPENERS = ["down throw", "down smash", "down tilt", "forward throw", "back throw"].flatMap((name) => OPENERS.filter((opener) => opener.name === name));
 const LAUNCHERS = OPENERS.filter((opener) => ["up throw", "up tilt", "up smash"].includes(opener.name));
 const RELAUNCH = /(^|, )(up air|up tilt)$/;
 
-export interface ThrowCell {
+interface ThrowCell {
   readonly opener: string;
   readonly percent: number;
 
@@ -35,7 +35,7 @@ export interface ThrowCell {
   readonly ko: boolean;
 }
 
-export interface TechChase {
+interface TechChase {
   readonly opener: string;
   readonly percent: number;
 
@@ -44,7 +44,7 @@ export interface TechChase {
   readonly trap: { readonly read: string; readonly options: readonly string[] } | undefined;
 }
 
-export interface Juggle {
+interface Juggle {
   readonly launcher: string;
   readonly percent: number;
   readonly relaunch: string;
@@ -66,7 +66,7 @@ export interface AdvantageRow {
 
 const followUps = (moves: readonly string[]): number => Math.max(0, moves.length - 1);
 
-export function throwCell(attacker: Character, defender: Character, opener: Opener, percent: number): ThrowCell {
+function throwCell(attacker: Character, defender: Character, opener: Opener, percent: number): ThrowCell {
   const cell = measureCell(attacker, defender, opener, percent, "centre");
   const none = cell.byDi.none;
   const into = cell.byDi.in;
@@ -101,7 +101,7 @@ function covers(ending: Ending, option: (typeof TECH_OPTIONS)[number], landing: 
   return sim.b.status.damage > start;
 }
 
-export function techChase(attacker: Character, defender: Character, cells: readonly ThrowCell[]): TechChase | undefined {
+function techChase(attacker: Character, defender: Character, cells: readonly ThrowCell[]): TechChase | undefined {
   let best: TechChase | undefined;
   for (const percent of ADVANTAGE_PERCENTS) for (const opener of KNOCKDOWN_OPENERS) {
     const own = cells.find((cell) => cell.opener === opener.name && cell.percent === percent);
@@ -132,7 +132,7 @@ export function techChase(attacker: Character, defender: Character, cells: reado
   return best;
 }
 
-export function juggle(attacker: Character, defender: Character): Juggle | undefined {
+function juggle(attacker: Character, defender: Character): Juggle | undefined {
   let best: Juggle | undefined;
   for (const opener of LAUNCHERS) for (const percent of ADVANTAGE_PERCENTS) {
     const setup = landingSetup(attacker, defender, opener, percent, "centre");

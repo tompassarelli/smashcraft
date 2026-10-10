@@ -16,7 +16,7 @@ import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIE
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL, IMPACT_KO_MODEL } from "../assets/impactAssetInfo";
 
 
-export const ELECTRIC_IMPACT_MODEL = "Abilities\\Spells\\Orc\\LightningShield\\LightningShieldTarget.mdx";
+const ELECTRIC_IMPACT_MODEL = "Abilities\\Spells\\Orc\\LightningShield\\LightningShieldTarget.mdx";
 
 
 export function impactModel(kind: number): string {
@@ -48,7 +48,7 @@ export function impactModel(kind: number): string {
 
 const PLAIN_SPARK_COLOUR: readonly number[] = [255, 255, 255];
 const FIRE_SPARK_COLOUR: readonly number[] = [255, 100, 25];
-export const STRONG_SPARK_COLOUR: readonly number[] = [255, 205, 40];
+const STRONG_SPARK_COLOUR: readonly number[] = [255, 205, 40];
 
 
 export function impactColour(kind: number, strength: number): readonly number[] | undefined {
@@ -86,7 +86,7 @@ export function impactModelScale(kind: number): number {
 
 const IMPACT_LABELS: readonly string[] = ["LightningBolt", "BlinkTarget", "Defend", "ThunderClap", "EntanglingRoots", "DispelMagic", "Warstomp", "DeepFootstep", "DeepFootstep2"];
 
-export interface ImpactSoundNames {
+interface ImpactSoundNames {
   readonly files: readonly string[];
   readonly labels: readonly string[];
 }

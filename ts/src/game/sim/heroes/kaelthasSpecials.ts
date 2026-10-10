@@ -8,13 +8,13 @@ import { kaelCastBody, kaelHit } from "./kaelthasMoves";
 
 const AIR_LANDING_LAG = 20;
 
-export const KAEL_PILLAR: SpecialProjectile = {
+const KAEL_PILLAR: SpecialProjectile = {
   model: "Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx", modelRadius: 40.0,
   spawnFrame: 0, offsetX: 0.0, offsetZ: 0.0, velocityX: 0.0, velocityZ: 0.0,
   life: 12, activeFrom: 13, radius: 40.0, effect: kaelHit(12.420000076293945, 80, 93.00499725341797, 30.0),
   reflectable: false, limit: 1,
 };
-export const KAEL_FLAME_BOLT: SpecialProjectile = {
+const KAEL_FLAME_BOLT: SpecialProjectile = {
   model: "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx",
   spawnFrame: 16, offsetX: 40.0, offsetZ: 55.0, velocityX: 9.0, velocityZ: 0.0,
   life: 34, radius: 16.0, effect: KAEL_PILLAR.effect, homing: { turn: f32(0.35), maxRise: 4.0 }, burstInto: KAEL_PILLAR,
@@ -30,7 +30,7 @@ const drainMana = (landingLag: number | undefined): AuthoredSpecial => ({
   commandGrab: { ...frames(10, 13), strike: DRAIN_BEAM, holdFrames: 18, effect: { ...kaelHit(4.139999866485596, 40, 39.15999984741211, 40.0), manaSteal: 30 }, recovery: 16 },
 });
 
-export const BANISH: AppliedStatus = { kind: HeroStatusKind.banish, frames: 90, group: HeroStatusGroup.silence, immunityFrames: 240 };
+const BANISH: AppliedStatus = { kind: HeroStatusKind.banish, frames: 90, group: HeroStatusGroup.silence, immunityFrames: 240 };
 const CURSE: StrikeCapsule = { x1: 25.0, z1: 62.0, x2: 110.0, z2: 62.0, radius: 20.0 };
 const banish = (landingLag: number | undefined): AuthoredSpecial => ({
   endFrame: 36, landingLag, hurt: kaelCastBody(8, 22, 46.0, 62.0),
@@ -38,9 +38,9 @@ const banish = (landingLag: number | undefined): AuthoredSpecial => ({
 });
 
 export const PHOENIX_CHARGE_FRAMES = 42;
-export const PHOENIX_AIM_FRAMES = 14;
+const PHOENIX_AIM_FRAMES = 14;
 export const PHOENIX_FLIGHT_FRAMES = 30;
-export const PHOENIX_SPEED = 16.0;
+const PHOENIX_SPEED = 16.0;
 const SWIRL: StrikeCapsule = { x1: -20.0, z1: 55.0, x2: 20.0, z2: 55.0, radius: 42.0 };
 const BIRD: StrikeCapsule = { x1: -24.0, z1: 55.0, x2: 24.0, z2: 55.0, radius: 32.0 };
 const swirl = kaelHit(2.069999933242798, 80, 0.0, 30.0);
@@ -68,7 +68,7 @@ const SUMMONED_PHOENIX: SpecialCompanion = {
   bite: { x1: -20.0, z1: 0.0, x2: 20.0, z2: 0.0, radius: 30.0 }, biteEffect: kaelHit(4.139999866485596, 70, 39.15999984741211, 30.0),
   stunFrames: 30, leash: 600.0, leashFrames: 60,
 };
-export const SUMMON_PHOENIX: SpecialPlacement = {
+const SUMMON_PHOENIX: SpecialPlacement = {
   frame: PHOENIX_CHARGE_FRAMES + PHOENIX_FLIGHT_FRAMES + 1, offsetX: -40.0, offsetZ: 110.0, radius: 30.0, height: 60.0,
   durability: 12.0, life: 180, fireAges: [30, 60, 90, 120, 150, 178], shot: PHOENIX_AURA, companion: SUMMONED_PHOENIX,
   model: { path: "units\\human\\Phoenix\\Phoenix.mdl", height: 110.0, alpha: 255 },

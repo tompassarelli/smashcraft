@@ -11,9 +11,9 @@ import { MAIN_DECK_HALF_DEPTH, mainDeckOutlineStage } from "./stageDeck";
 
 type Box = { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] };
 
-export const TEMPLE_OF_TIDES = "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx";
+const TEMPLE_OF_TIDES = "Buildings\\Naga\\TempleOfTides\\TempleOfTides.mdx";
 
-export const STAND_BOUNDS: Readonly<Record<string, Box>> = {
+const STAND_BOUNDS: Readonly<Record<string, Box>> = {
   [TEMPLE_OF_TIDES]: { min: [-180.0, -170.0, -91.0], max: [176.0, 183.0, 374.0] },
 };
 

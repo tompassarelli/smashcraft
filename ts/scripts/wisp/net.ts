@@ -16,7 +16,7 @@ const BUTTONS: Readonly<Record<string, string>> = { A: "attack", X: "special", B
 interface PadEdge { readonly frame: number; readonly slot: number; readonly action: string; readonly args: readonly string[] }
 
 /** A pad script's setup command and edges (smashcraft:docs/native-bot-session.md), read the way the native driver reads them. */
-export function padEdges(script: string): { readonly setup: string; readonly edges: readonly PadEdge[] } {
+function padEdges(script: string): { readonly setup: string; readonly edges: readonly PadEdge[] } {
   let setup = "-dev quick", previous = 0;
   const edges: PadEdge[] = [];
   for (const raw of script.split("\n")) {
@@ -37,7 +37,7 @@ export function padEdges(script: string): { readonly setup: string; readonly edg
 }
 
 /** One slot's pad as standalone input on each frame: buttons held, the stick, and the shield trigger past its threshold. */
-export function padInputs(edges: readonly PadEdge[], slot: number) {
+function padInputs(edges: readonly PadEdge[], slot: number) {
   const held = new Set<string>();
   let axisX = 0, axisY = 0, shield = 0, next = 0;
   const own = edges.filter((edge) => edge.slot === slot);

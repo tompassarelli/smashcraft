@@ -575,7 +575,7 @@ function kitDigestField<K>(name: string, kit: K | undefined, digests: Map<K, str
 }
 
 
-export function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string {
+function observedOpponentKitCanonical(fighter: Readonly<Fighter>): string {
   return kitDigestField("moves", fighter.tuning.moves, MOVES_DIGESTS, fighterMovesCanonical)
     + kitDigestField("specials", fighter.tuning.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical);
 }
@@ -599,7 +599,7 @@ function kitText(f: Readonly<Fighter>): string {
   return text;
 }
 
-export interface ObservationWriter {
+interface ObservationWriter {
   readonly byte: (this: void, code: number) => void;
 
   readonly number: (this: void, value: number) => void;

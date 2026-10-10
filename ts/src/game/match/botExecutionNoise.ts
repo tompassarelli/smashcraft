@@ -10,7 +10,7 @@ import type { CpuSkill } from "./cpuSkill";
 const sign = (value: number): -1 | 0 | 1 => value < 0 ? -1 : value > 0 ? 1 : 0;
 
 
-export function defenceSlipRates(execution: number, tier: CpuTier = "expert") {
+function defenceSlipRates(execution: number, tier: CpuTier = "expert") {
   const missed = 100 - execution;
   const rank = tier === "expert" ? 0 : tier === "advanced" ? 1 : tier === "intermediate" ? 2 : tier === "beginner" ? 3 : 4;
   return {

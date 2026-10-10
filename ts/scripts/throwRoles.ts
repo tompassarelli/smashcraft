@@ -11,9 +11,9 @@ import { type FighterEntry, type Move, VICTIM_CHOICES, comboRow, openingState } 
 import { Timeline } from "./interactions";
 
 
-export const ROLE_PERCENTS: readonly number[] = [0, 30, 60];
+const ROLE_PERCENTS: readonly number[] = [0, 30, 60];
 
-export const REPORT_PERCENTS: readonly number[] = [...ROLE_PERCENTS, 90];
+const REPORT_PERCENTS: readonly number[] = [...ROLE_PERCENTS, 90];
 const UP_THROW: Move = { name: "up throw", throw: "up" };
 const DOWN_THROW: Move = { name: "down throw", throw: "down" };
 const TECH_OPTIONS = ["tech in place", "tech left", "tech right", "missed tech"] as const;
@@ -28,7 +28,7 @@ export const THROW_FIGHTERS: readonly FighterEntry[] = SELECTABLE_CHARACTERS.map
 export const throwFighterNamed = (name: string): FighterEntry | undefined =>
   THROW_FIGHTERS.find((entry) => entry.name.toLowerCase() === name.toLowerCase() || entry.slug === name.toLowerCase());
 
-export interface UpThrowRow {
+interface UpThrowRow {
   readonly kind: "up throw";
   readonly fighter: string;
   readonly percent: number;
@@ -48,7 +48,7 @@ interface Landing {
   readonly frame: number | undefined;
 }
 
-export interface DownThrowRow {
+interface DownThrowRow {
   readonly kind: "down throw";
   readonly fighter: string;
   readonly percent: number;
@@ -88,7 +88,7 @@ function landing(entry: FighterEntry, percent: number, di: (typeof VICTIM_CHOICE
   return { di: di.name, tumbles, actsFirst, frame };
 }
 
-export function upThrowRow(entry: FighterEntry, percent: number): UpThrowRow {
+function upThrowRow(entry: FighterEntry, percent: number): UpThrowRow {
   const row = comboRow(entry, UP_THROW, percent, false);
   const role = ROLE_PERCENTS.includes(percent);
   const problems = [
@@ -99,7 +99,7 @@ export function upThrowRow(entry: FighterEntry, percent: number): UpThrowRow {
   return { kind: "up throw", fighter: entry.name, percent, guaranteedFollowups: row.guaranteed.followups, string: row.guaranteed.moves, guaranteedDamage: row.guaranteed.damage, problems };
 }
 
-export function downThrowRow(entry: FighterEntry, percent: number): DownThrowRow {
+function downThrowRow(entry: FighterEntry, percent: number): DownThrowRow {
   const row = comboRow(entry, DOWN_THROW, percent, false);
   const landings = DI_NAMES.map((name) => {
     const di = VICTIM_CHOICES.find((choice) => choice.di.name === name)?.di;

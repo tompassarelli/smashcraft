@@ -7,7 +7,7 @@ import { parseArgs } from "node:util";
 import { CALIBRATION_SEEDS, calibrationFailures, collectCalibrationRow, type CalibrationMeasure, type CalibrationRow } from "../src/game/match/cpuCalibration";
 import { CPU_PROFILES, CPU_TIERS, type CpuOpponentId } from "../src/game/match/cpuProfiles";
 
-export function calibrationGrowthFailures(rows: readonly CalibrationRow[]): string[] {
+function calibrationGrowthFailures(rows: readonly CalibrationRow[]): string[] {
   const failures: string[] = [];
   const growth: readonly [CpuOpponentId, CalibrationMeasure, string][] = [
     ["rook", "conversion", "close punish connected"], ["rook", "proactive", "took initiative"],
@@ -42,7 +42,7 @@ export function calibrationGrowthFailures(rows: readonly CalibrationRow[]): stri
   return failures;
 }
 
-export function calibrationReport(revision: string, trials = 10) {
+function calibrationReport(revision: string, trials = 10) {
   const rows = CPU_PROFILES.map(profile => collectCalibrationRow(profile, trials));
   const collectionFailures = rows.flatMap(row => calibrationFailures(row).map(failure => `${row.opponent}/${row.tier}: ${failure}`));
   const growthFailures = calibrationGrowthFailures(rows);

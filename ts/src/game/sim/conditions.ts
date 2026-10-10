@@ -5,10 +5,10 @@ import type { Fighter } from "./fighter";
 import { attackStartupFrames, authoredGrabFrames, characterAttackActiveFrames, jabChainFrom, nextJab } from "./moves";
 
 export const GROUND_ROLL_FRAMES = 31;
-export const GROUND_ROLL_INTANGIBLE_START = 4;
+const GROUND_ROLL_INTANGIBLE_START = 4;
 const GROUND_ROLL_INTANGIBLE_END = 19;
 export const SPOT_DODGE_FRAMES = 22;
-export const SPOT_DODGE_INTANGIBLE_START = 2;
+const SPOT_DODGE_INTANGIBLE_START = 2;
 export const SPOT_DODGE_INTANGIBLE_END = 15;
 
 const AIR_DODGE_INTANGIBLE_START = 4;

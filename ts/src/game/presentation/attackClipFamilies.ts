@@ -2,7 +2,7 @@ import { Character, type SpecialAction } from "../sim/codes";
 import type { HeroPose } from "../sim/heroes/hero";
 import { characterClips, specialClip } from "./fighterClips";
 
-export const NORMAL_ATTACK_POSES = [
+const NORMAL_ATTACK_POSES = [
   "jab", "jab2", "jab3", "forwardTilt", "forwardTiltUp", "forwardTiltDown", "upTilt", "downTilt",
   "forwardSmash", "upSmash", "downSmash", "dashAttack", "neutralAir", "forwardAir", "backAir", "upAir", "downAir",
   "getUpAttack", "ledgeAttack", "pummel", "throwForward", "throwBack", "throwUp", "throwDown",
@@ -10,7 +10,7 @@ export const NORMAL_ATTACK_POSES = [
 const SPECIAL_POSES = ["neutralSpecial", "sideSpecial", "upSpecial", "downSpecial"] as const;
 
 
-export function attackClipFamilies(character: Character): { pose: HeroPose; family: string; index: number }[] {
+function attackClipFamilies(character: Character): { pose: HeroPose; family: string; index: number }[] {
   const table = characterClips(character), result: { pose: HeroPose; family: string; index: number }[] = [];
   for (const pose of NORMAL_ATTACK_POSES) {
     const clip = table[pose];

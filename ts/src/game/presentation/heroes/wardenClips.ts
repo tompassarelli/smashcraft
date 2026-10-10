@@ -8,7 +8,7 @@ import { WARDEN_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNorm
 
 export const WARDEN_MODEL_FILE = "Units\\NightElf\\HeroWarden\\HeroWarden.mdx";
 
-export interface StockClip {
+interface StockClip {
   readonly index: number;
   readonly name: string;
   readonly seconds: number;
@@ -17,7 +17,7 @@ export interface StockClip {
 const clip = (index: number, name: string, seconds: number): StockClip => ({ index, name, seconds });
 
 
-export const WARDEN_SEQUENCES = {
+const WARDEN_SEQUENCES = {
   stand: clip(0, "Stand - 1", f32(1.334)),
   standFidget: clip(1, "Stand - 2", f32(4.434)),
   walk: clip(2, "Walk", f32(1.166)),

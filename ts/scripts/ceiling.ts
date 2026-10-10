@@ -5,8 +5,8 @@ import { AttackStyle } from "../src/game/sim/codes";
 import { GameplanSpecial } from "../src/game/sim/gameplan";
 import { CEILING_SPEC, DESIGN_DOCS, readProfiles } from "./balance";
 
-export type CeilingPath = "execution" | "decision" | "mixed";
-export interface CeilingPlan { readonly path: CeilingPath; readonly basicMoves: readonly number[] }
+type CeilingPath = "execution" | "decision" | "mixed";
+interface CeilingPlan { readonly path: CeilingPath; readonly basicMoves: readonly number[] }
 const moves: Readonly<Record<string, number>> = {
   jab: AttackStyle.jab, "forward-tilt": AttackStyle.forwardTilt, "down-tilt": AttackStyle.downTilt,
   "forward-smash": AttackStyle.forwardSmash, "neutral-air": AttackStyle.neutralAir,
@@ -47,7 +47,7 @@ export interface CeilingRow {
   readonly ceilingVsCeiling: number;
   readonly complete: boolean;
 }
-export interface CeilingVerdict {
+interface CeilingVerdict {
   readonly fighter: string;
   readonly panel: boolean;
   readonly depth: boolean;
@@ -60,7 +60,7 @@ export interface CeilingVerdict {
   readonly panelAverage: number;
 }
 const inBand = (n: number, low: number, high: number) => Number.isFinite(n) && n >= low && n <= high;
-export function ceilingVerdicts(rows: readonly CeilingRow[]): { rows: CeilingVerdict[]; diversity: boolean; bestFits: Record<CpuOpponentId, number>; medianHeadroom: number } {
+function ceilingVerdicts(rows: readonly CeilingRow[]): { rows: CeilingVerdict[]; diversity: boolean; bestFits: Record<CpuOpponentId, number>; medianHeadroom: number } {
   const s = CEILING_SPEC;
   const sorted = rows.map(row => row.ceilingVsExpert - row.advancedVsExpert).sort((a,b) => a-b);
   const midpoint = Math.floor(sorted.length / 2);

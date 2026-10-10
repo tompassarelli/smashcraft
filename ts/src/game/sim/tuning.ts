@@ -113,7 +113,7 @@ export interface FighterTuning {
 }
 
 export const GROUND_TRACTION = melee(0.07999999821186066);
-export const INITIAL_DASH_SPEED = melee(1.899999976158142);
+const INITIAL_DASH_SPEED = melee(1.899999976158142);
 
 
 const GROUND_ACCELERATION_MULTIPLIER = 0.10000000149011612;
@@ -224,7 +224,7 @@ export function authoredPhysics(character: Character): FighterPhysics {
 
 const REFERENCE_WEIGHT = 75.0;
 /** What a hero's 1.00 air multiplier means: Ultimate's median air speed (#190; smashcraft:docs/gameplay-design.md, "Air drift and jump momentum"). */
-export const REFERENCE_AIR_SPEED = melee(1.0);
+const REFERENCE_AIR_SPEED = melee(1.0);
 
 const heroPhysicsRecords: (FighterPhysics | undefined)[] = [];
 
@@ -233,10 +233,10 @@ const heroPhysicsRecords: (FighterPhysics | undefined)[] = [];
 
 
 /** Melee's roster spread in Melee units a frame (smashcraft:docs/design/melee/movement.md, "Ground movement"). */
-export const MELEE_WALK_SPEED_SPREAD: readonly [number, number] = [melee(0.6499999761581421), melee(1.600000023841858)];
-export const MELEE_DASH_SPEED_SPREAD: readonly [number, number] = [melee(1.0), melee(2.0)];
-export const MELEE_RUN_SPEED_SPREAD: readonly [number, number] = [melee(1.100000023841858), melee(2.299999952316284)];
-export const MELEE_DASH_RUN_FRAME_SPREAD: readonly [number, number] = [8, 19];
+const MELEE_WALK_SPEED_SPREAD: readonly [number, number] = [melee(0.6499999761581421), melee(1.600000023841858)];
+const MELEE_DASH_SPEED_SPREAD: readonly [number, number] = [melee(1.0), melee(2.0)];
+const MELEE_RUN_SPEED_SPREAD: readonly [number, number] = [melee(1.100000023841858), melee(2.299999952316284)];
+const MELEE_DASH_RUN_FRAME_SPREAD: readonly [number, number] = [8, 19];
 
 const meleeSpread = (value: number, spread: readonly [number, number]): number => Math.max(spread[0], Math.min(spread[1], value));
 
@@ -339,7 +339,7 @@ export const NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES: GroundMovementRules = {
 };
 
 
-export const AUTHORED_DASH_GRAB_RULES: DashGrabRules = {
+const AUTHORED_DASH_GRAB_RULES: DashGrabRules = {
   startupFrames: attackStartupFrames(AttackStyle.grab),
   activeFrames: 3,
   totalFrames: attackDurationFramesForGrounding(AttackStyle.grab, true),

@@ -35,7 +35,7 @@ const REFERENCE_MANIFEST = join(REFERENCE_DIRECTORY, "manifest.json");
 
 
 
-export const REFERENCE_FIGHTERS: Readonly<Record<string, string>> = {
+const REFERENCE_FIGHTERS: Readonly<Record<string, string>> = {
   rifleman: "falco", illidan: "captain_falcon", blademaster: "marth", "mountain-king": "donkey_kong", warden: "sheik",
   lich: "mewtwo", "forsaken-paladin": "roy", dreadlord: "ganondorf", "shadow-hunter": "link", "pit-lord": "bowser",
   beastmaster: "link", "lich-king": "ganondorf", thrall: "bowser", "jaina-proudmoore": "zelda", "sylvanas-windrunner": "young_link", "cairne-bloodhoof": "donkey_kong",
@@ -43,7 +43,7 @@ export const REFERENCE_FIGHTERS: Readonly<Record<string, string>> = {
   "malfurion-stormrage": "link", medivh: "mewtwo", "anub'arak": "bowser",
 };
 
-export const REFERENCE_ACTIONS: Readonly<Record<string, { readonly action: string; readonly wiki: string }>> = {
+const REFERENCE_ACTIONS: Readonly<Record<string, { readonly action: string; readonly wiki: string }>> = {
   jab: { action: "jab1", wiki: "jab" }, jab2: { action: "jab2", wiki: "jab" }, jab3: { action: "jab2", wiki: "jab" },
   "forward-tilt": { action: "ftilt", wiki: "forward tilt" }, "forward-tilt-up": { action: "ftilt", wiki: "forward tilt" }, "forward-tilt-down": { action: "ftilt", wiki: "forward tilt" },
   "up-tilt": { action: "utilt", wiki: "up tilt" }, "down-tilt": { action: "dtilt", wiki: "down tilt" }, "dash-attack": { action: "dattack", wiki: "dash attack" },
@@ -61,14 +61,14 @@ const attempt = <A>(problem: string, run: () => Promise<A> | A) =>
   Effect.tryPromise({ try: async () => run(), catch: (cause) => new AnimFailure({ problem: `${problem}: ${cause instanceof Error ? cause.message : String(cause)}` }) });
 
 const JudgeLine = Schema.Int.check(Schema.isBetween({ minimum: 1, maximum: 5 }));
-export const JudgeScore = Schema.Struct({
+const JudgeScore = Schema.Struct({
   look: Schema.Literals(["classic", "definitive"]), fighter: Schema.NonEmptyString, move: Schema.NonEmptyString, judge: Schema.NonEmptyString,
   readability: JudgeLine, weight: JudgeLine, anticipation: JudgeLine, followThrough: JudgeLine, character: JudgeLine, note: Schema.String,
 });
-export type JudgeScore = typeof JudgeScore.Type;
+type JudgeScore = typeof JudgeScore.Type;
 const JUDGE_LINES = ["readability", "weight", "anticipation", "followThrough", "character"] as const;
 
-export const JUDGE_PASS = 4;
+const JUDGE_PASS = 4;
 
 const MeleeRecord = Schema.Struct({ character: Schema.String, action: Schema.NullOr(Schema.String), values: Schema.Struct({ start: Schema.optional(Schema.NullOr(Schema.Finite)), total: Schema.optional(Schema.NullOr(Schema.Finite)) }) });
 

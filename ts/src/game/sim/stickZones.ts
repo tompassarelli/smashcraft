@@ -2,23 +2,21 @@ import { f32 } from "wisp/src/sim/f32";
 
 /** Melee ftCommonData (PlCo.dat, GALE01 rev 2) stick thresholds; cited per field in smashcraft:docs/gameplay-design.md, "Ground states and the stick map". */
 export const STICK_DEADZONE = f32(0.28);
-export const STICK_SMASH_DEADZONE = 0.25;
-export const WALK_STICK_THRESHOLD = f32(0.18);
-export const WALK_MIDDLE_STICK_THRESHOLD = f32(0.4);
-export const WALK_FAST_STICK_THRESHOLD = f32(0.8);
-export const TURN_STICK_THRESHOLD = -0.25;
-export const TURN_RUN_STICK_THRESHOLD = -0.375;
+const WALK_MIDDLE_STICK_THRESHOLD = f32(0.4);
+const WALK_FAST_STICK_THRESHOLD = f32(0.8);
+const TURN_STICK_THRESHOLD = -0.25;
+const TURN_RUN_STICK_THRESHOLD = -0.375;
 export const DASH_STICK_THRESHOLD = f32(0.8);
 /** Melee's dash_smash_window is 2 frames; #188 widened it to three samples for keyboard and pad flicks. */
 export const DASH_FLICK_SAMPLES = 3;
-export const RUN_HOLD_STICK_THRESHOLD = 0.625;
+const RUN_HOLD_STICK_THRESHOLD = 0.625;
 export const TAP_JUMP_STICK_THRESHOLD = f32(0.6625);
-export const RELAXED_TAP_JUMP_STICK_THRESHOLD = 0.5625;
+const RELAXED_TAP_JUMP_STICK_THRESHOLD = 0.5625;
 export const TAP_JUMP_WINDOW = 4;
 export const CROUCH_STICK_THRESHOLD = 0.6875;
-export const CROUCH_RELEASE_STICK_THRESHOLD = 0.625;
-export const DASH_SMASH_LAST_FRAME = 4;
-export const DASH_ATTACK_LAST_FRAME = 20;
+const CROUCH_RELEASE_STICK_THRESHOLD = 0.625;
+const DASH_SMASH_LAST_FRAME = 4;
+const DASH_ATTACK_LAST_FRAME = 20;
 
 export const StickZone = {
   deadzone: 0,

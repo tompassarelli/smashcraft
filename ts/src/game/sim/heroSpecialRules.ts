@@ -37,7 +37,7 @@ export const HERO_PROJECTILE_CAP = 3;
 export const isHeroSpecialAction = (action: number): boolean => action >= SpecialAction.heroNeutral && action <= SpecialAction.heroUltimate;
 
 
-export function ultimateForm(ultimate: Readonly<AuthoredSpecial>, form: number): AuthoredSpecial {
+function ultimateForm(ultimate: Readonly<AuthoredSpecial>, form: number): AuthoredSpecial {
   return form >= FOLLOW_UP_FORM ? ultimate.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1]?.special ?? ultimate : ultimate;
 }
 
@@ -78,7 +78,7 @@ function ownedCount(f: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | un
 }
 
 
-export function markedTarget(world: Roster, f: Readonly<Fighter>, range: number): Fighter | undefined {
+function markedTarget(world: Roster, f: Readonly<Fighter>, range: number): Fighter | undefined {
   let nearest: Fighter | undefined;
   let distance = 0.0;
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
@@ -175,11 +175,11 @@ function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
 }
 
 
-export interface SpecialRefusal {
+interface SpecialRefusal {
   groundOnly: boolean;
 }
 
-export interface HeroSpecialChoice {
+interface HeroSpecialChoice {
   slot: SpecialSlot;
   form: SpecialForm;
 }

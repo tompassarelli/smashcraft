@@ -11,7 +11,7 @@ import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { padScriptPreset } from "./integrity/padScript";
 import { platformLayer } from "wisp/scripts/platform/layer";
 
-export const calibrateCursor = (options: { args: readonly string[]; env: Record<string, string | undefined>; path: string; log: string; corner: string }) => Effect.scoped(Effect.gen(function*() {
+const calibrateCursor = (options: { args: readonly string[]; env: Record<string, string | undefined>; path: string; log: string; corner: string }) => Effect.scoped(Effect.gen(function*() {
     const { path, corner } = options;
     const before = Date.now();
     const { child: calibration } = yield* startInputProcess([...options.args, "--cursor-calibrate", corner], {
@@ -32,7 +32,7 @@ export const calibrateCursor = (options: { args: readonly string[]; env: Record<
       }), { every: "20 millis", within: "15 seconds", orElse: () => Effect.fail(analogFailure(`Cursor did not observe the ${corner} cursor calibration`)) });
 }));
 
-export const analogNative = Effect.gen(function*() {
+const analogNative = Effect.gen(function*() {
 const { values } = parseArgs({ options: {
   pair: { type: "string" }, "clients-file": { type: "string" }, helper: { type: "string" }, map: { type: "string" },
   route: { type: "string" }, out: { type: "string" }, grid: { type: "string", default: "100,100,508,508,1280,720" },

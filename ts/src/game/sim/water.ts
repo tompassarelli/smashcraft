@@ -28,17 +28,17 @@ export const HYDRA_STRIKE_FRAME = HYDRA_TELL_FRAMES + 1;
 const HYDRA_RADIUS = melee(15.0);
 export const HYDRA_REACH = 150.0;
 
-export const HYDRA_HIT: Readonly<HitEffect> = { damage: 15.0, growth: 0.0, base: 120.0, launchX: 0.0, launchZ: -1.0, electric: false };
+const HYDRA_HIT: Readonly<HitEffect> = { damage: 15.0, growth: 0.0, base: 120.0, launchX: 0.0, launchZ: -1.0, electric: false };
 
 
 const WATER_BUOYANCY = melee(0.10000000149011612);
 const WATER_RISE_CAP = melee(3.0);
 
-export const SWIM_SPEED = melee(0.6000000238418579);
-export const SWIM_ACCELERATION = melee(0.05000000074505806);
+const SWIM_SPEED = melee(0.6000000238418579);
+const SWIM_ACCELERATION = melee(0.05000000074505806);
 
-export const WATER_JUMP_FACTOR = 0.9100000262260437;
-export const WATER_JUMP_REENTRIES = 4;
+const WATER_JUMP_FACTOR = 0.9100000262260437;
+const WATER_JUMP_REENTRIES = 4;
 
 
 function waterJumpScale(entries: number): number {

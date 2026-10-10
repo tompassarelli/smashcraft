@@ -22,7 +22,7 @@ export const Phase = { characterMenu: 0, stageMenu: 1, match: 2, result: 3 } as 
 export type Phase = (typeof Phase)[keyof typeof Phase];
 export const MATCH_TICKS_PER_SECOND = 60;
 
-export const CLASSIC_TIER_DEFAULT = 1;
+const CLASSIC_TIER_DEFAULT = 1;
 
 export interface MatchState {
   readonly camera: MatchCamera;
@@ -269,10 +269,6 @@ export function allCharactersReady(game: Readonly<MatchState>): boolean {
   return !PARTICIPANT_SLOTS.some(slot => fighterActive(game, slot) && !game.characterReadiness[slot] && !(practiceSelected(game) && computerActive(game, slot)));
 }
 
-export function unreadyCharacter(game: MatchState, slot: number): void {
-  if (game.phase === Phase.characterMenu && isParticipantSlot(slot) && humanActive(game, slot)) game.characterReadiness[slot] = false;
-}
-
 export function recallCharacter(game: MatchState, actor: number, chip: number): void {
   if (game.phase !== Phase.characterMenu || !humanActive(game, actor) || !isParticipantSlot(chip)) return;
   if ((chip === actor && humanFighterActive(game, chip)) || canChooseComputer(game, actor, chip)) game.characterReadiness[chip] = false;
@@ -296,9 +292,6 @@ export function changeStagePoolStage(game: MatchState, slot: number, choice: num
 export function setHazards(game: MatchState, slot: number, on: boolean): void {
   if (game.phase === Phase.stageMenu && humanActive(game, slot)) game.hazards = on;
 }
-
-
-export const hazardsOn = (game: Readonly<MatchState>): boolean => game.hazards;
 
 
 
@@ -615,13 +608,4 @@ export function advanceClock(game: MatchState, world: Roster): void {
   }
   game.winner = tied ? undefined : best;
   game.phase = Phase.result;
-}
-
-export function forfeit(game: MatchState, losingSlot: number, world: Roster): void {
-  if (!isActive(world, losingSlot)) return;
-  const fighter = fighterAt(world, losingSlot);
-  fighter.status.stocks = 0;
-  fighter.status.out = true;
-  resolveRemaining(game, world);
-  game.rematchReadiness.fill(false);
 }

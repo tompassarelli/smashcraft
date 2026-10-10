@@ -7,12 +7,12 @@ import { type Distribution, distribution, integer, integrityHeader, integrityRow
 // press's `capture` row to the first forward `action` prediction of the same slot and frame.
 // Rollback depth is each `rollback <epoch> <depth>` row's depth.
 
-export interface ClientPages {
+interface ClientPages {
   readonly client: string;
   readonly pages: readonly string[];
 }
 
-export interface ClientDelay {
+interface ClientDelay {
   readonly client: string;
   readonly dropped: number;
   readonly delay: Distribution;

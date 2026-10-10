@@ -21,7 +21,7 @@ const RICH_INTERVAL_MIN_SECONDS = 6;
 const RICH_INTERVAL_MAX_SECONDS = 10;
 const RICH_SALT = 5;
 
-export interface DropVariantState {
+interface DropVariantState {
   readonly variant: DropVariant;
   pickups: number;
   /** The draw whose point the variant last placed. */

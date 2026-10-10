@@ -40,9 +40,9 @@ import { spamOnly } from "./spamPolicy";
 import { campInput, campOf } from "./campPolicy";
 import { type DropVariant, advanceDropVariant, endDropVariant, startDropVariant } from "./dropVariants";
 import baseline from "./balanceBaseline.json";
-import { currentKit, currentComputerCode } from "./balanceKit";
+import { currentKit } from "./balanceKit";
 import { currentFeel } from "./balanceFeel";
-import { kitFailures, feelFailures, type Baseline, type TuningField } from "./balanceOptimizer";
+import { kitFailures, feelFailures, type Baseline } from "./balanceOptimizer";
 import { BALANCE_SPEC, DISADVANTAGE_FRAMES, PUNISH_RESET_FRAMES, type Measured, type PlayStyleProfile, balanceGate, balanceScore, readProfiles, archetypeFailures, matchupFailures } from "./balance";
 
 
@@ -65,7 +65,7 @@ export const BALANCE_GATE = { fieldLow: 0.45, fieldHigh: 0.55, opponent: "wren",
 const MATCHUP_LOW = BALANCE_SPEC.matchupLow;
 const MATCHUP_HIGH = BALANCE_SPEC.matchupHigh;
 
-export const SPECIAL_MOVE = GameplanSpecial;
+const SPECIAL_MOVE = GameplanSpecial;
 
 const SHIFTS = [0.0, -60.0, 60.0, -120.0, 120.0, -30.0, 30.0, -90.0, 90.0] as const;
 
@@ -127,7 +127,7 @@ interface SideRecord {
   readonly ledge?: LedgePlay;
 }
 
-export interface LedgePlay {
+interface LedgePlay {
   belowFrames: number;
   inFrames: number;
   ledgeLanded: number;
@@ -138,7 +138,7 @@ export interface LedgePlay {
 
 const LEDGE_PLAY_FRAMES = 60;
 
-export interface EdgePlay {
+interface EdgePlay {
   edgeCancels: number;
   corners: number;
   cornerEscapes: number;
@@ -156,7 +156,7 @@ const emptyEdgePlay = (): EdgePlay => ({ edgeCancels: 0, corners: 0, cornerEscap
 
 
 
-export interface PunishTotals {
+interface PunishTotals {
   openings: number;
 
   neutralWins: number;
@@ -207,7 +207,7 @@ export interface MatchRecord {
 }
 
 /** One string as the playtester sees it: per hit the move, the attacker's move instance (consecutive hits of one instance are one move) and the damage; gaps are the victim's actionable frames between hits. */
-export interface ComboRecord {
+interface ComboRecord {
   readonly victim: number;
   readonly frame: number;
   readonly start: number;
@@ -217,7 +217,7 @@ export interface ComboRecord {
   readonly gaps: readonly number[];
 }
 
-export interface ZeroToDeath {
+interface ZeroToDeath {
   readonly victim: number;
   readonly frame: number;
   readonly hits: number;
@@ -630,7 +630,7 @@ export function playCpuField(options: FieldOptions = {}, progress?: (done: numbe
   return records;
 }
 
-export interface MoveUse {
+interface MoveUse {
   readonly move: number;
   readonly name: string;
   readonly count: number;
@@ -668,7 +668,7 @@ export interface FighterSummary {
   readonly style: StyleSummary;
 }
 
-export interface MoveDamage {
+interface MoveDamage {
   readonly move: number;
   readonly name: string;
   readonly damage: number;
@@ -676,7 +676,7 @@ export interface MoveDamage {
 }
 
 
-export interface StyleSummary {
+interface StyleSummary {
 
   readonly damage: readonly MoveDamage[];
   readonly kos: readonly MoveDamage[];
@@ -720,7 +720,7 @@ const SPECIAL_MOVES: readonly number[] = [SPECIAL_MOVE.neutral, SPECIAL_MOVE.sid
 
 
 
-export const REPORTED_MOVES: readonly number[] = [
+const REPORTED_MOVES: readonly number[] = [
   AttackStyle.jab, AttackStyle.forwardTilt, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
   AttackStyle.dashAttack, AttackStyle.grab, ...AERIAL_MOVES, ...SPECIAL_MOVES,
 ];
@@ -728,7 +728,7 @@ export const REPORTED_MOVES: readonly number[] = [
 const varietyMove = (move: number): number => (move === AttackStyle.shot ? AttackStyle.jab : reportedMove(move));
 
 
-export function moveVariety(counts: ReadonlyMap<number, number>, kit = REPORTED_MOVES.length): number {
+function moveVariety(counts: ReadonlyMap<number, number>, kit = REPORTED_MOVES.length): number {
   const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
   if (total === 0 || kit < 2) return 0;
   let entropy = 0;
@@ -745,7 +745,7 @@ function shares(totals: ReadonlyMap<number, number>): MoveDamage[] {
 }
 
 
-export function styleSummary(records: readonly MatchRecord[], fighter: string): StyleSummary {
+function styleSummary(records: readonly MatchRecord[], fighter: string): StyleSummary {
   const damage = new Map<number, number>();
   const kos = new Map<number, number>();
   const started = new Map<number, number>();
@@ -826,7 +826,7 @@ function moveUsage(records: readonly MatchRecord[], fighter: string): MoveUse[] 
 
 
 
-export function fighterMoveUsage(character: Character, options: FieldOptions = {}): MoveUse[] {
+function fighterMoveUsage(character: Character, options: FieldOptions = {}): MoveUse[] {
   const fighters = options.fighters ?? SELECTABLE_CHARACTERS;
   const stages = options.stages ?? Object.keys(FIELD_STAGES);
   const records: MatchRecord[] = [];
@@ -844,7 +844,7 @@ export function fighterMoveUsage(character: Character, options: FieldOptions = {
 }
 
 
-export function keyMovesAmongMostUsed(usage: readonly MoveUse[], key: readonly number[], top: number): { readonly ok: boolean; readonly missing: readonly number[] } {
+function keyMovesAmongMostUsed(usage: readonly MoveUse[], key: readonly number[], top: number): { readonly ok: boolean; readonly missing: readonly number[] } {
   const leading = new Set(usage.slice(0, top).map((use) => use.move));
   const missing = key.filter((move) => !leading.has(move));
   return { ok: missing.length === 0, missing };
@@ -881,7 +881,7 @@ export function gameplanKeyMovesCheck(character: Character, { top = 8, key, opti
   return { ...result, missingNames: result.missing.map(moveName), usage, keyShares, meanShare: usage.length === 0 ? 0 : 1 / usage.length };
 }
 
-export interface MatchupReport {
+interface MatchupReport {
   readonly matchups: number;
 
   readonly inside: number;
@@ -920,7 +920,7 @@ export function matchupReport(summaries: readonly Pick<FighterSummary, "fighter"
   return { matchups: deviations.length, inside, overlapping, medianDeviation, smallestPlayed, missing };
 }
 
-export interface BalanceVerdict {
+interface BalanceVerdict {
 
   readonly outside: readonly string[];
 
@@ -996,7 +996,7 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
 const percent = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).toFixed(0)}%`);
 
 /** Ledge play (#386): the share of in-play frames at or below the ledge, and per fighter the share of hit exchanges it wins from the ledge against on the main deck, flagged when the ledge share is higher at 95% (two-proportion z > 1.96). */
-export function ledgePlayLines(records: readonly MatchRecord[]): string[] {
+function ledgePlayLines(records: readonly MatchRecord[]): string[] {
   let below = 0, inFrames = 0;
   const by: Record<string, LedgePlay> = {};
   for (const record of records) for (const side of record.sides) {
@@ -1027,7 +1027,7 @@ export function ledgePlayLines(records: readonly MatchRecord[]): string[] {
 }
 
 /** Corner and edge play per computer tier, per side-match: the #386 and #387 measures. */
-export function edgePlayLines(records: readonly MatchRecord[]): string[] {
+function edgePlayLines(records: readonly MatchRecord[]): string[] {
   const tiers = new Map<string, { sides: number; minutes: number; play: EdgePlay }>();
   for (const record of records) for (const slot of [0, 1] as const) {
     const tier = record.tiers[slot];
@@ -1078,14 +1078,14 @@ const share = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).t
 const fixed = (value: number, digits = 1) => (Number.isNaN(value) ? "-" : value.toFixed(digits));
 
 
-export function moveNamed(name: string): number | undefined {
+function moveNamed(name: string): number | undefined {
   if (name === "dash-attack") return AttackStyle.dashAttack;
   const found = Object.entries(MOVE_NAMES).find(([, known]) => known === name);
   return found === undefined ? undefined : Number(found[0]);
 }
 
 
-export function measuredOf(summary: FighterSummary, spamWinRate: number | undefined): Measured {
+function measuredOf(summary: FighterSummary, spamWinRate: number | undefined): Measured {
   const s = summary.style;
   return {
     fighter: summary.fighter, winRate: summary.winRate, decisiveMatches: summary.wins + summary.losses, ...(s.damage[0] === undefined ? {} : { topMove: s.damage[0].name }), topDamageShare: s.topDamageShare, aerials: s.aerials, airShare: s.airShare,
@@ -1095,22 +1095,7 @@ export function measuredOf(summary: FighterSummary, spamWinRate: number | undefi
 }
 
 
-export function tuningFieldOf(records: readonly MatchRecord[], kits: TuningField["kits"], probes: ReadonlyMap<string, number>): TuningField {
-  const seeds = [...new Set(records.map(record => record.seed))].sort((a,b) => a-b);
-  const measured = (rows: readonly MatchRecord[]) => summarizeField(rows).map(summary => measuredOf(summary, probes.get(summary.fighter)));
-  const seedPairs = Object.fromEntries(seeds.map(seed => {
-    const counts: Record<string, number> = {};
-    for (const record of records) if (record.seed === seed) {
-      const key = [...record.fighters].sort().join(":");
-      counts[key] = (counts[key] ?? 0) + 1;
-    }
-    return [seed, counts];
-  }));
-  return { seeds, computerCode: currentComputerCode(), computerProfiles: JSON.stringify([...new Set(records.map(record => JSON.stringify([record.opponents,record.tiers,record.skillOverrides ?? []])))].sort()), seedPairs, fighters: measured(records), kits, samples: Object.fromEntries(seeds.map(seed => [seed, measured(records.filter(record => record.seed === seed))])) };
-}
-
-
-export function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap<string, { readonly move: string; readonly winRate: number; readonly matches: number }>, profiles: ReadonlyMap<string, PlayStyleProfile>): string {
+function balanceTables(summaries: readonly FighterSummary[], probes: ReadonlyMap<string, { readonly move: string; readonly winRate: number; readonly matches: number }>, profiles: ReadonlyMap<string, PlayStyleProfile>): string {
   const lines = [
     "",
     "Damage and stocks by move (share of the fighter's damage dealt and stocks taken; a hit is credited to the move its body was striking with, else to the last move it started):",

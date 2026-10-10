@@ -22,7 +22,7 @@ const units = (world: number): number => world / WORLD_UNITS_PER_MELEE_UNIT;
 
 type Held = readonly Action[];
 
-export interface Takeoff {
+interface Takeoff {
   
   readonly ground: number;
   
@@ -31,14 +31,14 @@ export interface Takeoff {
   readonly held: number;
 }
 
-export const HELD_AFTER_TAKEOFF = 10;
+const HELD_AFTER_TAKEOFF = 10;
 
 
 
 
 
 
-export function dashJump(character: Character, groundFrames: number): Takeoff {
+function dashJump(character: Character, groundFrames: number): Takeoff {
   const s = solo(0, character, -300.0, 1);
   const f = fighter(s);
   for (let n = 0; n < groundFrames; n++) frame(s, [Action.moveRight]);
@@ -70,12 +70,12 @@ function aerialPress(self: Fighter, style: AttackStyle): Held {
 
 const DEFENDER_X = 150.0;
 
-export const CROSS_UP_DISTANCE = 240.0;
+const CROSS_UP_DISTANCE = 240.0;
 
-export const CROSS_UP_DASH_FRAMES = 8;
+const CROSS_UP_DASH_FRAMES = 8;
 const LAST_PRESS = 70;
 
-export interface CrossUp {
+interface CrossUp {
   readonly hop: "short" | "full";
   readonly aerial: AttackStyle;
   
@@ -110,7 +110,7 @@ function attempt(s: Scene, full: boolean, style: AttackStyle, press: number): nu
 
 
 
-export function crossUp(character: Character): CrossUp | undefined {
+function crossUp(character: Character): CrossUp | undefined {
   const placements = [{ character, x: DEFENDER_X - CROSS_UP_DISTANCE, facing: 1 }, { character, x: DEFENDER_X, facing: -1 }];
   const trial = scene(0, placements);
   const trialState = { world: trial.world, match: trial.game, controls: trial.controls, runtime: trial.runtime };
@@ -141,7 +141,7 @@ const AERIAL_NAMES: { readonly [style: number]: string } = {
   [AttackStyle.upAir]: "up air", [AttackStyle.downAir]: "down air",
 };
 
-export function rosterTable(): string[] {
+function rosterTable(): string[] {
   const lines = [
     `| Fighter | Air speed | Air acceleration | Air friction | Jump momentum × | Jump initial | Jump cap | Dash-jump takeoff | Run-jump takeoff | Cross-up from ${units(CROSS_UP_DISTANCE)} |`,
     "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",

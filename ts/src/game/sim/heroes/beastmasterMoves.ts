@@ -9,9 +9,9 @@ import { capsuleOf, limbOf, makeHit, path, reaching } from "./authoring";
 
 
 
-export const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
-export const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
-export const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
+const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
+const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
+const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
 const AXE_RADIUS = 9.0;
 
 

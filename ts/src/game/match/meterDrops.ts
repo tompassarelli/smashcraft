@@ -22,11 +22,11 @@ export const DROP_INTERVAL_MAX_SECONDS = 18;
 
 export const DROP_METER = ROSTER_MANA.exCost;
 
-export const DROP_REACH = melee(8.0);
+const DROP_REACH = melee(8.0);
 
 export const DROP_HEIGHT = melee(10.0);
 
-export const DROP_POINT_SPAN = 150.0;
+const DROP_POINT_SPAN = 150.0;
 
 const INTERVAL_SALT = 3;
 const POINT_SALT = 4;
@@ -69,7 +69,7 @@ export function copyMatchMeterDrops(target: MatchMeterDrops, source: Readonly<Ma
   target.lastTaker = source.lastTaker;
 }
 
-export function resetMatchMeterDrops(drops: MatchMeterDrops): void {
+function resetMatchMeterDrops(drops: MatchMeterDrops): void {
   drops.nextSpawnFrame = 0;
   drops.nextPoint = -1;
   drops.point = -1;
@@ -126,7 +126,7 @@ export function editableMeterDropPoints(stage: number): DropPoint[] {
 
 export const meterDropPoint = (stage: number, index: number): DropPoint => at(meterDropPoints(stage), index);
 
-export const matchHasMeterDrops = (game: Readonly<MatchState>): boolean => game.drops.on && !game.training && !game.run.active;
+const matchHasMeterDrops = (game: Readonly<MatchState>): boolean => game.drops.on && !game.training && !game.run.active;
 
 function scheduleNext(drops: MatchMeterDrops, seed: number, stage: number, from: number): void {
   const count = meterDropPoints(stage).length;

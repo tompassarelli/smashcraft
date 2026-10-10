@@ -8,9 +8,9 @@ import ts from "typescript";
 
 const TAG = /\[(?:native|reference|invariant|provisional)\]|\[repro (?:wisp)?#\d+\]|\[spec (?:(?:wisp)?#\d+|[\w.:/-]+)\]/;
 
-export const hasOracleTag = (title: string): boolean => TAG.test(title);
+const hasOracleTag = (title: string): boolean => TAG.test(title);
 
-export const ORACLE_TAGS = [
+const ORACLE_TAGS = [
   "Every test title ends with its oracle, the source of its expected value outside the code under test:",
   "  [native]                   real-game captures, or replay tapes recorded from real matches",
   "  [reference]                an independent implementation: Wurst parity, Bun vs 32-bit Lua, retail Melee recordings",
@@ -45,10 +45,10 @@ function titleText(node: ts.Expression | undefined): string | undefined {
   return undefined;
 }
 
-export type Untagged = { readonly file: string; readonly line: number; readonly title: string };
+type Untagged = { readonly file: string; readonly line: number; readonly title: string };
 
 
-export function untaggedTests(root: string, files: readonly string[]): Untagged[] {
+function untaggedTests(root: string, files: readonly string[]): Untagged[] {
   const found: Untagged[] = [];
   for (const file of files) {
     const source = ts.createSourceFile(file, readFileSync(join(root, file), "utf8"), ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);

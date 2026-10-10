@@ -31,7 +31,7 @@ class RenderAssetFailure extends Schema.TaggedError<RenderAssetFailure>()("Rende
   }
 }
 
-export interface RenderAssetOptions {
+interface RenderAssetOptions {
   readonly assets?: string;
   readonly imports?: readonly { readonly entry: string; readonly source: string }[];
   readonly extractor?: string;

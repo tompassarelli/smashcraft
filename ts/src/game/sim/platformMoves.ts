@@ -62,16 +62,16 @@ function bodyHeight(f: Readonly<Fighter>): number {
 }
 
 
-export const PlatformIntent = { none: 0, stand: 1, drop: 2 } as const;
-export type PlatformIntent = (typeof PlatformIntent)[keyof typeof PlatformIntent];
+const PlatformIntent = { none: 0, stand: 1, drop: 2 } as const;
+type PlatformIntent = (typeof PlatformIntent)[keyof typeof PlatformIntent];
 
 /** Rising: down past the deadzone stands. */
-export function risingIntent(z: number): PlatformIntent {
+function risingIntent(z: number): PlatformIntent {
   return z > -STICK_DEADZONE ? PlatformIntent.none : PlatformIntent.stand;
 }
 
 /** Falling: down past the crouch threshold drops; the tilt modifier keeps a digital down for landing. */
-export function fallingIntent(z: number, walking: boolean): PlatformIntent {
+function fallingIntent(z: number, walking: boolean): PlatformIntent {
   return !walking && z < -CROUCH_STICK_THRESHOLD ? PlatformIntent.drop : PlatformIntent.none;
 }
 

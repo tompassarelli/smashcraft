@@ -5,7 +5,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { Character } from "../codes";
 
-export interface HeroBody {
+interface HeroBody {
   readonly weight: number;
   readonly run: number;
 
@@ -53,6 +53,3 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
 export function heroBody(character: number): HeroBody | undefined {
   return HERO_BODIES[character];
 }
-
-
-export const isHero = (character: number): boolean => character >= Character.blademaster;

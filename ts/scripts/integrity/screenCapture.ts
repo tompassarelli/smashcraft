@@ -11,7 +11,7 @@ import { IntegrityFailure, tryIntegrity } from "./evidence";
 import { monotonicNs } from "./linux";
 import { distribution } from "./reconcile";
 
-export interface ScreenCaptureOptions {
+interface ScreenCaptureOptions {
   readonly clientsFile: string;
   readonly client: string;
   readonly out: string;
@@ -41,7 +41,7 @@ export function screenCaptureArguments(args: readonly string[]): ScreenCaptureOp
   return { clientsFile: values["clients-file"], client: values.client, out: values.out, samples, region };
 }
 
-export interface ScreenSample {
+interface ScreenSample {
   readonly file: string;
   readonly beforeNs: number;
   readonly afterNs: number;

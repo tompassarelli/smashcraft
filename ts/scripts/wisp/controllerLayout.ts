@@ -16,8 +16,8 @@ const SettingsSchema = Schema.Struct({
 });
 const StatusSchema = Schema.Struct({ status: Schema.Struct({ settings: Schema.Struct({ pad_preset: LayoutSchema }) }) });
 
-export type Layout = typeof LAYOUTS[number];
-export const controllerSettingsPath = () => join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "wc3-controller/settings.json");
+type Layout = typeof LAYOUTS[number];
+const controllerSettingsPath = () => join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "wc3-controller/settings.json");
 
 const fail = (problem: string) => new PlayProblem({ problem });
 const readJsonLine = Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Unknown));

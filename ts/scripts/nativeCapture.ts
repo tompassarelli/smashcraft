@@ -52,7 +52,7 @@ const SWITCHES = new Set(["--control", "--no-audio"]);
 const positional = (args: readonly string[]) => args.filter((value, index) => !value.startsWith("--") && !(args[index - 1]?.startsWith("--") === true && !SWITCHES.has(args[index - 1] ?? "")));
 
 
-export function fixtureOf(path: string, script: string): CaptureFixture {
+function fixtureOf(path: string, script: string): CaptureFixture {
   const chat = /^\s*\S+\s+[ab]\s+chat\s/;
   const lines = script.split("\n");
   if (lines.some(line => chat.test(line) && line.trim().startsWith("+"))) fail(`${path}: a chat line needs an absolute frame`);
@@ -272,7 +272,7 @@ const plan = (args: readonly string[]) => Effect.gen(function*() {
 });
 
 
-export function rmse(a: Frame, b: Frame): number {
+function rmse(a: Frame, b: Frame): number {
   if (a.width !== b.width || a.height !== b.height) return 1;
   const skip = Math.ceil(STAMP_CELL * (a.height / 0.6)) + 2;
   let total = 0;

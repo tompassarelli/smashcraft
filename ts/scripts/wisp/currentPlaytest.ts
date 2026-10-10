@@ -38,7 +38,7 @@ const reservation = (directory: string, revision: string) => join(directory, `${
 
 
 
-export function playVersion(directory: string, library: string, revision: string): string {
+function playVersion(directory: string, library: string, revision: string): string {
   const parse = (text: string) => {
     const match = /^(0)\.(0)\.(\d+)$/.exec(text.trim());
     return match === null ? [] : [[Number(match[1]), Number(match[2]), Number(match[3])] as const];
@@ -163,7 +163,7 @@ export const currentHelper = Effect.gen(function*() {
 
 
 
-export interface PlaytestOptions {
+interface PlaytestOptions {
   readonly revision?: string;
   readonly named?: boolean;
   readonly helper?: boolean;

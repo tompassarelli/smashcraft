@@ -1,8 +1,8 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HitEffect } from "./hitRegions";
 
-export const WEAK_HIT_DAMAGE_SCALE = f32(0.7);
-export const WEAK_HIT_KNOCKBACK_SCALE = f32(0.85);
+const WEAK_HIT_DAMAGE_SCALE = f32(0.7);
+const WEAK_HIT_KNOCKBACK_SCALE = f32(0.85);
 
 export function strongHit(effect: Readonly<HitEffect>): Readonly<HitEffect> {
   return { ...effect, strong: true };

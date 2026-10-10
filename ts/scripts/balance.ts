@@ -56,9 +56,9 @@ export const CEILING_SPEC = {
 } as const;
 
 
-export const SCORE_WEIGHTS = { win: 1, profile: 0.5, variety: 1, spam: 1, probe: 1, openings: 10, recovery: 1 } as const;
+const SCORE_WEIGHTS = { win: 1, profile: 0.5, variety: 1, spam: 1, probe: 1, openings: 10, recovery: 1 } as const;
 
-export interface Range { readonly low: number; readonly high: number }
+interface Range { readonly low: number; readonly high: number }
 
 
 export interface PlayStyleProfile {
@@ -99,7 +99,7 @@ function namedRanges(text: string, names: Readonly<Record<string, string>>, wher
 }
 
 
-export function parseProfile(block: string, doc: string): PlayStyleProfile {
+function parseProfile(block: string, doc: string): PlayStyleProfile {
   const fields = new Map<string, string>();
   for (const line of block.split("\n")) {
     if (line.trim() === "") continue;
@@ -182,12 +182,12 @@ export interface Measured {
 const outside = (value: number, band: Range): number => (Number.isNaN(value) ? 0 : value < band.low ? band.low - value : value > band.high ? value - band.high : 0);
 
 
-export function topMoveLimit(profile: PlayStyleProfile | undefined, topMove: string | undefined): number {
+function topMoveLimit(profile: PlayStyleProfile | undefined, topMove: string | undefined): number {
   if (profile?.signature !== undefined && profile.signature.move === topMove) return profile.signature.max;
   return profile?.topMoveMax ?? BALANCE_SPEC.topMoveMax;
 }
 
-export interface ScoreTerms {
+interface ScoreTerms {
   readonly win: number;
   readonly profile: number;
   readonly variety: number;
@@ -236,7 +236,7 @@ export function balanceScore(measured: Measured, profile: PlayStyleProfile | und
   return { ...terms, total, misses };
 }
 
-export interface GateResult {
+interface GateResult {
   readonly fighter: string;
 
   readonly balanced: boolean;
@@ -263,7 +263,7 @@ export function balanceGate(measured: Measured, profile: PlayStyleProfile | unde
 
 
 
-export const ARCHETYPE_TRAITS: Readonly<Record<string, readonly string[]>> = {
+const ARCHETYPE_TRAITS: Readonly<Record<string, readonly string[]>> = {
   rushdown: ["approach"], zoner: ["ranged"], "bait-and-punish": ["approach"],
   heavy: ["air"], grappler: ["approach"], setplay: ["ranged"], "all-rounder": ["approach", "ranged"],
   skirmisher: ["approach", "air"], trapper: ["ranged", "special:down-special"],
@@ -289,27 +289,5 @@ export function matchupFailures(matchups: NonNullable<Measured["matchups"]>): st
 
 
 
-export const STUDENT_T95 = [[1,12.706], [2,4.303], [3,3.182], [4,2.776], [5,2.571], [6,2.447], [7,2.365], [8,2.306], [9,2.262], [10,2.228], [15,2.131], [20,2.086], [30,2.042], [60,2.000], [100,1.984]] as const;
-export function scoreIntervalCritical(samples: number): number {
-  let critical: number = STUDENT_T95[0][1];
-  for (const [degrees, value] of STUDENT_T95) if (samples - 1 >= degrees) critical = value;
-  return Math.max(BALANCE_SPEC.confidenceZ, critical);
-}
 
 
-
-export function optimizerScore(measured: Measured, profile: PlayStyleProfile | undefined): number {
-  const score = balanceScore(measured, profile);
-  return score.total - SCORE_WEIGHTS.win * score.win + SCORE_WEIGHTS.win * 100 * Math.abs(measured.winRate - BALANCE_SPEC.winTarget);
-}
-
-
-export function withinWinTarget(measured: Measured): boolean {
-  const n = measured.decisiveMatches;
-  if (n === undefined || !Number.isInteger(n) || n < 1 || !Number.isFinite(measured.winRate)) return false;
-  const p = measured.winRate, z = BALANCE_SPEC.confidenceZ, z2 = z * z;
-  const denominator = 1 + z2 / n;
-  const center = (p + z2 / (2 * n)) / denominator;
-  const half = z * Math.sqrt(p * (1-p) / n + z2 / (4*n*n)) / denominator;
-  return BALANCE_SPEC.winTarget >= center - half && BALANCE_SPEC.winTarget <= center + half;
-}

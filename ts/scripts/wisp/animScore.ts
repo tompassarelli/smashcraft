@@ -7,7 +7,6 @@
 
 
 export type MoveClass = "jab" | "tilt" | "smash" | "aerial" | "special";
-export const MOVE_CLASSES: readonly MoveClass[] = ["jab", "tilt", "smash", "aerial", "special"];
 
 
 export interface ScoreFrame {
@@ -24,7 +23,7 @@ export interface ScoreFrame {
 }
 
 
-export interface ScoreLimb { readonly name: string; readonly root: number; readonly end: number }
+interface ScoreLimb { readonly name: string; readonly root: number; readonly end: number }
 
 
 export interface ScoreSkeleton {
@@ -54,7 +53,7 @@ export interface MoveSample {
 }
 
 
-export interface ClassThresholds {
+interface ClassThresholds {
 
   readonly bodyShare: number;
 
@@ -73,10 +72,10 @@ export interface ClassThresholds {
   readonly contrast: number;
 }
 
-export interface LineOne { readonly pass: boolean; readonly bodyShare: number; readonly massShift: number; readonly limb: string }
-export interface LineTwo { readonly pass: boolean; readonly endError: number; readonly jump: number; readonly overshoot: number }
-export interface LineThree { readonly pass: boolean; readonly windup: number; readonly peak: number; readonly settle: number; readonly fill: number }
-export interface LineFour { readonly pass: boolean; readonly contrast: number; readonly windupContact: number; readonly contactRecovery: number }
+interface LineOne { readonly pass: boolean; readonly bodyShare: number; readonly massShift: number; readonly limb: string }
+interface LineTwo { readonly pass: boolean; readonly endError: number; readonly jump: number; readonly overshoot: number }
+interface LineThree { readonly pass: boolean; readonly windup: number; readonly peak: number; readonly settle: number; readonly fill: number }
+interface LineFour { readonly pass: boolean; readonly contrast: number; readonly windupContact: number; readonly contactRecovery: number }
 export interface MoveScore {
   readonly line1: LineOne;
   readonly line2: LineTwo;
@@ -120,13 +119,13 @@ function drawnBounds(frame: ScoreFrame): { readonly minZ: number; readonly maxZ:
 }
 
 
-export function bodyHeight(ready: ScoreFrame): number {
+function bodyHeight(ready: ScoreFrame): number {
   const { minZ, maxZ } = drawnBounds(ready);
   return Number.isFinite(maxZ - minZ) && maxZ > minZ ? maxZ - minZ : 1;
 }
 
 
-export function meanVertexDistance(a: ScoreFrame, b: ScoreFrame): number {
+function meanVertexDistance(a: ScoreFrame, b: ScoreFrame): number {
   let sum = 0, count = 0;
   const vertices = Math.min(a.drawn.length, b.drawn.length);
   for (let vertex = 0; vertex < vertices; vertex++) {
@@ -138,10 +137,10 @@ export function meanVertexDistance(a: ScoreFrame, b: ScoreFrame): number {
 }
 
 
-export interface Mask { readonly left: number; readonly top: number; readonly width: number; readonly height: number; readonly pixels: Uint8Array }
+interface Mask { readonly left: number; readonly top: number; readonly width: number; readonly height: number; readonly pixels: Uint8Array }
 
 
-export function silhouette(frame: ScoreFrame, pixelsPerUnit: number, extent: number): Mask {
+function silhouette(frame: ScoreFrame, pixelsPerUnit: number, extent: number): Mask {
   const left = Math.floor(-extent * pixelsPerUnit), top = Math.floor(-extent * pixelsPerUnit);
   const width = Math.ceil(2 * extent * pixelsPerUnit), height = width;
   const pixels = new Uint8Array(width * height);
@@ -168,7 +167,7 @@ export function silhouette(frame: ScoreFrame, pixelsPerUnit: number, extent: num
   return { left, top, width, height, pixels };
 }
 
-export function maskIoU(a: Mask, b: Mask): number {
+function maskIoU(a: Mask, b: Mask): number {
   if (a.width !== b.width || a.height !== b.height) throw new Error("masks of one move share a window");
   let both = 0, either = 0;
   for (let index = 0; index < a.pixels.length; index++) {
@@ -180,7 +179,7 @@ export function maskIoU(a: Mask, b: Mask): number {
 }
 
 
-export function maskCentroid(mask: Mask, pixelsPerUnit: number): { readonly x: number; readonly z: number } {
+function maskCentroid(mask: Mask, pixelsPerUnit: number): { readonly x: number; readonly z: number } {
   let sx = 0, sy = 0, count = 0;
   for (let row = 0; row < mask.height; row++) for (let column = 0; column < mask.width; column++) {
     if (mask.pixels[row * mask.width + column] !== 1) continue;
@@ -202,7 +201,7 @@ const RIGID = 0.12;
 
 
 
-export function strikingLimb(skeleton: ScoreSkeleton, frames: readonly ScoreFrame[], tip: number, windup: number, contact: number, height: number): ScoreLimb | undefined {
+function strikingLimb(skeleton: ScoreSkeleton, frames: readonly ScoreFrame[], tip: number, windup: number, contact: number, height: number): ScoreLimb | undefined {
   let best: ScoreLimb | undefined, steadiest = RIGID * height;
   const contactFrame = frames[contact];
   if (contactFrame === undefined) return undefined;

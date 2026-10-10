@@ -42,7 +42,7 @@ interface ScenePart extends SceneCapsule {
   readonly state: number;
 }
 
-export interface SceneFighter {
+interface SceneFighter {
   readonly slot: number;
   readonly character: number;
   readonly x: number;

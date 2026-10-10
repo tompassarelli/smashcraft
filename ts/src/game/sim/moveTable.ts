@@ -48,7 +48,7 @@ export const FollowFlag = { facesStick: 1 } as const;
 export const POSE_STRIDE = 4;
 export const PoseField = { first: 0, last: 1, partFirst: 2, partCount: 3 } as const;
 export const PART_STRIDE = 6;
-export const PartField = { x1: 0, z1: 1, x2: 2, z2: 3, radius: 4, state: 5 } as const;
+const PartField = { x1: 0, z1: 1, x2: 2, z2: 3, radius: 4, state: 5 } as const;
 
 export const SLOT_STRIDE = 4;
 export const SlotField = { air: 0, recall: 1, recallWhile: 2, recallGroundOnly: 3 } as const;
@@ -98,7 +98,7 @@ export const motionField = (table: Readonly<MoveTableRows>, row: number, field: 
 export const shotField = (table: Readonly<MoveTableRows>, row: number, field: number): number => at(table.shots, row * SHOT_STRIDE + field);
 export const followField = (table: Readonly<MoveTableRows>, row: number, field: number): number => at(table.follow, row * FOLLOW_STRIDE + field);
 export const poseField = (table: Readonly<MoveTableRows>, row: number, field: number): number => at(table.poses, row * POSE_STRIDE + field);
-export const partField = (table: Readonly<MoveTableRows>, row: number, field: number): number => at(table.parts, row * PART_STRIDE + field);
+const partField = (table: Readonly<MoveTableRows>, row: number, field: number): number => at(table.parts, row * PART_STRIDE + field);
 export const slotField = (table: Readonly<MoveTableRows>, slot: number, field: number): number => at(table.slots, slot * SLOT_STRIDE + field);
 export const moveShot = (table: Readonly<MoveTableRows>, id: number, index: number): number => at(table.moveShots, moveField(table, id, MoveField.shotFirst) + index);
 export const shotLimit = (table: Readonly<MoveTableRows>, row: number): number => Math.abs(shotField(table, row, ShotField.limit)) - 1;

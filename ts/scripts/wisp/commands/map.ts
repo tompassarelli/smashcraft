@@ -24,7 +24,7 @@ export const profileOptions = (args: readonly string[]) => Effect.gen(function*(
 });
 
 
-export const generatedFiles = (): readonly GeneratedFile[] => [
+const generatedFiles = (): readonly GeneratedFile[] => [
   { entry: "war3map.w3u", contents: fighterUnits() },
   { entry: "war3map.w3a", contents: fileIoAbility() },
   POST_PROCESSING_FILE,
@@ -82,7 +82,7 @@ const checkMapSize = (out: string, imports: readonly ArchiveEntry[], bounded: bo
   if (problem !== undefined) return yield* new MapBuildFailure({ operation: "check map size", path: out, cause: problem });
 });
 
-export const build: Command = (args) => Effect.gen(function*() {
+const build: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
   const bounded = options.profile === "main";
   return yield* decodeBuildOptions(options.args).pipe(
@@ -101,7 +101,7 @@ export const build: Command = (args) => Effect.gen(function*() {
   );
 });
 
-export const rebuild: Command = (args) => Effect.gen(function*() {
+const rebuild: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
   const [map, ...rest] = options.args;
   if (map === undefined || rest.length > 0) return yield* new UsageFailure({ problem: "rebuild takes one map" });

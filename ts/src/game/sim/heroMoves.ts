@@ -146,7 +146,7 @@ export function tipper(regions: readonly MoveRegion[], tipFraction: number): rea
 }
 
 
-export function cleanLate(regions: readonly MoveRegion[], cleanFrames: number): readonly MoveRegion[] {
+function cleanLate(regions: readonly MoveRegion[], cleanFrames: number): readonly MoveRegion[] {
   let first = regions[0]?.firstFrame ?? 0;
   for (const region of regions) first = Math.min(first, region.firstFrame);
   const lastClean = first + cleanFrames - 1;

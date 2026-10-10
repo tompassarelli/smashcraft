@@ -6,7 +6,7 @@ export type FarmWorkflow = "balance" | "playtest" | "memory" | "perf" | "pads" |
 export const FARM_WORKFLOWS: readonly FarmWorkflow[] = ["balance", "playtest", "memory", "perf", "pads", "tiers", "test"];
 export const MAIN_ONLY: ReadonlySet<FarmWorkflow> = new Set(["balance", "playtest", "memory"]);
 
-export interface MainCommit { readonly sha: string; readonly message: string }
+interface MainCommit { readonly sha: string; readonly message: string }
 
 export interface Facts {
   readonly workflow: FarmWorkflow;
@@ -17,7 +17,7 @@ export interface Facts {
   readonly onLane: boolean;
 }
 
-export type Verdict = { readonly live: boolean; readonly why: string };
+type Verdict = { readonly live: boolean; readonly why: string };
 
 export type Admission =
   | { readonly kind: "dispatch"; readonly lane: string }
@@ -34,7 +34,7 @@ export function revertedBy(sha: string, after: readonly MainCommit[]): string | 
   })?.sha;
 }
 
-export function laneAllowed(workflow: FarmWorkflow, lane: string): boolean {
+function laneAllowed(workflow: FarmWorkflow, lane: string): boolean {
   return MAIN_ONLY.has(workflow) ? /^claude\/[^/]/.test(lane) : /^(claude|farm)\/[^/]/.test(lane);
 }
 
@@ -48,7 +48,7 @@ export function liveness(facts: Facts): Verdict {
   return { live: false, why: lane === undefined ? `${short} isn't on main` : `${short} isn't on main or on ${lane}` };
 }
 
-export interface AutolandStatus { readonly state: string; readonly description: string }
+interface AutolandStatus { readonly state: string; readonly description: string }
 
 export function admit(facts: Facts & { readonly autoland: AutolandStatus | undefined }): Admission {
   const short = facts.sha.slice(0, 12);
@@ -90,7 +90,7 @@ const compare = (repo: string, base: string, head: string) => gh("api", `repos/$
 
 const contains = (status: string) => status === "ahead" || status === "identical";
 
-export const measure = (repo: string, workflow: FarmWorkflow, sha: string, lane: string | undefined) => Effect.gen(function*() {
+const measure = (repo: string, workflow: FarmWorkflow, sha: string, lane: string | undefined) => Effect.gen(function*() {
   const main = yield* compare(repo, sha, "main");
   const onLane = lane === undefined ? false : contains((yield* compare(repo, sha, lane)).status);
   const after = main.commits.map(({ sha, commit }) => ({ sha, message: commit.message }));

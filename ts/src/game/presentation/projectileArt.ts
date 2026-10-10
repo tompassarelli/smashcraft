@@ -45,7 +45,7 @@ function formProjectiles(special: AuthoredSpecial | undefined, into: SpecialProj
 }
 
 
-export interface HeroProjectileArt {
+interface HeroProjectileArt {
   readonly slot: SpecialSlot;
   readonly spec: SpecialProjectile;
 }

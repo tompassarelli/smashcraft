@@ -52,7 +52,7 @@ const installOf = (args: readonly string[]) => Effect.gen(function*() {
 const say = (line: string) => Console.log(line);
 
 
-export function playerProblem(failure: MenuFailure): string {
+function playerProblem(failure: MenuFailure): string {
   const { operation, problem } = failure;
   if (operation === "find the menus") return "Warcraft III isn't open, or its menus aren't set up for Smashcraft. Open Warcraft III, sign in and try again; after setting up, restart Warcraft III once.";
   if (operation.startsWith("host ") || operation === "find the map" || operation === "list maps") return "Warcraft III didn't create the game. Go to Warcraft III's main menu and try again.";

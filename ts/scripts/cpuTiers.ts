@@ -12,7 +12,7 @@ import { SELECTABLE_CHARACTERS } from "../src/game/sim/heroes/registry";
 import { FIELD_STAGES, playCpuMatch } from "./cpuField";
 import { runAdmitted } from "./heavyCapacity";
 
-export interface TierResult {
+interface TierResult {
   readonly tier: CpuTier;
   readonly opponent: CpuTier;
   readonly wins: number;
@@ -25,7 +25,7 @@ const PAIRS: readonly (readonly [Character, Character])[] = SELECTABLE_CHARACTER
 const STAGES = Object.keys(FIELD_STAGES);
 
 
-export function playTiers(tier: CpuTier, opponent: CpuTier, matches: number, { stocks = 3, minutes = 4 } = {}): TierResult {
+function playTiers(tier: CpuTier, opponent: CpuTier, matches: number, { stocks = 3, minutes = 4 } = {}): TierResult {
   let wins = 0;
   let losses = 0;
   let ties = 0;

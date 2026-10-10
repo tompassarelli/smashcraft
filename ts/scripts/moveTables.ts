@@ -9,7 +9,7 @@ export const MOVE_TABLES = [
   { file: "mountainKingTable.ts", name: "MOUNTAIN_KING_TABLE_ROWS", moves: MOUNTAIN_KING_MOVES, specials: MOUNTAIN_KING_SPECIALS },
 ] as const;
 
-export const moveTablePath = (file: string): string => join(import.meta.dir, "../src/game/sim/heroes", file);
+const moveTablePath = (file: string): string => join(import.meta.dir, "../src/game/sim/heroes", file);
 
 if (import.meta.main) {
   for (const { file, name, moves, specials } of MOVE_TABLES) writeFileSync(moveTablePath(file), moveTableModule(name, encodeMoveTable(moves, specials)));

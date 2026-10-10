@@ -13,16 +13,16 @@ import { ORIGINAL_KITS } from "./originalKits";
 import { ultimateText } from "./ultimates";
 
 
-export interface NamedForm {
+interface NamedForm {
   readonly form: number;
   readonly name: string;
 }
 
-export interface SpecialText extends NamedMove {
+interface SpecialText extends NamedMove {
   readonly forms: readonly NamedForm[];
 }
 
-export interface FighterKitText {
+interface FighterKitText {
 
   readonly specials: readonly SpecialText[];
   readonly trait: string | undefined;
@@ -34,7 +34,7 @@ export interface FighterKitText {
 }
 
 
-export const NORMAL_NAMES: readonly string[] = [
+const NORMAL_NAMES: readonly string[] = [
   "Jab", "Shot", "Up smash", "Down smash", "Forward smash", "Grab", "Forward tilt", "Up tilt", "Down tilt", "Forward tilt (up)",
   "Forward tilt (down)", "Get-up attack", "Neutral air", "Forward air", "Back air", "Up air", "Down air", "Ledge attack", "Dash attack", "Dash attack",
   "Second jab", "Third jab",

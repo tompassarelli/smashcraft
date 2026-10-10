@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { BALANCE_GATE, type FieldOptions, type FighterSummary, balanceVerdict, matchupReport } from "./cpuField";
 
-export const RELEASE_ROSTER_FILE = new URL("../src/game/sim/heroes/releaseRoster.ts", import.meta.url);
+const RELEASE_ROSTER_FILE = new URL("../src/game/sim/heroes/releaseRoster.ts", import.meta.url);
 
 type Field = { readonly options: Pick<FieldOptions, "opponents" | "tiers">; readonly summaries: readonly FighterSummary[] };
 

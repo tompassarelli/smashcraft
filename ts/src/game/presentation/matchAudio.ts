@@ -61,8 +61,8 @@ const STAGE_MUSIC: Readonly<Record<StageTile, string>> = {
 
 export const stageMusic = (stage: number): string => (selectableStage(stage) ? STAGE_MUSIC[stage] : STAGE_MUSIC[0]);
 
-export const Race = { human: 0, orc: 1, nightElf: 2, undead: 3 } as const;
-export type Race = (typeof Race)[keyof typeof Race];
+const Race = { human: 0, orc: 1, nightElf: 2, undead: 3 } as const;
+type Race = (typeof Race)[keyof typeof Race];
 
 
 const RACES: Readonly<Record<Character, Race>> = {
@@ -94,7 +94,7 @@ const RACES: Readonly<Record<Character, Race>> = {
   25: Race.human,
 };
 
-export const characterRace = (character: Character): Race => RACES[character];
+const characterRace = (character: Character): Race => RACES[character];
 
 
 const VICTORY_MUSIC: readonly string[] = [

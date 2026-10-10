@@ -16,7 +16,7 @@ import { panelActions } from "../../src/platform/shell/menus";
 import { shell } from "../../src/platform/shell/state";
 import type { JournalHelpers } from "./journalHelper";
 
-export const WAITING = "Waiting for Player 2";
+const WAITING = "Waiting for Player 2";
 
 export function value<T>(client: HeadlessClient, body: () => T): T {
   let result: T | undefined;

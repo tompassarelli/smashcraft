@@ -650,8 +650,12 @@ From smashcraft:ts/:
   input hash.
 - `bun scripts/unused-code.ts`: lists exports no other module uses,
   smashcraft:ts/ files nothing imports or names, and smashcraft:tools/ files no
-  live document or source names, and exits 1 if any remain. Map bundle entries'
-  exports count as used; references from smashcraft:evidence/ do not. About 10 s.
+  live document or source names, and exits 1 if any remain; pre-push runs it.
+  Map bundle entries' and generated files' exports, imports from
+  smashcraft:tools/ and the git hooks, names that inferred types spell out, and
+  namespace imports used as values count as uses; recorded pads, corpus runs
+  and fixtures under smashcraft:ts/test/ are data, not files to reach;
+  references from smashcraft:evidence/ do not count. About 30 s.
 - `bun scripts/cpuField.ts [--variants N | --per-pair N] [--seeds N]
   [--opponents A,B] [--tiers A,B] [--stocks N] [--minutes N] [--json FILE] [--fighters a,b]
   [--pairs a:b,c:d] [--merge a.json,b.json]`: the computer against the
@@ -682,6 +686,10 @@ From smashcraft:ts/:
   stage (3 stocks, 4 minutes, about a second), counting a throw as the
   grab, any dash attack as `dashAttack` and angled forward tilts as the
   forward tilt.
+- `bun scripts/campingField.ts [--fighters a,b] [--stages A,B] [--seeds N]
+  [--tier T] [--minutes N] [--rules off,VARIANT] [--workers N]`: #385's camping
+  field. The fighter ahead on stocks camps, on the same matches with drops off,
+  the shipped drops and each drop variant; shards run as child processes.
 - `bun scripts/cpuTiers.ts [--matches N] [--top N] [--stocks N]
   [--minutes N]`: Wren at every pair of five difficulties plays N (20) seeded
   matches; Expert plays `--top` (100) against Rookie. Fighter pairs and stages

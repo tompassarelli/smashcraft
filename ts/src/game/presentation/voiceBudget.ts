@@ -5,27 +5,27 @@ export const VOICE_CAP = 16;
 
 export const VOICE_FRAMES: readonly number[] = [20, 45, 36, 120];
 
-export const RATE_LIMIT_FRAMES: readonly number[] = [6, 4, 0, 0];
+const RATE_LIMIT_FRAMES: readonly number[] = [6, 4, 0, 0];
 
 export const KO_DUCK_FRAMES = 90;
 
 export const DUCK_PERCENT: readonly number[] = [30, 50, 75, 100];
 
-export interface Voice {
+interface Voice {
   cls: VoiceClass;
   key: string;
   start: number;
   end: number;
 }
 
-export interface Admission {
+interface Admission {
   play: boolean;
   slot: number;
   replaced: boolean;
   percent: number;
 }
 
-export interface VoiceBudget {
+interface VoiceBudget {
   readonly voices: Voice[];
   readonly lastStart: { [key: string]: number | undefined };
   duckUntil: number;

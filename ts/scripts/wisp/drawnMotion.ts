@@ -12,10 +12,10 @@ import { IllidanLocomotion } from "../../src/game/presentation/illidanMotion";
 import { type PoseFrame, DrawnModel, capture } from "./hurtboxView";
 
 export const MOTION_STATES = ["walk", "dash", "run", "turn", "brake", "jump-squat", "roll-forward", "roll-back", "spot-dodge", "air-dodge", "tech", "tech-forward", "tech-back", "get-up", "get-up-forward", "get-up-back", "get-up-attack", "ledge-get-up", "ledge-roll", "ledge-attack"] as const;
-export type MotionState = (typeof MOTION_STATES)[number];
+type MotionState = (typeof MOTION_STATES)[number];
 
 
-export function sampleMotion(character: Character, state: MotionState): PoseFrame[] {
+function sampleMotion(character: Character, state: MotionState): PoseFrame[] {
   const f = createFighter(character, 0.0, 1);
   const world = createRoster(1, [f]);
   const pose = createFighterPose();

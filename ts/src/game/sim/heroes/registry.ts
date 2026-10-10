@@ -149,7 +149,7 @@ export function selectableCharacterBySlug(slug: string): Character | undefined {
 }
 
 /** `selectable` without the fighters whose slugs `hidden` names; never empty. */
-export function playableCharactersOf(selectable: readonly Character[], hidden: readonly string[]): readonly Character[] {
+function playableCharactersOf(selectable: readonly Character[], hidden: readonly string[]): readonly Character[] {
   const choices: Character[] = [];
   for (const character of selectable) {
     let shown = true;

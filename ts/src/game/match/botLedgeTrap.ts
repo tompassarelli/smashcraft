@@ -6,7 +6,7 @@ import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../sim/stage";
 import { steerOnGround } from "./botFooting";
 
-export const LEDGE_TRAP_GAP = 60.0;
+const LEDGE_TRAP_GAP = 60.0;
 const ARRIVED = 30.0;
 
 /** Whether a ledge attack from `target` is still to swing, observed this many frames ago. */

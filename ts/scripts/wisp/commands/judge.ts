@@ -17,7 +17,7 @@ class JudgeFailure extends Schema.TaggedError<JudgeFailure>()("JudgeFailure", { 
 const attempt = <A>(problem: string, run: () => Promise<A>) => Effect.tryPromise({ try: run, catch: cause => new JudgeFailure({ problem: `${problem}: ${String(cause)}` }) });
 const load = (path: string) => attempt(`read ${path}`, async () => { const frame = decodePpm(await Bun.file(path).bytes()); if (frame === undefined || frame.width <= 0 || frame.height <= 0) throw new Error("not an RGB PPM capture"); return frame; });
 function bounds(frame: Frame, region: readonly number[]) { const [left = 0, top = 0, right = 1, bottom = 1] = region; if (left < 0 || top < 0 || right > 1 || bottom > 1 || left >= right || top >= bottom) throw new Error("region must be left,top,right,bottom fractions within 0..1"); return [Math.floor(left * frame.width), Math.floor(top * frame.height), Math.floor(right * frame.width), Math.floor(bottom * frame.height)] as const; }
-export function changedPixels(frame: Frame, baseline: Frame, region: readonly number[], tolerance: number): number {
+function changedPixels(frame: Frame, baseline: Frame, region: readonly number[], tolerance: number): number {
   if (frame.width !== baseline.width || frame.height !== baseline.height) throw new Error("capture dimensions differ");
   const [left, top, right, bottom] = bounds(frame, region); let count = 0;
   for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) { const i = (y * frame.width + x) * 3; if ([0, 1, 2].some(channel => Math.abs((frame.rgb[i + channel] ?? 0) - (baseline.rgb[i + channel] ?? 0)) > tolerance)) count++; }

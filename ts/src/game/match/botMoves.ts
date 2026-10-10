@@ -371,7 +371,7 @@ const VARIETY_SCALE = 12;
 export const VARIETY_PASS_STARTS = 2;
 
 
-export function recentStarts(strategy: Readonly<BotStrategy>, option: number, frame: number): number {
+function recentStarts(strategy: Readonly<BotStrategy>, option: number, frame: number): number {
   if (option < NEUTRAL_SPECIAL) return 0;
   let starts = 0;
   for (let index = 0; index < 2 * VARIETY_STARTS; index += 2) {

@@ -111,7 +111,7 @@ function unmetSceneExpectations(reports: readonly (readonly string[] | undefined
 }
 
 
-export function parseExpectations(script: string): readonly Expectation[] {
+function parseExpectations(script: string): readonly Expectation[] {
   const found: Expectation[] = [];
   script.split("\n").forEach((raw, index) => {
     const match = /^\s*#!\s*(expect|absent)\s+([abcd])\s+(\d+)(?:-(\d+))?\s+(.+?)\s*$/.exec(raw);
@@ -126,7 +126,7 @@ export function parseExpectations(script: string): readonly Expectation[] {
 }
 
 
-export function unmetExpectations(trace: Trace, expectations: readonly Expectation[], side: string): string[] {
+function unmetExpectations(trace: Trace, expectations: readonly Expectation[], side: string): string[] {
   const problems: string[] = [];
   const last = Math.max(0, ...trace.events.map((event) => event.frame), ...trace.checksums.keys());
   for (const expectation of expectations) {

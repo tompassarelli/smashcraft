@@ -4,7 +4,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 
-export const GROWTH = 0.1;
+const GROWTH = 0.1;
 
 const CRYPT = (() => {
   const table = new Uint32Array(0x500);
@@ -42,7 +42,7 @@ function decrypt(words: Uint32Array, key: number): void {
   }
 }
 
-export interface ArchiveTables {
+interface ArchiveTables {
 
   readonly offset: number;
   readonly hashes: Uint32Array;
@@ -89,12 +89,12 @@ export interface MapSize {
   readonly imports: ReadonlyMap<string, number>;
 }
 
-export const importedBytes = (size: MapSize) => [...size.imports.values()].reduce((sum, bytes) => sum + bytes, 0);
+const importedBytes = (size: MapSize) => [...size.imports.values()].reduce((sum, bytes) => sum + bytes, 0);
 
 const mb = (bytes: number) => `${(bytes / 1e6).toFixed(1)} MB`;
 
 
-export function definitiveBodyBytes(size: MapSize): number {
+function definitiveBodyBytes(size: MapSize): number {
   let bytes = 0;
   for (const [entry, stored] of size.imports) {
     if (/^_(de|hd)\.w3mod\\war3mapImported\\[^\\]+TimelineBody-[^\\]+\.mdx$/i.test(entry.replaceAll("/", "\\"))) bytes += stored;
@@ -115,7 +115,7 @@ export function describeMapSize(size: MapSize): string {
 }
 
 
-export const largest = (imports: ReadonlyMap<string, number>, count: number) =>
+const largest = (imports: ReadonlyMap<string, number>, count: number) =>
   [...imports].sort(([, a], [, b]) => b - a).slice(0, count);
 
 const HEADER = "entry\tbytes";

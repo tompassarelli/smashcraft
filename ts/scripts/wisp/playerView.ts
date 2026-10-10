@@ -187,7 +187,7 @@ for (const sky of STAGE_SKIES) {
 }
 
 
-export const isArenaSkyColor = (red: number, green: number, blue: number): boolean =>
+const isArenaSkyColor = (red: number, green: number, blue: number): boolean =>
   SKY_COLORS.has(skyColorKey(red, green, blue)) || (red <= 16 && green >= 20 && blue >= 8 && green >= blue);
 
 export const SMASHCRAFT_FRAME: readonly FrameFeature[] = [

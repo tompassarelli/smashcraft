@@ -14,7 +14,7 @@ import { mainDeckLeft, mainDeckRight, mainDeckZAt } from "../src/game/sim/stage"
 const NEUTRAL = neutralControls();
 
 /** How close a camper stands to its edge and how near the opponent comes before it fights; drawn once per match and slot from the match seed. */
-export interface Camp {
+interface Camp {
   readonly inset: number;
   readonly engage: number;
   /** The edge it holds, -1 or 1; 0 until it first camps. */

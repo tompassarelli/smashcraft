@@ -35,17 +35,17 @@ export interface ItemColor {
   readonly blue: number;
 }
 
-export const SPEED_COLOR: ItemColor = { red: 70, green: 230, blue: 255 };
-export const HEAVY_COLOR: ItemColor = { red: 255, green: 170, blue: 40 };
+const SPEED_COLOR: ItemColor = { red: 70, green: 230, blue: 255 };
+const HEAVY_COLOR: ItemColor = { red: 255, green: 170, blue: 40 };
 const SPEED_BODY: ItemColor = { red: 150, green: 235, blue: 255 };
 const HEAVY_BODY: ItemColor = { red: 95, green: 100, blue: 120 };
 
-export const ITEM_ENDING_FRAMES = 120;
+const ITEM_ENDING_FRAMES = 120;
 const BLINK_FRAMES = 8;
 
 export const itemColor = (kind: number): ItemColor => kind === ItemKind.heavy ? HEAVY_COLOR : SPEED_COLOR;
 
-export const itemEnding = (buffFrames: number): boolean => buffFrames > 0 && buffFrames <= ITEM_ENDING_FRAMES;
+const itemEnding = (buffFrames: number): boolean => buffFrames > 0 && buffFrames <= ITEM_ENDING_FRAMES;
 
 export const itemBlinkOff = (buffFrames: number): boolean => itemEnding(buffFrames) && floorMod(floorDiv(buffFrames, BLINK_FRAMES), 2) === 0;
 

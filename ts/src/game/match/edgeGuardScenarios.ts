@@ -17,11 +17,11 @@ import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { createMatchState, Phase } from "./rules";
 
 const STAGE = 0;
-export const LEDGE_X = mainDeckRight(STAGE);
-export const START_OUT = 200.0;
-export const START_DEPTH = 100.0;
-export const GIMP_DAMAGE = 40.0;
-export const PREDICTABLE_WAIT = 12;
+const LEDGE_X = mainDeckRight(STAGE);
+const START_OUT = 200.0;
+const START_DEPTH = 100.0;
+const GIMP_DAMAGE = 40.0;
+const PREDICTABLE_WAIT = 12;
 const FRAME_LIMIT = 420;
 const AIM_HOLD = 16;
 const GUARD_START = 30.0;
@@ -34,14 +34,14 @@ export function edgeGuardTool(character: Character): EdgeGuardTool {
   return forwardAirTool(character) ? EdgeGuardTool.forwardAir : EdgeGuardTool.downAir;
 }
 
-export interface EdgeGuardScenario {
+interface EdgeGuardScenario {
   readonly guarder: Character;
   readonly out: number;
   readonly z: number;
   readonly press: number;
 }
 
-export interface RecoveryPlan {
+interface RecoveryPlan {
   readonly wait: number;
   readonly aimX: number;
   readonly aimZ: number;
@@ -50,7 +50,7 @@ export interface RecoveryPlan {
 
 export const PREDICTABLE: RecoveryPlan = { wait: PREDICTABLE_WAIT, aimX: -1, aimZ: 1, drift: -1 };
 
-export interface Outcome {
+interface Outcome {
   readonly killed: boolean;
   readonly recovered: boolean;
   readonly hitFrame: number;
@@ -180,7 +180,7 @@ export const MIXED_PLANS: readonly RecoveryPlan[] = [
   { wait: 8, aimX: -1, aimZ: 1, drift: 0 },
 ];
 
-export function mixedPlan(seed: number): RecoveryPlan {
+function mixedPlan(seed: number): RecoveryPlan {
   return at(MIXED_PLANS, floorMod(seed, MIXED_PLANS.length));
 }
 
@@ -189,7 +189,7 @@ export function guardedReturn(victim: Character, guarder: Character, seed: numbe
   return settle(d, plan, () => undefined, 0, GUARD_LEAD);
 }
 
-export interface RecoveryProfile {
+interface RecoveryProfile {
   readonly startup: number;
   readonly intangible: number;
   readonly speed: number;

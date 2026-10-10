@@ -1,6 +1,6 @@
 import type { HeadlessClient } from "wisp/src/headless/client";
 
-export interface Handle {
+interface Handle {
   readonly kind: string;
   readonly id: number;
 }

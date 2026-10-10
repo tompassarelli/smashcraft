@@ -1,29 +1,17 @@
 
-
-
-
-import { f32 } from "wisp/src/sim/f32";
 import { idiv, imod } from "wisp/src/sim/intMath";
 import { ROSTER_MANA } from "../sim/mana";
-import { ESCAPE_METER_BORDER, ESCAPE_METER_HEIGHT } from "./escapeMeter";
 
 /** The bar's 33/33/34 segments: an EX costs one, an ultimate all three. */
 export const MANA_BAR_SEGMENTS = ROSTER_MANA.segments;
 /** Rendered updates a refusal flashes for, about three quarters of a second, blinking every 6. */
-export const MANA_FLASH_UPDATES = 45;
+const MANA_FLASH_UPDATES = 45;
 const MANA_FLASH_BLINK = 6;
 
-export const MANA_GLOW_GAIN = 3;
-export const MANA_GLOW_UPDATES = 12;
+const MANA_GLOW_GAIN = 3;
+const MANA_GLOW_UPDATES = 12;
 
-export const MANA_DRAIN_UPDATES = 20;
-
-
-
-export const OVERHEAD_MANA_WIDTH = f32(0.07);
-export const OVERHEAD_MANA_HEIGHT = f32(0.005);
-export const OVERHEAD_MANA_BORDER = f32(0.0015);
-const OVERHEAD_GAP = f32(0.003);
+const MANA_DRAIN_UPDATES = 20;
 
 export interface ManaFeedback {
 
@@ -75,12 +63,4 @@ export function manaGlowLit(feedback: Readonly<ManaFeedback>): boolean {
 
 export function manaFill(points: number): number {
   return Math.min(1.0, Math.max(0.0, points / ROSTER_MANA.max));
-}
-
-
-
-
-
-export function overheadManaLift(escapeShown: boolean): number {
-  return escapeShown ? ESCAPE_METER_HEIGHT / 2 + ESCAPE_METER_BORDER + OVERHEAD_GAP + OVERHEAD_MANA_HEIGHT / 2 + OVERHEAD_MANA_BORDER : 0.0;
 }

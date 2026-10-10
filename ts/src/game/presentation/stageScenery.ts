@@ -86,7 +86,7 @@ export const STOCK_UNIT_LIGHT = "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUni
  * divided by the stock noon light, its first entry, averaging key and fill.
  * Only scenery takes it; the fighters keep the stock light.
  */
-export function sceneryColor(stage: number, color: readonly [number, number, number]): readonly [number, number, number] {
+function sceneryColor(stage: number, color: readonly [number, number, number]): readonly [number, number, number] {
   return moodColor(STAGE_LIGHTS.find(entry => entry.stage === stage)?.light, color);
 }
 
@@ -136,7 +136,7 @@ export function lavaPiece(side: -1 | 1): SceneryPiece {
 }
 
 
-export function pointLightPieces(stage: number): readonly SceneryPiece[] {
+function pointLightPieces(stage: number): readonly SceneryPiece[] {
   const models = STAGE_POINT_LIGHT_MODELS[stage] ?? [];
   const lights = STAGE_POINT_LIGHTS.find(entry => entry.stage === stage)?.lights ?? [];
   return lights.map((light, index) => ({ model: models[index] ?? "", x: light.x, y: light.y, z: light.z, scale: 1.0, yaw: 0.0 }));
