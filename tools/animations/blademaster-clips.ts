@@ -22,7 +22,7 @@ const grip = new Float32Array([94.21669006347656, -66.13787841796875, 72.9908142
 sword.PivotPoint = grip; source.PivotPoints[sword.ObjectId] = grip;
 const gripOffset = Float32Array.from(grip, (value, axis) => rightHand.PivotPoint[axis]! - value);
 sword.Translation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: source.Sequences.flatMap(s => [s.Interval[0], s.Interval[1]].map(Frame => ({ Frame, Vector: gripOffset.slice() }))) };
-const lateralBladeClips = ["Attack Slam", "Stand - 4"];
+const lateralBladeClips = ["Attack Slam", "Stand - 4", "Portrait 1", "Damage Grid Mid Large", "Jump Motion doubleJump"];
 for (const name of lateralBladeClips) {
   const index = source.Sequences.findIndex(s => s.Name === name), sequence = source.Sequences[index];
   ensure(sequence && sword.Rotation, `missing ${name} sword motion`);
