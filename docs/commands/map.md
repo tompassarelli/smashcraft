@@ -1,7 +1,7 @@
 # Map
 
 - Map commands: `bun wisp map build [--profile NAME] --name NAME --out OUT.w3x`
-  builds the TypeScript map from the private inputs smashcraft:build-inputs.json
+  builds the TypeScript map from the private inputs smashcraft:build-inputs/
   names (`--base`, `--container`, `--assets`, `--summon` override one);
   `bun wisp map rebuild MAP.w3x` replaces only its script.
   Both commands resolve every special, attack, contact-accent and projectile

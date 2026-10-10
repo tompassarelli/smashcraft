@@ -21,7 +21,7 @@ const lines = (source: string): string[] => {
 const parseLines = (kind: Exclude<Kind, "json">, source: string): Entry[] => {
   let section = "";
   return unique(lines(source).map((text, index) => {
-    if (kind === "tsv") return { key: index === 0 ? "\u0001header" : text.split("\t").slice(0, 2).join("\t"), text };
+    if (kind === "tsv") return { key: index === 0 ? "\u0001header" : text.split("\t")[0] ?? text, text };
     if (kind === "facts") {
       const name = /^\s*("(?:[^"\\]|\\.)*"):/.exec(text)?.[1];
       return { key: name !== undefined ? name : `\u0001${text}`, text };

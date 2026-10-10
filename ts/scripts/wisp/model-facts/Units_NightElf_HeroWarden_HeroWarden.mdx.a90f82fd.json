@@ -1,0 +1,1 @@
+{"model":"Units\\NightElf\\HeroWarden\\HeroWarden.mdx","facts":{"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,442.065]},"emitters":[{"kind":"particle","name":"FF_Particles","whileShown":true,"onDeath":false,"visible":true,"rate":45,"lifespan":0.5,"reach":[{"min":[-82.62,-79.433,31.58],"max":[51.949,55.136,166.148]}]}]}}

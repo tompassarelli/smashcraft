@@ -1,0 +1,1 @@
+{"model":"units\\creeps\\Kobold\\Kobold.mdl","facts":{"geosets":7,"triangles":394,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,350]},"emitters":[{"kind":"particle","name":"BlizParticle01","whileShown":true,"onDeath":true,"visible":true,"rate":35,"lifespan":0.19,"reach":[{"min":[-27.771,-36.1,39.24],"max":[44.229,35.9,111.24]}]}]}}

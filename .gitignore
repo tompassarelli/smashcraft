@@ -4,3 +4,5 @@
 /tools/move-data/interactions/
 /tools/move-data/combos/
 /tools/slippi/node_modules/
+# Generated from tracked sources by ts/scripts/generated.ts (#401).
+/docs/move-list.md

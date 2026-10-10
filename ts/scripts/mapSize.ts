@@ -119,7 +119,11 @@ export const largest = (imports: ReadonlyMap<string, number>, count: number) =>
   [...imports].sort(([, a], [, b]) => b - a).slice(0, count);
 
 const HEADER = "entry\tbytes";
-const TOTAL = "(map total)";
+/** The map's bytes outside its imports (script, terrain, object data), rounded up to a whole MB so two lanes
+ * that grow it slightly write the same row; the total is the imports' sum plus this row, so no row changes
+ * with every import (#401). */
+const OUTSIDE = "(outside imports)";
+const OUTSIDE_STEP = 1_000_000;
 
 export function readMapBaseline(path: string): MapSize | undefined {
   if (!existsSync(path)) return undefined;
@@ -128,15 +132,16 @@ export function readMapBaseline(path: string): MapSize | undefined {
   for (const line of readFileSync(path, "utf8").split("\n").slice(1)) {
     const [entry, bytes] = line.split("\t");
     if (entry === undefined || entry === "" || bytes === undefined) continue;
-    if (entry === TOTAL) total = Number(bytes);
-    else imports.set(entry, Number(bytes));
+    total += Number(bytes);
+    if (entry !== OUTSIDE) imports.set(entry, Number(bytes));
   }
   return { total, imports };
 }
 
 export function writeMapBaseline(path: string, size: MapSize): void {
   const rows = [...size.imports].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([entry, bytes]) => `${entry}\t${bytes}`);
-  writeFileSync(path, `${[HEADER, `${TOTAL}\t${size.total}`, ...rows].join("\n")}\n`);
+  const outside = Math.ceil(Math.max(0, size.total - importedBytes(size)) / OUTSIDE_STEP) * OUTSIDE_STEP;
+  writeFileSync(path, `${[HEADER, `${OUTSIDE}\t${outside}`, ...rows].join("\n")}\n`);
 }
 
 

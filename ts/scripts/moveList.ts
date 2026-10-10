@@ -18,7 +18,7 @@ export function moveListMarkdown(): string {
   const lines = [
     "# Move list",
     "",
-    "Generated from the fighters' kit data by `bun scripts/moveList.ts` (from",
+    "Generated from the fighters' kit data by `bun scripts/generated.ts` (from",
     "smashcraft:ts/); edit the names there, never here. Specials and",
     "ultimates have official names, and so does each jab chain; the other",
     "normals are named by their input (forward tilt, forward air, down smash,",

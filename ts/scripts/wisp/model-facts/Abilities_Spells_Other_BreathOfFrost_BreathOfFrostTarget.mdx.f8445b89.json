@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Other\\BreathOfFrost\\BreathOfFrostTarget.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle02burst","whileShown":false,"onDeath":true,"visible":true,"rate":63.5,"lifespan":0.355,"reach":[{"min":[-136.382,-136.921,-135.478],"max":[134.027,133.488,134.931]}]}]}}

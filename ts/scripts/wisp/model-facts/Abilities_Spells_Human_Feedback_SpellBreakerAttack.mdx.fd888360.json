@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Human\\Feedback\\SpellBreakerAttack.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle08shockwaves","whileShown":true,"onDeath":false,"visible":true,"rate":22.6,"lifespan":0.4,"reach":[{"min":[-61.722,-61.967,-57.991],"max":[62.318,62.073,66.049]}]}]}}

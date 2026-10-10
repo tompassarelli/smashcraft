@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx","facts":{"geosets":2,"triangles":4,"lights":0,"bounds":{"min":[-700,-700,-700],"max":[700,700,700]},"emitters":[{"kind":"ribbon","name":"R1","whileShown":true,"onDeath":true,"visible":true,"rate":50,"lifespan":0.88,"reach":[{"min":[-60,-60,-60],"max":[60,60,60]}]}]}}

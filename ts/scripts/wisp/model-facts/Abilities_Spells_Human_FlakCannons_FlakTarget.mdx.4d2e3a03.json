@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle05white02","whileShown":true,"onDeath":false,"visible":true,"rate":20,"lifespan":0.4,"reach":[{"min":[-120.274,-120.692,-66.426],"max":[121.606,121.188,175.454]}]}]}}

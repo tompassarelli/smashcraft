@@ -11,6 +11,7 @@ import { step } from "wisp/scripts/wisp/timings";
 import { decodeBuildOptions, importedAssets, rebuildMap } from "../mapInputs";
 import { buildProject, gameFilesLayer, profileOption, projectRoot, sourceErrorsLayer } from "../project";
 import { describeMapSize, mapBudgetProblem, mapGrowthProblem, type MapSize, readMapBaseline, readTables, storedBytes, writeMapBaseline } from "../../mapSize";
+import { ensureGenerated } from "../../generated";
 import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
 import { POST_PROCESSING_FILE } from "../../postProcessing";
@@ -87,7 +88,7 @@ export const build: Command = (args) => Effect.gen(function*() {
   const bounded = options.profile === "main";
   return yield* decodeBuildOptions(options.args).pipe(
     Effect.flatMap((options) => Effect.gen(function*() {
-
+      yield* Effect.sync(ensureGenerated);
       const { base, container, assets, summon, packager, ...map } = options;
       const declared = base !== undefined && container !== undefined && assets !== undefined && summon !== undefined
         ? { base, container, assets, summon }

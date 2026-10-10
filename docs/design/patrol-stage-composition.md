@@ -77,6 +77,6 @@ The figure ban and asymmetry constraints are enforced by
 smashcraft:ts/src/game/presentation/stageScenery.tests.ts.
 
 All selected models already have measured facts in
-smashcraft:ts/scripts/wisp/modelFacts.ts. These changes require no new model
+smashcraft:ts/scripts/wisp/model-facts/. These changes require no new model
 imports or generated textures. Stage fog remains at its declared settings;
 lighting and fog tuning are separate from this composition.

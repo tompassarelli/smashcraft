@@ -4,7 +4,7 @@
 import { expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { INPUTS_STORE, MANIFEST } from "../scripts/wisp/buildInputs";
+import { INPUTS_STORE, MANIFEST, readPins } from "../scripts/wisp/buildInputs";
 import { DrawnModel, sampleState } from "../scripts/wisp/hurtboxView";
 import { DEFINITIVE_FIGHTERS } from "../src/game/assets/definitiveFighters";
 import { originalClip } from "../src/game/assets/fighterOriginalClipInfo";
@@ -44,7 +44,7 @@ function drawnHeight(triangles: Float32Array, half: number): number {
 
 const LOOK_TOLERANCE = 0.1;
 
-const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
+const manifest = readPins();
 const family = join(INPUTS_STORE, "original-clips-static-lights", manifest["original-clips-static-lights"] ?? "missing");
 test("every fighter's drawn Stand height fits its hurt capsule in both looks, and Definitive matches Classic or its capsule within 10% [spec AGENTS.md]", async () => {
   if (!existsSync(family)) return;

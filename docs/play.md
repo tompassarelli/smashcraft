@@ -46,7 +46,7 @@ one-off build is named after the version it tests, `Smashcraft 0.0.N test K`,
 and lives in tests/. Experimental builds use `wisp fresh`, captures or `wisp accept` and
 install under tests/; they do not change what `play` launches.
 
-Main's smashcraft:build-inputs.json names the private inputs: base map,
+Main's smashcraft:build-inputs/ names the private inputs: base map,
 container, assets and summon clips, each by the hash of its contents in the
 store (smashcraft:docs/build-inputs.md). Map builds check every input against
 its hash and every imported file against the script and archive. Build outputs

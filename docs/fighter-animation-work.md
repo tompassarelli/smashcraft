@@ -1225,7 +1225,7 @@ The playable build imports one clip model per sequence from its private
 smashcraft:ts/src/game/assets/fighterOriginalClipInfo.ts names each by hash.
 Any change to a fighter's clips (a re-authored original, a new or remapped
 hero) needs a matching pool, committed as its hash in
-smashcraft:build-inputs.json with the change (smashcraft:docs/build-inputs.md,
+smashcraft:build-inputs/ with the change (smashcraft:docs/build-inputs.md,
 "Change art"); the build's "check script models" failure names the command.
 From smashcraft:ts/ in your lane:
 
@@ -1236,7 +1236,7 @@ From smashcraft:ts/ in your lane:
    --assets "$(cd ts && bun wisp inputs path assets)" --out NEW --keep-unchanged`.
 3. `bun wisp inputs add original-clips-static-lights NEW`, build with
    `bun wisp map build --profile playable --name NAME --out OUT.w3x`, and commit
-   build-inputs.json with the clip module.
+   build-inputs/original-clips-static-lights with the clip module.
 
 ## Lich King clips on an imported model
 

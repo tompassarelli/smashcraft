@@ -38,7 +38,7 @@ form, an optional `air` form and an optional `free` form; a form the design
 names on its own (Backstab, Hammerfall) carries its own `name`. Names are
 written only there (and in `sim/originalKits.ts` for the original three);
 `sim/moveNames.ts` reads them for [the move list](move-list.md), which
-`bun scripts/moveList.ts` regenerates, the Moves page and training's readout.
+`bun install`, `bun run test` and `wisp map build` generate (untracked, cached by a hash of its sources: smashcraft:ts/scripts/generated.ts), the Moves page and training's readout.
 Normals have no official name; an optional `inspiredBy` on a move is a
 docs-only design reference. Each `AuthoredSpecial` uses the roster's frame numbering: the entry
 tick is frame 1, windows are inclusive and `endFrame` N means the fighter

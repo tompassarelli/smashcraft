@@ -2,7 +2,7 @@
 
 
 
-import { chmodSync, constants, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, statSync, symlinkSync } from "node:fs";
+import { chmodSync, constants, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, relative } from "node:path";
 import { Effect, Schema } from "effect";
@@ -11,7 +11,22 @@ import { withLock } from "./fileLock";
 import { projectRoot } from "./project";
 
 export const INPUTS_STORE = join(homedir(), ".local/share/smashcraft-build-inputs/store");
-export const MANIFEST = join(projectRoot, "build-inputs.json");
+/** One pin file per family (build-inputs/FAMILY holds its store hash), so two lanes that store different families never edit the same file (#401). */
+export const MANIFEST = join(projectRoot, "build-inputs");
+
+/** The pins as one record, family to hash; a family with no pin file is absent. */
+export function readPins(directory = MANIFEST): Record<string, string> {
+  if (!existsSync(directory)) return {};
+  return Object.fromEntries(readdirSync(directory).filter((name) => !name.startsWith(".")).sort().map((name) => [name, readFileSync(join(directory, name), "utf8").trim()]));
+}
+
+/** Pins one family to `hash`, touching only that family's file. */
+export function writePin(family: Family, hash: string, directory = MANIFEST): void {
+  mkdirSync(directory, { recursive: true });
+  const staging = join(directory, `.${family}.${process.pid}.next`);
+  writeFileSync(staging, `${hash}\n`);
+  renameSync(staging, join(directory, family));
+}
 
 
 
@@ -187,7 +202,7 @@ export async function storeStageCard(bytes: Uint8Array, store = INPUTS_STORE): P
 
 export const regenerate = (family: Family, hash: string) =>
   `produce it with ${FAMILIES[family].produce}, then run \`bun wisp inputs add ${family} DIR\` from the checkout ` +
-  `(it must hash to ${hash}, or commit the hash it writes into build-inputs.json)`;
+  `(it must hash to ${hash}, or commit the hash it writes into build-inputs/${family})`;
 
 
 export const verifiedFamily = (family: Family, hash: string, store = INPUTS_STORE) => Effect.gen(function*() {
@@ -202,7 +217,7 @@ export const verifiedFamily = (family: Family, hash: string, store = INPUTS_STOR
 
 
 export const readManifest = (path = MANIFEST) =>
-  Effect.tryPromise({ try: () => Bun.file(path).json(), catch: (cause) => failure("read build inputs", path, String(cause)) }).pipe(
+  Effect.try({ try: () => readPins(path), catch: (cause) => failure("read build inputs", path, String(cause)) }).pipe(
     Effect.flatMap(Schema.decodeUnknownEffect(Manifest)),
     Effect.mapError((cause) => cause instanceof MapBuildFailure ? cause : failure("decode build inputs", path, String(cause))),
   );

@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Items\\VampiricPotion\\VampPotionCaster.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle01-suck2","whileShown":true,"onDeath":false,"visible":true,"rate":45,"lifespan":0.82,"reach":[{"min":[179.092,179.263,209.47],"max":[-179.308,-179.137,209.47]}]}]}}

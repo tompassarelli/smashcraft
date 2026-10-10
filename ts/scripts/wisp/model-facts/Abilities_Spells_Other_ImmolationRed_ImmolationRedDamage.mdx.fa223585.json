@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle05","whileShown":true,"onDeath":false,"visible":true,"rate":55,"lifespan":0.655,"reach":[{"min":[-177.188,-182.865,-170.795],"max":[188.354,182.677,194.747]}]}]}}
