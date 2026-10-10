@@ -10,7 +10,6 @@ src/game/input/keyBindings.tests.ts	2	203000	70
 src/game/input/keyboardCapture.tests.ts	4	214000	4680
 src/game/input/padCapture.tests.ts	2	16911000	17176
 src/game/input/playerKeys.tests.ts	3	36000	29
-src/game/match/botCorner.tests.ts	2	2000	2
 src/game/match/botCoverage.tests.ts	26	2524682000	311509
 src/game/match/botDashContracts.tests.ts	2	9000	39
 src/game/match/botDefenseForecast.tests.ts	1	6000	66

@@ -121,7 +121,6 @@ export function spamOnly(f: Readonly<Fighter>, target: Readonly<Fighter>, move: 
         return;
       }
       input.shield = false;
-      if (f.motion.grounded && !SPECIALS.includes(move) && !input.walking) input.direction = 0;
       press(f, target, move, frame, input, commands);
     }
     return;

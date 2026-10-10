@@ -207,11 +207,7 @@ function spacingTool(plan: Readonly<FighterGameplan>, move: AttackStyle): boolea
 
 
 
-function swing(f: Readonly<Fighter>, style: AttackStyle, moves: Fighter["tuning"]["moves"]): number {
-  return characterAttackActiveFrames(f.character, style, moves);
-}
-
-export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, skill: CpuSkill, input: Controls, commands: AttackBuffer, observationAge = 0, burned?: AttackStyle): boolean {
+export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, skill: CpuSkill, input: Controls, commands: AttackBuffer, observationAge = 0): boolean {
   if (skill.punishTenths <= 0 || !f.motion.grounded) return false;
   const shielding = f.shield.raised;
   if (shielding ? !canShieldGrab(f) : !canAttack(f)) return false;
@@ -221,7 +217,6 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
   if (Math.abs(aheadZ(f, target, 0, stage, matchFrame, observationAge)) > PUNISH_HEIGHT) return false;
 
   const believed = open.frames + skill.punishMisjudge - INPUT_FRAMES;
-  const exposed = burned === undefined ? Infinity : believed + attackStartupFrames(burned, target.tuning.moves);
   if (!slideStaysOnDeck(f, stage, matchFrame)) return false;
   const moves = f.tuning.moves;
   const plan = skill.gameplanWeights ? gameplanOf(f.character) : undefined;
@@ -240,7 +235,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     const tool = plan !== undefined && spacingTool(plan, style === move ? move : AttackStyle.dashAttack);
     const better = best === undefined || (tool && !bestTool) || (tool === bestTool && startup < bestStartup);
     const x = Math.abs(aheadX(f, target, startup, style, observationAge, stage, matchFrame));
-    if (startup <= believed && startup > (open.earliest ?? 0) && startup + swing(f, style, moves) <= exposed && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
+    if (startup <= believed && startup > (open.earliest ?? 0) && better && moveReaches(f.character, style, target, x, aheadZ(f, target, startup, stage, matchFrame, observationAge), moves) && grabSure(f, style, target, x)) {
       best = move;
       bestStartup = startup;
       bestTool = tool;
@@ -250,7 +245,7 @@ export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, st
     const ran = runningStyle(f, move);
     const ranStartup = attackStartupFrames(ran, moves);
     const short = f32(Math.abs(aheadX(f, target, ranStartup, undefined, observationAge, stage, matchFrame)) - moveReachAhead(f.character, ran, target, moves));
-    if (short > 0 && short <= RUN_FAR && Math.ceil(f32(short / speed)) + ranStartup <= believed && Math.ceil(f32(short / speed)) + ranStartup + swing(f, ran, moves) <= exposed) runFits = true;
+    if (short > 0 && short <= RUN_FAR && Math.ceil(f32(short / speed)) + ranStartup <= believed) runFits = true;
   }
   const dx = aheadX(f, target, 0, undefined, observationAge, stage, matchFrame);
   const toward = dx === 0 ? (f.facing < 0 ? -1 : 1) : dx > 0 ? 1 : -1;
