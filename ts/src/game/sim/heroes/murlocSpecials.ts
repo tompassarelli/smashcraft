@@ -12,18 +12,18 @@ const ensnare = (air: boolean): AuthoredSpecial => ({
   projectiles: [{
     model: "Abilities\\Spells\\Orc\\Ensnare\\EnsnareMissile.mdx",
     spawnFrame: 12, offsetX: 32.0, offsetZ: 40.0, velocityX: 8.0, velocityZ: f32(0.6), gravity: f32(0.06),
-    life: 40, radius: 18.0, effect: murlocHit(4.849959850311279, 35, 45.93579864501953, 16.0), reflectable: true, limit: 1, status: CHILL,
+    life: 40, radius: 18.0, effect: murlocHit(4.995458602905273, 35, 45.10895538330078, 16.0), reflectable: true, limit: 1, status: CHILL,
   }],
 });
 const tidalRush = (air: boolean): AuthoredSpecial => ({
   endFrame: 32, landingLag: air ? 20 : undefined,
   motion: [{ ...frames(8, 22), velocityX: 11.0, velocityZ: 0.0, stopsAtShield: true }],
-  regions: [heroRegion(8, 22, { x1: 10.0, z1: 22.0, x2: 46.0, z2: 22.0, radius: 18.0 }, murlocHit(9.699919700622559, 40, 73.49728393554688, 22.0))],
+  regions: [heroRegion(8, 22, { x1: 10.0, z1: 22.0, x2: 46.0, z2: 22.0, radius: 18.0 }, murlocHit(9.990917205810547, 40, 72.17433166503906, 22.0))],
 });
 const tideSpout = (speed: number, drift: number): AuthoredSpecial => ({
   endFrame: 34, oncePerAirtime: true, helpless: true, facesStick: true,
   motion: [{ ...frames(1, 5), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(6, 25), velocityX: 0.0, velocityZ: speed, driftSpeed: drift }],
-  regions: [heroRegion(6, 14, { x1: 0.0, z1: 20.0, x2: 0.0, z2: 80.0, radius: 26.0 }, murlocHit(6.062449932098389, 80, 64.31011962890625, 30.0))],
+  regions: [heroRegion(6, 14, { x1: 0.0, z1: 20.0, x2: 0.0, z2: 80.0, radius: 26.0 }, murlocHit(6.244323253631592, 80, 63.15253829956055, 30.0))],
 });
 
 const PLAGUE: AppliedStatus = { kind: HeroStatusKind.poison, frames: 180, group: HeroStatusGroup.sleep, immunityFrames: 0, tick: { every: 60, damage: 1.0 } };
@@ -32,7 +32,7 @@ const DISEASE_CLOUD: AuthoredSpecial = {
   projectiles: [{
     model: "Units\\Undead\\PlagueCloud\\PlagueCloud.mdx",
     spawnFrame: 14, offsetX: 40.0, offsetZ: 6.0, velocityX: 0.0, velocityZ: 0.0, life: 150, radius: 50.0,
-    effect: { ...murlocHit(2.4249799251556396, 80, 27.561479568481445, 30.0, false, HitElement.poison) },
+    effect: { ...murlocHit(2.4977293014526367, 80, 27.065372467041016, 30.0, false, HitElement.poison) },
     reflectable: false, limit: 1, needsLineOfSight: true, status: PLAGUE,
     pool: { every: 50, growth: 0.0, maxRadius: 50.0 },
   }],

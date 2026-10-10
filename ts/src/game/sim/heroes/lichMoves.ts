@@ -20,15 +20,15 @@ const GRAB = f32(HERO_REFERENCE_HEIGHT * f32(0.70));
 
 
 const facingHit = makeHit({
-  LINK: { growth: 48.36479949951172, base: 12.0 },
-  POKE: { growth: 65.9520034790039, base: 18.0 },
-  LAUNCH: { growth: 92.33280181884766, base: 20.0 },
-  EDGE: { growth: 96.72959899902344, base: 22.0 },
-  KILL: { growth: 105.52320098876953, base: 26.0 },
-  SPIKE: { growth: 87.93599700927734, base: 22.0 },
+  LINK: { growth: 47.63932800292969, base: 12.0 },
+  POKE: { growth: 64.96272277832031, base: 18.0 },
+  LAUNCH: { growth: 90.94780731201172, base: 20.0 },
+  EDGE: { growth: 95.27865600585938, base: 22.0 },
+  KILL: { growth: 103.94035339355469, base: 26.0 },
+  SPIKE: { growth: 86.61695861816406, base: 22.0 },
 
-  JUGGLE: { growth: 61.555198669433594, base: 45.0 },
-  CHASE: { growth: 35.174400329589844, base: 75.0 },
+  JUGGLE: { growth: 60.63187026977539, base: 45.0 },
+  CHASE: { growth: 34.646785736083984, base: 75.0 },
 }, HitElement.ice);
 
 export function hit(damage: number, kind: Parameters<typeof facingHit>[1], angle: Angle, backwards = false, element: HitElement = HitElement.ice): Readonly<HitEffect> {
@@ -40,7 +40,7 @@ const circle = (x: number, z: number, radius: number): StrikeCapsule => capsule(
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
 function palm(first: number, heights: readonly number[]): readonly MoveRegion[] {
-  return heights.map((height, index) => frame(first + index, capsule(20.0, 45.0, f32(M - 8.0), height), hit(9.731040000915527, "POKE", 35)));
+  return heights.map((height, index) => frame(first + index, capsule(20.0, 45.0, f32(M - 8.0), height), hit(9.974315643310547, "POKE", 35)));
 }
 
 
@@ -59,7 +59,7 @@ function halo(): readonly MoveRegion[] {
   const ring = [...strikes, ...strikes.map(strike => capsule(-strike.x1, f32(90.0 - strike.z1), -strike.x2, f32(90.0 - strike.z2), strike.radius))];
 
   const hold = (effect: Readonly<HitEffect>): readonly Strike[] => ring.map(strike => [strike, effect]);
-  const burst: readonly Strike[] = ring.map(strike => [strike, hit(4.865520000457764, "POKE", 50, strike.x1 + strike.x2 < 0.0)]);
+  const burst: readonly Strike[] = ring.map(strike => [strike, hit(4.987157821655273, "POKE", 50, strike.x1 + strike.x2 < 0.0)]);
   return multiHit([
     { first: 9, last: 11, strikes: hold(linkAt(2.0, 18.0, 90, HitElement.ice)) },
     { first: 13, last: 15, strikes: hold(linkAt(2.0, 18.0, 90, HitElement.ice)) },
@@ -73,7 +73,7 @@ function fan(): readonly MoveRegion[] {
   for (let active = 12; active <= 14; active++) {
     const shift = f32((active - 12) * 4.0);
     for (const height of [24.0, 45.0, 66.0]) {
-      regions.push(frame(active, capsule(26.0, 45.0, f32(L - 8.0), f32(height - shift)), hit(13.380180358886719, "EDGE", 40)));
+      regions.push(frame(active, capsule(26.0, 45.0, f32(L - 8.0), f32(height - shift)), hit(13.71468448638916, "EDGE", 40)));
     }
   }
   return regions;
@@ -130,7 +130,7 @@ export const LICH_MOVES: FighterMoves = {
       heroRegion(18, 20, capsule(20.0, 45.0, f32(XL - 7.0), 45.0, 7.0), hit(19.20599937438965, "KILL", 35)),
     ]), 0.25),
     [AttackStyle.upSmash]: heroMove(20, 5, 34, 0, [
-      heroRegion(20, 24, capsule(0.0, 8.0, 0.0, f32(L - 10.0), 10.0), hit(20.67845916748047, "KILL", 90)),
+      heroRegion(20, 24, capsule(0.0, 8.0, 0.0, f32(L - 10.0), 10.0), hit(21.19542121887207, "KILL", 90)),
     ]),
     [AttackStyle.downSmash]: heroMove(19, 5, 23, 0, [
       heroRegion(19, 23, capsule(24.0, 8.0, f32(L - 10.0), 8.0, 10.0), downSmashHit(hit(14.0, "EDGE", 25))),
@@ -139,15 +139,15 @@ export const LICH_MOVES: FighterMoves = {
     [AttackStyle.neutralAir]: heroMove(9, 14, 17, 16, halo()),
     [AttackStyle.forwardAir]: heroMove(12, 3, 27, 17, fan()),
     [AttackStyle.backAir]: heroMove(10, 3, 25, 15, [
-      frame(10, capsule(-20.0, 49.0, -f32(M - 8.0), 49.0), hit(14.596559524536133, "KILL", 35, true)),
-      frame(11, capsule(-20.0, 45.0, -f32(M - 8.0), 45.0), hit(14.596559524536133, "KILL", 35, true)),
-      frame(12, capsule(-20.0, 41.0, -f32(M - 8.0), 41.0), hit(14.596559524536133, "KILL", 35, true)),
+      frame(10, capsule(-20.0, 49.0, -f32(M - 8.0), 49.0), hit(14.96147346496582, "KILL", 35, true)),
+      frame(11, capsule(-20.0, 45.0, -f32(M - 8.0), 45.0), hit(14.96147346496582, "KILL", 35, true)),
+      frame(12, capsule(-20.0, 41.0, -f32(M - 8.0), 41.0), hit(14.96147346496582, "KILL", 35, true)),
     ]),
     [AttackStyle.upAir]: heroMove(8, 4, 23, 14, [
-      heroRegion(8, 11, circle(0.0, f32(M - 12.0), 12.0), hit(10.947419166564941, "LAUNCH", 85)),
+      heroRegion(8, 11, circle(0.0, f32(M - 12.0), 12.0), hit(11.221104621887207, "LAUNCH", 85)),
     ]),
     [AttackStyle.downAir]: heroMove(16, 4, 31, 22, [
-      heroRegion(16, 19, capsule(0.0, -12.0, 0.0, -f32(M - 10.0), 10.0), hit(14.596559524536133, "SPIKE", 270), hit(14.596559524536133, "SPIKE", 55)),
+      heroRegion(16, 19, capsule(0.0, -12.0, 0.0, -f32(M - 10.0), 10.0), hit(14.96147346496582, "SPIKE", 270), hit(14.96147346496582, "SPIKE", 55)),
     ]),
     [AttackStyle.grab]: heroMove(10, 2, 28, 0, [
       heroRegion(10, 11, capsule(18.0, 45.0, f32(GRAB - 10.0), 45.0, 10.0), GRAB_EFFECT),
@@ -155,9 +155,9 @@ export const LICH_MOVES: FighterMoves = {
   },
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false, element: HitElement.ice } },
-    [GrabAction.throwForward]: throwMove(14, 23, 8.514659881591797, "EDGE", 35),
-    [GrabAction.throwBack]: throwMove(18, 26, 9.731040000915527, "EDGE", 40, true),
-    [GrabAction.throwUp]: throwMove(17, 13, 8.514659881591797, "JUGGLE", 90),
-    [GrabAction.throwDown]: throwMove(19, 26, 7.298279762268066, "CHASE", 70),
+    [GrabAction.throwForward]: throwMove(14, 23, 8.727526664733887, "EDGE", 35),
+    [GrabAction.throwBack]: throwMove(18, 26, 9.974315643310547, "EDGE", 40, true),
+    [GrabAction.throwUp]: throwMove(17, 13, 8.727526664733887, "JUGGLE", 90),
+    [GrabAction.throwDown]: throwMove(19, 26, 7.48073673248291, "CHASE", 70),
   },
 };

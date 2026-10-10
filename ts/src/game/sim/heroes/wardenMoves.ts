@@ -59,7 +59,7 @@ function throwMove(release: number, recovery: number, damage: number, kind: Para
   return { contactFrame: release, totalFrames: release + recovery, effect: wardenHit(damage, kind, angle, facing) };
 }
 
-const BACK_AIR = wardenHit(8.83784008026123, "KILL", 35, -1.0);
+const BACK_AIR = wardenHit(8.39594841003418, "KILL", 35, -1.0);
 
 const SKY_LIFT: readonly Strike[] = [
   [blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), linkAt(2.0, 8.0, 90, HitElement.normal)],
@@ -77,10 +77,10 @@ const fallingKnives = (damage: number, base: number) => drillStrikes(-4.0, -70.0
   { centre: linkAt(damage, base, 270), front: linkAt(damage, base, 250), back: linkAt(damage, base, 290) });
 const FALLING_KNIVES: AuthoredMove = {
   ...heroMove(7, 7, 14, 10, multiHit([
-    { first: 7, last: 7, strikes: fallingKnives(1.6068799495697021, 25.0) },
-    { first: 9, last: 9, strikes: fallingKnives(1.6068799495697021, 25.0) },
-    { first: 11, last: 11, strikes: fallingKnives(1.6068799495697021, 25.0) },
-    { first: 13, last: 13, strikes: fallingKnives(2.4103200435638428, 40.0) },
+    { first: 7, last: 7, strikes: fallingKnives(1.526535987854004, 25.0) },
+    { first: 9, last: 9, strikes: fallingKnives(1.526535987854004, 25.0) },
+    { first: 11, last: 11, strikes: fallingKnives(1.526535987854004, 25.0) },
+    { first: 13, last: 13, strikes: fallingKnives(2.289803981781006, 40.0) },
   ])),
   fall: [{ firstFrame: 6, lastFrame: 12, speedZ: -9.0 }],
 };
@@ -88,13 +88,13 @@ const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ
 
 const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     ...WARDEN_GROUND.normals,
-    [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, wardenHit(9.641280174255371, "KILL", 40), wardenHit(12.855039596557617, "KILL", 40))),
+    [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, wardenHit(9.159215927124023, "KILL", 40), wardenHit(12.212287902832031, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(13, 4, 27, 0, path(13, [
       blade(12.0, 46.0, 24.0, f32(M - BLADE_RADIUS)),
       blade(8.0, 46.0, 10.0, f32(M - BLADE_RADIUS)),
       blade(0.0, 46.0, -10.0, f32(M - BLADE_RADIUS)),
       blade(-8.0, 46.0, -24.0, f32(M - BLADE_RADIUS)),
-    ], wardenHit(11.248159408569336, "KILL", 90))),
+    ], wardenHit(10.685750961303711, "KILL", 90))),
     [AttackStyle.downSmash]: heroMove(12, 5, 28, 0, [
       ...path(12, [
         blade(18.0, 16.0, f32(M - BLADE_RADIUS), 16.0),
@@ -112,8 +112,8 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       blade(0.0, 52.0, 0.0, f32(M - BLADE_RADIUS)),
       blade(-12.0, 50.0, -62.0, 85.0),
       blade(-18.0, 35.0, -f32(M - BLADE_RADIUS), 35.0),
-    ], wardenHit(4.8206400871276855, "POKE", 50))),
-    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(8.03439998626709, "EDGE", 40))),
+    ], wardenHit(4.579607963562012, "POKE", 50))),
+    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(7.6326799392700195, "EDGE", 40))),
 
     [AttackStyle.backAir]: heroMove(7, 3, 22, 12, [
       ...cut(7, [54.0, 45.0, 36.0], M, BACK_AIR, undefined, -1.0),
@@ -124,7 +124,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     [AttackStyle.upAir]: heroMove(5, 9, 15, 10, multiHit([
       { first: 5, last: 6, strikes: SKY_LIFT },
       { first: 8, last: 9, strikes: SKY_LIFT },
-      { first: 11, last: 13, strikes: [[blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), wardenHit(4.017199993133545, "LAUNCH", 85, 1.0, HitElement.normal)]] },
+      { first: 11, last: 13, strikes: [[blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), wardenHit(3.8163399696350098, "LAUNCH", 85, 1.0, HitElement.normal)]] },
     ])),
     [AttackStyle.downAir]: FALLING_KNIVES,
     [AttackStyle.grab]: heroMove(6, 2, 22, 0, [heroRegion(6, 7,
@@ -215,9 +215,9 @@ export const WARDEN_MOVES: FighterMoves = {
   hurtboxes: wardenHurtboxes(),
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: throwMove(10, 18, 4.8206400871276855, "EDGE", 35),
-    [GrabAction.throwBack]: throwMove(14, 21, 5.624079704284668, "EDGE", 40, -1.0),
-    [GrabAction.throwUp]: throwMove(11, 9, 4.017199993133545, "JUGGLE", 85),
-    [GrabAction.throwDown]: throwMove(14, 20, 3.2137598991394043, "CHASE", 25),
+    [GrabAction.throwForward]: throwMove(10, 18, 4.579607963562012, "EDGE", 35),
+    [GrabAction.throwBack]: throwMove(14, 21, 5.3428754806518555, "EDGE", 40, -1.0),
+    [GrabAction.throwUp]: throwMove(11, 9, 3.8163399696350098, "JUGGLE", 85),
+    [GrabAction.throwDown]: throwMove(14, 20, 3.053071975708008, "CHASE", 25),
   },
 };
