@@ -18,7 +18,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { on, trampoline } from "wisp/src/platform/dispatch";
 import { DRAW_EVENT, beginPresentedFrame, drawBetweenFrames, startFrameClock } from "./betweenFrames";
 import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
-import { confirmedChecksum, localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
+import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
 import { writeDrawnFrame } from "./drawnFrame";
 import { heldVisualFrame } from "../../game/shell/visualCapture";
 import { holdPresentedCapture, serviceVisualCapture } from "./visualCapture";
@@ -36,7 +36,7 @@ import { STAGE_READY_PREFIX } from "../../game/shell/stageLoad";
 import { makePreview } from "./preview";
 import { preloadStageAssets } from "./stageScenery";
 import * as probe from "./responseProbe";
-import { delayRow, receiveInput, rollbackTick } from "./rollback";
+import { checksumRow, delayRow, receiveInput, rollbackTick } from "./rollback";
 import { floorMod } from "wisp/src/sim/intMath";
 import * as netDelay from "./netDelay";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
@@ -77,13 +77,20 @@ declare global {
 }
 
 
+// #396: the native-input build records each match epoch for at most EPOCH_CALLBACKS callbacks, ending with a checksum of the confirmed state.
+function serviceEpochWindow(s: ShellState, recorder: probe.ResponseProbe): void {
+  const epoch = s.game.phase === Phase.match ? activeRollback(s)?.epoch : undefined;
+  if (probe.epochWindowEnds(recorder, epoch)) {
+    probe.probeIntegrity(recorder, checksumRow(s, recorder.epoch ?? -1, s.runtime.simulationFrame));
+    probe.exportProbe(recorder);
+  }
+  if (probe.beginEpochWindow(recorder, epoch)) probe.probeIntegrity(recorder, s.rollback === undefined ? "delay -1 -1 -" : delayRow(s, s.rollback));
+}
+
 function gameTick(s: ShellState): void {
   if (!beforeNativeDriverTick(s)) return;
   if (s.build.pausePositionProbe && s.game.phase === Phase.match && s.probe?.run === 0) probe.startProbe(s.probe, false);
-  const recorder = s.probe;
-  if (s.build.epochProbe === true && recorder !== undefined) {
-    probe.serviceEpochProbe(recorder, s.game.phase === Phase.match ? activeRollback(s)?.epoch : undefined, () => `checksum ${recorder.epoch ?? -1} ${s.runtime.simulationFrame} ${confirmedChecksum(s)} ${s.game.phase}`, () => (s.rollback === undefined ? "delay -1 -1 -" : delayRow(s, s.rollback)));
-  }
+  if (s.build.epochProbe === true && s.probe !== undefined) serviceEpochWindow(s, s.probe);
   const pausedBefore = s.session.paused;
   view.serviceResumePresentation(s);
   serviceVisualCapture(s);
