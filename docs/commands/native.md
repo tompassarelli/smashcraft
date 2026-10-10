@@ -37,18 +37,22 @@ offline LAN pool is Classic only; Definitive checks use the signed-in pairs
 clone-c+clone-b and clone-a+clone-d (wisp:docs/lan.md). The offline pool remains the default for Classic pad parity,
 captures, `accept` checks and desync hunts.
 
-Wisp gives every verdict that is a number from the map's code (wisp#75 M1,
-revised 9 Oct): rules, meters, items, hazards, recovery, match flow,
+Wisp gives every verdict that is a number from the map's code (wisp#75 M5):
+rules, meters, items, hazards, recovery, match flow,
 determinism and checksums, timing, CPU frame cost, audio events, and which
 model, effect, animation or HUD element shows on which frame, where, at what
 scale and pose. Such a box is met by one Wisp run of the real map, two
 simulated players where the rule needs two, citing the run. Appearance that
 depends on Warcraft's shading (light, colour, contrast, materials, fog, water,
-bloom, PopcornFX particles) is iterated on Wisp frames and accepted by one
-native spot check per box, batched with the other spot checks of the day; no
-Wisp fidelity issue stands in for it. Product proofs a box asks for in the
-real game (60 fps on Tom's machine, the trailer, a listening clip) stay
-native. New Done-when boxes follow the same line.
+bloom) gets its verdict on Wisp within its calibrated range when the lever's
+fidelity gate passes and the verdict is outside the gate's error margin.
+Native truth runs on the Warcraft VM: take one spot check per lever per build
+when the verdict is inside that margin, the settings fall outside the
+calibrated range, or the appearance depends on PopcornFX particles. Batch those
+spot checks on the VM. An unstable reference is inconclusive; it never widens
+the gate's bounds. The laptop runs only product proofs requested in the real
+game (60 fps on Tom's machine, the trailer, a listening clip). New Done-when
+boxes follow the same line.
 
 Native checks use one worker per available client (signed-in b, c, d for Definitive;
 clone-a only through its launch.sh), sharing the visual queue; pairs are only for
