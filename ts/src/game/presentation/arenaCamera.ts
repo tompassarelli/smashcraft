@@ -86,6 +86,7 @@ export function resultCamera(camera: MatchCamera, stage: number, aspect: number,
   goal.z = mainDeckZAt(stage, goal.x) + 80.0;
   goal.distance = 750.0;
   goal.tangent = 0.2679491937160492;
+  camera.distance = Math.min(camera.distance, 950.0);
   if (frame >= RESULTS_CAMERA_FRAMES - 1) {
     copyMatchCamera(camera, goal);
     return;
