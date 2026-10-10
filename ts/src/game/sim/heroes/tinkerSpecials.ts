@@ -18,9 +18,9 @@ const boots = (rise: number, drift: number): AuthoredSpecial => ({
   regions: [heroRegion(7, 10, claw(0.0, 10.0, 0.0, 90.0, 26.0), tinkerHit(4.284058094024658, "juggle", 85, 1.0, HitElement.fire))],
 });
 const robo = (air: boolean): AuthoredSpecial => ({
-  endFrame: 46, armor: { ...frames(8, 23), maxDamage: 10.0, shell: true },
+  endFrame: 46, armor: { ...frames(14, 19), maxDamage: 10.0, shell: true },
   motion: [{ ...frames(12, 23), velocityX: 4.0, velocityZ: 0.0, stopsAtBody: true }],
-  regions: [heroRegion(14, 18, claw(18.0, 45.0, 113.0, 40.0, 16.0), tinkerHit(11.138550758361816, "kill", 35))],
+  regions: [heroRegion(17, 20, claw(18.0, 45.0, 95.0, 40.0, 12.0), tinkerHit(11.138550758361816, "kill", 35))],
   landingLag: air ? 20 : undefined,
 });
 
