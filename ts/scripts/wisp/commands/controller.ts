@@ -24,7 +24,7 @@ export const controller: Command = (args) => Effect.gen(function*() {
   const helper = yield* currentHelper;
   if (yield* unitInstalled) {
     const runs = yield* ensureService(helper);
-    console.log(`Controller service: ${runs}, helper ${helper}. Its state: ${CONTROLLER_STATUS}`);
+    console.log(`Controller service: ${runs}. Its state: ${CONTROLLER_STATUS}`);
     return;
   }
   pointLaunchers(helper);

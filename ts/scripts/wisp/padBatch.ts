@@ -19,7 +19,7 @@ import { Cause, Context, Deferred, Effect, Exit, Fiber, Layer, Option, Schedule,
 import { BunServices } from "@effect/platform-bun";
 import { ChildProcess } from "effect/process";
 import { spawnLogged } from "wisp/scripts/wisp/hostProcess";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { loadClients } from "wisp/scripts/warcraft/desktop";
 import { HotReload } from "wisp/scripts/wisp/hotReload";

@@ -25,7 +25,7 @@ import { BunServices } from "@effect/platform-bun";
 import { Effect, Fiber, Option, Schedule as EffectSchedule, Schema } from "effect";
 import { ChildProcess } from "effect/process";
 import { pollUntil } from "../../hostPoll";
-import { linePreloadFile, preloadLines } from "wisp/scripts/wisp/boundary";
+import { linePreloadFile, preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { at } from "wisp/src/runtime/lookup";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { type DesktopFailure, batch, capture, loadClients } from "wisp/scripts/warcraft/desktop";

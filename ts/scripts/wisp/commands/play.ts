@@ -9,7 +9,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Clock, Effect, Layer, Option, Schema } from "effect";
-import { linePreloadFile } from "wisp/scripts/wisp/boundary";
+import { linePreloadFile } from "wisp/scripts/wisp/preloadRecord";
 import { makePlay } from "wisp/scripts/wisp/commands/play";
 import { documentsFolder, launcherHealth, launcherLogDirectory, newestLauncherLog } from "wisp/scripts/warcraft/battleNet";
 import { type Client, enterLoginField, runTool } from "wisp/scripts/warcraft/desktop";
@@ -28,7 +28,7 @@ import { pollUntil } from "../../hostPoll";
 import { installLatest } from "../mapLibrary";
 import type { Command } from "wisp/scripts/wisp/command";
 import { PLAYABLE_BUILD } from "../../../src/game/shell/currentBuild";
-import type { PlayTools } from "wisp/scripts/wisp/playHost";
+import type { PlayTools } from "wisp/scripts/platform/play";
 
 interface Playtest {
 
@@ -137,7 +137,7 @@ export function playtest({ build, map, helper, computerSlot, computerOpponent, c
     }),
 
 
-    helper: { service: (game) => helper === undefined ? Effect.succeed("keyboard (this build has no controller helper)") : optionalController(helper, game.pid, build) },
+    helper: { service: (game) => optionalController({ pid: game.pid, build }) },
   };
 }
 
@@ -237,6 +237,7 @@ export const play: Command = (args) => Effect.gen(function*() {
   }
   if (args.includes("--install-green")) {
     const { installGreen } = yield* Effect.tryPromise({ try: () => import("../installGreen"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+    console.log(`Controller helper: ${yield* optionalController()}`);
     return yield* installGreen(documentsFolder(PLAYTEST_PREFIX));
   }
   yield* signInTom;

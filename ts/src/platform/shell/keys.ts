@@ -270,6 +270,9 @@ export function onDevCommand(s: ShellState): void {
 }
 
 
+const CINE_OFF_SUFFIX = " |cine off";
+
+
 export function applyDeveloperCommand(s: ShellState, actor: number, original: string): void {
   ownConfirmedState(s);
   if (original === RESET_COMMAND) {
@@ -277,7 +280,10 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
     clearVisualCapture(localSlot());
     pauseMatchPresentation(s, s.session.paused);
   }
-  const message = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
+  const captured = s.build.responseProbe ? configureVisualCapture(original, localSlot()) : original;
+  const cineOff = captured.endsWith(CINE_OFF_SUFFIX);
+  if (cineOff || original === RESET_COMMAND) views(s).combat.cineFilter = !cineOff;
+  const message = cineOff ? captured.substring(0, captured.length - CINE_OFF_SUFFIX.length) : captured;
   let receipt: string | undefined;
   const promo = quickPromoRequest(message);
   const quickStage = quickStageSettings(message);

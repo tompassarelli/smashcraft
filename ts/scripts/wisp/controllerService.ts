@@ -5,14 +5,16 @@
 
 
 import { spawn } from "node:child_process";
+import { createHash } from "node:crypto";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { Effect, Stream } from "effect";
 import { BunServices } from "@effect/platform-bun";
 import { ChildProcess } from "effect/process";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 import { pollUntil } from "../hostPoll";
+import { currentHelper } from "./currentPlaytest";
 
 export const CONTROLLER_LAUNCHER = join(homedir(), ".local/share/smashcraft-build-inputs/controller/wc3-journal");
 export const SERVICE_LAUNCHER = join(homedir(), ".local/share/wc3-controller/bin/wc3-controller");
@@ -61,9 +63,9 @@ export function pointLauncher(helper: string, launcher = CONTROLLER_LAUNCHER): b
 }
 
 const systemctl = (...args: string[]) => Effect.scoped(Effect.gen(function*() {
-  const child = yield* ChildProcess.make("systemctl", ["--user", ...args], { stdout: "ignore" });
-  const [exitCode, stderr] = yield* Effect.all([child.exitCode, Stream.mkString(Stream.decodeText(child.stderr))], { concurrency: "unbounded" });
-  return { exitCode, stderr };
+  const child = yield* ChildProcess.make("systemctl", ["--user", ...args]);
+  const [exitCode, stderr, stdout] = yield* Effect.all([child.exitCode, Stream.mkString(Stream.decodeText(child.stderr)), Stream.mkString(Stream.decodeText(child.stdout))], { concurrency: "unbounded" });
+  return { exitCode, stderr, stdout };
 })).pipe(
   Effect.provide(BunServices.layer),
   Effect.mapError((cause) => new PlayProblem({ problem: `couldn't run systemctl: ${cause.message}` })),
@@ -78,19 +80,50 @@ const fail = (problem: string) => new PlayProblem({ problem });
 /** The pinned wc3-controller service built beside the Smashcraft plug-in (currentPlaytest.ts). */
 export const pointLaunchers = (helper: string) => [pointLauncher(helper), pointLauncher(join(dirname(helper), "wc3-controller"), SERVICE_LAUNCHER)].some(Boolean);
 
+function serviceBuildAction(running: string | undefined, wanted: string): "keep" | "relink+restart" {
+  return running === wanted ? "keep" : "relink+restart";
+}
+
+const binaryBuild = (path: string) => createHash("sha256").update(readFileSync(path)).digest("hex");
+const controllerBuild = (service: string, plugin: string) => createHash("sha256").update(binaryBuild(service)).update(binaryBuild(plugin)).digest("hex");
+
+function runningBuild(pid: string | undefined): string | undefined {
+  if (pid === undefined || !/^\d+$/.test(pid)) return undefined;
+  try {
+    const children = readFileSync(`/proc/${pid}/task/${pid}/children`, "utf8").trim().split(/\s+/);
+    const plugin = children.find((child) => /^\d+$/.test(child) && readFileSync(`/proc/${child}/cmdline`, "utf8").split("\0").includes("--plugin"));
+    return plugin === undefined ? undefined : controllerBuild(`/proc/${pid}/exe`, `/proc/${plugin}/exe`);
+  } catch {
+    return undefined;
+  }
+}
+
 export const ensureService = (helper: string) => Effect.gen(function*() {
-  const changed = pointLaunchers(helper);
-  if (yield* unitInstalled) {
-    if (changed || (yield* systemctl("is-active", "--quiet", CONTROLLER_UNIT)).exitCode !== 0) {
+  const wanted = yield* Effect.try({ try: () => controllerBuild(join(dirname(helper), "wc3-controller"), helper), catch: (cause) => fail(`couldn't identify the controller build: ${String(cause)}`) });
+  const build = `${basename(dirname(helper))} (${wanted.slice(0, 12)})`;
+  const installed = yield* unitInstalled;
+  const servicePid: Effect.Effect<string | undefined, PlayProblem> = installed
+    ? systemctl("show", "--property=MainPID", "--value", CONTROLLER_UNIT).pipe(Effect.map((result) => result.stdout.trim()))
+    : Effect.sync(() => readStatus().service_pid);
+  const running = yield* servicePid;
+  const action = serviceBuildAction(runningBuild(running), wanted);
+  pointLaunchers(helper);
+  const awaitBuild = pollUntil(servicePid.pipe(Effect.map((pid) => runningBuild(pid) === wanted ? true : undefined)), {
+    every: "50 millis",
+    within: "2 seconds",
+    orElse: () => Effect.fail(fail(`the controller service didn't start build ${wanted} within 2 s`)),
+  });
+  if (installed) {
+    if (action === "relink+restart" || (yield* systemctl("is-active", "--quiet", CONTROLLER_UNIT)).exitCode !== 0) {
       const restart = yield* systemctl("restart", CONTROLLER_UNIT);
       if (restart.exitCode !== 0) return yield* fail(`couldn't start ${CONTROLLER_UNIT}: ${restart.stderr.toString().trim()}`);
+      yield* awaitBuild;
     }
-    return `${CONTROLLER_UNIT} (journalctl --user -u ${CONTROLLER_UNIT})`;
+    return `${CONTROLLER_UNIT} build ${build} (journalctl --user -u ${CONTROLLER_UNIT})`;
   }
 
 
-  const running = readStatus().service_pid;
-  if (alive(running) && !changed) return `the controller service (pid ${running}), log ${CONTROLLER_LOG}`;
+  if (alive(running) && action === "keep") return `the controller service (pid ${running}), build ${build}, log ${CONTROLLER_LOG}`;
   if (alive(running)) {
     process.kill(Number(running), "SIGTERM");
 
@@ -118,7 +151,8 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
     }),
     catch: (cause) => fail(`couldn't start the controller service: ${String(cause)}`),
   });
-  return `the controller service (pid ${pid}), log ${CONTROLLER_LOG}`;
+  yield* awaitBuild;
+  return `the controller service (pid ${pid}), build ${build}, log ${CONTROLLER_LOG}`;
 });
 
 
@@ -148,9 +182,11 @@ export const awaitService = (pid: number, build: string, runs: string, statusFil
 
 
 
-export const optionalController = (helper: string, pid: number, build: string, statusFile = CONTROLLER_STATUS) =>
-  ensureService(helper).pipe(
-    Effect.flatMap((runs) => awaitService(pid, build, runs, statusFile)),
-    Effect.map((ready) => `controller ${ready}`),
+export const optionalController = (game?: { readonly pid: number; readonly build: string }, statusFile = CONTROLLER_STATUS) =>
+  Effect.gen(function*() {
+    const runs = yield* ensureService(yield* currentHelper);
+    const ready = game === undefined ? runs : yield* awaitService(game.pid, game.build, runs, statusFile);
+    return `controller ${ready}`;
+  }).pipe(
     Effect.catchTag("PlayProblem", (problem) => Effect.succeed(`keyboard (no controller: ${problem.problem})`)),
   );

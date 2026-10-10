@@ -3,7 +3,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { Effect, Predicate, Schema } from "effect";
-import type { GameFileKind } from "wisp/scripts/wisp/boundary";
+import type { GameFileKind } from "wisp/scripts/wisp/preloadRecord";
 import { INPUT_TRACE_FILE, JournalControl, InputTrace, ResponsePage, responsePageFile } from "../wisp/boundary";
 import { at } from "wisp/src/runtime/lookup";
 import type { Injection, KernelEvent, SourceEdge } from "./linuxInput";

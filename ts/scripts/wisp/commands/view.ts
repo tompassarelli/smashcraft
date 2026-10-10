@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Console, Effect } from "effect";
 import { sceneFile } from "wisp/src/runtime/scene";
-import { FILE_SLOT_NUMBERS } from "wisp/scripts/wisp/boundary";
+import { FILE_SLOT_NUMBERS } from "wisp/scripts/wisp/preloadRecord";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
 import { frameProblems, measureFrame } from "wisp/scripts/wisp/frameProbe";
 import { readGameFile } from "wisp/scripts/wisp/gameFiles";

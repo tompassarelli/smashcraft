@@ -2,7 +2,7 @@
 import { join } from "node:path";
 import { canonicalChecksum } from "../src/game/replay/canonical";
 import { Effect } from "effect";
-import { MalformedGameFile } from "wisp/scripts/wisp/boundary";
+import { MalformedGameFile } from "wisp/scripts/wisp/preloadRecord";
 import { GameFiles, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { FrameCost, frameCostFile } from "./wisp/boundary";
 

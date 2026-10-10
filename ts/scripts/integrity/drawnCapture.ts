@@ -7,7 +7,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { Effect } from "effect";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { IntegrityFailure } from "./evidence";
 import type { PadStep } from "./padScript";
 
