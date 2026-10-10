@@ -21,9 +21,12 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   `--character` regenerates one fighter while retaining other generated bindings;
   `--pose POSE` appends only that missing gesture, preserving existing clips.
   `bun tools/animations/dreadlord-pounce-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` authors Dreadlord’s horizontal corkscrew, bite and recovery; `bun tools/animations/dreadlord-pounce-captures.ts PRIVATE_ASSETS PRIVATE_OUTPUT` captures their production phase selection in both facings.
-  `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  `bun tools/animations/jump-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID] [--no-preview]` appends
   movement-only jump gestures, including Blademaster's front flip
-  (smashcraft:docs/fighter-animation-work.md).
+  (smashcraft:docs/fighter-animation-work.md). `--character` authors one selected
+  fighter's archetype double jump and retains other jump bindings; `--no-preview`
+  skips silhouette sheets. Store the changed model family and refresh both body
+  timelines and clip metadata before using the generated bindings.
   `bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT`
   appends a distinct gesture for each Blademaster normal and his back throw,
   preserving the shipped plunge and double-jump flip.
