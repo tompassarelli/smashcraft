@@ -191,6 +191,9 @@ export function drawStage(s: ShellState): void {
     for (const _slot of PARTICIPANT_SLOTS) {
       for (const model of [HYDRA_RING_MODEL, HYDRA_CREST_MODEL]) {
         const effect = AddSpecialEffect(model, origin.x, origin.y);
+        BlzSetSpecialEffectAnimationBlendTime(effect, 0.0);
+        BlzSetSpecialEffectAnimation(effect, model === HYDRA_CREST_MODEL ? "Stand Swim" : "Stand");
+        BlzSetSpecialEffectTimeScale(effect, 0.0);
         hideEffect(effect, origin);
         s.stageHydra?.push(effect);
       }
@@ -432,9 +435,10 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectScale(ring, strikeZ === undefined ? 0.75 : 1.0);
     BlzSetSpecialEffectColor(ring, 48, 72, 64);
     BlzSetSpecialEffectPosition(ring, s.origin.x + x, s.origin.y, s.origin.z + SEA_SURFACE_Z + 8.0);
+    BlzSetSpecialEffectYaw(crest, 0.0);
     BlzSetSpecialEffectScale(crest, strikeZ === undefined ? 0.75 : 1.0);
-    BlzSetSpecialEffectYaw(crest, Math.PI / 2.0);
-    BlzSetSpecialEffectPosition(crest, s.origin.x + x, s.origin.y + 40.0, s.origin.z + (strikeZ ?? SEA_SURFACE_Z - 60.0));
+    BlzSetSpecialEffectPosition(crest, s.origin.x + x, s.origin.y - 40.0, s.origin.z + (strikeZ === undefined ? SEA_SURFACE_Z - 100.0 : Math.min(SEA_SURFACE_Z - 40.0, strikeZ)));
+    BlzSetSpecialEffectTime(crest, 0.0);
     BlzSetSpecialEffectTimeScale(crest, 0.0);
   }
   const ui = views(s);
@@ -516,7 +520,7 @@ export function lockArenaCamera(s: ShellState): void {
     framing.distance = 1450.0;
     framing.tangent = 0.2679491937160492;
   }
-  finalCamera(framing, game.stageChoice);
+  finalCamera(framing, game.stageChoice, world);
   probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
   const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
   applyArenaCamera(s, framing, aspect, pauseCameraAngle(s), duration);

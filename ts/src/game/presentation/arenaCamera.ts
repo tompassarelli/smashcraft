@@ -7,6 +7,10 @@ import { arctangentDegrees } from "../sim/mathTables";
 import { mainDeckLeft, mainDeckRight, mainDeckZAt } from "../sim/stage";
 import { stageBounds } from "../sim/stageBounds";
 import { TOMB_OF_SARGERAS_STAGE } from "../sim/stage";
+import { PARTICIPANT_SLOTS } from "../input/participants";
+import { fighterAt, isActive, type Roster } from "../sim/roster";
+import { fighterFrame, FRAMING_MARGIN } from "./fighterFraming";
+import { fitFighterPlacement } from "./fighterPlacement";
 
 
 export const FLOOR_HEIGHT = 1800.0;
@@ -34,8 +38,33 @@ export function cameraFieldOfView(camera: Readonly<MatchCamera>, aspect: number)
   return f32(2.0 * arctangentDegrees(f32(camera.tangent * aspect)));
 }
 
-export function finalCamera(camera: MatchCamera, stage: number): void {
-  if (stage === TOMB_OF_SARGERAS_STAGE) camera.z = Math.max(camera.z, 80.0 - camera.distance * 0.1736481785774231);
+const placedBody = { x: 0.0, z: 0.0 };
+
+export function finalCamera(camera: MatchCamera, stage: number, world: Readonly<Roster>): void {
+  if (stage !== TOMB_OF_SARGERAS_STAGE) return;
+  let bottom = 0.0, top = 0.0, count = 0;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) continue;
+    const fighter = fighterAt(world, slot);
+    if (fighter.status.out) continue;
+    fitFighterPlacement(placedBody, fighter, stage);
+    const frame = fighterFrame(fighter.character);
+    const low = placedBody.z + frame.bottom - FRAMING_MARGIN.bottom;
+    const high = placedBody.z + frame.top + FRAMING_MARGIN.top;
+    if (count === 0 || low < bottom) bottom = low;
+    if (count === 0 || high > top) top = high;
+    count++;
+  }
+  const sine = 0.1736481785774231;
+  const cosine = 0.9848077297210693;
+  if (count > 0) {
+    const hudTangent = camera.tangent * 0.4399999976158142;
+    const below = hudTangent / (cosine - hudTangent * sine);
+    const above = camera.tangent / (cosine + camera.tangent * sine);
+    camera.distance = Math.max(camera.distance, (80.0 - bottom) / (sine + below), (top - bottom) / (above + below));
+    camera.z = Math.max(top - camera.distance * above, Math.min(camera.z, bottom + camera.distance * below));
+  }
+  camera.z = Math.max(camera.z, 80.0 - camera.distance * sine);
 }
 
 

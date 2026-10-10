@@ -341,6 +341,8 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     ...IMPORTED_MODEL_FILES.map(({ entry, file }) => ({ entry, source: join(assets, "imported-models", file) })),
     ...generated.flat(),
     ...TOMB_WATERFALL_IMPORTS.map(({ entry, file }) => ({ entry, source: join(assets, "stage-assets", file) })),
+    { entry: "_de.w3mod\\Units\\Creeps\\Hydra\\Hydra.mdx", source: join(assets, "stage-assets", "TombHydraClassic.mdx") },
+    { entry: "_de.w3mod\\Units\\Creeps\\Hydra\\HydraSkinBlue2.blp", source: join(assets, "stage-assets", "TombHydraClassic.blp") },
     ...summonFiles.map((filename) => imported(join(summon, "imports/war3mapImported"), filename)),
     ...clipFiles.map((filename) => imported(join(clipDirectory, "imports/war3mapImported"), filename)),
     ...definitiveBodies,

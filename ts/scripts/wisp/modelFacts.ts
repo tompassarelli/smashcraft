@@ -369,5 +369,5 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\StageDeck-8ad82e4800b62de2ef9da93ee09586c6cf9177cd41f234974006d6e7ba6780c0.mdx": {"geosets":4,"triangles":128,"lights":0,"bounds":{"min":[-50,-60,-17],"max":[50,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-2c25bb13ee2212293baaae6e1f7a0c97bf6dcd2fb335453342c2ce192dbd2d2e.mdx": {"geosets":4,"triangles":500,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageTombWater-b29953859de912714ac825315b96e92d9c062cf85bdce20e1cfb98fec2f1a2ad.mdx": {"geosets":1,"triangles":2,"lights":0,"bounds":{"min":[-50,-60,0],"max":[50,60,0]},"emitters":[]},
-  "war3mapImported\\StageTombSea-2c4b274d7156801e3fcf8819e895cad082ebf785b0baff4bca01d71bd7b1ec68.mdx": {"geosets":17,"triangles":34,"lights":0,"bounds":{"min":[-50,-60,0],"max":[50,60,0.03]},"emitters":[]},
+  "war3mapImported\\StageTombSea-40b72b91689bf613ff662ad9e21a0b0a92c01486c9b7575eba29466fa0df9066.mdx": {"geosets":13,"triangles":26,"lights":0,"bounds":{"min":[-50,-60,0],"max":[50,60,12]},"emitters":[]},
 };

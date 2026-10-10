@@ -3,4 +3,4 @@ export const STAGE_WATER_MODEL = "war3mapImported\\StageWater-57629c3281c4b59f6b
 export const STAGE_LAVA_MODEL = "war3mapImported\\StageLava-f76991cf7cfc4e427564acd313c4e5c33e9ad3b1cf75de7ed9765c83fa0486f4.mdx";
 export const STAGE_SEA_MODEL = "war3mapImported\\StageSea-cb3c7aadd94bb8d4b8a4caf9f3be47d029f313b1727a6c5214c26568a02ea37c.mdx";
 export const STAGE_TOMB_WATER_MODEL = "war3mapImported\\StageTombWater-b29953859de912714ac825315b96e92d9c062cf85bdce20e1cfb98fec2f1a2ad.mdx";
-export const STAGE_TOMB_SEA_MODEL = "war3mapImported\\StageTombSea-2c4b274d7156801e3fcf8819e895cad082ebf785b0baff4bca01d71bd7b1ec68.mdx";
+export const STAGE_TOMB_SEA_MODEL = "war3mapImported\\StageTombSea-40b72b91689bf613ff662ad9e21a0b0a92c01486c9b7575eba29466fa0df9066.mdx";

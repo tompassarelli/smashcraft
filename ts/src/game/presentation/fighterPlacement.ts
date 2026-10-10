@@ -8,6 +8,7 @@ import type { Fighter } from "../sim/fighter";
 import { mainDeckZ, solidSurfaceAt, solidSurfaceCount } from "../sim/stage";
 import { characterModelScale } from "./modelScale";
 import { hitlagShake } from "./hitPresentation";
+import { TOMB_OF_SARGERAS_STAGE } from "../sim/stage";
 
 interface BodyEnvelope {
   readonly left: number;
@@ -62,6 +63,7 @@ export function fitFighterPlacement(out: FighterPlacement, fighter: Readonly<Fig
   const { motion } = fighter;
   out.x = motion.x + hitlagShake(fighter);
   out.z = motion.z;
+  if (stage === TOMB_OF_SARGERAS_STAGE && fighter.water.inWater) out.z -= fighterBodyEnvelope(fighter.character).top * characterModelScale(fighter.character) / 2.0;
 
   if (motion.grounded || motion.z >= mainDeckZ(stage) || fighter.ledge.state !== LedgeState.none) return;
   const body = fighterBodyEnvelope(fighter.character);
