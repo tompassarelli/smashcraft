@@ -33,7 +33,7 @@ import { BODY_HALF_WIDTH, bodyTop } from "../src/game/sim/surfaces";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 import { install as installDevelopment, start as startDevelopment } from "../src/platform/devMain";
 import { startMatch } from "../src/platform/shell/matchStart";
-import { startQuickMatch } from "../src/platform/shell/menus";
+import { resetToStartingSelection, startQuickMatch } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { drawStage, lockArenaCamera, renderPersistentPresentation, renderUi } from "../src/platform/shell/view";
 import { drawStageScenery } from "../src/platform/shell/stageScenery";
@@ -718,12 +718,13 @@ test("in the underside scenario's match, a fighter rising into the main deck's u
 test("ranked stage lineup: both clients choose all ten stages and draw their decks and themed scenery [invariant]", () => {
   const stages = STAGE_CATALOG.filter(({ id }) => id !== 0);
   expect(stages).toHaveLength(10);
+  const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
+  clients.start();
+  clients.frames(30);
   for (const stage of stages) {
-    const clients = headless.clients({ start: startDevelopment, install: installDevelopment });
-    clients.start();
-    clients.frames(30);
     clients.everywhere(() => {
       const s = shell();
+      resetToStartingSelection(s);
       selectCharacter(s.game, 0, Character.rifleman);
       selectCharacter(s.game, 1, Character.rifleman);
       expect(requestStageSelect(s.game, 0)).toBe(true);
