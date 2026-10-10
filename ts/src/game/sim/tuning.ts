@@ -184,7 +184,7 @@ export const AUTHORED_PHYSICS: { readonly [name in OriginalFighter]: FighterPhys
     ...ORIGINAL_ACCELERATION,
   },
   demonHunter: {
-    weight: 80.0,
+    weight: 86.0,
     gravity: melee(0.1899999976158142),
     terminalSpeed: melee(3.0),
     fastFallSpeed: melee(3.450000047683716),
