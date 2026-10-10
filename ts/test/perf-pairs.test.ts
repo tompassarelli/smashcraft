@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { PAIR_MARGIN, type PairWorst, comparePairs, pairText, parsePairs } from "./perfPairs";
-import { censusPairs } from "./perfCensus";
+import { PAIR_MARGIN, type PairWorst, comparePairs, pairText, parsePairs } from "../scripts/wisp/perfPairs";
+import { censusPairs } from "../scripts/wisp/perfCensus";
 
 const fixture: PairWorst[] = Array.from({ length: 26 }, (_, index) => ({ pair: `fighter-${index} vs rifleman`, instructions: 400_000 + index * 37_123, allocatedKb: 100 + index * 13.7 }));
 

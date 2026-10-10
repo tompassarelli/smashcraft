@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { type AdvantageRow } from "./advantageState";
+import { type AdvantageRow } from "../scripts/advantageState";
 
 const rows = (): AdvantageRow[] => readFileSync(join(import.meta.dir, "../../tools/move-data/advantage-state.jsonl"), "utf8").split("\n").filter((line) => line !== "").map((line) => JSON.parse(line));
 

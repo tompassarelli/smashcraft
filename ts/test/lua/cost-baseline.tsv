@@ -186,4 +186,4 @@ src/game/ui/plateLayout.tests.ts	3	0	0
 src/game/ui/portraitFrames.tests.ts	4	89000	226
 src/game/ui/slotColors.tests.ts	2	0	1
 src/sim/meleeScalarMath.tests.ts	2	88000	4
-test/lua/memoryCensus.tests.ts	4	3389000	3404
+scripts/wisp/memoryCensus.tests.ts	4	3389000	3404

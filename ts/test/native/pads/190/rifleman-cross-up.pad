@@ -2,7 +2,7 @@
 # units away, short hops out of the dash holding forward, and back airs. The
 # jump keeps the dash's speed (1.70 Melee units a frame), carries a over b and
 # the back air meets b's shield from behind (44 units past b's centre in the
-# headless run; smashcraft:ts/scripts/airDrift.tests.ts holds the same scenario
+# headless run; smashcraft:ts/test/air-drift.test.ts holds the same scenario
 # for every fighter). Syntax and checks: smashcraft:docs/native-bot-session.md.
 #! chat -dev quick hero rifleman
 # b runs in to 240 away, stops and holds its shield.

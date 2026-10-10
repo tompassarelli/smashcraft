@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import recorded from "./autoland.recorded.json";
-import { QUEUED, TEST_SLOTS, TRAIN_CAP, TRAIN_TITLE, WAITING, laneState, passedAlone, passedDescription, plan, testTitle, train, type Lane, type Run } from "./autolandCore";
+import recorded from "../scripts/autoland.recorded.json";
+import { QUEUED, TEST_SLOTS, TRAIN_CAP, TRAIN_TITLE, WAITING, laneState, passedAlone, passedDescription, plan, testTitle, train, type Lane, type Run } from "../scripts/autolandCore";
 
 const lanes = recorded.lanes as Lane[];
 const runs = recorded.runs as Run[];
