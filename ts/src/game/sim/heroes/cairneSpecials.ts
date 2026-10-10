@@ -1,7 +1,7 @@
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { heroRegion } from "../heroMoves";
-import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, recovery, rise, still } from "../heroSpecials";
 import { cairneCapsule as c, cairneHit as hit } from "./cairneMoves";
 
 const shockwave = (air: boolean): AuthoredSpecial => ({
@@ -12,15 +12,13 @@ const shockwave = (air: boolean): AuthoredSpecial => ({
 });
 const stomp = (air: boolean): AuthoredSpecial => ({
   endFrame: 57, landingLag: air ? 26 : undefined,
-  motion: [{ ...frames(12, 17), velocityX: 11.0, velocityZ: 0.0, stopsAtBody: true }, { ...frames(18, 18), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(12, 17), velocityX: 11.0, velocityZ: 0.0, stopsAtBody: true }, still(18, 18)],
   regions: [heroRegion(20, 23, c(0.0, 16.0, 118.0, 16.0, 22.0), hit(12.64900016784668, "launch", 80)),
     heroRegion(20, 23, c(0.0, 16.0, -118.0, 16.0, 22.0), hit(12.64900016784668, "launch", 80, -1))],
 });
-const lift = (): AuthoredSpecial => ({
-  endFrame: 32, oncePerAirtime: true, helpless: true, facesStick: true,
-  motion: [{ ...frames(1, 10), velocityX: 0.0, velocityZ: 0.0 },
-    { ...frames(11, 26), velocityX: 0.0, velocityZ: 20.0, driftSpeed: 10.0 },
-    { ...frames(27, 32), velocityX: 0.0, velocityZ: 6.0, driftSpeed: 3.0 }],
+const lift = (): AuthoredSpecial => recovery({
+  endFrame: 32, facesStick: true,
+  motion: [...rise(11, 26, 20.0, 10.0), { ...frames(27, 32), velocityX: 0.0, velocityZ: 6.0, driftSpeed: 3.0 }],
   regions: [heroRegion(11, 16, c(0.0, 95.0, 0.0, 200.0, 20.0), hit(8.756999969482422, "launch", 80))],
 });
 export const CAIRNE_SPECIALS: FighterSpecials = {

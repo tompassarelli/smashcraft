@@ -3,7 +3,7 @@
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
-import { CHARGED_AIM_FRAMES, Relocation, frames, type AuthoredSpecial, type FighterSpecials, type SpecialKit } from "../heroSpecials";
+import { CHARGED_AIM_FRAMES, Relocation, frames, type AuthoredSpecial, type FighterSpecials, type SpecialKit, recovery, still } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { wardenHit } from "./wardenMoves";
@@ -33,7 +33,7 @@ const LUNGE_SPEED = f32(H / f32(LUNGE_TRAVEL_FRAMES));
 const lungeRegions = (): readonly MoveRegion[] => [heroRegion(11, 14, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(9.130000114440918, "EDGE", 35))];
 const PURSUIT_LUNGE: AuthoredSpecial = {
   name: "Pursuit Lunge", endFrame: 40, regions: lungeRegions(),
-  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, still(15, 15)],
 };
 
 
@@ -47,21 +47,21 @@ const SHADOW_PURSUIT: AuthoredSpecial = {
 
 
 const LUNGE_TILT = { x: f32(0.939692621), z: f32(0.342020143) };
-const PURSUIT_LUNGE_AIR: AuthoredSpecial = {
-  ...PURSUIT_LUNGE, oncePerAirtime: true, helpless: true, landingLag: 12, aimFrames: 4,
-  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0, aimedTilt: LUNGE_TILT }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
-};
+const PURSUIT_LUNGE_AIR = recovery({
+  ...PURSUIT_LUNGE, landingLag: 12, aimFrames: 4,
+  motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0, aimedTilt: LUNGE_TILT }, still(15, 15)],
+});
 
 
 
 
 
-const blink = (distance: number): AuthoredSpecial => ({
-  endFrame: 30, oncePerAirtime: true, helpless: true, aimFrames: CHARGED_AIM_FRAMES,
+const blink = (distance: number): AuthoredSpecial => recovery({
+  endFrame: 30, aimFrames: CHARGED_AIM_FRAMES,
   motion: [
-    { ...frames(1, CHARGED_AIM_FRAMES), velocityX: 0.0, velocityZ: 0.0 },
+    still(1, CHARGED_AIM_FRAMES),
     { ...frames(9, 9), velocityX: 0.0, velocityZ: distance, aimedSpeed: distance, throughEdge: true },
-    { ...frames(10, 30), velocityX: 0.0, velocityZ: 0.0 },
+    still(10, 30),
   ],
   intangible: frames(8, 10),
 });

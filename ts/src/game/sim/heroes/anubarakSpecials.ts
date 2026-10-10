@@ -1,6 +1,6 @@
 import { heroRegion, heroHurtPose } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
-import { CHARGED_AIM_FRAMES, chargedAngleMotion, frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { CHARGED_AIM_FRAMES, chargedAngleMotion, frames, type AuthoredSpecial, type FighterSpecials, recovery } from "../heroSpecials";
 import { anubarakHit } from "./anubarakMoves";
 
 const impale = (air: boolean, ex: boolean): AuthoredSpecial => ({
@@ -18,8 +18,8 @@ const burrow = (ex: boolean): AuthoredSpecial => ({
   regions: [heroRegion(ex ? 30 : 26, ex ? 33 : 29, { x1: -28.0, z1: 20.0, x2: 44.0, z2: 110.0, radius: ex ? 32.0 : 24.0 }, anubarakHit(ex ? 17.856000900268555 : 13.392000198364258, 80, 85.55999755859375, 38.0))],
   ...(ex ? {} : { ex: burrow(true) }),
 });
-const eruption = (ex: boolean): AuthoredSpecial => ({
-  endFrame: 46, oncePerAirtime: true, helpless: true, aimFrames: CHARGED_AIM_FRAMES,
+const eruption = (ex: boolean): AuthoredSpecial => recovery({
+  endFrame: 46, aimFrames: CHARGED_AIM_FRAMES,
   motion: chargedAngleMotion(ex ? 640.0 : 400.0, 28),
   regions: [heroRegion(9, 16, { x1: 0.0, z1: 70.0, x2: 0.0, z2: 150.0, radius: ex ? 31.0 : 21.0 }, anubarakHit(ex ? 13.392000198364258 : 8.928000450134277, 80, 79.05000305175781, 28.0))],
   ...(ex ? {} : { ex: eruption(true) }),

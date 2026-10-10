@@ -2,7 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind } from "../codes";
 import { withExKit } from "../exSpecialAuthoring";
 import { heroRegion } from "../heroMoves";
-import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, recovery } from "../heroSpecials";
 import { malfurionCastBody, malfurionHit } from "./malfurionMoves";
 
 const ROOTS: AuthoredSpecial = {
@@ -21,11 +21,11 @@ const stag = (air: boolean): AuthoredSpecial => ({
   motion: [{ ...frames(12, 20), velocityX: 18.0, velocityZ: air ? 2.0 : 0.0, stopsAtShield: true }],
   regions: [heroRegion(12, 20, { x1: 18.0, z1: 35.0, x2: 90.0, z2: 55.0, radius: 16.0 }, malfurionHit(11.0, 40, 90.0, 24.0))],
 });
-const ASCENT: AuthoredSpecial = {
-  endFrame: 40, landingLag: 24, oncePerAirtime: true, helpless: true,
+const ASCENT = recovery({
+  endFrame: 40, landingLag: 24,
   motion: [{ ...frames(10, 23), velocityX: 5.0, velocityZ: 23.0, driftSpeed: 2.0 }],
   regions: [heroRegion(10, 23, { x1: -20.0, z1: 50.0, x2: 20.0, z2: 125.0, radius: 18.0 }, malfurionHit(7.0, 80, 75.0, 24.0))],
-};
+});
 const BRANCH: SpecialProjectile = {
   model: "Abilities\\Weapons\\TreantMissile\\TreantMissile.mdx",
   spawnFrame: 0, offsetX: 15.0, offsetZ: 48.0, velocityX: 8.0, velocityZ: 0.0,

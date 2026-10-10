@@ -5,7 +5,7 @@
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, CHARGED_AIM_FRAMES, chargedAngleMotion, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, type SpecialProjectile, CHARGED_AIM_FRAMES, chargedAngleMotion, recovery } from "../heroSpecials";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import type { AppliedStatus } from "../heroStatus";
 import { hit } from "./shadowHunterMoves";
@@ -39,10 +39,9 @@ const spiritGlaive = (air: boolean): AuthoredSpecial => ({
 
 
 
-const loaVault = (distance: number): AuthoredSpecial => ({
+const loaVault = (distance: number): AuthoredSpecial => recovery({
   endFrame: 26, aimFrames: CHARGED_AIM_FRAMES,
   motion: chargedAngleMotion(h(distance), 16),
-  oncePerAirtime: true, helpless: true,
 });
 
 

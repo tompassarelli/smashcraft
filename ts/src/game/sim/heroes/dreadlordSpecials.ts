@@ -5,7 +5,7 @@ import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type StrikeCapsule, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, frames, recovery, still } from "../heroSpecials";
 import { hurtPart, hurtPose } from "../hurtboxes";
 import { DREADLORD_STAND, dreadlordHit, dreadlordLimbPoses } from "./dreadlordMoves";
 
@@ -45,16 +45,14 @@ const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 
 const POUNCE_BITE = dreadlordHit(11.090278625488281, "EDGE", 40);
 const NIGHT_POUNCE: AuthoredSpecial = {
   endFrame: 53,
-  motion: [{ ...frames(1, 16), velocityX: h(f32(0.14)), velocityZ: 0.0, stopsAtBody: true }, { ...frames(17, 17), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(1, 16), velocityX: h(f32(0.14)), velocityZ: 0.0, stopsAtBody: true }, still(17, 17)],
   commandGrab: { ...frames(17, 19), strike: POUNCE_GRAB, holdFrames: 16, effect: POUNCE_BITE, recovery: 28, heal: { heal: 4.0 } },
   hurt: dreadlordLimbPoses([heroRegion(17, 19, POUNCE_GRAB, POUNCE_BITE)], 53, 1),
 };
-const NIGHT_POUNCE_AIR: AuthoredSpecial = {
+const NIGHT_POUNCE_AIR = recovery({
   ...NIGHT_POUNCE,
-  oncePerAirtime: true,
-  helpless: true,
   landingLag: AIR_LANDING_LAG,
-};
+});
 
 
 
@@ -65,13 +63,11 @@ const SPREAD_WINGS = [hurtPose(9, 32, [
   hurtPart(14.0, 85.0, 44.0, 125.0, 14.0),
 ])];
 function batAscension(rise: number, across: number): AuthoredSpecial {
-  return {
+  return recovery({
     endFrame: 32,
     motion: [{ ...frames(9, 32), velocityX: 0.0, velocityZ: perFrame(h(rise), 24), driftSpeed: perFrame(h(across), 24) }],
-    oncePerAirtime: true,
-    helpless: true,
     hurt: SPREAD_WINGS,
-  };
+  });
 }
 
 export const DREADLORD_SPECIALS: FighterSpecials = {

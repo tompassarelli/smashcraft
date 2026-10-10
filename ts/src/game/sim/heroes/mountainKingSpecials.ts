@@ -4,7 +4,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, type MoveRegion, heroRegion } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialKit, type SpecialMotion, type SpecialProjectile, CHARGED_AIM_FRAMES, FollowUpInput, chargedAngleMotion, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialKit, type SpecialMotion, type SpecialProjectile, CHARGED_AIM_FRAMES, FollowUpInput, chargedAngleMotion, frames, recovery, still } from "../heroSpecials";
 import { MEDIUM, SHORT, capsule, hit } from "./mountainKingMoves";
 
 
@@ -27,7 +27,7 @@ const STORM_BOLT = hit(5.403449535369873, "LAUNCH", 65, false, HitElement.electr
 const RUSH_FRAMES = 6;
 const RUSH_SPEED = f32(heights(f32(1.2)) / RUSH_FRAMES);
 const STORM_RUSH = { ...hit(12.968278884887695, "EDGE", 35), growth: f32(88.4) };
-const RUSH: readonly SpecialMotion[] = [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(19, 19), velocityX: 0.0, velocityZ: 0.0 }];
+const RUSH: readonly SpecialMotion[] = [{ ...frames(13, 18), velocityX: RUSH_SPEED, velocityZ: 0.0, stopsAtBody: true }, still(19, 19)];
 const RUSH_BODY = capsule(0.0, 14.0, 12.0, 60.0, 26.0);
 
 const RUSH_HURT = [hurtPose(13, 18, [hurtCapsule(Character.mountainKing), hurtPart(RUSH_BODY.x1, RUSH_BODY.z1, RUSH_BODY.x2, RUSH_BODY.z2, RUSH_BODY.radius)])];
@@ -50,7 +50,7 @@ const HAMMERFALL: AuthoredSpecial = {
   name: "Hammerfall",
 
   endFrame: 70,
-  motion: [{ ...frames(1, 3), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(4, 70), velocityX: 0.0, velocityZ: -PLUNGE }],
+  motion: [still(1, 3), { ...frames(4, 70), velocityX: 0.0, velocityZ: -PLUNGE }],
   regions: [heroRegion(4, 70, capsule(4.0, 10.0, 4.0, -24.0, 20.0), hit(12.968278884887695, "SPIKE", 270, false, HitElement.electric), hit(10.806899070739746, "LAUNCH", 55, false, HitElement.electric))],
   landingLag: 24,
   helpless: true,
@@ -130,28 +130,24 @@ export const MOUNTAIN_KING_SPECIALS: FighterSpecials = {
       hurt: RUSH_HURT,
       motion: RUSH,
     },
-    air: {
+    air: recovery({
       endFrame: 46,
       regions: [heroRegion(13, 18, RUSH_BODY, STORM_RUSH)],
       hurt: RUSH_HURT,
       motion: RUSH,
-      oncePerAirtime: true,
-      helpless: true,
-    },
+    }),
   }, { damage: 1.25 }),
   up: withHammerfallEx({
     name: "Thunder Leap",
     description: "Hold a direction as he crouches, then a hammer leap that way; press special at the top to plunge down as Hammerfall.",
-    ground: {
+    ground: recovery({
       endFrame: 28,
       regions: [heroRegion(9, 14, LEAP_HAMMER, THUNDER_LEAP)],
       aimFrames: CHARGED_AIM_FRAMES,
       motion: FULL_LEAP,
       facesStick: true,
-      oncePerAirtime: true,
-      helpless: true,
       followUps: [{ window: frames(16, 28), special: HAMMERFALL }],
-    },
+    }),
 
   }),
   down: withExKit({

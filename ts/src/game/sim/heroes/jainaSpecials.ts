@@ -1,7 +1,7 @@
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, recovery, still } from "../heroSpecials";
 import { jainaCastBody, jainaHit } from "./jainaMoves";
 
 const h = (n: number) => f32(HERO_REFERENCE_HEIGHT * f32(n));
@@ -28,12 +28,12 @@ const BLIZZARD: AuthoredSpecial = {
   endFrame: 48, landingLag: 20, hurt: jainaCastBody(5, 48),
   projectiles: [ice(21, 40, 4.760000228881836), ice(45, 48, 7.616000175476074)],
 };
-const blink = (distance: number): AuthoredSpecial => ({
+const blink = (distance: number): AuthoredSpecial => recovery({
   endFrame: 34, aimFrames: 13,
-  motion: [{ ...frames(1, 13), velocityX: 0.0, velocityZ: 0.0 },
+  motion: [still(1, 13),
     { ...frames(14, 14), velocityX: 0.0, velocityZ: h(distance), aimedSpeed: h(distance), throughEdge: true },
-    { ...frames(15, 34), velocityX: 0.0, velocityZ: 0.0 }],
-  intangible: frames(14, 17), oncePerAirtime: true, helpless: true,
+    still(15, 34)],
+  intangible: frames(14, 17),
 });
 const SUMMON: AuthoredSpecial = {
   endFrame: 52, groundOnly: true, hurt: jainaCastBody(20, 33),

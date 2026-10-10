@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { Character, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialMotion, type SpecialProjectile, frames, recovery, still } from "../heroSpecials";
 import { hurtPart, hurtPose } from "../hurtboxes";
 import { capsule, hit } from "./pitLordMoves";
 
@@ -40,7 +40,7 @@ const CHARGE_BODY = capsule(10.0, 30.0, 40.0, 80.0, 40.0);
 const CHARGE_HURT = [hurtPose(16, 30, [hurtCapsule(Character.pitLord), hurtPart(10.0, 30.0, 40.0, 80.0, 40.0)])];
 const chargeMotion = (distance: number): readonly SpecialMotion[] => [
   { ...frames(19, 26), velocityX: perFrame(distance, 19, 26), velocityZ: 0.0, stopsAtBody: true },
-  { ...frames(27, 27), velocityX: 0.0, velocityZ: 0.0 },
+  still(27, 27),
 ];
 const RUIN_CHARGE: AuthoredSpecial = {
   endFrame: 64,
@@ -49,14 +49,12 @@ const RUIN_CHARGE: AuthoredSpecial = {
   motion: chargeMotion(h(f32(1.5))),
   armor: { ...frames(19, 24), maxDamage: 6.0 },
 };
-const RUIN_CHARGE_AIR: AuthoredSpecial = {
+const RUIN_CHARGE_AIR = recovery({
   endFrame: 64,
   regions: [heroRegion(19, 26, CHARGE_BODY, CHARGE)],
   hurt: CHARGE_HURT,
   motion: chargeMotion(h(f32(0.8))),
-  oncePerAirtime: true,
-  helpless: true,
-};
+});
 
 
 
@@ -71,11 +69,11 @@ const leap = (rise: number, drift: number, steer: number): SpecialMotion[] => {
   return [segment(13, 18, 0.5), segment(19, 28, f32(0.46)), segment(29, 32, f32(0.04))];
 };
 const LEAP_HOOF = capsule(10.0, 0.0, 40.0, 40.0, 22.0);
-const abyssalLeap = (rise: number, drift: number, steer: number): AuthoredSpecial => ({
+const abyssalLeap = (rise: number, drift: number, steer: number): AuthoredSpecial => recovery({
   endFrame: 32,
   regions: [heroRegion(13, 18, LEAP_HOOF, hit(10.550000190734863, "LAUNCH", 80, 1.0, HitElement.normal))],
   motion: leap(rise, drift, steer),
-  facesStick: true, oncePerAirtime: true, helpless: true,
+  facesStick: true,
 });
 
 

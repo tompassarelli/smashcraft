@@ -409,6 +409,16 @@ export function heroSpecialMove(specials: Readonly<FighterSpecials>, chosen: { r
 
 export const frames = (first: number, last: number): FrameWindow => ({ first, last });
 
+/** A motion phase that holds the fighter in place. */
+export const still = (first: number, last: number): SpecialMotion => ({ ...frames(first, last), velocityX: 0.0, velocityZ: 0.0 });
+
+/** A recovery: usable once per airtime and leaves the fighter helpless. */
+export const recovery = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, oncePerAirtime: true, helpless: true });
+
+/** Holds still until `first`, then rises at `velocityZ` through `last` with `driftSpeed` steering. */
+export const rise = (first: number, last: number, velocityZ: number, driftSpeed: number): SpecialMotion[] =>
+  [still(1, first - 1), { ...frames(first, last), velocityX: 0.0, velocityZ, driftSpeed }];
+
 
 export const CHARGED_AIM_FRAMES = 8;
 
@@ -426,8 +436,8 @@ export function chargedAngleMotion(distance: number, travelFrames: number): read
   const launch = CHARGED_AIM_FRAMES + 1;
   const stop = CHARGED_AIM_FRAMES + travelFrames + 1;
   return [
-    { ...frames(1, CHARGED_AIM_FRAMES), velocityX: 0.0, velocityZ: 0.0 },
+    still(1, CHARGED_AIM_FRAMES),
     { ...frames(launch, stop - 1), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed },
-    { ...frames(stop, stop), velocityX: 0.0, velocityZ: 0.0 },
+    still(stop, stop),
   ];
 }

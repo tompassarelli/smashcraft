@@ -2,7 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { withExKit } from "../exSpecialAuthoring";
 import { HitElement } from "../codes";
 import { heroRegion } from "../heroMoves";
-import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, recovery, rise } from "../heroSpecials";
 import { claw, tinkerHit } from "./tinkerMoves";
 
 const rocket = (spawnFrame: number): SpecialProjectile => ({
@@ -12,9 +12,8 @@ const rocket = (spawnFrame: number): SpecialProjectile => ({
   reflectable: true, limit: 3,
 });
 const rockets = (air: boolean): AuthoredSpecial => ({ endFrame: 43, projectiles: [rocket(14), rocket(20), rocket(26)], landingLag: air ? 20 : undefined });
-const boots = (rise: number, drift: number): AuthoredSpecial => ({
-  endFrame: 32, motion: [{ ...frames(1, 6), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(7, 29), velocityX: 0.0, velocityZ: rise, driftSpeed: drift }],
-  oncePerAirtime: true, helpless: true, facesStick: true,
+const boots = (height: number, drift: number): AuthoredSpecial => recovery({
+  endFrame: 32, motion: rise(7, 29, height, drift), facesStick: true,
   regions: [heroRegion(7, 10, claw(0.0, 10.0, 0.0, 90.0, 26.0), tinkerHit(4.614999771118164, "juggle", 85, 1.0, HitElement.fire))],
 });
 const robo = (air: boolean): AuthoredSpecial => ({
