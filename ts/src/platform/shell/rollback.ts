@@ -38,7 +38,7 @@ import { LASTING, resumePresentationHeld, setStatus } from "./view";
 import { holdPresentedCapture } from "./visualCapture";
 import { samplePad } from "../../game/input/padCapture";
 import { pollPad, recordPadRow } from "./analogPad";
-import { beginNetEpoch, matchDelay, noteDepth, noteEcho, noteSent } from "./netDelay";
+import { beginNetEpoch, matchDelay, noteDepth, noteEcho, noteSent, requestFor } from "./netDelay";
 
 
 const STALL_NOTICE_CALLBACKS = 20;
@@ -48,6 +48,12 @@ const NEUTRAL: Readonly<InputRow> = emptyInput();
 
 const failControls = (s: ShellState) => setStatus(s, "Controls stopped responding. Restart the match.", LASTING);
 
+
+export function delayRow(s: ShellState, rollback: Rollback): string {
+  const requests: number[] = [];
+  for (const slot of PARTICIPANT_SLOTS) if (humanActive(s.game, slot)) requests.push(requestFor(rollback.net, s.game, slot, s.participants[slot].bindings.delay));
+  return `delay ${rollback.epoch} ${rollback.delay} ${requests.join(",")}`;
+}
 
 export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   if (s.pad !== undefined) {
