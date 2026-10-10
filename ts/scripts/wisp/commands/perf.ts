@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { type PerfProject, makePerf } from "wisp/scripts/wisp/commands/perf";
 import { buildProject, tsDirectory } from "../project";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../../../src/game/sim/heroes/registry";
-import { census, profile } from "../perfCensus";
+import { census, comparePairRuns, profile } from "../perfCensus";
 import { budget } from "../perfBudget";
 
 const main = buildProject("main");
@@ -33,6 +33,7 @@ const measure = makePerf(SMASHCRAFT_PERF);
 const spikeCensus = census({ map: playableMap, program: SMASHCRAFT_PERF.program });
 
 const runProfile = profile(SMASHCRAFT_PERF);
+const compare = comparePairRuns(measure);
 
 export const perf: typeof measure = (args) =>
-  args[0] === "census" ? spikeCensus(args.slice(1)) : args[0] === "budget" ? budget(args.slice(1)) : args[0] === "profile" ? runProfile(args.slice(1)) : measure(args);
+  args[0] === "census" ? spikeCensus(args.slice(1)) : args[0] === "compare" ? compare(args.slice(1)) : args[0] === "budget" ? budget(args.slice(1)) : args[0] === "profile" ? runProfile(args.slice(1)) : measure(args);

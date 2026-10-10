@@ -19,9 +19,10 @@ import { PerfFailure, type PerfProject, measureRun } from "wisp/scripts/wisp/com
 import { WARCRAFT_COST, nativeFrameCost } from "wisp/src/headless/nativeCost";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../../src/game/sim/heroes/registry";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
-import { CENSUS_STAGE } from "./census";
+import { CENSUS_PARTNER, CENSUS_STAGE } from "./census";
 import { stockLua } from "./luaRuntimes";
 import { tsDirectory } from "./project";
+import { PAIR_MARGIN, type PairWorst, comparePairs, isPairText, pairText, parsePairs } from "./perfPairs";
 
 
 export const CENSUS_LIMIT_MS = 2;
@@ -63,7 +64,7 @@ function median(values: readonly number[]): number {
 }
 
 
-function censusEntries(output: string): CensusEntry[] {
+function censusRuns(output: string) {
   let current: { frames: Map<number, FrameSample>; marks: string[][] } = { frames: new Map(), marks: [] };
   const runs = [current];
   for (const line of output.split(/\r?\n/)) {
@@ -79,7 +80,29 @@ function censusEntries(output: string): CensusEntry[] {
       current.marks.push(line.split("\t"));
     }
   }
-  return runs.flatMap(({ frames, marks }) => {
+  return runs;
+}
+
+export function censusPairs(output: string): PairWorst[] {
+  return censusRuns(output).flatMap(({ frames, marks }) => {
+    const fighter = marks[0]?.[1];
+    if (fighter === undefined || fighter === "stage") return [];
+    let instructions = 0;
+    let allocatedKb = 0;
+    for (const [, , , , , moveFirst, moveLast] of marks.slice(1)) {
+      for (let frame = Number(moveFirst); frame <= Number(moveLast); frame++) {
+        const sample = frames.get(frame);
+        if (sample === undefined) throw new Error(`the census has no sample of frame ${frame}`);
+        instructions = Math.max(instructions, sample.instructions);
+        allocatedKb = Math.max(allocatedKb, sample.allocatedKb);
+      }
+    }
+    return [{ pair: `${fighter} vs ${fighterSlug(CENSUS_PARTNER)}`, instructions, allocatedKb }];
+  });
+}
+
+function censusEntries(output: string): CensusEntry[] {
+  return censusRuns(output).flatMap(({ frames, marks }) => {
     const range = (first: number, last: number) => {
       const picked: FrameSample[] = [];
       for (let frame = first; frame <= last; frame++) {
@@ -216,6 +239,7 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   const [limitText = String(CENSUS_LIMIT_MS)] = flagValues(args, "rise-ms");
   const [jobsText = "2"] = flagValues(args, "jobs");
   const [out] = flagValues(args, "out");
+  const [pairsOut] = flagValues(args, "pairs");
   const profile = args.includes("--functions");
   const [topText = "12"] = flagValues(args, "top");
   const top = Number(topText);
@@ -225,7 +249,7 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   const jobs = Number(jobsText);
   const known = SELECTABLE_CHARACTERS.map(fighterSlug);
   const unknown = fighters.filter((name) => !known.includes(name));
-  if (!(limit > 0) || !(jobs >= 1) || unknown.length > 0) return yield* new UsageFailure({ problem: `perf census takes --fighter NAME (${known.join(", ")}), --stage ID, --rise-ms MS, --jobs N, --functions and --out FILE` });
+  if (!(limit > 0) || !(jobs >= 1) || unknown.length > 0) return yield* new UsageFailure({ problem: `perf census takes --fighter NAME (${known.join(", ")}), --stage ID, --rise-ms MS, --jobs N, --functions, --out FILE and --pairs FILE` });
   const everything = fighters.length === 0 && stages.length === 0;
   const runs = [
     ...(everything ? known : fighters).map((name) => `census-${name}`),
@@ -239,6 +263,10 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
   const errors = output.split("\n").filter((line) => line.startsWith("journey: "));
   const entries = yield* Effect.try({ try: () => censusEntries(output), catch: (cause) => new PerfFailure({ problem: describeCause(cause) }) });
   yield* Console.log(censusLines(entries, limit).join("\n"));
+  if (pairsOut !== undefined) {
+    const pairs = yield* Effect.try({ try: () => censusPairs(output), catch: (cause) => new PerfFailure({ problem: describeCause(cause) }) });
+    yield* Effect.tryPromise({ try: () => Bun.write(pairsOut, pairText(pairs)), catch: (cause) => new PerfFailure({ problem: `writing ${pairsOut}: ${describeCause(cause)}` }) });
+  }
   if (profile) {
     const shown = entries.filter((entry) => entry.spikeMs > limit);
     const picked = shown.length > 0 ? shown : [...entries].sort((a, b) => b.spikeMs - a.spikeMs).slice(0, 5);
@@ -265,6 +293,19 @@ export const census = (project: CensusProject): Command => (args) => Effect.gen(
 
 
 
+
+export const comparePairRuns = (runs: Command): Command => (args) => Effect.gen(function*() {
+  const paths = args.filter((arg, index) => !arg.startsWith("--") && args[index - 1] !== "--threshold");
+  const texts = yield* Effect.forEach(paths, (path) => Effect.tryPromise({ try: () => Bun.file(path).text(), catch: (cause) => new PerfFailure({ problem: `reading ${path}: ${describeCause(cause)}` }) }));
+  const [fixtureText, runText] = texts;
+  if (fixtureText === undefined || runText === undefined || texts.length !== 2 || !isPairText(fixtureText) || !isPairText(runText)) return yield* runs(["compare", ...args]);
+  const [marginText = String(PAIR_MARGIN)] = flagValues(args, "threshold");
+  const margin = Number(marginText);
+  if (!(margin >= 0)) return yield* new UsageFailure({ problem: "perf compare takes an optional --threshold share, such as 0.05" });
+  const regressions = yield* Effect.try({ try: () => comparePairs(parsePairs(fixtureText), parsePairs(runText), margin), catch: (cause) => new PerfFailure({ problem: describeCause(cause) }) });
+  if (regressions.length > 0) return yield* new PerfFailure({ problem: `fighter pairs' worst frames rise more than ${margin * 100}% over the fixture: ${regressions.join("; ")}` });
+  yield* Console.log(`every fighter pair's worst frame is within ${margin * 100}% of the fixture`);
+});
 
 export const profile = (project: PerfProject): Command => (args) => Effect.gen(function*() {
   const [worstText = "3"] = flagValues(args, "worst-frames");

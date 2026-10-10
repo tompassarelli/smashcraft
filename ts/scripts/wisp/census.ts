@@ -89,7 +89,7 @@ const STAGE_FRAMES = 1200;
 
 export const CENSUS_STAGE = 0;
 
-const PARTNER = Character.rifleman;
+export const CENSUS_PARTNER = Character.rifleman;
 
 interface Shell {
   readonly game: MatchState;
@@ -125,7 +125,7 @@ function startTraining(clients: Lockstep, measure: PerfMeasure, fighter: Charact
     game.characterChoices[0] = fighter;
     game.characterReadiness[0] = true;
     game.computerMask |= 1 << 1;
-    game.characterChoices[1] = PARTNER;
+    game.characterChoices[1] = CENSUS_PARTNER;
     game.characterReadiness[1] = true;
     game.training = true;
     game.trainer.behaviour = PartnerBehaviour.stand;
@@ -204,7 +204,7 @@ export function playFighterCensus(clients: Lockstep, measure: PerfMeasure, fight
 
 
 export function playStageCensus(clients: Lockstep, measure: PerfMeasure, stage: number, label: string): { problems: number; lines: string[] } {
-  startTraining(clients, measure, PARTNER, stage);
+  startTraining(clients, measure, CENSUS_PARTNER, stage);
   clients.frames(60);
   const first = clients.frame + 1;
   clients.frames(STAGE_FRAMES);

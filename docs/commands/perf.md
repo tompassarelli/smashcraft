@@ -3,9 +3,11 @@
 The budget defaults to p99 10 ms and 14 ms for the mean of the worst 1% of
 frames; that older limit remains until the frame-cost work lowers it.
 Acceptance still requires the root’s 10 ms budget, so pass `--p99 10 --top 10`
-explicitly. No frame-cost gate reads one worst frame: which frame is worst
-moves whenever a bot's choices change, so gates read a percentile or the
-worst 1% mean (#394); `perf budget` still prints the worst frame.
+explicitly. No bot-run gate reads one worst frame: which frame is worst
+moves whenever a bot's choices change, so those gates read a percentile or
+the worst 1% mean (#394); `perf budget` still prints the worst frame. The
+census plays scripted inputs, so its worst frames hold still and the
+per-pair gate below reads them (#405).
 
 - Frame cost: `LUA=<32-bit lua> bun wisp perf [quick-match|bot|bot-four|playable-bot-four|playable-duel|playable-human-four]`
   plays a run in 32-bit Lua and prints each client's predicted Warcraft cost
@@ -29,3 +31,14 @@ worst 1% mean (#394); `perf budget` still prints the worst frame.
   and every stage's hazards, and fails any entry over 2 ms above its standing
   baseline; `--functions` names the map functions of each worst frame. Run it
   on the farm (`bun wisp farm perf "census --fighter rifleman --functions"`).
+  Per-pair gate (#405): `perf census --pairs FILE` writes each fighter pair's
+  (fighter vs the rifleman partner) worst frame, the most p0 Lua instructions
+  and the most allocated KB over its moves after the first (the first move's
+  start-up frames vary by up to 43% from run to run); `bun wisp perf compare
+  test/fixtures/perf/census-pairs.txt FILE` fails when any pair's worst frame
+  rises more than 5% (`PAIR_MARGIN` in smashcraft:ts/scripts/wisp/perfPairs.ts)
+  over the fixture, naming the pair. Pairs the run skipped are not judged; a
+  pair without a fixture row fails. The margin's source: five census runs of
+  rifleman, illidan, thrall and murloc gave identical worst-frame instructions
+  and allocation within 4.1% (thrall 87.7–91.3 KB). After an intended rise or a cut, rewrite
+  the fixture with `--pairs` and commit it.
