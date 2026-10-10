@@ -3,12 +3,13 @@
 
 
 import { BunRuntime, BunServices } from "@effect/platform-bun";
-import { Cause, Effect, Exit } from "effect";
+import { Cause, Effect, Exit, Layer } from "effect";
 import { ChildProcess } from "effect/process";
 import { runProcess } from "./hostProcess";
 import type { Teardown } from "effect/Runtime";
 import type { Command } from "wisp/scripts/wisp/command";
 import { step, timingsLayer } from "wisp/scripts/wisp/timings";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 
 const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Promise<Command> }> = {
@@ -79,7 +80,7 @@ BunRuntime.runMain(Effect.gen(function*() {
   if (name === "play") yield* runProcess(ChildProcess.make(process.execPath, ["install", "--frozen-lockfile"], { cwd: import.meta.dir + "/..", stdout: "ignore" }));
   yield* command(args);
 }).pipe(
-  Effect.provide(BunServices.layer),
+  Effect.provide(Layer.merge(BunServices.layer, platformLayer())),
   step(name),
   Effect.provide(timingsLayer((line) => console.error(line))),
   Effect.catch((failure) => Effect.sync(() => {

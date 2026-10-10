@@ -7,7 +7,8 @@ import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { ChildProcess } from "effect/process";
 import { runProcess, startInputProcess } from "./hostProcess";
 import { pollUntil } from "./hostPoll";
-import { loadClients, readClientsFile, desktopSession, windowPid, keys, typeText, type Client, type ClientEntry } from "wisp/scripts/warcraft/desktop";
+import { loadClients, readClientsFile, windowPid, keys, typeText, type Client, type ClientEntry } from "wisp/scripts/warcraft/desktop";
+import { desktopSession } from "wisp/scripts/platform/linux/desktop";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { Clients } from "wisp/scripts/wisp/clients";
 import { ClientWatch } from "wisp/scripts/wisp/watch";
@@ -15,6 +16,7 @@ import { freshMatch } from "./wisp/commands/fresh";
 import { gameFilesLayer } from "./wisp/project";
 import { Phase } from "../src/game/match/rules";
 import { padScriptPreset } from "./integrity/padScript";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 export function validatePadCutClients(clients: readonly Pick<Client, "name" | "documents" | "x11" | "wayland">[], entries: readonly ClientEntry[], appIds: ReadonlyMap<string, string>, pair: string) {
   const count = pair === "tom" ? 1 : 2;
@@ -234,4 +236,4 @@ class PadCutFailure extends Schema.TaggedError<PadCutFailure>()("PadCutFailure",
 }
 const padCutFailure = (cause: unknown) => new PadCutFailure({ problem: cause instanceof Error ? cause.message : String(cause) });
 
-if (import.meta.main) BunRuntime.runMain(Effect.scoped(padCut).pipe(Effect.catchDefect(cause => Effect.fail(padCutFailure(cause))), Effect.provide(BunServices.layer)));
+if (import.meta.main) BunRuntime.runMain(Effect.scoped(padCut).pipe(Effect.catchDefect(cause => Effect.fail(padCutFailure(cause))), Effect.provide(Layer.merge(BunServices.layer, platformLayer()))));

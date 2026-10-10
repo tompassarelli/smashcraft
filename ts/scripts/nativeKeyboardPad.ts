@@ -10,6 +10,7 @@ import { gameProcess } from "./integrity/capture";
 import { monotonicNs } from "./integrity/linux";
 import { ABS_X, ABS_Y, BTN_START, BTN_SELECT, EV_ABS, EV_KEY } from "./integrity/linuxInput";
 import { frameWriteNs, padScriptPreset, parsePadScript, ruleFrame } from "./integrity/padScript";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 export function keyboardPadPlan(script: string) {
   return parsePadScript(script).flatMap(step => {
@@ -115,4 +116,4 @@ const run = (args: readonly string[]) => Effect.gen(function*() {
 });
 
 
-if (import.meta.main) BunRuntime.runMain(Effect.scoped(run(Bun.argv.slice(2))));
+if (import.meta.main) BunRuntime.runMain(Effect.scoped(run(Bun.argv.slice(2))).pipe(Effect.provide(platformLayer())));

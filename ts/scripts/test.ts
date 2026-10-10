@@ -6,7 +6,7 @@ import { availableParallelism, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import * as BunServices from "@effect/platform-bun/BunServices";
-import { Cause, Effect, Exit, Schema } from "effect";
+import { Cause, Effect, Exit, Layer, Schema } from "effect";
 import { BUSY_PRESSURE, INCONCLUSIVE_EXIT, timingTestFiles, timingTests, withPressure } from "wisp/scripts/wisp/testRunner";
 import { TEST_PHASE_ENV } from "wisp/scripts/wisp/timingTest";
 import { ISOLATED_TEST_GROUPS, testWorkerEnvironment } from "./testWorkers";
@@ -15,6 +15,7 @@ import { runMeasuredProcess } from "./hostProcess";
 import { BUN_TEST_CEILING_FRAMES, addCost, cpuReport, readBaseline, type Costs } from "./testCost";
 import { refuseUntagged } from "./oracleTags";
 import { refuseLiteralCopies } from "./literalCopies";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 /** The hang timeout per test; cost is bounded by BUN_TEST_CEILING_FRAMES. */
 const TEST_TIMEOUT_MS = 60_000;
@@ -157,7 +158,7 @@ const program = Effect.gen(function*() {
   return inconclusive ? INCONCLUSIVE_EXIT : 0;
 }).pipe(Effect.ensuring(Effect.sync(() => rmSync(costDirectory, { recursive: true, force: true }))));
 
-BunRuntime.runMain(program.pipe(Effect.provide(BunServices.layer)), {
+BunRuntime.runMain(program.pipe(Effect.provide(Layer.merge(BunServices.layer, platformLayer()))), {
   disableErrorReporting: true,
   teardown: (exit) => {
     if (Exit.isFailure(exit) && !Cause.hasInterruptsOnly(exit.cause)) console.error(Cause.pretty(exit.cause));

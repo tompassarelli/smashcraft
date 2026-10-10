@@ -8,11 +8,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { Clock, Effect, Option, Schema } from "effect";
+import { Clock, Effect, Layer, Option, Schema } from "effect";
 import { linePreloadFile } from "wisp/scripts/wisp/boundary";
 import { makePlay } from "wisp/scripts/wisp/commands/play";
 import { documentsFolder, launcherHealth, launcherLogDirectory, newestLauncherLog } from "wisp/scripts/warcraft/battleNet";
-import { type Client, enterLoginField, findWindows } from "wisp/scripts/warcraft/desktop";
+import { type Client, enterLoginField, runTool } from "wisp/scripts/warcraft/desktop";
+import { platformLayer } from "wisp/scripts/platform/layer";
 import { GameFiles, dataDirectory, readGameFile } from "wisp/scripts/wisp/gameFiles";
 import { type PlayDeclaration, type PlayGame, PlayProblem } from "wisp/scripts/wisp/play";
 import { CPU_OPPONENT_DEFAULT, CPU_TIER_DEFAULT, type CpuOpponentChoice, type CpuTier } from "../../../src/game/match/cpuProfiles";
@@ -159,6 +160,12 @@ function clientTools(): Partial<PlayTools> {
 const tools = clientTools();
 
 
+const findWindows = (tools: { readonly xdotool: string }, name: string, x11: Record<string, string>, title: string) =>
+  runTool(name, `find ${title} window`, [tools.xdotool, "search", "--name", `^${title.replace(/[.\\^$|?*+()[\]{}]/g, "\\$&")}$`], x11).pipe(
+    Effect.map((bytes) => new TextDecoder().decode(bytes).split("\n").filter((line) => line !== "")),
+    Effect.catchTag("DesktopFailure", () => Effect.succeed<readonly string[]>([])),
+  );
+
 const LoginTools = Schema.Struct({ tools: Schema.Struct({ grim: Schema.String, xdotool: Schema.String, wlrctl: Schema.String, tesseract: Schema.String }) });
 
 
@@ -236,5 +243,5 @@ export const play: Command = (args) => Effect.gen(function*() {
   const current = yield* currentPlaytest(join(documentsFolder(PLAYTEST_PREFIX), "Maps/00-Smashcraft"));
   const declaration = playtest({ ...PLAYTEST, ...current });
   yield* Effect.try({ try: () => installLatest(documentsFolder(declaration.prefix), current.map.source), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
-  return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch)(args);
+  return yield* makePlay(declaration, gameFilesLayer, tools, smashcraftWatch.pipe(Layer.provide(platformLayer())))(args);
 });

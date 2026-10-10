@@ -30,6 +30,7 @@ import { freshMatch, readyAfter, sendDevCommand } from "./fresh";
 import { profileOptions } from "./map";
 import { onHealthyClients, readClientsFile, smashcraftWatch } from "../doctor";
 import { LAN_POOL_FILE, lanPairs, withTools } from "../padBatch";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 
 const clientNames = (clientsFile: string): [string, ...string[]] => {
@@ -254,7 +255,7 @@ export const accept: Command = (rawArgs) => Effect.gen(function*() {
       chat: (name, text) => (solo ? sendSoloDevCommand(text, name) : sendDevCommand(text, name)).pipe(Effect.mapError((cause) => new AcceptFailure({ operation: `chat ${name}`, problem: describeCause(cause) })), Effect.provide(context)),
     }));
     return smoke.driver;
-  })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch)));
+  })).pipe(Layer.provide(liveDriver), Layer.provide(Layer.mergeAll(Clients.layer(selectedClients), gameFilesLayer, smashcraftWatch)), Layer.provide(platformLayer()));
   const shards = {
     flags: ["--pair", "--pairs"],
     select: () => Effect.succeed(requested),

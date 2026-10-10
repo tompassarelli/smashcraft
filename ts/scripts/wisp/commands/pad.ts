@@ -63,6 +63,8 @@ import { Phase } from "../../../src/game/match/rules";
 import { admitCaptures, captureLoad, requireCaptureLease, timingCheck, timingScripts } from "../captureCapacity";
 import { quickMatchHero, quickMatchStage, quickPainHero, quickRecoveryHero, quickOffstageHero } from "../../../src/game/shell/devSettings";
 import { pauseDraws } from "../pauseDraws";
+import { platformLayer } from "wisp/scripts/platform/layer";
+import type { Platform } from "wisp/scripts/platform/services";
 
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 
@@ -84,14 +86,14 @@ export function requestedSetup(command: string, receipt: DevReceipt): boolean {
 const setupReceipt = (path: string, clientName: string, sinceMs: number) =>
   tryIntegrity("read setup receipt", clientName, () => existsSync(path) && statSync(path).mtimeMs >= sinceMs ? { text: readFileSync(path, "latin1"), modified: statSync(path).mtimeMs } : undefined).pipe(Effect.flatMap((stored) => stored === undefined || preloadLines(stored.text) === undefined ? Effect.undefined : DevCommandReceipt.decode(path, stored.text).pipe(Effect.map((value) => ({ value, modified: stored.modified })), Effect.mapError((cause) => new IntegrityFailure({ operation: "read setup receipt", path: clientName, cause })))));
 
-const setupCommand = (session: NativeSession, command: string, send: Effect.Effect<void, IntegrityFailure>) => Effect.gen(function*() {
+const setupCommand = (session: NativeSession, command: string, send: Effect.Effect<void, IntegrityFailure, Platform>) => Effect.gen(function*() {
   const targets = session.clients.map((client, slot) => {
     const path = join(at(session.data, slot), devCommandReceiptFile(session.build, slot));
     const read = setupReceipt(path, client.name, session.startedMs);
     type Stored = Exclude<Effect.Success<typeof read>, undefined>;
     return { client, read, requested: (current: Stored, before: Stored | undefined) => current.modified > (before?.modified ?? -1) && current.value.build === session.build && requestedSetup(command, current.value) };
   });
-  const received = yield* confirmedCommand(command, targets, send).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
+  const received = yield* confirmedCommand(command, targets, send.pipe(Effect.provide(platformLayer()))).pipe(Effect.mapError((cause) => cause instanceof IntegrityFailure ? cause : fromDesktop(cause)));
   if (!received.every((item) => item.value.receipt === received[0]?.value.receipt)) return yield* new IntegrityFailure({ operation: "confirm setup receipt", path: session.clients.map((client) => client.name).join(","), cause: "selected clients acknowledged different command counters" });
   return received.map((item, slot) => ({ client: session.clients[slot]?.name, modified: item.modified, ...item.value }));
 });
@@ -322,7 +324,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
     if (item.kind === "capture") {
 
       const client = clients[item.slot];
-      const shot = captureWhenDrawn(drawnFrom(join(at(data, item.slot), drawnFrameFile(build, item.slot))), at(matchIds, item.slot), item.frame, CAPTURE_WAIT_MS, capture(client).pipe(Effect.mapError(fromDesktop)), out).pipe(
+      const shot = captureWhenDrawn(drawnFrom(join(at(data, item.slot), drawnFrameFile(build, item.slot))), at(matchIds, item.slot), item.frame, CAPTURE_WAIT_MS, capture(client).pipe(Effect.mapError(fromDesktop), Effect.provide(platformLayer())), out).pipe(
         Effect.flatMap(({ shot: frame, before, after, waitedMs }) => tryIntegrity("save frame", out, () => {
           const name = `frame-${item.frame}-${client.name}-drawn-${before}.ppm`;
           writeFileSync(join(out, name), encodePpm(frame));

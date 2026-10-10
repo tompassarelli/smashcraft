@@ -10,7 +10,7 @@ import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { ChildProcess } from "effect/process";
 import { makeHeadless } from "wisp/scripts/wisp/commands/headless";
 import { renderScenes, type RenderScene } from "wisp/scripts/wisp/headlessRender";
@@ -23,6 +23,7 @@ import { headlessRender } from "./wisp/headlessRender";
 import { SMASHCRAFT_JOURNEYS } from "./wisp/journeys";
 import { storeStageCard } from "./wisp/buildInputs";
 import { CARD, HERO_CAMERAS, RENDERED_STAGES, type ThumbnailManifest, silhouetteSource, stageInputHash, stageNamed, thumbnailFile } from "./stageThumbnailSpec";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 const TS = resolve(import.meta.dir, "..");
 const MANIFEST_FILE = join(TS, "stage-thumbnails.json");
@@ -124,4 +125,4 @@ const program = Effect.gen(function*() {
   console.log(`${rows.length} rendered pictures; all cards ${merged.reduce((sum, row) => sum + row.bytes, 0)} bytes; previews in ${cards}`);
 });
 
-BunRuntime.runMain(program.pipe(Effect.provide(BunServices.layer)));
+BunRuntime.runMain(program.pipe(Effect.provide(Layer.merge(BunServices.layer, platformLayer()))));

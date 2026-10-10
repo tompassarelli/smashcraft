@@ -100,7 +100,7 @@ function parseScript(text: string): { readonly setup: string; readonly edges: re
       edges.push({ order: edges.length, frame, slot, action, args });
     } else throw new Error(`native driver: unknown pad action ${action}`);
   }
-  return { setup, edges: edges.sort((a, b) => a.frame - b.frame || a.order - b.order) };
+  return { setup, edges: edges.sort((a, b) => a.frame !== b.frame ? a.frame - b.frame : a.order - b.order) };
 }
 
 function stick(x: number, z: number): readonly [number, number] {

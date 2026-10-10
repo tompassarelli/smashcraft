@@ -22,7 +22,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { ChildProcess } from "effect/process";
 import { runProcess } from "./hostProcess";
 import { capture, loadClients } from "wisp/scripts/warcraft/desktop";
@@ -33,6 +33,7 @@ import { parsePadScript } from "./integrity/padScript";
 import { STAMP_CELL, STAMP_CELLS, type StampCell, readStamp } from "../src/runtime/drawnStamp";
 import { CAPTURE_STATUS_FILE } from "../src/runtime/gameFiles";
 import { CAPTURE_FIXTURES, type CaptureFixture } from "../src/platform/captureFixtures";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 class CaptureFailure extends Schema.TaggedError<CaptureFailure>()("CaptureFailure", { problem: Schema.String }) {
   override get message(): string { return this.problem; }
@@ -308,5 +309,5 @@ const compare = (args: readonly string[]) => Effect.gen(function*() {
 if (import.meta.main) {
   const [verb, ...args] = Bun.argv.slice(2);
   const program = verb === "build" ? build(args) : verb === "plan" ? plan(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts build|plan|run|compare ..." }));
-  BunRuntime.runMain(program.pipe(Effect.provide(BunServices.layer)));
+  BunRuntime.runMain(program.pipe(Effect.provide(Layer.merge(BunServices.layer, platformLayer()))));
 }

@@ -8,7 +8,8 @@ import { copyFileSync, existsSync, readFileSync, renameSync, statSync, writeFile
 import { join } from "node:path";
 import { Effect } from "effect";
 import { prefixUse, serverDirectoryName } from "wisp/scripts/warcraft/battleNet";
-import { listProcesses } from "wisp/scripts/warcraft/processes";
+import { runPlatformSync } from "wisp/scripts/platform/layer";
+import { ProcessTable } from "wisp/scripts/platform/services";
 import { MenuFailure, installMenuPage } from "wisp/scripts/wisp/menus";
 
 export const retailFolder = (prefix: string) => join(prefix, "drive_c/Program Files (x86)/Warcraft III/_retail_");
@@ -45,7 +46,7 @@ export function allowLocalFiles(userReg: string, now: number): string | undefine
 
 const prefixInUse = (prefix: string) => {
   const stats = statSync(prefix, { bigint: true });
-  return prefixUse(listProcesses(), prefix, serverDirectoryName(stats.dev, stats.ino)).runtimes.length > 0;
+  return prefixUse(runPlatformSync(ProcessTable.use((table) => table.list)), prefix, serverDirectoryName(stats.dev, stats.ino)).runtimes.length > 0;
 };
 
 export type SetupResult = "ready" | "page written; close Warcraft III and Battle.net once to finish";

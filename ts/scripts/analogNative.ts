@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, readdirSync, statSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { Effect, Schema } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { ChildProcess } from "effect/process";
 import { runProcess, stopBunProcess, startInputProcess } from "./hostProcess";
@@ -9,6 +9,7 @@ import { pollUntil } from "./hostPoll";
 import { loadClients, windowPid } from "wisp/scripts/warcraft/desktop";
 import { preloadLines } from "wisp/scripts/wisp/boundary";
 import { padScriptPreset } from "./integrity/padScript";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 export const calibrateCursor = (options: { args: readonly string[]; env: Record<string, string | undefined>; path: string; log: string; corner: string }) => Effect.scoped(Effect.gen(function*() {
     const { path, corner } = options;
@@ -155,4 +156,4 @@ class AnalogFailure extends Schema.TaggedError<AnalogFailure>()("AnalogFailure",
   override get message() { return this.problem; }
 }
 const analogFailure = (cause: unknown) => new AnalogFailure({ problem: cause instanceof Error ? cause.message : String(cause) });
-if (import.meta.main) BunRuntime.runMain(Effect.scoped(analogNative).pipe(Effect.catchDefect(cause => Effect.fail(analogFailure(cause))), Effect.provide(BunServices.layer)));
+if (import.meta.main) BunRuntime.runMain(Effect.scoped(analogNative).pipe(Effect.catchDefect(cause => Effect.fail(analogFailure(cause))), Effect.provide(Layer.merge(BunServices.layer, platformLayer()))));

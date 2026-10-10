@@ -18,6 +18,7 @@ import { pollUntil } from "../hostPoll";
 import { INPUT_TRACE_FILE, responsePageFile, decodeWrittenGameFile } from "../wisp/boundary";
 import { smashcraftPlayerView } from "../wisp/playerView";
 import { gameFilesLayer } from "../wisp/project";
+import { platformLayer } from "wisp/scripts/platform/layer";
 
 
 interface FileRigParts {
@@ -207,18 +208,19 @@ export function liveRig(parts: LiveRigParts): RigShape {
         }))).pipe(Effect.tapError(() => logUi(client, "wait expired", `${pattern.source}\n${last}`).pipe(Effect.ignore)), Effect.mapError((failure) => failure instanceof IntegrityFailure ? failure : fromDesktop(failure)));
         yield* logUi(client, "wait", `${pattern.source}\n${seen}`);
         return seen;
-      }),
+      }).pipe(Effect.provide(platformLayer())),
     readText: (client, region) =>
       Effect.all([read(clients[client], region, "light"), read(clients[client], region, "gold")], { concurrency: 2 }).pipe(
         Effect.map(([light, gold]) => `${light}\n${gold}`),
         Effect.mapError(fromDesktop),
         Effect.tap((text) => logUi(client, "read", `${region.x},${region.y} ${region.width}x${region.height}\n${text}`)),
+        Effect.provide(platformLayer()),
       ),
-    click: (client, x, y) => click(clients[client], x, y).pipe(Effect.mapError(fromDesktop), Effect.andThen(logUi(client, "click", `${x} ${y}`))),
-    key: (client, key) => keys(clients[client], key).pipe(Effect.mapError(fromDesktop)),
-    type: (client, text) => typeText(clients[client], text, 35).pipe(Effect.mapError(fromDesktop)),
+    click: (client, x, y) => click(clients[client], x, y).pipe(Effect.mapError(fromDesktop), Effect.andThen(logUi(client, "click", `${x} ${y}`)), Effect.provide(platformLayer())),
+    key: (client, key) => keys(clients[client], key).pipe(Effect.mapError(fromDesktop), Effect.provide(platformLayer())),
+    type: (client, text) => typeText(clients[client], text, 35).pipe(Effect.mapError(fromDesktop), Effect.provide(platformLayer())),
     playerView: (epoch, checks) => Effect.suspend(() => checkPlayerView(smashcraftPlayerView(checks), Date.now(), join(out, `player-view-${epoch}`))).pipe(
-      Effect.provide(Layer.merge(Clients.layer(parts.clientsFile), gameFilesLayer)),
+      Effect.provide(Layer.merge(Clients.layer(parts.clientsFile), gameFilesLayer).pipe(Layer.provideMerge(platformLayer()))),
       Effect.mapError((failure) => new IntegrityFailure({ operation: `check player view in match ${epoch}`, path: out, cause: failure.message })),
     ),
   };
