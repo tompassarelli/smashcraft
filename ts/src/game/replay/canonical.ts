@@ -247,6 +247,7 @@ export function specialProjectileCanonical(spec: Readonly<SpecialProjectile>, pr
   int("reflectable", spec.reflectable ? 1 : 0);
   int("limit", spec.limit);
   int("cancelOnInterrupt", spec.cancelOnInterrupt === true ? 1 : 0);
+  if (spec.atStageCentre === true) int("atStageCentre", 1);
   if (spec.returnEffect !== undefined) result.push(hitEffectCanonical(spec.returnEffect, `${prefix}.returnEffect`));
   if (spec.catchHeal !== undefined) {
     real("catchHeal.heal", spec.catchHeal.heal);
@@ -358,6 +359,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
   const int = (field: string, value: number) => { result.push(canonicalInt(`${name}.${field}`, value)); };
   const real = (field: string, value: number) => { result.push(canonicalRealField(`${name}.${field}`, value)); };
   int("end", move.endFrame);
+  if (move.regionOrigin !== undefined) result.push(specialProjectileCanonical(move.regionOrigin, `${name}.regionOrigin`));
   int("groundOnly", move.groundOnly === true ? 1 : 0);
   int("oncePerAirtime", move.oncePerAirtime === true ? 1 : 0);
   int("helpless", move.helpless === true ? 1 : 0);
@@ -411,6 +413,7 @@ function specialMoveCanonical(move: Readonly<AuthoredSpecial>, name: string): st
     real(`motion[${index}].driftSpeed`, segment.driftSpeed ?? 0.0);
     if (segment.stopsAtShield === true) int(`motion[${index}].stopsAtShield`, 1);
     if (segment.relocate !== undefined) int(`motion[${index}].relocate`, segment.relocate);
+    if (segment.relocateProjectile !== undefined) result.push(specialProjectileCanonical(segment.relocateProjectile, `${name}.motion[${index}].relocateProjectile`));
     if (segment.relocateReach !== undefined) real(`motion[${index}].relocateReach`, segment.relocateReach);
     if (segment.stopsAtBody === true) int(`motion[${index}].stopsAtBody`, 1);
   }
