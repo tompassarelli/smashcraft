@@ -1,0 +1,292 @@
+{
+ "schema": 1,
+ "meaning": "Each fighter's intended signature strengths. Taken from its design doc where one exists; drafted from its docs/design/roster.md entry otherwise (drafted: true, for Tom to confirm). kill: main KO direction; edgeGuard: off-stage power; recovery: how hard it is to edge-guard; range: the spacing it is strongest at.",
+ "fighters": [
+  {
+   "fighter": "rifleman",
+   "source": "docs/design/roster.md",
+   "stated": false,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "hard",
+   "range": "far",
+   "note": "Zoner: blaster, bear, traps from range; long committed route band; down air edge tool",
+   "drafted": true
+  },
+  {
+   "fighter": "illidan",
+   "source": "docs/design/illidan.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "strong",
+   "recovery": "hard",
+   "range": "close",
+   "note": "Air-speed rushdown chasing with glaives; down air spike; glide drifting band; Wing Ascent covers high",
+   "drafted": false
+  },
+  {
+   "fighter": "blademaster",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "mid",
+   "note": "Blade-tip spacing, whiff punish; forward smash sweetspot kills; exposed recoveries, weak ranged pressure",
+   "drafted": true
+  },
+  {
+   "fighter": "mountain-king",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "mid",
+   "note": "Grounded heavy, axe-tip spacing, Storm Bolt cover; back air finisher; heavy exposed recovery band",
+   "drafted": true
+  },
+  {
+   "fighter": "warden",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "strong",
+   "recovery": "hard",
+   "range": "close",
+   "note": "Precision mobility and edge pressure, light body; Blink may pass main-deck edge",
+   "drafted": true
+  },
+  {
+   "fighter": "lich",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "far",
+   "note": "Frail slow zoner placing frost from range; forward smash frost burst at staff tip",
+   "drafted": true
+  },
+  {
+   "fighter": "forsaken-paladin",
+   "source": "docs/design/forsaken-paladin.md",
+   "stated": true,
+   "kill": "top",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "close",
+   "note": "Heavy hammer; Beacon Strike up smash, Cleansing Hammer bonks upward; Ascension falls helpless",
+   "drafted": false
+  },
+  {
+   "fighter": "dreadlord",
+   "source": "docs/design/roster.md",
+   "stated": false,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "close",
+   "note": "Grappler: air movement, grabs, close pressure; sleep and cross-up rushes",
+   "drafted": true
+  },
+  {
+   "fighter": "shadow-hunter",
+   "source": "docs/design/roster.md",
+   "stated": false,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "hard",
+   "range": "mid",
+   "note": "Setplay: totem placement and angles, hex, wards; vertical route-mixup recovery band",
+   "drafted": true
+  },
+  {
+   "fighter": "pit-lord",
+   "source": "docs/design/pit-lord.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "strong",
+   "recovery": "exploitable",
+   "range": "mid",
+   "note": "Siege heavy: Rain of Fire closes landing lane, cleaver kills early; four-hoof spike; slowest recovery",
+   "drafted": false
+  },
+  {
+   "fighter": "beastmaster",
+   "source": "docs/design/beastmaster.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "mid",
+   "note": "Pack formation sets ground and air threats; offstage gives up attacking for Hawk Lift",
+   "drafted": false
+  },
+  {
+   "fighter": "lich-king",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "mid",
+   "note": "Heavy swordsman holding Frostmourne tip; kills with smashes, back air, Val'kyr carry",
+   "drafted": true
+  },
+  {
+   "fighter": "thrall",
+   "source": "docs/design/thrall.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "mid",
+   "note": "Heavy ground-control brawler, Doomhammer reach, back air finisher; short air drift",
+   "drafted": false
+  },
+  {
+   "fighter": "jaina-proudmoore",
+   "source": "docs/design/jaina.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "hard",
+   "range": "far",
+   "note": "Zoner: bolt, Blizzard, elemental; ice lance kill attempt; Blink passes deck lip",
+   "drafted": false
+  },
+  {
+   "fighter": "sylvanas-windrunner",
+   "source": "docs/design/sylvanas.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "far",
+   "note": "Wins through spacing and a read; short melee reach; Silence removes specials but not recovery",
+   "drafted": false
+  },
+  {
+   "fighter": "cairne-bloodhoof",
+   "source": "docs/design/cairne.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "close",
+   "note": "Super-heavy; totem controls ground, slow kill commitments; exposed recovery named as weakness",
+   "drafted": false
+  },
+  {
+   "fighter": "chen-stormstout",
+   "source": "docs/design/chen.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "close",
+   "note": "Close-range brawler, staff finishers; edge-guards cover the predictable late rise of up special",
+   "drafted": false
+  },
+  {
+   "fighter": "peon",
+   "source": "docs/design/peasant.md",
+   "stated": false,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "close",
+   "note": "Grappler worksite builder with short arms, slow run; axe-first spike down air",
+   "drafted": false
+  },
+  {
+   "fighter": "goblin-tinker",
+   "source": "docs/design/tinker.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "mid",
+   "note": "Heavy gadget setplay near machinery; short claws lose to sword tip; edge-guarders hit charge",
+   "drafted": false
+  },
+  {
+   "fighter": "kael'thas-sunstrider",
+   "source": "docs/design/kaelthas.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "mid",
+   "note": "Forward smash kill from about 95%; Phoenix has the longest charge; edge-guarders hit charge",
+   "drafted": false
+  },
+  {
+   "fighter": "murloc",
+   "source": "docs/design/murloc.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "weak",
+   "recovery": "exploitable",
+   "range": "close",
+   "note": "Smallest light rushdown; short recovery, spout path edge-guardable; forward smash finisher",
+   "drafted": false
+  },
+  {
+   "fighter": "grom-hellscream",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "close",
+   "note": "Reckless closer committing his whole body to killing Gorehowl swings",
+   "drafted": true
+  },
+  {
+   "fighter": "kobold",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "weak",
+   "recovery": "exploitable",
+   "range": "close",
+   "note": "Tiny skirmisher poking and punishing whiffs; panicked recovery; light, low-damage scraps",
+   "drafted": true
+  },
+  {
+   "fighter": "malfurion-stormrage",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "side",
+   "edgeGuard": "average",
+   "recovery": "average",
+   "range": "far",
+   "note": "Space-trapping zoner with roots and treant; forward smash Wrath bursts at staff tip",
+   "drafted": true
+  },
+  {
+   "fighter": "medivh",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "mixed",
+   "edgeGuard": "average",
+   "recovery": "hard",
+   "range": "mid",
+   "note": "Mobility trickster, light body, strong air drift; blink endpoints have visible recovery",
+   "drafted": true
+  },
+  {
+   "fighter": "anub'arak",
+   "source": "docs/design/roster.md",
+   "stated": true,
+   "kill": "bottom",
+   "edgeGuard": "average",
+   "recovery": "exploitable",
+   "range": "close",
+   "note": "Heavy ground control, eruptions beneath prey; slow turns, broad body, committed recovery",
+   "drafted": true
+  }
+ ]
+}

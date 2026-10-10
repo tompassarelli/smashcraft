@@ -84,3 +84,61 @@ Matchup-wide outcomes remain unknown; bounded reachable options are recorded
 separately in smashcraft:docs/move-comparisons.md.
 These are headless production observations, not native timing, physics-parity,
 matchup or balance acceptance. Issue #12 remains open for the remaining work.
+
+## Genre envelope
+
+`bun wisp envelope` (from ts/) lists every move of the 26 fighters outside
+its class's genre frame-data envelope, ranked by distance (#426). It is
+advisory: it never fails, and it becomes a gate only after Tom has reviewed
+the outlier list. `--ranges` prints the envelope, `--json` the outliers.
+
+The envelope is smashcraft:tools/move-data/genre-envelope.json plus the Melee
+corpus in smashcraft:references/melee-frame-data/. For each move class (jab,
+tilt, dash attack, smash, aerial, special, grab, throw, get-up/ledge attack,
+spot dodge, roll, shield drop, jump squat), each game's 5th–95th percentile
+is computed per field, and the envelope is the union across games. That way
+Melee's 26 characters don't outweigh the hand-sampled games. Sources, all
+public frame data recorded as facts on 10 October 2026:
+
+- Melee: meleeframedata.com, through the existing corpus (all 26 characters).
+  Shield advantage is computed with Melee's digital shieldstun formula
+  (multiplier 1, ×200/201), and landing lag is L-cancelled.
+- Smash Ultimate: ultimateframedata.com pages for Mario, Fox, Ganondorf, Marth
+  and Bowser. Shield drop is 11 frames and jump squat is 3.
+- Rivals of Aether: dragdown.wiki for Zetterburn and Kragg (hit endlag).
+- Rivals of Aether II: dragdown.wiki for Zetterburn and Etalus.
+- Kill percent for smashes: SmashWiki's up smash knockback chart (Mario at
+  stage centre: 58–251% in Brawl and 73–194% in 64). The Melee and Ultimate
+  charts on SmashWiki are empty.
+
+Our values use production code. Startup is `attackStartupFrames + 1` (the
+first active frame counted from 1). End lag is the frames after the last
+active frame, and landing lag is the lag actually taken. Shield advantage
+and kill percent are the balance feel measurements (smashcraft:ts/scripts/balanceFeel.ts).
+The tolerance outside the range is ±3 frames, ±3 on shield and ±15% kill
+percent, matching #355's kit bounds. Specials get ±10 / ±10 / ±30%, because
+genre specials vary most and ours carry mana. EX specials get ±15 / ±15 / ±40%,
+because they are deliberately stronger than any reference move. A smash that
+doesn't kill within 300% is an outlier. Distance is the excess over the
+allowance; anything above 1 is outside the envelope.
+
+## Fighter strength profiles
+
+`bun wisp strengths FIELD.json` reports per fighter over a balance field:
+KO direction share (top, side, bottom), average KO percent, off-stage deaths
+a stock (edge-guard kills taken plus self-destructs), edge-guard kills a
+match and their conversion from edge-guard hits, and spacing (median hit
+distance, plus ranged damage share). It compares these with each fighter's
+intended strengths in smashcraft:tools/move-data/fighter-strengths.json.
+Those come from the fighter's design doc, or are drafted (`drafted: true`)
+from its smashcraft:docs/design/roster.md entry. A contradiction is a
+measured roster third opposite to the intent: for example, "strong"
+edge-guarding in the bottom third, or a "hard" recovery in the top third of
+off-stage deaths.
+
+Fields recorded since #426 carry each KO's blast side, the victim's percent,
+whether it was recovering, and hit distances. Older fields estimate KO
+direction from each killing move's authored launch angle, and they report
+KO percent and hit distance as not recorded. A balance worker runs the
+report before and after a change, and confirms that no new contradiction
+appears.

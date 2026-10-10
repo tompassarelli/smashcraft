@@ -100,7 +100,7 @@ From ts/, `bun wisp help` lists commands and topics; `bun wisp help TOPIC` print
 - Melee mechanics: [air cutoff](melee-air-cutoff.md), [analog shield](melee-analog-shield.md), [ground motion](melee-ground-motion.md), [hitlag scalars](melee-hitlag-scalars.md), [hitstun boundaries](melee-hitstun-boundaries.md), [powershield](melee-powershield.md), [scalar math](melee-scalar-math.md), [tech input](melee-tech-input.md).
 - [Smash Melee reference data](smash-melee-reference/README.md): physics parameters, every fighter's retail attributes and the targeted retail observations used by the physics tests.
 - [Melee frame-data reference](../references/melee-frame-data/README.md): the one Melee frame-data corpus: per-move frame data, hitbox positions and dodge travel.
-- [Move data](move-data.md), [move comparisons](move-comparisons.md) and [move reference join](move-reference-join.md): queryable production move facts.
+- [Move data](move-data.md), [move comparisons](move-comparisons.md) and [move reference join](move-reference-join.md): queryable production move facts; genre envelope (`bun wisp envelope`) and fighter strength profiles (`bun wisp strengths`).
 - [Move tables](design/move-tables.md): measured cost of the move code (locals, bytecode, instructions and KB per frame) and compact move tables read by one interpreter: measured and removed.
 - [Native arithmetic comparison](native-physics-precision.md): how to check Warcraft against headless numbers.
 

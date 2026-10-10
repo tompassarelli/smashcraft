@@ -1,3 +1,5 @@
+import { stageBounds } from "../src/game/sim/stageBounds";
+import { WORLD_UNITS_PER_MELEE_UNIT } from "../src/game/sim/tuning";
 
 
 
@@ -110,7 +112,8 @@ interface SideRecord {
   specialsRefused: number;
 
   stocksPlayed: number;
-  readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean }[];
+  readonly stockLosses: { readonly frame: number; readonly sinceHit: number | undefined; readonly selfDestruct: boolean; readonly blast?: "top" | "side" | "bottom"; readonly percent?: number; readonly recovering?: boolean }[];
+  readonly hitDistances?: Record<number, number>;
 
   readonly damageByMove: Record<number, number>;
 
@@ -395,7 +398,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   initializeMatchFighters(match, world);
   const side = (character: Character): SideRecord => ({
     fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, manaSpent: 0, specialsStarted: 0, specialsRefused: 0, stocksPlayed: 0, stockLosses: [],
-    damageByMove: {}, kosByMove: {}, rangedDamage: 0, approachFrames: 0, retreatFrames: 0, punishes: emptyPunishes(), edges: emptyEdgePlay(),
+    damageByMove: {}, kosByMove: {}, rangedDamage: 0, approachFrames: 0, retreatFrames: 0, punishes: emptyPunishes(), edges: emptyEdgePlay(), hitDistances: {},
     ledge: { belowFrames: 0, inFrames: 0, ledgeLanded: 0, ledgeTaken: 0, stageLanded: 0, stageTaken: 0 },
   });
   const spam = [options.spam?.[fighterSlug(a)], options.spam?.[fighterSlug(b)]] as const;
@@ -492,6 +495,10 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       const dealt = f.status.damage > seen.damage ? f.status.damage - seen.damage : 0;
       if (hit && other !== undefined) {
         other.hitsLanded++;
+        if (other.hitDistances !== undefined) {
+          const bin = Math.floor(Math.abs(f32(opponent.motion.x - f.motion.x)) / (10 * WORLD_UNITS_PER_MELEE_UNIT));
+          other.hitDistances[bin] = (other.hitDistances[bin] ?? 0) + 1;
+        }
         seen.lastHit = frame;
         if (seen.recovering) {
           other.edges.edgeGuardHits++;
@@ -554,7 +561,9 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       }
       if (f.status.out && !seen.out) {
         const selfDestruct = seen.lastHit === undefined || (seen.lastSafe !== undefined && seen.lastHit < seen.lastSafe);
-        own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit, selfDestruct });
+        const { blast } = stageBounds(stage);
+        const exit = f.motion.z < blast.bottom ? "bottom" : f.motion.x < blast.left || f.motion.x > blast.right ? "side" : "top";
+        own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit, selfDestruct, blast: exit, percent: Math.round(seen.damage), recovering: seen.recovering });
         if (!selfDestruct && other !== undefined && seen.lastHitMove !== undefined) other.kosByMove[seen.lastHitMove] = (other.kosByMove[seen.lastHitMove] ?? 0) + 1;
         if (!selfDestruct && other !== undefined && seen.edgeGuarded) other.edges.edgeGuardKills++;
         seen.edgeGuarded = false;
