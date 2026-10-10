@@ -1,5 +1,62 @@
 # Native
 
+- Retarget move inventory and account b batch preparation: from `ts/`,
+  `bun scripts/nativeCapture.ts moves --fighter shadow-hunter --out PRIVATE_DIR`
+  writes deterministically sorted `pads/MOVE.pad`, `moves.json` and `moves.md`.
+  Select exactly one fighter slug per directory and client session. The inventory
+  includes every declared normal and throw, special ground/air/recall/marked form,
+  EX variant, follow-up, ultimate, nine contact reactions and other production
+  clip bindings. Ordinary
+  pad inputs prepare reachable normals and base specials; rows requiring a jab
+  chain, paired catch, recall, mark, follow-up or movement/reaction setup remain
+  explicitly pending. Use the existing fighter pads (paired throws under
+  `test/native/pads/180/`) to finish those rows; no missing row counts as a pass.
+  The phase targets use current authored startup/contact/event and end timings,
+  without changing gameplay. Startup is the input frame, active is the first
+  authored strike/spawn/placement/motion/guard event, and end is the last authored
+  frame. A non-damaging action uses its motion/guard event. Native receipts must
+  confirm that the action actually began and reached those phases: buffering,
+  landing, aim holds, hitlag or a refused action can invalidate a target.
+
+  Account b on the Warcraft VM, Definitive, goes first with Shadow Hunter. The
+  supervisor supplies `ACCOUNT_B_CLIENTS_FILE` (a set containing only clone-b)
+  and `ACCOUNT_B_INSTALL` (its install root, with `.build.info`). Set the client
+  to Definitive before hosting. Keep this directory, maps and screenshots outside
+  Git. Run this composition only after the supervisor's GO, in a writable lane:
+
+  ```sh
+  FIGHTER=shadow-hunter
+  BATCH="$HOME/.local/state/smashcraft/native-retarget-432/$FIGHTER-before"
+  bun scripts/nativeCapture.ts moves --fighter "$FIGHTER" --out "$BATCH"
+  bun scripts/nativeCapture.ts build --out "$BATCH/batch.w3x" --name "Retarget 432 $FIGHTER" "$BATCH/pads"
+  bun scripts/nativeCapture.ts build-check --install "$ACCOUNT_B_INSTALL"
+  bun wisp fresh "$BATCH/batch.w3x" --no-quick --clients-file "$ACCOUNT_B_CLIENTS_FILE"
+  bun scripts/nativeCapture.ts run --clients-file "$ACCOUNT_B_CLIENTS_FILE" --client clone-b --install "$ACCOUNT_B_INSTALL" --manifest "$BATCH/batch.captures.json" --out "$BATCH/native" --no-audio
+  ```
+
+  `build` puts all prepared moves into one map/session (at most 63 fixtures).
+  `run` preserves stamped native originals as
+  `native/MOVE/frame-N.ppm`; `native/captures.json` records the installed/live
+  build, each receipt and missed frames. For #362/#432 the recorded build must
+  be `3.0.0.24268`; a different live build requires the lead to resolve the issue's
+  requested profile, not relabel the evidence. Missing frames or a crash/desync
+  invalidate the session. Convert each prepared move's frames with ImageMagick:
+
+  ```sh
+  jq -r '.rows[] | select(.phases != null) | [.move, .phases.startup, .phases.active, .phases.end] | @tsv' "$BATCH/moves.json" |
+  while IFS="$(printf '\t')" read -r MOVE STARTUP ACTIVE END; do
+    mkdir -p "$BATCH/frames/$MOVE"
+    magick "$BATCH/native/$MOVE/frame-$STARTUP.ppm" "$BATCH/frames/$MOVE/startup.png"
+    magick "$BATCH/native/$MOVE/frame-$ACTIVE.ppm" "$BATCH/frames/$MOVE/active.png"
+    magick "$BATCH/native/$MOVE/frame-$END.ppm" "$BATCH/frames/$MOVE/end.png"
+    magick "$BATCH/frames/$MOVE/startup.png" "$BATCH/frames/$MOVE/active.png" "$BATCH/frames/$MOVE/end.png" +append "$BATCH/frames/$MOVE/strip.png"
+  done
+  ```
+
+  The lead judges limb twist, collapse, sliding and detached weapons from those
+  strips. `moves.md` starts with **pending native capture** for every row; source
+  preparation and a captured frame alone never produce a visual pass.
+
 - One-client Definitive look captures (signed-in clone b, c or d):
   `bun scripts/nativeCapture.ts build --out MAP.w3x --control PAD|DIR...` bakes
   the scripts and their `capture` frames into a native-capture map that plays

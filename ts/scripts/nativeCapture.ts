@@ -20,7 +20,7 @@
 
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, statfsSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Effect, Layer, Schema } from "effect";
 import { ChildProcess } from "effect/process";
@@ -34,6 +34,13 @@ import { STAMP_CELL, STAMP_CELLS, type StampCell, readStamp } from "../src/runti
 import { CAPTURE_STATUS_FILE } from "../src/runtime/gameFiles";
 import { CAPTURE_FIXTURES, type CaptureFixture } from "../src/platform/captureFixtures";
 import { platformLayer } from "wisp/scripts/platform/layer";
+import { AttackStyle, GrabAction, type Character } from "../src/game/sim/codes";
+import { fighterName, fighterSlug, SELECTABLE_CHARACTERS } from "../src/game/sim/heroes/registry";
+import { authoredTuning } from "../src/game/sim/tuning";
+import { type AuthoredSpecial } from "../src/game/sim/heroSpecials";
+import { attackDurationFramesForGrounding, attackStartupFrames, grabActionDuration, grabContactFrame, isAerialAttack } from "../src/game/sim/moves";
+import { characterClips } from "../src/game/presentation/fighterClips";
+import { DAMAGE_CLIPS } from "../src/game/presentation/damageClipInfo";
 
 class CaptureFailure extends Schema.TaggedError<CaptureFailure>()("CaptureFailure", { problem: Schema.String }) {
   override get message(): string { return this.problem; }
@@ -50,6 +57,109 @@ function option(args: readonly string[], name: string): string | undefined {
 
 const SWITCHES = new Set(["--control", "--no-audio"]);
 const positional = (args: readonly string[]) => args.filter((value, index) => !value.startsWith("--") && !(args[index - 1]?.startsWith("--") === true && !SWITCHES.has(args[index - 1] ?? "")));
+
+interface MoveCapture {
+  readonly move: string;
+  readonly phases?: { readonly startup: number; readonly active: number; readonly end: number };
+  readonly script?: string;
+  readonly reason?: string;
+}
+
+function moveCaptures(character: Character): MoveCapture[] {
+  const tuning = authoredTuning(character);
+  const rows: MoveCapture[] = [];
+  const setup = `#! chat -dev quick hero ${fighterName(character).toLowerCase()}`;
+  const at = 120;
+  const normalInputs: Readonly<Record<string, readonly string[]>> = {
+    jab: ["tap A 1"], grab: ["tap RB 1"],
+    forwardTilt: ["press LB", "stick 0.6 0", "tap A 1"],
+    forwardTiltUp: ["press LB", "stick 0.6 0.5", "tap A 1"],
+    forwardTiltDown: ["press LB", "stick 0.6 -0.5", "tap A 1"],
+    upTilt: ["press LB", "stick 0 0.6", "tap A 1"], downTilt: ["stick 0 -1", "tap A 1"],
+    forwardSmash: ["cstick 1 0"], upSmash: ["cstick 0 1"], downSmash: ["cstick 0 -1"],
+    neutralAir: ["tap A 1"], forwardAir: ["cstick 1 0"], backAir: ["cstick -1 0"],
+    upAir: ["cstick 0 1"], downAir: ["cstick 0 -1"],
+    dashAttack: ["tap A 1"], demonHunterDashAttack: ["tap A 1"],
+  };
+  for (const [move, style] of Object.entries(AttackStyle)) {
+    if (tuning.moves?.normals[style] === undefined) continue;
+    const inputs = normalInputs[move];
+    if (inputs === undefined) {
+      rows.push({ move, reason: "needs a preceding jab chain, knockdown, ledge or shot setup; no direct pad selector" });
+      continue;
+    }
+    const air = isAerialAttack(style);
+    const prelude = air ? ["90 a tap B 8", "105 a tap B 8"] : move.endsWith("DashAttack") || move === "dashAttack" ? ["118 a stick 1 0"] : [];
+    const phases = { startup: at, active: at + attackStartupFrames(style, tuning.moves), end: at + attackDurationFramesForGrounding(style, !air, tuning.moves) - 1 };
+    rows.push({ move, phases, script: [setup, ...prelude, ...inputs.map(input => `${at} a ${input}`), `${at + 1} a stick 0 0`, `${at + 1} a cstick 0 0`, `${at + 1} a release LB`].join("\n") });
+  }
+  for (const [move, action] of Object.entries(GrabAction)) {
+    if (tuning.moves?.throws[action] === undefined) continue;
+    rows.push({ move, reason: `paired catch required; use the existing test/native/pads/180/${fighterSlug(character)}-*-right.pad inputs, then align contact (${grabContactFrame(action, tuning.moves)}) and duration (${grabActionDuration(action, tuning.moves)}) from the native receipt` });
+  }
+  const addSpecial = (move: string, authored: AuthoredSpecial, x: number, z: number, air: boolean, ex: boolean, reason?: string, ultimate = false): void => {
+    const events = [...(authored.regions ?? []).map(region => region.firstFrame), ...(authored.projectiles ?? []).map(projectile => projectile.spawnFrame - 1),
+      ...(authored.placement === undefined ? [] : [authored.placement.frame - 1]), ...(authored.commandGrab === undefined ? [] : [authored.commandGrab.first - 1]),
+      ...(authored.motion ?? []).map(motion => motion.first - 1), ...(authored.guard === undefined ? [] : [authored.guard.first - 1])];
+    const active = Math.min(...events.filter(frame => frame >= 0 && frame < authored.endFrame));
+    if (reason !== undefined || !Number.isFinite(active)) {
+      rows.push({ move, reason: reason ?? "no authored active event; lead must select the visible key frame" });
+    } else {
+      const phases = { startup: at, active: at + active, end: at + authored.endFrame - 1 };
+      rows.push({ move, phases, script: [setup, "30 a chat -dev meter 100", ...(air ? ["90 a tap B 8", "105 a tap B 8"] : []),
+        ...(ex ? [`${at} a shield 1`] : []), `${at} a stick ${x} ${z}`, ...(ultimate ? [`${at} a tap A 2`] : []),
+        `${at} a tap X 2`, `${at + 1} a stick 0 0`, ...(ex ? [`${at + 2} a shield 0`] : [])].join("\n") });
+    }
+    for (const [index, branch] of (authored.followUps ?? []).entries()) addSpecial(`${move}-followup${index + 1}`, branch.special, x, z, air, ex, "needs the preceding special's follow-up window and input");
+    if (!ex && authored.ex !== undefined) addSpecial(`${move}-ex`, authored.ex, x, z, air, true, reason);
+  };
+  if (tuning.specials !== undefined) {
+    for (const [slot, x, z] of [["neutral", 0, 0], ["side", 1, 0], ["up", 0, 1], ["down", 0, -1]] as const) {
+      const kit = tuning.specials[slot];
+      addSpecial(`${slot}-special`, kit.ground, x, z, false, false);
+      if (kit.air !== undefined) addSpecial(`${slot}-special-air`, kit.air, x, z, true, false);
+      if (kit.recall !== undefined) addSpecial(`${slot}-special-recall`, kit.recall, x, z, false, false, "needs the preceding placement/projectile/armor to recall");
+      if (kit.marked !== undefined) addSpecial(`${slot}-special-marked`, kit.marked.special, x, z, false, false, "needs a marked target in range");
+    }
+  } else {
+    for (const slot of ["neutral", "side", "up", "down"]) rows.push({ move: `${slot}-special`, reason: "original fighter's procedural special; use its existing native pad fixture and receipt" });
+  }
+  if (tuning.ultimate !== undefined) addSpecial("ultimate", tuning.ultimate, 0, 0, false, false, undefined, true);
+  for (const pose of Object.keys(characterClips(character)).sort()) {
+    if (!rows.some(row => row.move.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase()) === pose || row.move === "getupAttack" && pose === "getUpAttack")) {
+      rows.push({ move: `pose-${pose}`, reason: "production clip binding; requires its movement, recovery, damage or paired state, without a direct pad selector" });
+    }
+  }
+  for (const [category, clip] of (DAMAGE_CLIPS[character] ?? []).entries()) rows.push({ move: `damage-category-${category}`, reason: `authored contact reaction clip ${clip.index}; use existing test/native/pads/181/${fighterSlug(character)}-* inputs and native hit receipt` });
+  return rows.sort((a, b) => a.move < b.move ? -1 : a.move > b.move ? 1 : 0);
+}
+
+const moves = (args: readonly string[]) => Effect.gen(function*() {
+  const fighter = option(args, "--fighter");
+  const output = option(args, "--out");
+  const character = SELECTABLE_CHARACTERS.find(candidate => fighterSlug(candidate) === fighter);
+  if (character === undefined || output === undefined) return yield* new CaptureFailure({ problem: "usage: moves --fighter SLUG --out PRIVATE_DIR (one fighter per session; shadow-hunter first)" });
+  const out = resolve(output);
+  if (!relative(resolve(import.meta.dir, "../.."), out).startsWith("../")) return yield* new CaptureFailure({ problem: "move pads and captures stay outside the checkout" });
+  const rows = yield* attempt("enumerate authored moves", () => moveCaptures(character));
+  const pads = join(out, "pads");
+  const fixtures = rows.filter(row => row.script !== undefined && row.phases !== undefined);
+  if (fixtures.length >= 64) return yield* new CaptureFailure({ problem: "this fighter exceeds 63 prepared fixtures; lead must split without changing fighter" });
+  yield* attempt("write move pads and inventory", () => {
+    mkdirSync(pads, { recursive: true });
+    if (readdirSync(pads).some(file => file.endsWith(".pad"))) fail("use a fresh output directory so old pads cannot enter this batch");
+    for (const row of fixtures) {
+      const phases = row.phases;
+      if (phases === undefined || row.script === undefined) continue;
+      const captures = [...new Set(Object.values(phases))].sort((a, b) => a - b);
+      const lines = [...row.script.split("\n"), ...captures.map(frame => `${frame} a capture`)].sort((a, b) => (Number(a.split(" ")[0]) || 0) - (Number(b.split(" ")[0]) || 0));
+      writeFileSync(join(pads, `${row.move}.pad`), `${lines.join("\n")}\n`);
+    }
+    writeFileSync(join(out, "moves.json"), `${JSON.stringify({ fighter, client: "clone-b", graphics: "definitive", status: "pending native capture", rows: rows.map(({ script, ...row }) => ({ ...row, ...(script === undefined ? {} : { pad: `pads/${row.move}.pad` }) })) }, null, 2)}\n`);
+    writeFileSync(join(out, "moves.md"), ["| Move | Startup / active / end targets | Native capture / judgement |", "| --- | --- | --- |", ...rows.map(row => `| ${row.move} | ${row.phases === undefined ? "setup required" : Object.values(row.phases).join(" / ")} | pending native capture${row.reason === undefined ? "" : `: ${row.reason}`} |`), ""].join("\n"));
+  });
+  console.log(`${fighter}: ${rows.length} inventory rows, ${fixtures.length} prepared pads, ${rows.length - fixtures.length} explicit setup rows; pending native capture; ${out}`);
+});
 
 
 export function fixtureOf(path: string, script: string): CaptureFixture {
@@ -356,6 +466,6 @@ const compare = (args: readonly string[]) => Effect.gen(function*() {
 
 if (import.meta.main) {
   const [verb, ...args] = Bun.argv.slice(2);
-  const program = verb === "build" ? build(args) : verb === "plan" ? plan(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : verb === "build-check" ? buildCheck(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts build|plan|run|compare|build-check ..." }));
+  const program = verb === "moves" ? moves(args) : verb === "build" ? build(args) : verb === "plan" ? plan(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : verb === "build-check" ? buildCheck(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts moves|build|plan|run|compare|build-check ..." }));
   BunRuntime.runMain(program.pipe(Effect.provide(Layer.merge(BunServices.layer, platformLayer()))));
 }
