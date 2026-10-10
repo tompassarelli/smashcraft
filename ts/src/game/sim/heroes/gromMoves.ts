@@ -33,9 +33,9 @@ export const GROM_MOVES: FighterMoves = {
     [AttackStyle.backAir]: move(10, 3, 30, 18, [heroRegion(10, 12, axe(-18.0, 64.0, -116.0, 54.0), gromHit(9.413351058959961, 35, 120.4021224975586, 23.399999618530273, true))]),
     [AttackStyle.upAir]: move(8, 4, 26, 16, [heroRegion(8, 11, axe(-24.0, 138.0, 24.0, 138.0, 16.0), gromHit(7.241039752960205, 90, 95.87577056884766, 23.399999618530273))]),
     [AttackStyle.downAir]: move(15, 3, 38, 24, [heroRegion(15, 17, axe(0.0, 16.0, 0.0, -64.0), { ...gromHit(10.861560821533203, 90, 100.33509826660156, 23.399999618530273), launchZ: -1.0 }, gromHit(10.861560821533203, 70, 100.33509826660156, 23.399999618530273))]),
-    [AttackStyle.grab]: move(8, 2, 27, 0, [heroRegion(8, 9, axe(16.0, 56.0, 58.0, 56.0), gromHit(0.0, 35, 0.0, 0.0))]),
-    [AttackStyle.getupAttack]: move(17, 3, 30, 0, [heroRegion(17, 19, axe(-85.0, 20.0, 85.0, 20.0), gromHit(5.068727970123291, 35))]),
-    [AttackStyle.ledgeAttack]: move(17, 3, 21, 0, [heroRegion(17, 19, axe(16.0, 50.0, 96.0, 50.0), gromHit(5.068727970123291, 35))]),
+    [AttackStyle.grab]: move(8, 2, 33, 0, [heroRegion(8, 9, axe(16.0, 56.0, 58.0, 56.0), gromHit(0.0, 35, 0.0, 0.0))]),
+    [AttackStyle.getupAttack]: move(17, 3, 40, 0, [heroRegion(17, 19, axe(-85.0, 20.0, 85.0, 20.0), gromHit(5.068727970123291, 35))]),
+    [AttackStyle.ledgeAttack]: move(17, 3, 40, 0, [heroRegion(17, 19, axe(16.0, 50.0, 96.0, 50.0), gromHit(5.068727970123291, 35))]),
   },
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: gromHit(2.413679838180542, 35, 0.0, 0.0) },
