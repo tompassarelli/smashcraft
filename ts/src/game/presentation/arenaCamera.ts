@@ -36,10 +36,12 @@ export function cameraFieldOfView(camera: Readonly<MatchCamera>, aspect: number)
 export type CameraExtreme = "near" | "far";
 
 
+export const cameraZOverride: { z: number | undefined } = { z: undefined };
+
 export function extremeCamera(target: MatchCamera, stage: number, aspect: number, extreme: CameraExtreme): void {
   const bounds = stageBounds(stage);
   target.x = 0.0;
-  target.z = extreme === "near" ? 100.0 : -100000.0;
+  target.z = cameraZOverride.z ?? (extreme === "near" ? 100.0 : -100000.0);
   target.distance = extreme === "near" ? 1450.0 : 100000.0;
   target.tangent = extreme === "near" ? 0.2679491937160492 : 0.3443276286125183;
   limitCamera(target, bounds.camera, aspect, bounds.blast.bottom);
