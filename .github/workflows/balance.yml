@@ -35,6 +35,9 @@ on:
       probe:
         description: Spam-probe matches a pair (0 skips the probe; a matchups run never probes)
         default: "40"
+      ledge-rule:
+        description: Optional cpuField ledge rule (melee for the melee ledge baseline); empty plays the shipped rules
+        default: ""
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
@@ -42,7 +45,7 @@ on:
 run-name: Balance ${{ inputs.ref }} ${{ inputs.opponent }} ${{ inputs.tier }} ${{ inputs.per-pair }} a pair ${{ inputs.tag }}
 
 concurrency:
-  group: balance ${{ inputs.lane || 'main' }} ${{ inputs.opponent }} ${{ inputs.tier }} ${{ inputs.per-pair }} ${{ inputs.matchups }}
+  group: balance ${{ inputs.lane || 'main' }} ${{ inputs.opponent }} ${{ inputs.tier }} ${{ inputs.per-pair }} ${{ inputs.matchups }} ${{ inputs.ledge-rule }}
   cancel-in-progress: true
 
 permissions:
@@ -141,11 +144,12 @@ jobs:
           TIER: ${{ inputs.tier }}
           PER_PAIR: ${{ inputs.per-pair }}
           SEEDS: ${{ inputs.seeds }}
+          LEDGE_RULE: ${{ inputs.ledge-rule }}
         run: |
           mkdir -p shards
           printf '%s' "$PAIRS" | tr ',' '\0' | xargs -0 -P "$(nproc)" -I{} sh -c '
             name=$(printf "%s" "$1" | tr : _)
-            bun scripts/cpuField.ts --pairs "$1" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json "shards/$name.json" > "shards/$name.log" 2>&1 \
+            bun scripts/cpuField.ts --pairs "$1" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" ${LEDGE_RULE:+--ledge-rule "$LEDGE_RULE"} --json "shards/$name.json" > "shards/$name.log" 2>&1 \
               || { echo "::error::cpuField $1 failed"; cat "shards/$name.log"; exit 1; }
             grep -m1 "computer matches" "shards/$name.log" | cut -c1-90
           ' sh '{}'
@@ -183,9 +187,10 @@ jobs:
           TIER: ${{ inputs.tier }}
           PER_PAIR: ${{ inputs.per-pair }}
           SEEDS: ${{ inputs.seeds }}
+          LEDGE_RULE: ${{ inputs.ledge-rule }}
         run: |
           mkdir -p balance
-          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/merged.md
+          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" ${LEDGE_RULE:+--ledge-rule "$LEDGE_RULE"} --json balance/field.json > balance/merged.md
       - uses: actions/upload-artifact@v4
         with:
           name: balance-merged
@@ -339,9 +344,10 @@ jobs:
           PROBE: ${{ inputs.probe }}
           SHA: ${{ needs.plan.outputs.sha }}
           MATCHUPS: ${{ inputs.matchups }}
+          LEDGE_RULE: ${{ inputs.ledge-rule }}
         run: |
           mkdir -p balance probes
-          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --probe "$(ls probes/*.json 2>/dev/null | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" --json balance/field.json > balance/table.md
+          bun scripts/cpuField.ts --merge "$(ls shards/*.json | paste -sd,)" --probe "$(ls probes/*.json 2>/dev/null | paste -sd,)" --opponents "$OPPONENT,$OPPONENT" --tiers "$TIER,$TIER" --per-pair "$PER_PAIR" --seeds "$SEEDS" ${LEDGE_RULE:+--ledge-rule "$LEDGE_RULE"} --json balance/field.json > balance/table.md
           if [ -d ceiling ]; then
             bun scripts/cpuCeiling.ts --merge "$(ls ceiling/*.json | paste -sd,)" --baseline balance/field.json --report balance/ceiling.md >> balance/table.md
           fi
