@@ -71,7 +71,7 @@ export interface CaptureEvidence {
   readonly exports: ReadonlyMap<number, readonly [ClientExport, ClientExport]>;
 }
 
-interface Distribution {
+export interface Distribution {
   readonly n: number;
   readonly p50: number | undefined;
   readonly p95: number | undefined;
@@ -157,7 +157,7 @@ const requiredBindings = (layout: PadLayout) =>
 const START_BUTTON = 0x13b;
 const NS_PER_SECOND = 1_000_000_000;
 
-function integer(text: string | undefined, what: string): number {
+export function integer(text: string | undefined, what: string): number {
   if (text === undefined || !/^[+-]?\d+$/.test(text)) throw new MalformedEvidence(`${what}: ${text ?? "missing"} is not an integer`);
   return Number(text);
 }
@@ -211,6 +211,20 @@ function sourceMask({ type, code, value }: SourceEdge, layout: PadLayout): numbe
     return triggers[code] ?? 0;
   }
   return 0;
+}
+
+export function integrityHeader(firstPage: string): { readonly retained: number; readonly dropped: number } | undefined {
+  const header = /integrity retained=(\d+) dropped=(\d+)/.exec(firstPage);
+  return header === null ? undefined : { retained: Number(header[1]), dropped: Number(header[2]) };
+}
+
+
+export function integrityRows(pages: readonly string[], what: string): string[][] {
+  return [...pages.join("\n").matchAll(/Preload\( "I ([^"\r\n]+)/g)].map((match) => {
+    const contents = match[1];
+    if (contents === undefined) throw new MalformedEvidence(`${what}: integrity row missing`);
+    return contents.split(/\s+/).filter((field) => field !== "");
+  });
 }
 
 export function distribution(values: readonly number[]): Distribution {
@@ -322,16 +336,11 @@ export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, wind
       const exported = evidence.exports.get(epoch)?.[client];
       const firstPage = exported?.pages[0];
       if (!require(firstPage !== undefined, `epoch ${epoch} client ${client}: response pages absent`) || exported === undefined || firstPage === undefined) continue;
-      const text = exported.pages.join("\n");
-      const retained = /integrity retained=(\d+) dropped=(\d+)/.exec(firstPage);
-      if (!require(retained !== null, `epoch ${epoch} client ${client}: integrity header absent`) || retained === null) continue;
-      require(Number(retained[2]) === 0, `epoch ${epoch} client ${client}: integrity rows dropped`);
-      const rows = [...text.matchAll(/Preload\( "I ([^"\r\n]+)/g)].map((match) => {
-        const contents = match[1];
-        if (contents === undefined) throw new MalformedEvidence(`epoch ${epoch} client ${client}: integrity row missing`);
-        return contents.split(/\s+/).filter((field) => field !== "");
-      });
-      require(rows.length === Number(retained[1]), `epoch ${epoch} client ${client}: incomplete integrity export`);
+      const header = integrityHeader(firstPage);
+      if (!require(header !== undefined, `epoch ${epoch} client ${client}: integrity header absent`) || header === undefined) continue;
+      require(header.dropped === 0, `epoch ${epoch} client ${client}: integrity rows dropped`);
+      const rows = integrityRows(exported.pages, `epoch ${epoch} client ${client}`);
+      require(rows.length === header.retained, `epoch ${epoch} client ${client}: incomplete integrity export`);
       const what = `epoch ${epoch} client ${client} integrity row`;
       const events: NativeRow[] = [];
       for (const row of rows) {

@@ -6,7 +6,8 @@ import { expect, test } from "bun:test";
 import { kernelLine, producerLine, readEvidence, readMetadata } from "../scripts/integrity/evidence";
 import { type GameFile, type JourneyOptions, type JourneyRecord, type PublicationRecord, type RigShape, journey } from "../scripts/integrity/journey";
 import { ABS_X, EV_ABS, PAD_BUTTONS, decodeEvents, edgePacket, padCapabilities, padSetup } from "../scripts/integrity/linuxInput";
-import { type Slot, capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
+import { clientDelay, savedClients } from "../scripts/integrity/delayReadout";
+import { type Slot, capturePair, distribution, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
 import { createMatchState, setParticipants } from "../src/game/match/rules";
 import { type DevSettings, applyDevCommand } from "../src/game/shell/devSettings";
 import { devReceiptFile, stageDrawnFile } from "../src/game/shell/journalFiles";
@@ -46,6 +47,14 @@ test("the r8 capture reconciles to #26's measured table [native] [reference]", a
 
   const retained = await Bun.file(join(evidence("r8"), "summary.json")).json();
   expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
+});
+
+test("the delay reader's per-client rollback depths pool to #26's r8 row [native]", () => {
+  const clients = savedClients(evidence("r8")).map(clientDelay);
+  expect(clients.map((c) => c.client)).toEqual(["epoch-1 p0 run1", "epoch-1 p1 run1", "epoch-2 p0 run2", "epoch-2 p1 run2"]);
+  const pooled = distribution(clients.flatMap((c) => c.rollbackDepth.counts.flatMap(([depth, count]) => Array<number>(count).fill(depth))));
+  expect([pooled.p50, pooled.p95, pooled.max, pooled.n]).toEqual([13, 24, 24, 198]);
+  expect(clients.every((c) => c.delay.n > 0 && c.dropped === 0)).toBe(true);
 });
 
 test("the r7 capture reconciles to its retained failing summary [native] [reference]", async () => {

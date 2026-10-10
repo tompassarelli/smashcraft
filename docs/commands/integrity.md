@@ -17,3 +17,11 @@
   `bun wisp integrity capture --playable` runs a playable candidate's one-stock
   match and rematch (smashcraft:docs/playable-0047.md).
   `bun wisp integrity result DIR` reconciles either session from its recorded kind.
+
+- Delay readout: `bun wisp integrity delay RUN_DIR...` prints input delay
+  (service callbacks from a press's `capture` row to its first `action`
+  prediction) and rollback depth, p50 / p95 / max, per client from the
+  latest probe run's response pages under each directory
+  (smashcraft:ts/scripts/integrity/delayReadout.ts, #396). `pad` runs keep
+  those pages beside their traces, but a pad run writes them only when the
+  probe was started (Ctrl+G) and exported (Ctrl+H).

@@ -51,7 +51,7 @@ import { type PadStep, type SentEdge, deadlineOrder, frameWriteNs, landEdges, ma
 import { SLOTS } from "../../integrity/reconcile";
 import { captureWhenDrawn, drawnFrom, visualCaptureCommand, visualCaptureToken } from "../../integrity/drawnCapture";
 import { visualReleaseFile } from "../../../src/game/shell/visualCapture";
-import { drawnFrameFile, nativeChatFile, RESPONSE_TRACE_CALLBACKS } from "../../../src/runtime/gameFiles";
+import { drawnFrameFile, nativeChatFile, RESPONSE_TRACE_CALLBACKS, responsePageFile } from "../../../src/runtime/gameFiles";
 import { PREDICTED_HEADLESS, SMASHCRAFT_HEADLESS } from "../headless";
 type HeadlessClient = ReturnType<HeadlessRuntime["clients"]>["clients"][number];
 import { sceneFile } from "wisp/src/runtime/scene";
@@ -165,6 +165,8 @@ const finish = (out: string, scriptPath: string, build: string, epochs: readonly
 
 
 
+const RESPONSE_PAGE = new Bun.Glob(responsePageFile("*", "*", "*"));
+
 const collect = (data: readonly [string, string], out: string, sinceMs: number) => Effect.gen(function*() {
   const fresh = (path: string) => existsSync(path) && statSync(path).mtimeMs >= sinceMs;
   const waited = yield* Effect.exit(pollUntil(tryIntegrity("collect traces and moments", out, () => data.every((dir) => fresh(join(dir, TRACE_FILE))) ? true : undefined), {
@@ -182,6 +184,8 @@ const collect = (data: readonly [string, string], out: string, sinceMs: number) 
       for (const name of readdirSync(dir)) {
         if (!fresh(join(dir, name))) continue;
         if (REPRO_NAME.test(name)) copyFileSync(join(dir, name), join(out, name));
+        // integrity rows (`bun wisp integrity delay`, #396); the page name already names its slot
+        if (RESPONSE_PAGE.match(name)) copyFileSync(join(dir, name), join(out, name));
         const match = /^smashcraft-replay-(\d+)\.txt$/.exec(name);
         if (match !== null) {
           const lines = readReplay(join(dir, name));
