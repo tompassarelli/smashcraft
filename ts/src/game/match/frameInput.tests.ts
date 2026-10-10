@@ -1,19 +1,21 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { at } from "wisp/src/runtime/lookup";
 import { Action, maskOf } from "../input/actions";
 import { queueAttack } from "../input/attackBuffer";
 import { type InputRow, inputRow } from "../input/inputRow";
 import { participantInputs } from "../input/participants";
 import { firstFighterPoseDifference } from "../presentation/fighterPose";
 import { firstImpactDifference } from "../presentation/impactState";
-import { firstFighterDifference } from "../replay/difference";
-import { captureReplaySnapshot, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
+import { firstFighterDifference, firstStateDifference } from "../replay/difference";
+import { type ReplayState, captureReplaySnapshot, copyReplayState, createReplaySnapshot, restoreReplaySnapshot } from "../replay/snapshot";
 import { analogShieldStrength } from "../sim/shield";
 import { Character } from "../sim/codes";
+import { sameCameraSubjects, sameMatchCamera } from "../sim/matchCamera";
 import { fighterAt } from "../sim/roster";
 import { createFrameControls } from "./controls";
 import { captureFrame, captureNetworkFrame, copyMatchFrameInput, createMatchFrameInput, executeMatchFrame, resetMatchFrameInput, sameMatchFrameInput } from "./frameInput";
 import { createPacingAndPresentation } from "./pacingAndPresentation";
-import { type TestMatch, executeNext, testMatch } from "./testMatch";
+import { type TestMatch, executeNext, replayState, testMatch } from "./testMatch";
 
 function row(fields: Parameters<typeof inputRow>[0]): InputRow {
   return assertDefined(inputRow(fields), "input row");
@@ -108,4 +110,49 @@ test("a network row adapts again from the world it replays into [invariant]", ()
     assertEquals(firstFighterDifference(fighterAt(after.world, slot), fighterAt(match.world, slot), 3, 3), undefined);
     assertEquals(firstFighterPoseDifference(after.runtime.poses[slot], match.runtime.poses[slot], after.world, match.world), undefined);
   }
+});
+
+test("a frame handed an earlier run's camera reaches the state recomputing the camera does [invariant]", () => {
+  const frames = 600;
+  const earlier = testMatch(15, Character.rifleman);
+  const rows = Array.from({ length: frames + 1 }, () => createMatchFrameInput());
+  const snapshots = Array.from({ length: frames + 1 }, () => createReplaySnapshot());
+  captureReplaySnapshot(at(snapshots, 0), earlier.world, earlier.game, earlier.inputs, earlier.runtime);
+  for (let frame = 1; frame <= frames; frame++) {
+    for (const slot of [0, 1, 2, 3] as const) {
+      const input = earlier.inputs.inputs[slot];
+      const phase = (frame + slot * 37) % 120;
+      input.direction = phase < 30 ? 1 : phase >= 60 && phase < 90 ? -1 : 0;
+      input.jumpPressed = phase === 45;
+      input.jumpHeld = phase >= 45 && phase < 55;
+      if (phase % 20 === 10) queueAttack(earlier.inputs.commands[slot], { style: phase % 3, facing: 0, frame, mayCharge: false });
+    }
+    assertTrue(captureFrame(at(rows, frame), frame, 15, earlier.inputs, earlier.runtime));
+    assertTrue(executeMatchFrame(at(rows, frame), earlier.game, earlier.world, earlier.inputs, earlier.runtime, frame));
+    captureReplaySnapshot(at(snapshots, frame), earlier.world, earlier.game, earlier.inputs, earlier.runtime);
+  }
+
+  // A corrected run: the same rows, but slot 3 carries more damage, so it moves alike until a hit launches it farther.
+  const corrected: ReplayState = createReplaySnapshot();
+  copyReplayState(corrected, at(snapshots, 0));
+  fighterAt(corrected.world, 3).status.damage = 120.0;
+  const copied = testMatch(15, Character.rifleman);
+  const recomputed = testMatch(15, Character.rifleman);
+  let reused = 0;
+  let declined = 0;
+  for (let frame = 1; frame <= frames; frame++) {
+    const before = at(snapshots, frame - 1);
+    const after = at(snapshots, frame);
+    const framed = sameMatchCamera(corrected.match.camera, before.match.camera);
+    copyReplayState(replayState(copied), corrected);
+    copyReplayState(replayState(recomputed), corrected);
+    assertTrue(executeMatchFrame(at(rows, frame), copied.game, copied.world, copied.inputs, copied.runtime, frame, undefined, undefined, framed ? after : undefined));
+    assertTrue(executeMatchFrame(at(rows, frame), recomputed.game, recomputed.world, recomputed.inputs, recomputed.runtime, frame));
+    assertEquals(firstStateDifference(replayState(recomputed), replayState(copied)), undefined);
+    if (framed && sameCameraSubjects(copied.world, after.world)) reused++;
+    else declined++;
+    copyReplayState(corrected, replayState(recomputed));
+  }
+  assertTrue(reused > 0);
+  assertTrue(declined > 0);
 });

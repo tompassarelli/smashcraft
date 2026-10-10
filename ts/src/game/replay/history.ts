@@ -27,6 +27,7 @@ import { copyPacingAndPresentation } from "../match/pacingAndPresentation";
 import { copyFighterState, sameFighterState } from "./fighterState";
 import { apartFromOthers, authoredMotionApartFromOthers, matchScopable, scopedStepHeld } from "./scopedRepair";
 import { sameReplayState } from "./difference";
+import { sameMatchCamera } from "../sim/matchCamera";
 import { firstFighterPoseDifference } from "../presentation/fighterPose";
 import { firstSummonPoseDifference } from "../presentation/summonPose";
 
@@ -428,6 +429,8 @@ export class ReplayHistory {
       this.repairDirty = dirty;
       this.repairInputs |= at(this.changed, slot);
       if (repeated !== undefined) for (const computer of PARTICIPANT_SLOTS) if (participantActive(repeated.mask, computer)) this.repeatedDecisions++;
+      // The frame's earlier run reached the next snapshot from the camera its own snapshot holds until the repair rewrites it.
+      const framed = frame + 1 < this.nextFrame && at(this.follows, this.slotOf(frame + 1)) && (first || sameMatchCamera(state.match.camera, this.snapshotAt(frame).match.camera));
       if (!first) {
         // Fighters the repair hasn't changed already match the snapshot.
         this.copySnapshot(frame, state, unchanged, state.world.mask & ~this.repairShown);
@@ -435,7 +438,7 @@ export class ReplayHistory {
         this.follows[slot] = true;
       }
       if (frame + 1 < this.nextFrame) this.follows[this.slotOf(frame + 1)] = false;
-      if (!this.step(frame, state, repeated, scoped)) return "rejected";
+      if (!this.step(frame, state, repeated, scoped, framed)) return "rejected";
       this.changed[slot] = 0;
       frame++;
       this.repairNext = frame;
@@ -523,8 +526,8 @@ export class ReplayHistory {
     return slot;
   }
 
-  /** Runs one repaired frame, scoped to `scoped` when its result holds, otherwise whole. */
-  private step(frame: number, state: ReplayState, repeated: RepeatedComputers | undefined, scoped: number | undefined): boolean {
+  /** Runs one repaired frame, scoped to `scoped` when its result holds, otherwise whole; `framed` when its earlier run reached the next snapshot from an equal camera. */
+  private step(frame: number, state: ReplayState, repeated: RepeatedComputers | undefined, scoped: number | undefined, framed: boolean): boolean {
     const row = this.inputAt(frame);
     if (scoped !== undefined) {
       const after = this.snapshotAt(frame + 1);
@@ -547,7 +550,7 @@ export class ReplayHistory {
       // The frame's snapshot holds the state before it.
       copyReplayState(state, this.snapshotAt(frame));
     }
-    if (!executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, frame, repeated)) return false;
+    if (!executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, frame, repeated, undefined, framed ? this.snapshotAt(frame + 1) : undefined)) return false;
     this.repairDirty = this.changedFighters(frame, state);
     this.repairShown = this.changedPresentation(frame, state, this.repairDirty);
     return true;
