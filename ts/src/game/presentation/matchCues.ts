@@ -6,7 +6,7 @@ import { MATCH_TICKS_PER_SECOND, type MatchState, Phase, humanFighterActive, kee
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 import { fighterName } from "../sim/heroes/registry";
-import { cpuOpponentSummary, fighterLabel } from "../shell/messages";
+import { cpuOpponentSummary } from "../shell/messages";
 import { MatchCue } from "./matchAudio";
 import { ROSTER_MANA } from "../sim/mana";
 import type { Character } from "../sim/codes";
@@ -108,7 +108,7 @@ export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, 
     const fighter = fighterAt(world, slot);
     const winner = game.winner === slot;
     const stocks = game.endless ? "" : `Stocks ${fighter.status.stocks}  ·  `;
-    const label = humanFighterActive(game, slot) ? fighterLabel(game, slot) : cpuOpponentSummary(game, slot);
+    const label = humanFighterActive(game, slot) ? `P${slot + 1}` : cpuOpponentSummary(game, slot).replace(`CPU ${slot + 1}`, `P${slot + 1} · CPU`);
     const text = `${winner ? "WINNER  " : ""}${label} · ${fighterName(fighter.character)}\n`
       + `${stocks}Damage ${percent(fighter.status.damage)}  ·  KOs ${tally.kos[slot]}  ·  Falls ${tally.falls[slot]}`;
     const row = { slot, winner, text };

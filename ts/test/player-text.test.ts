@@ -15,6 +15,7 @@ import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { RESULTS_DELAY_FRAMES } from "../src/game/render/matchPresentation";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
@@ -142,7 +143,7 @@ test("the playable build shows players no developer text through selection, a ma
   for (const client of clients.clients) client.key(0, Key.w, 0, true);
   for (let frame = 0; frame < 1200 && !phases().every((phase) => phase === Phase.result); frame++) frames(1);
   expect(phases()).toEqual([Phase.result, Phase.result]);
-  frames(15);
+  frames(RESULTS_DELAY_FRAMES + 1);
 
   expect(clients.clients.map((client) => {
     let winner: number | undefined;
@@ -151,7 +152,7 @@ test("the playable build shows players no developer text through selection, a ma
     });
     return winner;
   })).toEqual([1, 1]);
-  expect(shown.has("Player 2 wins!")).toBe(true);
+  expect([...shown].some(text => text.includes("WINNER  P2"))).toBe(true);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect([...shown].filter((text) => developerText(text).length > 0)).toEqual([]);
 });

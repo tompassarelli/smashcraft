@@ -3,7 +3,7 @@
 
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
-import { stageInfo } from "../menu/stageCatalog";
+import { RANDOM_STAGE, stageInfo } from "../menu/stageCatalog";
 import { STAGE_SILHOUETTES, SILHOUETTE_PIECES } from "../menu/stageSilhouettes";
 import { createBackdrop, createText, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
@@ -12,6 +12,7 @@ const COAL = "ReplaceableTextures\\TeamColor\\TeamColor20.blp";
 const SNOW = "ReplaceableTextures\\TeamColor\\TeamColor21.blp";
 
 export class StageCard {
+  private readonly panel: framehandle;
   private readonly picture: framehandle;
   private readonly pieces: framehandle[] = [];
   private readonly name: framehandle | undefined;
@@ -19,8 +20,9 @@ export class StageCard {
   private readonly boxTop: number;
   private readonly boxWidth: number;
 
-  constructor(parent: framehandle, id: string, left: number, top: number, width: number, height: number, banner: boolean) {
+  constructor(parent: framehandle, id: string, left: number, top: number, width: number, height: number, private readonly banner: boolean) {
     const panel = createBackdrop(`${id}Panel`, parent, 0);
+    this.panel = panel;
     BlzFrameSetTexture(panel, COAL, 0, true);
     placeTopLeft(panel, left, top);
     BlzFrameSetSize(panel, width, height);
@@ -60,8 +62,9 @@ export class StageCard {
   show(choice: number): void {
     const stage = stageInfo(choice);
     BlzFrameSetTexture(this.picture, stage.texture, 0, true);
+    BlzFrameSetVisible(this.panel, choice !== RANDOM_STAGE);
     if (this.name !== undefined) BlzFrameSetText(this.name, stage.name);
-    const pieces = STAGE_SILHOUETTES[choice] ?? [];
+    const pieces = this.banner ? [] : STAGE_SILHOUETTES[choice] ?? [];
     for (let index = 0; index < SILHOUETTE_PIECES; index++) {
       const frame = at(this.pieces, index);
       const piece = pieces[index];

@@ -110,7 +110,7 @@ export class StagePanel {
       placeTopLeft(tile, stageTileLeft(choice), stageTileTop(choice));
       BlzFrameSetSize(tile, f32(0.094), f32(0.059));
       BlzFrameSetEnable(tile, false);
-      this.tileNames[choice] = stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.06)), f32(0.094), f32(0.02), f32(0.0075), stageInfo(choice).name);
+      this.tileNames[choice] = stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.06)), f32(0.094), f32(0.02), f32(0.009), stageInfo(choice).name);
     }
     this.clicks.add(stageButton(root, f32(0.454), f32(0.514), f32(0.3), f32(0.027), "Stage pool"), { kind: "poolOpen" });
     this.poolRoot = BlzCreateFrameByType("FRAME", "MeleeStagePoolRoot", root, "", 0);
