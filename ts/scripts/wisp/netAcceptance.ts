@@ -2,6 +2,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Console, Effect, Schema } from "effect";
 import { captureProcess } from "wisp/scripts/wisp/mapBuild";
+import { NetFailure } from "wisp/scripts/wisp/net/peer";
+import { runProxy } from "wisp/scripts/wisp/net/proxy";
 import { STAGE_CATALOG } from "../../src/game/menu/stageCatalog";
 import { SELECTABLE_CHARACTERS, fighterName } from "../../src/game/sim/heroes/registry";
 
@@ -127,23 +129,41 @@ export const FOUR_FIGHTER_SETUP = ["#! chat -dev slots 3 12", "#! chat -dev stoc
 const DisplaySummary = Schema.Struct({ frames: Schema.Finite, fps: Schema.Finite, frameMs: Schema.Struct({ p50: Schema.Finite, p95: Schema.Finite, p99: Schema.Finite }), intervalMs: Schema.Struct({ p50: Schema.Finite, p95: Schema.Finite, p99: Schema.Finite }), presentedMs: Schema.Struct({ p50: Schema.Finite, p95: Schema.Finite, p99: Schema.Finite }) });
 const decodeDisplay = Schema.decodeUnknownSync(Schema.fromJsonString(DisplaySummary));
 
-/** A four-fighter online match in two standalone windows, host and join on this machine, each keeping its own display timing in `out`/host and `out`/join. */
-export const runFourFighters = (options: { readonly frames: number; readonly seed: number; readonly out: string; readonly port: number }) =>
-  Effect.gen(function*() {
-    mkdirSync(options.out, { recursive: true });
-    const [match] = acceptanceMatches(1, [0], options.seed);
+export const runFourFighters = (options: { readonly frames: number; readonly seed: number; readonly out: string; readonly port: number; readonly rtts: readonly number[]; readonly loss: number }) =>
+  Effect.forEach(options.rtts, (rttMs) => Effect.scoped(Effect.gen(function*() {
+    const directory = join(options.out, `rtt-${rttMs}`);
+    mkdirSync(directory, { recursive: true });
+    const [match] = acceptanceMatches(1, [rttMs], options.seed);
     if (match === undefined) return [];
-    const pad = join(options.out, "four-fighters.pad");
+    const pad = join(directory, "four-fighters.pad");
     writeFileSync(pad, acceptancePad({ ...match, stage: 0 }, options.frames, FOUR_FIGHTER_SETUP));
+    const proxyPort = yield* Effect.tryPromise({
+      try: async () => {
+        const probe = await Bun.udpSocket({ hostname: "127.0.0.1", port: 0 });
+        const port = probe.port;
+        probe.close();
+        return port;
+      },
+      catch: (cause) => new NetFailure({ problem: `finding a proxy UDP port: ${String(cause)}` }),
+    });
+    yield* Effect.forkScoped(runProxy({ listen: proxyPort, to: { address: "127.0.0.1", port: options.port }, oneWayMs: rttMs / 2, loss: options.loss, seed: options.seed }, (line) => {
+      writeFileSync(join(directory, "proxy.log"), `${line}\n`);
+      console.log(line);
+    }));
     const side = (name: string, role: readonly string[]) => Effect.gen(function*() {
-      const out = join(options.out, name);
+      const out = join(directory, name);
       mkdirSync(out, { recursive: true });
       const run = yield* captureProcess("play --standalone", pad, [process.execPath, "scripts/wisp.ts", "play", "--standalone", ...role, "--script", pad, "--frames", `${options.frames}`, "--out", out]);
-      writeFileSync(join(options.out, `${name}.log`), `${run.stdout}\n${run.stderr}`);
-      return { side: name, exitCode: run.exitCode, display: decodeDisplay(yield* Effect.promise(() => Bun.file(join(out, "standalone.json")).text())) };
+      writeFileSync(join(directory, `${name}.log`), `${run.stdout}\n${run.stderr}`);
+      const measured = /^net: slot \d+, round trip (\d+(?:\.\d+)?) ms, turn delay .*$/m.exec(run.stderr);
+      if (measured === null || measured[1] === undefined) return yield* new NetFailure({ problem: `${name}: no measured round trip at requested ${rttMs} ms` });
+      yield* Console.log(`${name} ${measured[0]}`);
+      if (run.exitCode !== 0) return yield* new NetFailure({ problem: `${name}: standalone exited ${run.exitCode}: ${run.stderr.trim()}` });
+      const measuredRttMs = Number(measured[1]);
+      return { side: name, rttMs, loss: options.loss, measuredRttMs, exitCode: run.exitCode, display: decodeDisplay(yield* Effect.promise(() => Bun.file(join(out, "standalone.json")).text())) };
     });
-    return yield* Effect.all([side("host", ["--host", "--port", `${options.port}`]), Effect.sleep("3 seconds").pipe(Effect.andThen(side("join", ["--join", `127.0.0.1:${options.port}`])))], { concurrency: 2 });
-  });
+    return yield* Effect.all([side("host", ["--host", "--port", `${options.port}`]), Effect.sleep("3 seconds").pipe(Effect.andThen(side("join", ["--join", `127.0.0.1:${proxyPort}`])))], { concurrency: 2 });
+  })), { concurrency: 1 }).pipe(Effect.map((runs) => runs.flat()));
 
 /** Runs every match as `net pair` through the delay and loss proxy, `jobs` at a time, and writes each pad, log and the summary to `out`. */
 export const runAcceptance = (options: { readonly matches: number; readonly frames: number; readonly jobs: number; readonly loss: number; readonly seed: number; readonly out: string; readonly rtts: readonly number[] }) =>

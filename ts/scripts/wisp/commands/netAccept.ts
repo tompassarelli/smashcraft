@@ -18,11 +18,12 @@ export const netAccept: Command = (args) => Effect.gen(function*() {
   const rtts = (flagValues(args, "rtts")[0] ?? "0,60,120").split(",").map(Number);
   const options = { matches: value("matches", 20), frames: value("frames", 7200), jobs: value("jobs", 5), loss: value("loss", 0.01), seed: value("seed", 112), out, rtts };
   if ([options.matches, options.frames, options.jobs, options.loss, options.seed, ...rtts].some((number) => !Number.isFinite(number))) return yield* new UsageFailure({ problem: "net-accept takes numbers" });
+  if (rtts.some((rtt) => rtt < 0) || options.loss < 0 || options.loss > 1) return yield* new UsageFailure({ problem: "net-accept needs nonnegative round trips and loss between 0 and 1" });
   if (args.includes("--four-fighters")) {
-    const sides = yield* runFourFighters({ frames: value("frames", 7500), seed: options.seed, out, port: value("port", 47112) });
-    for (const side of sides) yield* Console.log(JSON.stringify({ side: side.side, exitCode: side.exitCode, frames: side.display.frames, fps: side.display.fps, frameMs: side.display.frameMs, intervalMs: side.display.intervalMs, presentedMs: side.display.presentedMs }));
-    const slow = sides.filter((side) => side.exitCode !== 0 || side.display.frameMs.p95 > 16.7);
-    if (slow.length > 0) return yield* new NetAcceptFailure({ problem: `display p95 over 16.7 ms or failed: ${slow.map((side) => side.side).join(", ")}` });
+    const sides = yield* runFourFighters({ frames: value("frames", 7500), seed: options.seed, out, port: value("port", 47112), rtts, loss: options.loss });
+    for (const side of sides) yield* Console.log(JSON.stringify({ side: side.side, rttMs: side.rttMs, loss: side.loss, measuredRttMs: side.measuredRttMs, exitCode: side.exitCode, frames: side.display.frames, fps: side.display.fps, frameMs: side.display.frameMs, intervalMs: side.display.intervalMs, presentedMs: side.display.presentedMs }));
+    const slow = sides.filter((side) => side.exitCode !== 0 || side.display.presentedMs.p95 > 16.7);
+    if (slow.length > 0) return yield* new NetAcceptFailure({ problem: `presented p95 over 16.7 ms or failed: ${slow.map((side) => side.side).join(", ")}` });
     return;
   }
   const rows = yield* runAcceptance(options);
