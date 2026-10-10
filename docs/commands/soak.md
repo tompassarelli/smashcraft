@@ -33,8 +33,12 @@
   plays matches `N` to `N+M-1` of a fixed plan that reaches every fighter, stage and
   computer level, each seed twice with state hashes every 600 frames; `--merge FILES
   --report-dir DIR` classifies them into one report and one body per finding kind:
-  matches still in play at the frame cap, zero-to-death strings of three or more hits,
-  fighter win rate outside 35-65%, a move over half its fighter's KOs, stages with no
+  matches still in play at the frame cap, stuck matches (no damage or stock change for
+  `--stuck-seconds`, 30), zero-to-death strings of three or more hits, true combos over
+  #83's rule (more than two follow-ups, or two or more moves over 30% from below 100%,
+  with no actionable frame between them; one move instance's hits count once), fighter
+  win rate outside 35-65%, a move over half its fighter's KOs, a move whose usage share
+  passes its fighter's Tukey fence (Q3 + 3 IQR) and 30% over 100 starts, stages with no
   stock lost, and runs whose hashes differ. `--repro N` replays match `N`. The nightly
   Playtest workflow runs it on the newest green main in `ceil(matches / 334)`-sized
   shards (1,200 ms a match with both runs, measured locally on four cores; at most

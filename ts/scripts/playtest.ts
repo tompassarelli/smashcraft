@@ -4,7 +4,7 @@ import { parseArgs } from "node:util";
 import { Schema } from "effect";
 import { CPU_TIERS, isCpuTier } from "../src/game/match/cpuProfiles";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
-import { FIELD_STAGES, moveName, playCpuMatch } from "./cpuField";
+import { FIELD_STAGES, moveName, playCpuMatch, reportedMove } from "./cpuField";
 import { DEFAULT_CONFIG, FINDING_KINDS, classify, describeIssueAction, issueBody, planIssueActions, planMatches, renderReport, runPlaytest, shardRanges, shardsFor, type Config, type Finding, type MatchSpec, type Observation, type Play, type Run } from "./playtestCore";
 
 const CHECKSUM_EVERY = 600;
@@ -20,6 +20,11 @@ const ObservationSchema = Schema.Struct({
   strings: Schema.Array(Schema.Struct({ victim: Schema.Finite, frame: Schema.Finite, hits: Schema.Finite, damage: Schema.Finite, gaps: Schema.Array(Schema.Finite), tail: Schema.Finite })),
   checksums: Schema.Array(Schema.Tuple([Schema.Finite, Schema.String])),
   kos: Schema.Array(Schema.Struct({ fighter: Schema.String, move: Schema.String, count: Schema.Finite })),
+  uses: Schema.Array(Schema.Struct({ fighter: Schema.String, move: Schema.String, count: Schema.Finite })),
+  combos: Schema.Array(Schema.Struct({
+    victim: Schema.Finite, frame: Schema.Finite, start: Schema.Finite, moves: Schema.Array(Schema.String), instances: Schema.Array(Schema.Finite), damages: Schema.Array(Schema.Finite), gaps: Schema.Array(Schema.Finite),
+  })),
+  quiet: Schema.Struct({ from: Schema.Finite, frames: Schema.Finite }),
 });
 const RunsSchema = Schema.Array(Schema.Struct({
   spec: SpecSchema,
@@ -37,16 +42,19 @@ export const playReal: Play = (spec: MatchSpec, frameCap: number): Observation =
   const a = selectableCharacterBySlug(spec.a);
   const b = selectableCharacterBySlug(spec.b);
   if (a === undefined || b === undefined || !isCpuTier(spec.tier)) throw new Error(`cannot play ${spec.a} against ${spec.b} at ${spec.tier}`);
-  const record = playCpuMatch(a, b, spec.stage, 0, { tiers: [spec.tier, spec.tier], frameCap, checksumEvery: CHECKSUM_EVERY }, spec.seed);
+  const record = playCpuMatch(a, b, spec.stage, 0, { tiers: [spec.tier, spec.tier], frameCap, checksumEvery: CHECKSUM_EVERY, playtest: true }, spec.seed);
   if (record === undefined) throw new Error(`no spawn for ${spec.stage}`);
   const kos: { fighter: string; move: string; count: number }[] = [];
+  const uses: { fighter: string; move: string; count: number }[] = [];
   for (const side of record.sides) {
     for (const [move, count] of Object.entries(side.kosByMove)) kos.push({ fighter: side.fighter, move: moveName(Number(move)), count });
+    for (const [move, count] of Object.entries(side.moves)) uses.push({ fighter: side.fighter, move: moveName(reportedMove(Number(move))), count });
   }
+  const combos = (record.combos ?? []).map((combo) => ({ ...combo, moves: combo.moves.map((move) => (move < 0 ? "?" : moveName(move))) }));
   return {
     frames: record.frames, ended: record.ended ?? false, winner: record.winner, timedOut: record.timedOut,
     stockLosses: record.sides[0].stockLosses.length + record.sides[1].stockLosses.length,
-    strings: record.strings ?? [], checksums: record.checksums ?? [], kos,
+    strings: record.strings ?? [], checksums: record.checksums ?? [], kos, uses, combos, quiet: record.quiet ?? { from: 0, frames: 0 },
   };
 };
 
@@ -56,6 +64,9 @@ const configFrom = (values: Record<string, string | boolean | undefined>): Confi
     frameCap: number("cap", DEFAULT_CONFIG.frameCap), minStringHits: number("min-string-hits", DEFAULT_CONFIG.minStringHits),
     winLow: number("win-low", DEFAULT_CONFIG.winLow), winHigh: number("win-high", DEFAULT_CONFIG.winHigh), minDecisive: number("min-decisive", DEFAULT_CONFIG.minDecisive),
     moveShareMax: number("move-share", DEFAULT_CONFIG.moveShareMax), minMoveKos: number("min-move-kos", DEFAULT_CONFIG.minMoveKos), minStageMatches: number("min-stage-matches", DEFAULT_CONFIG.minStageMatches),
+    stuckSeconds: number("stuck-seconds", DEFAULT_CONFIG.stuckSeconds), followUpMax: number("follow-up-max", DEFAULT_CONFIG.followUpMax),
+    guaranteedDamageMax: number("guaranteed-damage-max", DEFAULT_CONFIG.guaranteedDamageMax), guaranteedPercentCap: number("guaranteed-percent-cap", DEFAULT_CONFIG.guaranteedPercentCap),
+    usageFence: number("usage-fence", DEFAULT_CONFIG.usageFence), usageShareMin: number("usage-share-min", DEFAULT_CONFIG.usageShareMin), minMoveUses: number("min-move-uses", DEFAULT_CONFIG.minMoveUses),
   };
 };
 
@@ -68,6 +79,8 @@ if (import.meta.main) {
       issues: { type: "string" }, "open-issues": { type: "string" }, "dry-run": { type: "boolean" },
       cap: { type: "string" }, "min-string-hits": { type: "string" }, "win-low": { type: "string" }, "win-high": { type: "string" }, "min-decisive": { type: "string" },
       "move-share": { type: "string" }, "min-move-kos": { type: "string" }, "min-stage-matches": { type: "string" },
+      "stuck-seconds": { type: "string" }, "follow-up-max": { type: "string" }, "guaranteed-damage-max": { type: "string" }, "guaranteed-percent-cap": { type: "string" },
+      "usage-fence": { type: "string" }, "usage-share-min": { type: "string" }, "min-move-uses": { type: "string" },
     },
     strict: true,
   });

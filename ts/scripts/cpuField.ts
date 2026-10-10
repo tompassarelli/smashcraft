@@ -201,6 +201,20 @@ export interface MatchRecord {
   readonly ended?: boolean;
   readonly checksums?: readonly (readonly [number, string])[];
   readonly strings?: readonly ZeroToDeath[];
+  /** Under FieldOptions.playtest: every string of two or more hits, and the longest span with no damage or stock change (#403). */
+  readonly combos?: readonly ComboRecord[];
+  readonly quiet?: { readonly from: number; readonly frames: number };
+}
+
+/** One string as the playtester sees it: per hit the move, the attacker's move instance (consecutive hits of one instance are one move) and the damage; gaps are the victim's actionable frames between hits. */
+export interface ComboRecord {
+  readonly victim: number;
+  readonly frame: number;
+  readonly start: number;
+  readonly moves: readonly number[];
+  readonly instances: readonly number[];
+  readonly damages: readonly number[];
+  readonly gaps: readonly number[];
 }
 
 export interface ZeroToDeath {
@@ -243,6 +257,8 @@ export interface FieldOptions {
   readonly camp?: boolean;
   /** Field-only: "melee" restores full ledge intangibility on every grab (no #386 decay). */
   readonly ledgeRule?: "melee";
+  /** Record every string and the longest quiet span for the overnight playtester (#403). */
+  readonly playtest?: boolean;
 }
 
 interface Watch {
@@ -260,6 +276,7 @@ interface Watch {
   lastSafe: number | undefined;
 
   lastStarted: number | undefined;
+  starts: number;
 
   lastHitMove: number | undefined;
 
@@ -285,10 +302,14 @@ interface Punish {
   fromStockStart: boolean;
   free: number;
   gaps: number[];
+  start: number;
+  moves: number[];
+  instances: number[];
+  damages: number[];
 }
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
-  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined, lastStarted: undefined, lastHitMove: undefined, punish: undefined, stockFirstHit: true,
+  serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined, lastStarted: undefined, starts: 0, lastHitMove: undefined, punish: undefined, stockFirstHit: true,
   grounded: f.motion.grounded, lagging: false, cornered: false, recovering: false, edgeGuarded: false, ledgeUntil: -1,
 });
 
@@ -307,7 +328,8 @@ const unactionable = (f: Readonly<Fighter>): boolean =>
 const emptyPunishes = (): PunishTotals => ({ openings: 0, neutralWins: 0, neutralConverted: 0, pokes: 0, pokeDamage: 0, oneHit: 0, kills: 0, zeroToDeaths: 0, hits: 0, damage: 0, maxHits: 0, maxDamage: 0 });
 
 
-function closePunish(totals: PunishTotals, punish: Punish, kill: boolean, strings?: ZeroToDeath[], victim = 0, frame = 0): void {
+function closePunish(totals: PunishTotals, punish: Punish, kill: boolean, strings?: ZeroToDeath[], victim = 0, frame = 0, combos?: ComboRecord[]): void {
+  if (combos !== undefined && punish.hits >= 2) combos.push({ victim, frame, start: punish.start, moves: punish.moves, instances: punish.instances, damages: punish.damages, gaps: punish.gaps });
   if (punish.hits < 2) totals.oneHit++;
   if (punish.hits < 2 && !punish.disadvantage && !kill) {
     totals.pokes++;
@@ -389,6 +411,9 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   const checksumEvery = options.checksumEvery ?? 0;
   const checksums: [number, string][] = [];
   const strings: ZeroToDeath[] = [];
+  const combos: ComboRecord[] | undefined = options.playtest === true ? [] : undefined;
+  let lastChange = 0;
+  let quiet = { from: 0, frames: 0 };
   const snapshot = checksumEvery > 0 ? createReplaySnapshot() : undefined;
   const checksumNow = (at: number) => {
     if (snapshot === undefined) return;
@@ -434,6 +459,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       if (f.attack.serial !== seen.serial && f.attack.style !== undefined) {
         own.moves[f.attack.style] = (own.moves[f.attack.style] ?? 0) + 1;
         seen.lastStarted = reportedMove(f.attack.style);
+        seen.starts++;
       }
       const special = specialMove(f.special.action);
       const startedSpecial = special !== undefined && (f.special.action !== seen.special || f.special.frame < seen.specialFrame);
@@ -441,6 +467,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         own.moves[special] = (own.moves[special] ?? 0) + 1;
         own.specialsStarted++;
         seen.lastStarted = special;
+        seen.starts++;
       }
       if (!f.status.out && !unactionable(f) && Math.abs(f.motion.vx) > 1.0) {
         if (f32(f.motion.vx * f32(opponent.motion.x - f.motion.x)) > 0) own.approachFrames++;
@@ -488,7 +515,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         if (striking === undefined) other.rangedDamage += dealt;
         other.damageDealt += dealt;
         if (seen.punish === undefined) {
-          seen.punish = { hits: 0, damage: 0, quiet: 0, neutral: opponentSeen.punish === undefined, disadvantage: false, stunned: 0, fromStockStart: seen.stockFirstHit, free: 0, gaps: [] };
+          seen.punish = { hits: 0, damage: 0, quiet: 0, neutral: opponentSeen.punish === undefined, disadvantage: false, stunned: 0, fromStockStart: seen.stockFirstHit, free: 0, gaps: [], start: seen.damage, moves: [], instances: [], damages: [] };
           seen.stockFirstHit = false;
         }
         if (hit && seen.punish.hits > 0) {
@@ -497,6 +524,14 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         }
         seen.punish.hits += hit ? 1 : 0;
         seen.punish.damage += dealt;
+        if (combos !== undefined) {
+          const p = seen.punish;
+          if (hit) {
+            p.moves.push(move ?? -1);
+            p.instances.push(opponentSeen.starts);
+            p.damages.push(dealt);
+          } else if (p.damages.length > 0) p.damages[p.damages.length - 1] = (p.damages[p.damages.length - 1] ?? 0) + dealt;
+        }
         seen.punish.quiet = 0;
       } else if (seen.punish !== undefined && other !== undefined) {
         const punish = seen.punish;
@@ -506,7 +541,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
           punish.quiet = 0;
           if (punish.hits === 1 && ++punish.stunned >= DISADVANTAGE_FRAMES) punish.disadvantage = true;
         } else if (f.motion.grounded && ++punish.quiet > PUNISH_RESET_FRAMES) {
-          closePunish(other.punishes, punish, false);
+          closePunish(other.punishes, punish, false, undefined, slot, frame, combos);
           seen.punish = undefined;
         }
       }
@@ -523,7 +558,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         if (!selfDestruct && other !== undefined && seen.lastHitMove !== undefined) other.kosByMove[seen.lastHitMove] = (other.kosByMove[seen.lastHitMove] ?? 0) + 1;
         if (!selfDestruct && other !== undefined && seen.edgeGuarded) other.edges.edgeGuardKills++;
         seen.edgeGuarded = false;
-        if (seen.punish !== undefined && other !== undefined) closePunish(other.punishes, seen.punish, !selfDestruct, strings, slot, frame);
+        if (seen.punish !== undefined && other !== undefined) closePunish(other.punishes, seen.punish, !selfDestruct, strings, slot, frame, combos);
         seen.punish = undefined;
         seen.stockFirstHit = true;
         seen.lastHit = undefined;
@@ -536,6 +571,10 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       seen.mana = f.mana.points;
       seen.denied = f.visuals.manaDenied;
       seen.hits = f.visuals.hit;
+      if (f.status.damage !== seen.damage || f.status.out !== seen.out) {
+        if (frame - lastChange > quiet.frames) quiet = { from: lastChange, frames: frame - lastChange };
+        lastChange = frame;
+      }
       seen.damage = f.status.damage;
       seen.out = f.status.out;
       seen.grounded = f.motion.grounded;
@@ -545,8 +584,9 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   }
   for (const slot of [0, 1] as const) {
     const open = watches[slot].punish;
-    if (open !== undefined) closePunish(sides[slot === 0 ? 1 : 0].punishes, open, false);
+    if (open !== undefined) closePunish(sides[slot === 0 ? 1 : 0].punishes, open, false, undefined, slot, frame, combos);
   }
+  if (frame - lastChange > quiet.frames) quiet = { from: lastChange, frames: frame - lastChange };
   if (checksumEvery > 0) checksumNow(frame);
   if (dropRule !== undefined) endDropVariant(dropRule, match);
   for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
@@ -555,6 +595,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
     apartFrames, apartOnStageFrames, bothInFrames, dropsTaken: takes, campFrames: camps === undefined ? [0, 0] : [camps[0].frames, camps[1].frames],
     ended: match.phase !== Phase.match, ...(checksumEvery > 0 ? { checksums } : {}), strings,
+    ...(combos === undefined ? {} : { combos, quiet }),
   };
 }
 

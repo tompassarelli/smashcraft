@@ -16,6 +16,73 @@ export interface Observation {
   readonly strings: readonly ComboString[];
   readonly checksums: readonly (readonly [number, string])[];
   readonly kos: readonly { readonly fighter: string; readonly move: string; readonly count: number }[];
+  /** Moves each fighter started, by name. */
+  readonly uses: readonly { readonly fighter: string; readonly move: string; readonly count: number }[];
+  /** Every string of two or more hits. */
+  readonly combos: readonly Combo[];
+  /** The longest span with no damage or stock change on either fighter. */
+  readonly quiet: { readonly from: number; readonly frames: number };
+}
+
+/** A recorded string: per hit the move, the attacker's move instance and the damage; gaps[i] is the victim's actionable frames between hit i and i + 1; start is the victim's percent before the first hit. */
+export interface Combo {
+  readonly victim: number;
+  readonly frame: number;
+  readonly start: number;
+  readonly moves: readonly string[];
+  readonly instances: readonly number[];
+  readonly damages: readonly number[];
+  readonly gaps: readonly number[];
+}
+
+/** A true combo: consecutive moves with no actionable frame for the victim between them. Hits of one move instance (a multi-hit move, or a grab's pummels and throw) count as one move. */
+export interface Segment {
+  readonly moves: readonly string[];
+  readonly damage: number;
+  readonly percent: number;
+}
+
+export function trueSegments(combo: Combo): Segment[] {
+  const segments: Segment[] = [];
+  let moves: string[] = [];
+  let damage = 0;
+  let percent = combo.start;
+  let dealt = combo.start;
+  for (let hit = 0; hit < combo.damages.length; hit++) {
+    if (hit > 0 && (combo.gaps[hit - 1] ?? 0) > 0) {
+      segments.push({ moves, damage, percent });
+      moves = [];
+      damage = 0;
+      percent = dealt;
+    }
+    const sameMove = hit > 0 && moves.length > 0 && combo.instances[hit] === combo.instances[hit - 1] && combo.moves[hit] === combo.moves[hit - 1];
+    if (!sameMove) moves.push(combo.moves[hit] ?? "?");
+    damage += combo.damages[hit] ?? 0;
+    dealt += combo.damages[hit] ?? 0;
+  }
+  if (combo.damages.length > 0) segments.push({ moves, damage, percent });
+  return segments;
+}
+
+/** #83's rule (docs/gameplay-design.md): at most followUpMax guaranteed follow-ups after an opening, and at most guaranteedDamageMax from an opening and its follow-ups while the victim is below guaranteedPercentCap. One move alone is no combo. */
+export function trueComboBreak(segment: Segment, config: Config): string | undefined {
+  if (segment.moves.length > config.followUpMax + 1) return `more than ${config.followUpMax} follow-ups`;
+  if (segment.moves.length > 1 && segment.damage > config.guaranteedDamageMax && segment.percent < config.guaranteedPercentCap) return `over ${config.guaranteedDamageMax}% from below ${config.guaranteedPercentCap}%`;
+  return undefined;
+}
+
+/** Tukey's upper fence over a fighter's move shares. */
+export function upperFence(shares: readonly number[], k: number): number {
+  const sorted = [...shares].sort((x, y) => x - y);
+  const at = (q: number) => {
+    const position = (sorted.length - 1) * q;
+    const low = Math.floor(position);
+    const high = Math.ceil(position);
+    return (sorted[low] ?? 0) + ((sorted[high] ?? 0) - (sorted[low] ?? 0)) * (position - low);
+  };
+  const q1 = at(0.25);
+  const q3 = at(0.75);
+  return q3 + k * (q3 - q1);
 }
 
 export interface ComboString {
@@ -38,7 +105,7 @@ export interface Run {
 
 export type Play = (spec: MatchSpec, frameCap: number) => Observation;
 
-export const FINDING_KINDS = ["never-ends", "zero-to-death", "win-rate-band", "move-share", "stage-no-kos", "desync"] as const;
+export const FINDING_KINDS = ["never-ends", "stuck", "zero-to-death", "infinite-combo", "win-rate-band", "move-share", "move-usage", "stage-no-kos", "desync"] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
 export interface Finding {
@@ -58,7 +125,16 @@ export interface Config {
   readonly moveShareMax: number;
   readonly minMoveKos: number;
   readonly minStageMatches: number;
+  readonly stuckSeconds: number;
+  readonly followUpMax: number;
+  readonly guaranteedDamageMax: number;
+  readonly guaranteedPercentCap: number;
+  readonly usageFence: number;
+  readonly usageShareMin: number;
+  readonly minMoveUses: number;
 }
+
+const TICKS_PER_SECOND = 60;
 
 export const DEFAULT_CONFIG: Config = {
   frameCap: 14700,
@@ -69,6 +145,13 @@ export const DEFAULT_CONFIG: Config = {
   moveShareMax: 0.5,
   minMoveKos: 15,
   minStageMatches: 5,
+  stuckSeconds: 30,
+  followUpMax: 2,
+  guaranteedDamageMax: 30,
+  guaranteedPercentCap: 100,
+  usageFence: 3,
+  usageShareMin: 0.3,
+  minMoveUses: 100,
 };
 
 export interface Roster {
@@ -146,9 +229,25 @@ export function classify(runs: readonly Run[], config: Config = DEFAULT_CONFIG):
   const wins = new Map<string, { wins: number; decisive: number }>();
   const stages = new Map<string, { matches: number; losses: number }>();
   const kos = new Map<string, Map<string, number>>();
+  const uses = new Map<string, Map<string, number>>();
   for (const { spec, first, second } of runs) {
     if (!first.ended) {
       findings.push({ kind: "never-ends", subject: matchId(spec), spec, frame: first.frames, detail: `still in play at frame ${first.frames}, the cap of ${config.frameCap}` });
+    }
+    if (first.quiet.frames >= config.stuckSeconds * TICKS_PER_SECOND) {
+      findings.push({ kind: "stuck", subject: matchId(spec), spec, frame: first.quiet.from, detail: `no damage or stock change for ${(first.quiet.frames / TICKS_PER_SECOND).toFixed(1)} s from frame ${first.quiet.from}` });
+    }
+    for (const combo of first.combos) {
+      const attacker = combo.victim === 0 ? spec.b : spec.a;
+      const victim = combo.victim === 0 ? spec.a : spec.b;
+      const worst = trueSegments(combo).filter((segment) => trueComboBreak(segment, config) !== undefined).sort((x, y) => y.moves.length - x.moves.length || y.damage - x.damage)[0];
+      if (worst === undefined) continue;
+      findings.push({ kind: "infinite-combo", subject: matchId(spec), spec, frame: combo.frame, detail: `${attacker} hit ${victim} with ${worst.moves.length} moves (${worst.moves.join(", ")}) for ${worst.damage.toFixed(1)}% from ${worst.percent.toFixed(1)}% with no actionable frame between them, ${trueComboBreak(worst, config) ?? ""} (#83); the string ended at frame ${combo.frame}` });
+    }
+    for (const use of first.uses) {
+      const moves = uses.get(use.fighter) ?? new Map<string, number>();
+      moves.set(use.move, (moves.get(use.move) ?? 0) + use.count);
+      uses.set(use.fighter, moves);
     }
     for (const string of first.strings) {
       if (string.hits < config.minStringHits || !isTrueCombo(string)) continue;
@@ -193,6 +292,18 @@ export function classify(runs: readonly Run[], config: Config = DEFAULT_CONFIG):
     for (const [move, count] of moves) {
       if (count / total > config.moveShareMax) {
         findings.push({ kind: "move-share", subject: `${fighter} ${move}`, detail: `${fighter}'s ${move} took ${count} of its ${total} KOs (${((100 * count) / total).toFixed(0)}%), above ${(100 * config.moveShareMax).toFixed(0)}%` });
+      }
+    }
+  }
+  for (const [fighter, moves] of uses) {
+    let total = 0;
+    for (const count of moves.values()) total += count;
+    if (total < config.minMoveUses || moves.size < 4) continue;
+    const fence = upperFence([...moves.values()].map((count) => count / total), config.usageFence);
+    for (const [move, count] of moves) {
+      const share = count / total;
+      if (share > fence && share >= config.usageShareMin) {
+        findings.push({ kind: "move-usage", subject: `${fighter} ${move}`, detail: `${fighter} started ${move} ${count} of ${total} times (${(100 * share).toFixed(0)}%), above its moves' outlier fence of ${(100 * fence).toFixed(0)}% and ${(100 * config.usageShareMin).toFixed(0)}%` });
       }
     }
   }
@@ -271,6 +382,7 @@ export function renderReport(runs: readonly Run[], findings: readonly Finding[],
     `Wall time ${(s.wallMs / 1000).toFixed(1)} s, ${s.msPerMatch.toFixed(0)} ms a match (both runs), slowest ${s.slowestMs.toFixed(0)} ms.`,
     "",
     `Bands: fighter win rate ${(100 * config.winLow).toFixed(0)}-${(100 * config.winHigh).toFixed(0)}% over at least ${config.minDecisive} decisive matches; a move at most ${(100 * config.moveShareMax).toFixed(0)}% of its fighter's KOs over at least ${config.minMoveKos}; a zero-to-death string is ${config.minStringHits} or more hits with no actionable frame between them; a stage with no KOs needs ${config.minStageMatches} matches; frame cap ${config.frameCap}.`,
+    `Stuck: no damage or stock change for ${config.stuckSeconds} s. Infinite combo (#83, #388): a true combo of more than ${config.followUpMax} follow-ups, or of two or more moves over ${config.guaranteedDamageMax}% from below ${config.guaranteedPercentCap}%. Dominant move: a move whose KO share passes the band above, or whose usage share passes its fighter's Tukey fence (Q3 + ${config.usageFence} IQR) and ${(100 * config.usageShareMin).toFixed(0)}% over at least ${config.minMoveUses} starts.`,
     "",
     "| Finding | Count |",
     "| --- | --- |",
@@ -292,9 +404,12 @@ export function renderReport(runs: readonly Run[], findings: readonly Finding[],
 // the open `playtester` issues and applies these actions with gh.
 export const ISSUE_TITLES: Record<FindingKind, string> = {
   "never-ends": "Playtester: matches that never end",
+  stuck: "Playtester: stuck matches",
   "zero-to-death": "Playtester: zero-to-death strings",
+  "infinite-combo": "Playtester: true combos over #83's rule",
   "win-rate-band": "Playtester: fighters outside the win-rate band",
   "move-share": "Playtester: moves that take most of a fighter's KOs",
+  "move-usage": "Playtester: moves a fighter overuses",
   "stage-no-kos": "Playtester: stages with no KOs",
   desync: "Playtester: desyncs and nondeterminism",
 };

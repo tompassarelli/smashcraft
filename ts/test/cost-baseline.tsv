@@ -4,6 +4,7 @@ scripts/balance.tests.ts	15	3.836
 scripts/cpuField.tests.ts	1	2.820
 scripts/interactions.tests.ts	8	1.860
 scripts/meleeOracle.tests.ts	2	6.061
+scripts/playtest.tests.ts	1	0.080
 scripts/projectileRules.tests.ts	5	5.239
 scripts/riflemanBlaster.tests.ts	4	0.320
 src/game/assets/stageLighting.tests.ts	8	0.002
