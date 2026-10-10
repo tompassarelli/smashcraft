@@ -104,6 +104,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("groundTurnRunEntryFacing", e.ground.turnRunEntryFacing, a.ground.turnRunEntryFacing);
   add("groundTurnRunFacingCommandLatched", e.ground.turnRunFacingCommandLatched, a.ground.turnRunFacingCommandLatched);
   add("groundTurnRunPausePending", e.ground.turnRunPausePending, a.ground.turnRunPausePending);
+  add("groundPivotEligible", e.ground.pivotEligible, a.ground.pivotEligible);
   add("x", e.motion.x, a.motion.x);
   add("z", e.motion.z, a.motion.z);
   add("positionDeltaX", e.motion.deltaX, a.motion.deltaX);
