@@ -91,7 +91,7 @@ const facingOf = (owner: Fighter, direction: number): number => (direction === 0
 
 
 
-export const MANA_BURN_STUN: Readonly<AppliedStatus> = {
+const MANA_BURN_STUN: Readonly<AppliedStatus> = {
   kind: HeroStatusKind.stun, frames: 15, group: HeroStatusGroup.sleep, immunityFrames: 300,
   drain: { mana: 25, emptyFrames: 45 },
 };

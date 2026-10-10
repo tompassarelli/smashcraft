@@ -19,7 +19,7 @@ import { CROUCH_STICK_THRESHOLD, STICK_DEADZONE, TAP_JUMP_STICK_THRESHOLD } from
 const AIR_DODGE_VULNERABLE_FRAME = 30;
 
 
-export function platformMoveFrames(f: Readonly<Fighter>): number {
+function platformMoveFrames(f: Readonly<Fighter>): number {
   return max(1, f.tuning.physics.jumpSquatFrames);
 }
 

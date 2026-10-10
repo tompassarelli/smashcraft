@@ -91,6 +91,3 @@ export function drillStrikes(topZ: number, bottomZ: number, halfWidth: number, a
 }
 
 
-export function isMultiHit(move: AuthoredMove | undefined): boolean {
-  return move?.regions.some(region => region.hit.window > 1) === true;
-}

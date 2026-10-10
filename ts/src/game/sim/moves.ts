@@ -318,9 +318,6 @@ export function characterAttackActiveFrames(character: Character, style: AttackS
   return attackActiveFrames(style);
 }
 
-export function attackDurationFrames(style: AttackStyle): number {
-  return attackDurationFramesForGrounding(style, true);
-}
 
 
 export function attackDurationFramesForGrounding(style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
@@ -372,9 +369,6 @@ export function attackDurationFramesForGrounding(style: AttackStyle, grounded: b
   }
 }
 
-export function attackRecoveryFrames(character: Character, style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
-  return attackDurationFramesForGrounding(style, grounded, moves) - attackStartupFrames(style, moves) - characterAttackActiveFrames(character, style, moves);
-}
 
 
 

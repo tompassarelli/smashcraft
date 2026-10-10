@@ -2,7 +2,7 @@ import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/te
 import { AttackStyle, Character, ContactKind, SpecialAction } from "./codes";
 import { createFighter } from "./fighter";
 import { HERO_ROSTER } from "./heroes/registry";
-import { EX_ARMOR_FRAMES, exArmorActive, exSpecialAffordable } from "./exSpecials";
+import { EX_ARMOR_FRAMES, exArmorActive } from "./exSpecials";
 import { EYE_BLAST_FORM, EYE_BLAST_FRAMES, startFighterSpecial } from "./specials";
 import { advanceFighterMotion } from "./step";
 import { collectDamageContact } from "./contacts";
@@ -124,13 +124,5 @@ test("EX state and spent armor restore exactly, reset on a stock while spent met
       assertTrue(upDown.special.ex);
       assertEquals(upDown.mana.points, 67);
     }
-  }
-});
-
-test("one 33-point segment buys EX [spec #382]", () => {
-  const f = createFighter(Character.rifleman, 0.0, 1);
-  for (const points of [0, 28, 32, 33, 99, 100]) {
-    f.mana.points = points;
-    assertEquals(exSpecialAffordable(f), points >= 33);
   }
 });

@@ -77,7 +77,7 @@ export interface AppliedStatus {
 const rules = (f: Readonly<Fighter>): StatusRules | undefined => RULES[f.status.condition];
 
 /** The status's duration on a fighter left with `mana`; integer division keeps Lua32 and the host equal. */
-export function heroStatusFrames(status: Readonly<AppliedStatus>, mana: number): number {
+function heroStatusFrames(status: Readonly<AppliedStatus>, mana: number): number {
   const { drain } = status;
   if (drain === undefined) return status.frames;
   const empty = ROSTER_MANA.max - min(ROSTER_MANA.max, max(0, mana));

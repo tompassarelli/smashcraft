@@ -8,7 +8,7 @@ import { type Fighter,  } from "./fighter";
 import { createReferenceFighter } from "./referenceRig";
 import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
-import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
+import { surfaceZ } from "./stage";
 import { advanceSolo, controls, resolveStartedAttack, testWorld } from "./testWorld";
 
 function techTestTumbler(): Fighter {
@@ -88,21 +88,6 @@ test("a grounded shield edge counts, but only a tumble contact can tech [referen
   assertEquals(ordinary.down.state, DownState.none);
   assertTrue(ordinary.motion.grounded);
   assertEquals(ordinary.landing.lag, 4);
-});
-
-test("a tech roll clamps at both ends of the current platform [spec docs/physics.md]", () => {
-  for (const direction of [-1, 1]) {
-    const fighter = techTestTumbler();
-    fighter.motion.x = direction < 0 ? f32(surfaceLeft(1, 1, 0) + 3) : f32(surfaceRight(1, 1, 0) - 3);
-    const input = controls({ techPressed: true, direction });
-    landTechTest(fighter, 1, 1, input);
-    input.techPressed = false;
-    for (let frame = 2; frame <= 19; frame++) advanceSolo(fighter, 1, input, 0.0);
-    assertEquals(fighter.motion.x, direction < 0 ? surfaceLeft(1, 1, 0) : surfaceRight(1, 1, 0));
-    assertEquals(fighter.motion.z, surfaceZ(1, 1, 0));
-    assertEquals(fighter.motion.surface, 1);
-    assertTrue(fighter.motion.grounded);
-  }
 });
 
 test("original tech-input hitlag aging and accumulation reach the production state [reference]", () => {

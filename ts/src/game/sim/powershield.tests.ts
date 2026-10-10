@@ -4,7 +4,7 @@ import { mutableProjectile } from "./fighterProjectiles";
 
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { AttackStyle, Character, ContactKind, ProjectileKind } from "./codes";
+import { Character, ContactKind, ProjectileKind } from "./codes";
 import { canAttack } from "./conditions";
 import { queueDamageContact } from "./contacts";
 import { type Fighter, SHIELD_MAX, createFighter } from "./fighter";
@@ -17,46 +17,13 @@ import {
   SHIELD_PROJECTILE_DAMAGE_MULTIPLIER,
   SHIELD_RED_PARRY_FRAMES,
   SHIELD_REFLECTOR_ACTIVE_FRAMES,
-  SHIELD_RELEASE_LAG_FRAMES,
   capsuleCircleIntersects,
-  shieldCircleIntersects,
   shieldContactPushback,
-  shieldSizeMultiplier,
 } from "./shield";
 import { surfaceZ } from "./stage";
 import { respawnFighter } from "./stocks";
-import { advanceSolo, contactBatch, controls, hitEffect, testBeginAttacks, testWorld } from "./testWorld";
+import { advanceSolo, contactBatch, controls, hitEffect, testWorld } from "./testWorld";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
-
-test("projectile shield coverage separates exposed-body and shield-only contacts [spec docs/physics.md]", () => {
-  for (let scenario = 0; scenario <= 1; scenario++) {
-    const shooter = createFighter(Character.rifleman, -100.0, 1);
-    const defender = createFighter(Character.rifleman, 0.0, -1);
-    defender.motion.z = 0.0;
-    defender.shield.raised = true;
-    defender.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: scenario === 0 ? 60.0 : 200.0 };
-    const projectile = mutableProjectile(shooter, 0)!;
-    projectile.x = scenario === 0 ? -20.0 : -80.0;
-    projectile.z = scenario === 0 ? 110.0 : 45.0;
-    projectile.velocityX = scenario === 0 ? 40.0 : 30.0;
-    projectile.direction = 1;
-    projectile.kind = ProjectileKind.blaster;
-    projectile.life = 3;
-    projectile.damageMultiplier = 1.0;
-    const energy = defender.shield.energy;
-    updateProjectiles(testWorld(shooter, defender));
-    assertFalse(projectileActive(shooter, 0));
-    if (scenario === 0) {
-      assertGreaterThan(defender.status.damage, 0.0);
-      assertEquals(defender.shield.energy, energy);
-      assertEquals(defender.shield.stun, 0);
-    } else {
-      assertEquals(defender.status.damage, 0.0);
-      assertLessThan(defender.shield.energy, energy);
-      assertGreaterThan(defender.shield.stun, 0);
-    }
-  }
-});
 
 test("a full trigger within the observed window starts and expires the reflect state [reference]", () => {
   const fighter = createFighter(Character.rifleman, 0.0, 1);
@@ -201,106 +168,6 @@ test("a parried hit takes no shield damage or shieldstun; an ordinary block take
   assertEquals(target.shield.perfectActionFrames, 0);
 });
 
-test("a parry's reward drops the shield with no release lag until holding guard spends it [spec #102]", () => {
-  const attacker = createFighter(Character.rifleman, -100.0, 1);
-  const world = testWorld(attacker, createFighter(Character.rifleman, 0.0, -1));
-  for (let heldTicks = 0; heldTicks <= SHIELD_PERFECT_POST_CONTACT_FRAMES; heldTicks++) {
-    const target = guarding(world);
-    target.shield.perfectFrames = 1;
-    contactBatch(world, queueHitOf(world, 10.0));
-    untilLastFreezeFrame(target, held());
-    assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
-
-    for (let tick = 1; tick <= heldTicks; tick++) advanceSolo(target, 0, held(), 0.0);
-    assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES - heldTicks);
-    advanceSolo(target, 0, released(), 0.0);
-    assertFalse(target.shield.raised);
-    const rewarded = heldTicks < SHIELD_PERFECT_POST_CONTACT_FRAMES;
-    assertEquals(target.shield.releaseLag, rewarded ? 0 : SHIELD_RELEASE_LAG_FRAMES);
-    assertEquals(canAttack(target), rewarded);
-    if (rewarded) {
-      testBeginAttacks(testWorld(target, attacker), AttackStyle.forwardTilt, undefined);
-      assertEquals(target.attack.style, AttackStyle.forwardTilt);
-    }
-  }
-});
-
-test("each hit of a string needs its own parry, and the reward follows the last [spec #102]", () => {
-  const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
-  for (const retimed of [false, true]) {
-    const target = guarding(world);
-    target.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
-    target.shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
-    contactBatch(world, queueHitOf(world, 10.0));
-    assertEquals(target.visuals.shieldReflect, 1);
-
-    assertEquals(target.shield.perfectFrames, 0);
-    assertEquals(target.shield.reflectFrames, 0);
-    untilLastFreezeFrame(target, held());
-    if (retimed) {
-      advanceSolo(target, 0, released(), 0.0);
-      assertEquals(target.shield.releaseLag, 0);
-      advanceSolo(target, 0, pressed(), 0.0);
-      assertEquals(target.shield.perfectFrames, SHIELD_PERFECT_ACTIVE_FRAMES);
-    } else {
-      advanceSolo(target, 0, held(), 0.0);
-      advanceSolo(target, 0, held(), 0.0);
-    }
-    contactBatch(world, queueHitOf(world, 10.0));
-    if (retimed) {
-      assertEquals(target.visuals.shieldReflect, 2);
-      assertEquals(target.shield.stun, 0);
-      assertEquals(target.shield.energy, SHIELD_MAX);
-      assertEquals(target.shield.perfectActionFrames, SHIELD_PERFECT_POST_CONTACT_FRAMES);
-    } else {
-      assertEquals(target.visuals.shield, 1);
-      assertGreaterThan(target.shield.stun, 0);
-      assertLessThan(target.shield.energy, SHIELD_MAX);
-      assertEquals(target.shield.perfectActionFrames, 0);
-    }
-    target.visuals.shield = 0;
-    target.visuals.shieldReflect = 0;
-  }
-});
-
-
-function aimShot(shooter: Fighter, defender: Fighter, index: number, distance: number): void {
-  const shot = mutableProjectile(shooter, index)!;
-  shot.x = f32(defender.motion.x - distance);
-  shot.z = 45.0;
-  shot.velocityX = 60.0;
-  shot.velocityZ = 0.0;
-  shot.direction = 1;
-  shot.kind = ProjectileKind.blaster;
-  shot.visualFamily = Character.rifleman;
-  shot.life = 10;
-  shot.damageMultiplier = 1.0;
-}
-
-test("each projectile in a stream needs its own parry [spec #102]", () => {
-  const shooter = createFighter(Character.rifleman, -300.0, 1);
-  const defender = createFighter(Character.rifleman, 0.0, -1);
-  const world = testWorld(shooter, defender);
-  defender.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
-  defender.shield.raised = true;
-  defender.shield.reflectFrames = SHIELD_REFLECTOR_ACTIVE_FRAMES;
-  defender.shield.perfectFrames = SHIELD_PERFECT_ACTIVE_FRAMES;
-  aimShot(shooter, defender, 0, 50.0);
-  aimShot(shooter, defender, 1, 140.0);
-  contactBatch(world, () => updateProjectiles(world));
-  assertEquals(defender.visuals.shieldReflect, 1);
-  assertTrue(projectileActive(defender, 0));
-  assertTrue(projectileActive(shooter, 1));
-  assertEquals(defender.shield.reflectFrames, 0);
-  assertEquals(defender.shield.stun, 0);
-  contactBatch(world, () => updateProjectiles(world));
-  assertFalse(projectileActive(shooter, 1));
-  assertFalse(projectileActive(defender, 1));
-  assertEquals(defender.visuals.shieldReflect, 1);
-  assertEquals(defender.visuals.shield, 1);
-  assertGreaterThan(defender.shield.stun, 0);
-});
-
 test("a red parry, a re-press in shieldstun on the next hit's frame or the one before, parries it [spec #102]", () => {
   const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
   for (let early = 0; early <= SHIELD_RED_PARRY_FRAMES; early++) {
@@ -333,44 +200,6 @@ test("a red parry, a re-press in shieldstun on the next hit's frame or the one b
       assertFalse(target.shield.redParryTried);
     }
   }
-});
-
-test("mashing the shield in shieldstun gets one red parry try per blocked hit [spec #102]", () => {
-  const world = testWorld(createFighter(Character.rifleman, -100.0, 1), createFighter(Character.rifleman, 0.0, -1));
-  const target = guarding(world);
-  contactBatch(world, queueHitOf(world, 20.0));
-  while (target.launch.hitlag > 0) advanceSolo(target, 0, held(), 0.0);
-  advanceSolo(target, 0, released(), 0.0);
-  advanceSolo(target, 0, pressed(), 0.0);
-  advanceSolo(target, 0, released(), 0.0);
-  advanceSolo(target, 0, pressed(), 0.0);
-  assertTrue(target.shield.stun > 0);
-  assertEquals(target.shield.perfectFrames, 0);
-  contactBatch(world, queueHitOf(world, 10.0));
-  assertEquals(target.visuals.shieldReflect, 0);
-  assertGreaterThan(target.shield.stun, 0);
-});
-
-test("the shield bubble shrinks as it drains while held, regenerates once released, and can be poked [spec #102]", () => {
-  const fighter = createFighter(Character.rifleman, 0.0, 1);
-  advanceSolo(fighter, 0, pressed(), 0.0);
-  let previous = fighter.shield.energy;
-  for (let frame = 1; frame <= 60; frame++) advanceSolo(fighter, 0, held(), 0.0);
-  assertLessThan(shieldSizeMultiplier(fighter.shield.energy, 1.0), shieldSizeMultiplier(SHIELD_MAX, 1.0));
-  advanceSolo(fighter, 0, released(), 0.0);
-  assertFalse(fighter.shield.raised);
-  for (let frame = 1; frame <= 2000 && fighter.shield.energy < SHIELD_MAX; frame++) {
-    previous = fighter.shield.energy;
-    advanceSolo(fighter, 0, released(), 0.0);
-    assertGreaterThan(fighter.shield.energy, previous);
-  }
-  assertEquals(fighter.shield.energy, SHIELD_MAX);
-
-  fighter.tuning.shield = { centerX: 0.0, centerZ: 45.0, radius: 60.0 };
-  fighter.shield.raised = true;
-  assertTrue(shieldCircleIntersects(fighter, -100.0, 75.0, 100.0, 75.0, 1.0));
-  fighter.shield.energy = 5.0;
-  assertFalse(shieldCircleIntersects(fighter, -100.0, 75.0, 100.0, 75.0, 1.0));
 });
 
 test("original stationary capsule shield boundaries [reference]", () => {

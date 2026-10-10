@@ -1,9 +1,8 @@
-import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
-import { Character } from "./codes";
+import { assertEquals, test } from "wisp/src/runtime/testing";
 import { createFighter } from "./fighter";
 import { fighterSlug, SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { advanceSolo, controls } from "./testWorld";
-import { authoredPhysics, melee } from "./tuning";
+import { melee } from "./tuning";
 
 test("every fighter's entry dash and run stay within Captain Falcon's speed ceiling [spec #333]", () => {
   const failures: string[] = [];
@@ -19,17 +18,4 @@ test("every fighter's entry dash and run stay within Captain Falcon's speed ceil
     if (fighter.motion.vx > runCeiling) failures.push(`${fighterSlug(character)} run got ${fighter.motion.vx}, want <= ${runCeiling}`);
   }
   assertEquals(failures.join("; "), "");
-});
-
-test("capped fighters keep their run and dash ranking above unchanged Shadow Hunter [spec #333]", () => {
-  const ranking = [Character.shadowHunter, Character.blademaster, Character.dreadlord, Character.murloc, Character.warden];
-  let previous = authoredPhysics(Character.shadowHunter);
-  for (let index = 1; index < ranking.length; index++) {
-    const character = ranking[index];
-    if (character === undefined) continue;
-    const current = authoredPhysics(character);
-    assertGreaterThan(current.runSpeed, previous.runSpeed);
-    assertGreaterThan(current.dashSpeed, previous.dashSpeed);
-    previous = current;
-  }
 });

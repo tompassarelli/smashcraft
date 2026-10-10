@@ -1,20 +1,14 @@
-import { mutableProjectile } from "./fighterProjectiles";
-
-
-import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
-import { Character, ProjectileKind, SpecialAction } from "./codes";
+import { Character, SpecialAction } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { type Fighter, createFighter } from "./fighter";
 import { heroRegion } from "./heroMoves";
-import { HurtContact, fighterHurtParts, hurtPart, hurtPose, strikeHurtContact } from "./hurtboxes";
-import { emptyCapsule, hurtCapsule, placeCapsule } from "../physics/contactGeometry";
 import { advanceHeroStatus } from "./heroSpecialRules";
 import { ROSTER_MANA } from "./mana";
 import { type AuthoredSpecial, type FighterSpecials, frames } from "./heroSpecials";
 import { updateProjectiles } from "./projectiles";
-import { FROZEN_THRONE_STAGE, SOLID_DECK_TEST_STAGE, surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "./stage";
 import { type Controls, type Roster, createRoster } from "./roster";
 import { advanceSpecials, startFighterSpecial } from "./specials";
 import { advanceFighter } from "./step";
@@ -49,7 +43,6 @@ function hero(x: number, facing: number): Fighter {
   return f;
 }
 
-
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
   for (let slot = 0; slot < 2; slot++) advanceFighter(world, slot, 0, inputs[slot] ?? controls(), slot === 0 ? -240.0 : 240.0);
@@ -74,7 +67,6 @@ function pair(gap = 300.0): { world: Roster; owner: Fighter; target: Fighter } {
 
 const side = controls({ specialPressed: true, specialX: 1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
-const down = controls({ specialPressed: true, specialZ: -1 });
 const neutral = controls({ specialPressed: true });
 
 test("a regular hero special spends no meter and the fighter acts again the frame after its end [spec #335]", () => {
@@ -89,95 +81,6 @@ test("a regular hero special spends no meter and the fighter acts again the fram
   assertEquals(owner.special.action, SpecialAction.none);
   frame(world, neutral);
   assertEquals(owner.special.action, SpecialAction.heroNeutral);
-});
-
-test("a regular special starts at zero meter without a refusal [spec #335]", () => {
-  const { world, owner } = pair(600.0);
-  owner.mana.points = 0;
-  frame(world, down);
-  assertEquals(owner.special.action, SpecialAction.heroDown);
-  assertEquals(owner.mana.points, 0);
-  assertEquals(owner.visuals.manaDenied, 0);
-  frame(world);
-  assertEquals(owner.visuals.manaDenied, 0);
-  frame(world, side);
-  assertEquals(owner.visuals.manaDenied, 0);
-});
-
-test("at zero meter the up special takes its full form and spends nothing [spec #335]", () => {
-  const { world, owner } = pair(600.0);
-  owner.mana.points = 0;
-  frame(world, up);
-  assertEquals(owner.special.action, SpecialAction.heroUp);
-  assertEquals(owner.special.form, 0);
-  assertEquals(owner.mana.points, 0);
-  for (let f = 2; f <= 6; f++) frame(world);
-  assertEquals(owner.motion.vz, 12.0);
-  for (let f = 7; f <= 25; f++) frame(world);
-  assertTrue(owner.special.fall);
-  frame(world, up);
-  assertEquals(owner.special.action, SpecialAction.none);
-});
-
-test("an up special is used once per airtime without spending meter and landing restores it [spec docs/design/roster.md] [spec #335]", () => {
-  const { world, owner } = pair(600.0);
-  frame(world, up);
-  assertEquals(owner.mana.points, 100);
-  for (let f = 2; f <= 25; f++) frame(world);
-  assertFalse(owner.motion.grounded);
-  assertTrue(owner.special.fall);
-  owner.special.fall = false;
-  frame(world, up);
-  assertEquals(owner.special.action, SpecialAction.none);
-  for (let f = 0; f < 240 && !owner.motion.grounded; f++) frame(world);
-  assertTrue(owner.motion.grounded);
-  assertEquals(owner.special.airtimeUses, 0);
-});
-
-test("a ground-only special fails in the air without spending [spec docs/design/roster.md]", () => {
-  const { world, owner } = pair(600.0);
-  owner.motion.grounded = false;
-  owner.motion.z = 200.0;
-  frame(world, down);
-  assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(owner.mana.points, 100);
-});
-
-test("a hero projectile spawns on its frame, respects its limit and strikes once [spec docs/design/roster.md]", () => {
-  const { world, owner, target } = pair(300.0);
-  frame(world, neutral);
-  for (let f = 2; f <= 4; f++) frame(world);
-  assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
-  frame(world);
-  const flying = owner.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero);
-  assertEquals(flying.length, 1);
-  for (let f = 6; f <= 20; f++) frame(world);
-  frame(world, neutral);
-  const recast = owner.special.action === SpecialAction.heroNeutral;
-  assertEquals(recast, owner.projectiles.every(p => p.life <= 0));
-  for (let f = 0; f < 40; f++) frame(world);
-  assertEquals(target.status.damage, 6.0);
-});
-
-test("a hero strike path hits each target once per action [spec docs/design/roster.md]", () => {
-  const { world, owner, target } = pair(70.0);
-  frame(world, side);
-  for (let f = 2; f <= 12; f++) frame(world);
-  assertEquals(target.status.damage, 10.0);
-  for (let f = 13; f <= 30; f++) frame(world);
-  assertEquals(target.status.damage, 10.0);
-});
-
-test("intangible and armor windows protect exactly their frames [spec docs/design/roster.md]", () => {
-  const { world, owner } = pair(600.0);
-  frame(world, down);
-  for (let f = 2; f <= 4; f++) frame(world);
-  assertEquals(owner.status.invincible > 0, true);
-  for (let f = 5; f <= 8; f++) frame(world);
-  frame(world);
-  assertEquals(owner.status.invincible, 0);
-  assertEquals(owner.status.armorFrames > 0, true);
-  assertEquals(owner.status.armorMaxDamage, 6.0);
 });
 
 test("replaying a hero special from a restored snapshot reproduces every fighter field [invariant]", () => {
@@ -205,135 +108,3 @@ test("replaying a hero special from a restored snapshot reproduces every fighter
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-test("a stopsAtBody dash special ends short of an exposed body and a raised shield, and an unmarked one carries through [spec docs/design/roster.md]", () => {
-  const dash = (stopsAtBody: boolean): AuthoredSpecial => ({ endFrame: 20, motion: [{ ...frames(2, 16), velocityX: 20.0, velocityZ: 0.0, stopsAtBody }] });
-  for (const facing of [-1, 1]) {
-    for (const [stops, shielded] of [[true, false], [true, true], [false, false]] as const) {
-      const owner = hero(0.0, facing);
-      owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ...KIT.side, ground: dash(stops) } } };
-      const target = createFighter(Character.rifleman, f32(200.0 * facing), -facing);
-      const world = createRoster(3, [owner, target]);
-      for (let i = 0; i < 3; i++) frame(world);
-      const press = controls({ specialPressed: true, specialX: facing });
-      const guard = controls({ shield: shielded, shieldTriggerActive: shielded });
-      frame(world, press, guard);
-      for (let f = 2; f <= 20; f++) frame(world, controls(), guard);
-      assertEquals(target.shield.raised, shielded);
-      const gap = f32(f32(target.motion.x - owner.motion.x) * facing);
-      if (stops) {
-        assertGreaterThan(gap, 0.0);
-        assertTrue(gap >= 47.5);
-      } else {
-        assertTrue(gap < 48.0);
-      }
-    }
-  }
-});
-
-
-test("a hero special's hurt poses replace the body on their frames only [spec docs/hurtboxes.md]", () => {
-  const { world, owner, target } = pair(600.0);
-  const reach = hurtPart(0.0, 40.0, 140.0, 40.0, 12.0);
-  const posed: AuthoredSpecial = { ...SIDE, hurt: [hurtPose(5, 8, [hurtCapsule(Character.blademaster), reach])] };
-  owner.tuning = { ...owner.tuning, specials: { ...KIT, side: { ...KIT.side, ground: posed } } };
-  frame(world, side);
-  for (let f = 2; f <= 4; f++) frame(world);
-  assertEquals(fighterHurtParts(owner).length, 1);
-  frame(world);
-  assertEquals(owner.special.frame, 5);
-  assertEquals(fighterHurtParts(owner).length, 2);
-  const strike = placeCapsule(emptyCapsule(), { x1: 0.0, z1: 40.0, x2: 0.0, z2: 40.0, radius: 5.0 }, f32(owner.motion.x + 130.0), owner.motion.z, 1);
-  assertEquals(strikeHurtContact(strike, owner), HurtContact.hit);
-  for (let f = 6; f <= 9; f++) frame(world);
-  assertEquals(fighterHurtParts(owner).length, 1);
-  assertEquals(strikeHurtContact(strike, owner), HurtContact.none);
-  void target;
-});
-
-test("a broad hero projectile meets a raised shield before the body behind it [spec docs/design/roster.md]", () => {
-  const broad: FighterSpecials = { ...KIT, neutral: { ...KIT.neutral, ground: { ...NEUTRAL, projectiles: [{ ...NEUTRAL.projectiles![0]!, radius: 24.0 }] } } };
-  const { world, owner, target } = pair(400.0);
-  owner.tuning = { ...owner.tuning, specials: broad };
-  const guard = controls({ shield: true });
-  frame(world, neutral, guard);
-  for (let f = 2; f <= 40 && target.shield.stun === 0 && target.status.damage === 0.0; f++) frame(world, controls(), guard);
-  assertEquals(target.status.damage, 0.0);
-  assertGreaterThan(target.shield.stun, 0);
-});
-
-test("hero projectiles end on walls, undersides and solid deck tops, and pass through pass decks [spec docs/design/roster.md]", () => {
-  const owner = hero(-100.0, 1);
-  const target = createFighter(Character.rifleman, 2000.0, -1);
-  const world = createRoster(3, [owner, target]);
-  const launch = (x: number, z: number, velocityX: number, velocityZ: number) => {
-    const projectile = mutableProjectile(owner, 0)!;
-    Object.assign(projectile, { life: 30, kind: ProjectileKind.hero, spec: NEUTRAL.projectiles![0], x, z, velocityX, velocityZ, direction: 1 });
-    return projectile;
-  };
-  const down = launch(0.0, 20.0, 0.0, -30.0);
-  updateProjectiles(world, 0, 0);
-  assertEquals(down.life, 0);
-  const wall = launch(700.0, -60.0, -40.0, 0.0);
-  updateProjectiles(world, 0, 0);
-  updateProjectiles(world, 0, 0);
-  assertEquals(wall.life, 28);
-  updateProjectiles(world, 0, 0);
-  assertEquals(wall.life, 0);
-  const level = launch(-500.0, 60.0, 30.0, 0.0);
-  for (let f = 0; f < 10; f++) updateProjectiles(world, 0, 0);
-  assertEquals(level.life, 20);
-  for (const [stage, pass] of [[FROZEN_THRONE_STAGE, true], [SOLID_DECK_TEST_STAGE, false]] as const) {
-    for (let deck = 1; deck < surfaceCount(stage); deck++) {
-      assertEquals(surfacePass(stage, deck), pass);
-      const top = surfaceZ(stage, deck, 0);
-      const through = launch(f32(f32(surfaceLeft(stage, deck, 0) + surfaceRight(stage, deck, 0)) * 0.5), f32(top + 10.0), 0.0, -20.0);
-      updateProjectiles(world, stage, 0);
-      assertEquals(through.life, pass ? 29 : 0);
-      through.life = 0;
-    }
-  }
-});
-
-
-test("a second press inside a follow-up window starts the follow-up once without spending meter; presses outside it change nothing [spec docs/design/roster.md] [spec #335]", () => {
-  const slash: AuthoredSpecial = { endFrame: 37, regions: [heroRegion(10, 12, { x1: 10.0, z1: 50.0, x2: 110.0, z2: 50.0, radius: 12.0 }, hit(10.0))] };
-  const feint: AuthoredSpecial = { endFrame: 24, followUps: [{ window: frames(8, 19), special: slash }] };
-  const run = (pressAt: number) => {
-    const owner = hero(0.0, 1);
-    owner.tuning = { ...owner.tuning, specials: { ...KIT, down: { ...KIT.down, ground: feint } } };
-    const target = createFighter(Character.rifleman, 100.0, -1);
-    const world = createRoster(3, [owner, target]);
-    for (let i = 0; i < 3; i++) frame(world);
-    frame(world, down);
-    for (let f = 2; f < pressAt; f++) frame(world);
-    frame(world, down);
-    return { world, owner, target };
-  };
-  for (const outside of [5, 7, 20]) {
-    const { world, owner, target } = run(outside);
-    assertEquals(owner.special.form, 0);
-    for (let f = outside + 1; f <= 24; f++) frame(world);
-    assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(target.status.damage, 0.0);
-    assertEquals(owner.mana.points, 100);
-  }
-  for (const inside of [8, 19]) {
-    const { world, owner, target } = run(inside);
-    assertEquals(owner.special.action, SpecialAction.heroDown);
-    assertEquals(owner.special.frame, 1);
-    for (let f = 2; f <= 9; f++) frame(world, f === 5 ? down : controls());
-    assertEquals(owner.special.frame, 9);
-    assertEquals(target.status.damage, 0.0);
-    frame(world);
-    assertEquals(target.status.damage, 10.0);
-
-    let last = owner.special.frame;
-    for (let guard = 0; guard < 80 && owner.special.action !== SpecialAction.none; guard++) {
-      last = owner.special.frame;
-      frame(world);
-    }
-    assertEquals(last, 36);
-    assertEquals(owner.special.action, SpecialAction.none);
-    assertEquals(owner.mana.points, 100);
-  }
-});

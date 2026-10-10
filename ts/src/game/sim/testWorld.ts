@@ -75,14 +75,6 @@ export function resolveStartedAttack(world: Roster, style: AttackStyle): void {
 }
 
 
-export function setRecovery(fighter: Fighter, cooldown: number): void {
-  fighter.attack.style = AttackStyle.jab;
-  const moves = fighter.tuning.moves;
-  fighter.attack.frame = attackStartupFrames(AttackStyle.jab, moves) + characterAttackActiveFrames(fighter.character, AttackStyle.jab, moves);
-  fighter.attack.duration = attackDurationFramesForGrounding(AttackStyle.jab, fighter.motion.grounded, moves);
-  fighter.attack.hit = true;
-  fighter.attack.cooldown = cooldown;
-}
 
 
 export function testGrabFrame(world: Roster, frameControls: readonly Readonly<Controls>[], paused: boolean): void {

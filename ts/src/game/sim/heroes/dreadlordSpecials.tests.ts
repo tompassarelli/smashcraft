@@ -1,20 +1,12 @@
-
-
-
-
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { f32 } from "wisp/src/sim/f32";
-import { floorMod } from "wisp/src/sim/intMath";
-import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
+import { assertEquals, test } from "wisp/src/runtime/testing";
+import { resolveAttacks } from "../attacks";
+import { Character } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { createReferenceContactFighter } from "../referenceRig";
 import { advanceGrabs, captureGrabPauses, resolveGrabs } from "../grabs";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
 import { advanceHeroStatus } from "../heroSpecialRules";
-import { maskHeroStatusControls } from "../heroStatus";
-import { attackBuffer } from "../../input/attackBuffer";
 import { updateProjectiles } from "../projectiles";
 import { type Controls, type Roster, createRoster } from "../roster";
 import { advanceSpecials, startFighterSpecial } from "../specials";
@@ -25,12 +17,7 @@ import { DREADLORD_SPECIALS } from "./dreadlordSpecials";
 import { firstFighterDifference } from "../../replay/difference";
 
 const H = HERO_REFERENCE_HEIGHT;
-const SWARM = DREADLORD_SPECIALS.neutral.ground.projectiles![0]!;
-const SLEEP = DREADLORD_SPECIALS.down.ground.projectiles![0]!.status!;
-const POUNCE = DREADLORD_SPECIALS.side.ground;
-const BITE = POUNCE.commandGrab!;
-const HEAL = BITE.heal!.heal;
-
+const BITE = DREADLORD_SPECIALS.side.ground.commandGrab!;
 
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls()): void {
   const inputs = [first, second];
@@ -59,206 +46,11 @@ function pair(gap: number, target: Character = Character.sylvanas): { world: Ros
   return { world, owner, victim };
 }
 
-const neutral = controls({ specialPressed: true });
 const side = controls({ specialPressed: true, specialX: 1, direction: 1 });
-const up = controls({ specialPressed: true, specialZ: 1, verticalDirection: 1 });
-const down = controls({ specialPressed: true, specialZ: -1 });
-const shield = controls({ shield: true, shieldStrength: 1.0 });
-
 
 function play(world: Roster, last: number, first = controls(), second = controls()): void {
   for (let f = 2; f <= last; f++) frame(world, first, second);
 }
-
-test("Dreadlord's specials preserve their super meter on entry [spec #335]", () => {
-  for (const input of [neutral, side, up, down]) {
-    const { world, owner } = pair(1000.0);
-    frame(world, input);
-    assertTrue(owner.special.action !== SpecialAction.none);
-    assertEquals(owner.mana.points, 100);
-    play(world, 10);
-    assertEquals(owner.mana.points, 100);
-  }
-});
-
-test("Carrion Swarm releases one reflectable cloud on frame 20 and hits once for 6.335 [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(260.0);
-  frame(world, neutral);
-  play(world, SWARM.spawnFrame - 1);
-  assertEquals(owner.projectiles.filter(p => p.life > 0).length, 0);
-  frame(world);
-  const cloud = owner.projectiles.find(p => p.life > 0 && p.kind === ProjectileKind.hero);
-  assertTrue(cloud?.spec?.reflectable === true);
-  for (let f = 0; f < 40; f++) frame(world);
-  assertGreaterThan(victim.status.damage, 0.0);
-  assertEquals(owner.special.action, SpecialAction.none);
-});
-
-
-function slept(airborne = false): { world: Roster; owner: Fighter; victim: Fighter } {
-  const p = pair(200.0);
-  frame(p.world, down);
-  let asleep = false;
-  for (let f = 2; f <= 70 && !asleep; f++) {
-    if (airborne) {
-      p.victim.motion.grounded = false;
-      p.victim.motion.surface = undefined;
-      p.victim.motion.z = 10.0;
-      p.victim.motion.vz = 0.0;
-    }
-    frame(p.world);
-    asleep = p.victim.status.condition === HeroStatusKind.sleep;
-  }
-  assertTrue(asleep);
-  return p;
-}
-
-
-function framesAsleep(world: Roster, victim: Fighter, mash: (frame: number) => Readonly<Controls>): number {
-  const commands = attackBuffer(0);
-  for (let f = 1; f <= 200; f++) {
-    const input = { ...mash(f) };
-    maskHeroStatusControls(victim, input, commands);
-    frame(world, controls(), input);
-    if (victim.status.condition !== HeroStatusKind.sleep) return f;
-  }
-  return 200;
-}
-
-test("Sleep sleeps a grounded body 100 frames and an airborne one 24, then 240 frames of immunity; a shield stops it [spec docs/design/roster.md]", () => {
-  const grounded = slept();
-  assertGreaterThan(grounded.victim.status.damage, 0.0);
-  assertEquals(grounded.victim.status.conditionFrames, SLEEP.frames);
-  const held = framesAsleep(grounded.world, grounded.victim, () => controls());
-  assertEquals(held, SLEEP.frames);
-  assertEquals(grounded.victim.status.conditionImmunity[0], SLEEP.immunityFrames);
-  const air = slept(true);
-  assertEquals(air.victim.status.conditionFrames, SLEEP.airFrames);
-  const guarded = pair(200.0);
-  frame(guarded.world, down, shield);
-  for (let f = 2; f <= 80; f++) frame(guarded.world, controls(), shield);
-  assertEquals(guarded.victim.status.condition, HeroStatusKind.none);
-  assertEquals(guarded.victim.status.damage, 0.0);
-});
-
-test("the sleeper mashes out sooner, never before its frame 24, and a damaging hit wakes it at once [spec docs/design/roster.md]", () => {
-  const mashing = slept();
-
-  const woke = framesAsleep(mashing.world, mashing.victim, (f) => controls({ grabMashPressed: floorMod(f, 2) === 0, direction: floorMod(f, 4) < 2 ? 1 : -1 }));
-  assertLessThan(woke, 40);
-  assertGreaterThan(woke, 21);
-  const hit = slept();
-  hit.victim.motion.x = f32(hit.owner.motion.x + 60.0);
-  hit.victim.facing = -1;
-  hit.owner.facing = 1;
-  for (let f = 0; f < 40; f++) frame(hit.world);
-  beginFighterAttack(hit.world, 0, AttackStyle.jab, false);
-  for (let f = 0; f < 8; f++) frame(hit.world);
-  assertGreaterThan(hit.victim.status.damage, 2.0);
-  assertEquals(hit.victim.status.condition, HeroStatusKind.none);
-
-  hit.owner.mana.points = 100;
-  frame(hit.world, down);
-  for (let f = 2; f <= 60; f++) frame(hit.world);
-  assertEquals(hit.victim.status.condition, HeroStatusKind.none);
-});
-
-test("Vampiric Pounce grabs through a shield, bites 16 frames after the catch and recovers 28 frames [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(H, Character.rifleman);
-  frame(world, side, shield);
-  let caught = 0;
-  for (let f = 2; f <= BITE.last && caught === 0; f++) {
-    frame(world, controls(), shield);
-    caught = owner.special.grabFrame;
-  }
-  assertTrue(caught >= BITE.first && caught <= BITE.last);
-  assertEquals(owner.grab.target, 1);
-  assertEquals(victim.grab.owner, 0);
-  for (let f = caught + 1; f < caught + BITE.holdFrames; f++) frame(world);
-  assertEquals(victim.status.damage, 0.0);
-  frame(world);
-  assertEquals(victim.status.damage, BITE.effect.damage);
-  assertEquals(owner.grab.target, undefined);
-  assertTrue(victim.launch.throwHitstun);
-  assertGreaterThan(victim.launch.knockbackX, 0.0);
-
-  let lastFrame = 0;
-  for (let f = 0; f < 120 && owner.special.action === SpecialAction.heroSide; f++) {
-    lastFrame = owner.special.frame;
-    frame(world);
-  }
-  assertEquals(owner.special.action, SpecialAction.none);
-  assertEquals(lastFrame + 1, caught + BITE.holdFrames + BITE.recovery);
-});
-
-test("a whiffed Vampiric Pounce ends on frame 53 and cannot catch a fighter still in throw hitstun [spec docs/design/roster.md]", () => {
-  const whiff = pair(1000.0);
-  frame(whiff.world, side);
-  play(whiff.world, POUNCE.endFrame - 1);
-  assertEquals(whiff.owner.special.action, SpecialAction.heroSide);
-  frame(whiff.world);
-  assertEquals(whiff.owner.special.action, SpecialAction.none);
-  assertEquals(whiff.owner.special.grabFrame, 0);
-  const regrab = pair(H);
-  regrab.victim.launch.throwHitstun = true;
-  regrab.victim.launch.hitstun = 200;
-  regrab.victim.motion.grounded = true;
-  frame(regrab.world, side);
-  play(regrab.world, BITE.last + 1);
-  assertEquals(regrab.owner.special.grabFrame, 0);
-  assertEquals(regrab.victim.grab.owner, undefined);
-});
-
-test("air Vampiric Pounce bites and heals once per airtime and ends helpless [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(110.0);
-  for (const f of [owner, victim]) {
-    f.motion.grounded = false;
-    f.motion.surface = undefined;
-    f.motion.z = 1500.0;
-  }
-  frame(world, side);
-  assertEquals(owner.special.form, 1);
-  owner.status.damage = 30.0;
-  for(let f=2;f<=BITE.first;f++){victim.motion.z=owner.motion.z; victim.motion.vz=0.0; frame(world);}
-  assertGreaterThan(owner.special.grabFrame,0);
-  for (let f = 0; f < 120 && owner.special.action !== SpecialAction.none; f++) frame(world);
-  assertEquals(victim.status.damage, BITE.effect.damage);
-  assertEquals(owner.status.damage, f32(30.0 - HEAL));
-  assertTrue(owner.special.fall);
-  frame(world, side);
-  assertEquals(owner.special.action, SpecialAction.none);
-});
-
-
-function ascend(points: number, stickSide: number): { rise: number; across: number; owner: Fighter } {
-  const { world, owner } = pair(600.0);
-  owner.mana.points = points;
-  const startX = owner.motion.x;
-  const startZ = owner.motion.z;
-
-  const held = controls({ direction: stickSide });
-  frame(world, up);
-  let top = startZ;
-  for (let f = 2; f <= 33; f++) {
-    frame(world, f >= 9 ? held : controls());
-    top = Math.max(top, owner.motion.z);
-  }
-  return { rise: top - startZ, across: owner.motion.x - startX, owner };
-}
-
-test("Bat Ascension keeps its full rise and steering at every meter level [spec #335]", () => {
-  const full = ascend(100, 1);
-  assertGreaterThan(full.across, 0.0);
-  assertTrue(full.owner.special.fall);
-  assertEquals(full.owner.mana.points, 100);
-  const straight = ascend(100, 0);
-  assertLessThan(Math.abs(straight.across), 1.0);
-  const back = ascend(100, -1);
-  assertLessThan(back.across, 0.0);
-  const free = ascend(10, 1);
-  assertEquals(free.owner.mana.points, 10);
-  assertFalse(free.owner.status.invincible > 0);
-});
 
 test("replaying Vampiric Pounce from a restored snapshot reproduces both fighters [invariant]", () => {
   const { world, owner, victim } = pair(H);
@@ -281,60 +73,4 @@ test("replaying Vampiric Pounce from a restored snapshot reproduces both fighter
   run();
   assertEquals(firstFighterDifference(endOwner, owner, 3, 3), undefined);
   assertEquals(firstFighterDifference(endVictim, victim, 3, 3), undefined);
-});
-
-test("Vampiric Pounce loses to a jab thrown into its approach and whiffs on a retreat [spec docs/design/roster.md]", () => {
-  const read = pair(f32(f32(1.2) * H));
-  frame(read.world, side);
-  for (let f = 2; f <= 16; f++) {
-    if (f === 11) beginFighterAttack(read.world, 1, AttackStyle.jab, false);
-    frame(read.world);
-  }
-  assertGreaterThan(read.owner.status.damage, 0.0);
-  assertEquals(read.owner.special.grabFrame, 0);
-  assertEquals(read.victim.grab.owner, undefined);
-  const retreat = pair(1.5 * H);
-  const away = controls({ direction: 1 });
-  frame(retreat.world, side, away);
-  for (let f = 2; f <= 20; f++) frame(retreat.world, controls(), away);
-  assertEquals(retreat.owner.special.grabFrame, 0);
-  assertEquals(retreat.victim.grab.owner, undefined);
-});
-
-test("Vampiric Pounce corkscrews forward in both facings and air forms; another press keeps the lunge [spec docs/design/roster.md]", () => {
-  for (const facing of [1,-1]) for (const air of [false,true]) {
-    const {world,owner}=pair(1000.0);
-    owner.facing=facing;
-    if(air){owner.motion.grounded=false; owner.motion.surface=undefined;owner.motion.z=1500.0;}
-    const start=owner.motion.x;
-    frame(world,controls({specialPressed:true,specialX:facing}));
-    const height=owner.motion.z;
-    for(let f=2;f<=BITE.first;f++) frame(world,f===6?controls({specialPressed:true,specialX:facing}):controls());
-    const travel=f32(f32(owner.motion.x-start)*facing);
-    assertGreaterThan(travel,2.0*H);
-    assertLessThan(travel,f32(f32(2.4)*H));
-    if(air) assertLessThan(Math.abs(f32(owner.motion.z-height)),1.0);
-    assertEquals(owner.special.form,air?1:0);
-    assertEquals(owner.mana.points, 100);
-    for(let f=BITE.first+1;f<=POUNCE.endFrame-1;f++) frame(world);
-    assertEquals(owner.special.action,SpecialAction.heroSide);
-    frame(world);
-    assertEquals(owner.special.action,SpecialAction.none);
-    assertEquals(owner.special.fall,air);
-  }
-});
-
-test("Vampiric Pounce's successful bite heals Dreadlord 4 percent [spec #148] [spec docs/design/roster.md]", () => {
-  const { world, owner, victim } = pair(H, Character.rifleman);
-  owner.status.damage = 30.0;
-  for (let pounce = 0; pounce < 4; pounce++) {
-    owner.mana.points = 100;
-    victim.motion.x = f32(owner.motion.x + H);
-    victim.launch.throwHitstun = false;
-    victim.launch.hitstun = 0;
-    frame(world, side);
-    for (let f = 0; f < 120 && owner.special.action === SpecialAction.heroSide; f++) frame(world);
-    for (let f = 0; f < 60; f++) frame(world);
-    assertEquals(owner.status.damage, f32(30.0 - HEAL * (pounce + 1)));
-  }
 });

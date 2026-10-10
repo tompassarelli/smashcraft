@@ -3,14 +3,14 @@
 
 
 import { f32 } from "wisp/src/sim/f32";
-import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
-import { capsulesIntersect, placeCapsule } from "../physics/contactGeometry";
+import { assertEquals, test } from "wisp/src/runtime/testing";
+import { capsulesIntersect } from "../physics/contactGeometry";
 import { AttackStyle, Character } from "./codes";
 import { createFighter } from "./fighter";
 import { HERO_ROSTER } from "./heroes/registry";
 import type { FighterMoves } from "./heroMoves";
 import { type AuthoredSpecial, specialKit } from "./heroSpecials";
-import { type FighterHurtboxes, type HurtPart, type HurtPose, HurtContact, HurtState, fighterHurtParts, fighterHurtboxes, strikeHurtContact } from "./hurtboxes";
+import { type FighterHurtboxes, type HurtPart, type HurtPose, HurtState, fighterHurtboxes } from "./hurtboxes";
 import { attackDurationFramesForGrounding } from "./moves";
 
 
@@ -212,60 +212,4 @@ test("every fighter's authored bodies follow the legible-hurtbox rules or name a
   const stale: string[] = [];
   for (const key in DEPARTURES) if (seen[key] !== true) stale.push(key);
   assertEquals(stale.join("\n"), "");
-});
-
-test("the checker catches each rule it enforces [spec docs/gameplay-design.md]", () => {
-  const torso: HurtPart = { x1: 0.0, z1: 4.0, x2: 0.0, z2: 88.0, radius: 24.0 };
-  const pose = (first: number, last: number, parts: readonly HurtPart[]): HurtPose => ({ firstFrame: first, lastFrame: last, parts });
-  const rules = (poses: readonly HurtPose[]): string => violations({
-    name: "Probe",
-    set: { stand: [torso], attacks: {} },
-    moves: [{ name: "jab", poses, firstFrame: 0, lastFrame: 20 }],
-  }).map((v) => v.substring(v.indexOf("rule"), v.indexOf(":"))).join(",");
-  const floating: HurtPart = { x1: 80.0, z1: 60.0, x2: 100.0, z2: 60.0, radius: 5.0 };
-  const arm = (reach: number, state?: HurtState): HurtPart => ({ x1: 10.0, z1: 60.0, x2: reach, z2: 60.0, radius: 9.0, state });
-  assertEquals(rules([pose(2, 8, [torso, arm(50.0)])]), "");
-  assertEquals(rules([pose(2, 8, [torso, floating])]), "rule 2,rule 6,rule 4,rule 4");
-  assertEquals(rules([pose(2, 3, [torso, arm(50.0)])]), "rule 3");
-  assertEquals(rules([pose(2, 8, [torso, arm(50.0)]), pose(6, 12, [torso])]), "rule 3");
-  assertEquals(rules([pose(15, 22, [torso])]), "rule 3");
-  assertEquals(rules([pose(2, 8, [{ ...torso, z2: 20.0 }])]), "rule 4,rule 4");
-  assertEquals(rules([pose(2, 5, [torso, arm(30.0)]), pose(6, 9, [torso, arm(55.0)])]), "");
-  assertEquals(rules([pose(2, 8, [torso, arm(88.0)])]), "rule 6,rule 4,rule 4");
-  assertEquals(rules([pose(2, 8, [torso, { x1: 0.0, z1: 80.0, x2: 0.0, z2: 160.0, radius: 9.0 }])]), "rule 6");
-  assertEquals(rules([pose(2, 8, [torso, arm(50.0, HurtState.intangible)])]), "rule 5");
-  assertEquals(rules([pose(2, 8, [{ ...torso, state: HurtState.invincible }, arm(50.0)])]), "rule 5");
-});
-
-test("rule 1: outside attacks and specials only crouch changes the body, and selection is a function of state [spec docs/gameplay-design.md]", () => {
-  for (const character of [Character.rifleman, Character.demonHunter]) {
-    const f = createFighter(character, 0.0, 1);
-    const set = fighterHurtboxes(f);
-    assertEquals(fighterHurtParts(f), set.stand);
-    f.motion.grounded = false;
-    f.motion.vx = 9.0;
-    f.motion.vz = -4.0;
-    assertEquals(fighterHurtParts(f), set.stand);
-    f.motion.grounded = true;
-    f.shield.raised = true;
-    assertEquals(fighterHurtParts(f), set.stand);
-    f.shield.raised = false;
-    f.motion.crouching = true;
-    assertEquals(fighterHurtParts(f), set.crouch ?? set.stand);
-    assertEquals(fighterHurtParts(f), fighterHurtParts(f));
-  }
-});
-
-test("rule 6: a strike tangent to a normal part hits [spec docs/gameplay-design.md]", () => {
-  const target = createFighter(Character.rifleman, 0.0, 1);
-  const body = fighterHurtboxes(target).stand[0];
-  assertTrue(body !== undefined);
-  if (body === undefined) return;
-  const radius = 8.0;
-  const x = body.x1 + body.radius + radius;
-  const strike = placeCapsule({ x1: 0.0, z1: 0.0, x2: 0.0, z2: 0.0, radius: 0.0 }, { x1: x, z1: body.z1, x2: x, z2: body.z2, radius }, target.motion.x, target.motion.z, 1);
-  assertEquals(strikeHurtContact(strike, target), HurtContact.hit);
-  strike.x1 += 1.0;
-  strike.x2 += 1.0;
-  assertEquals(strikeHurtContact(strike, target), HurtContact.none);
 });

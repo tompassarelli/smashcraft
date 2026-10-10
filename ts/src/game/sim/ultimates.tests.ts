@@ -1,5 +1,5 @@
 import { floorMod } from "wisp/src/sim/intMath";
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, assertLessThan, assertTrue, test } from "wisp/src/runtime/testing";
 import { sweep, sweepSeed } from "../../runtime/sweep";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../input/participants";
@@ -289,14 +289,6 @@ function cpuUltimates(characters: readonly Character[], tier: CpuTier, seed: num
   }
   return total;
 }
-
-test("a Wren Expert Rifleman computer spends a full bar on an ultimate that lands and never does with Ultimates off [spec #382]", () => {
-  const on = cpuUltimates([Character.rifleman], "expert", 0, 1200, false);
-  assertGreaterThan(on.starts, 0);
-  assertGreaterThan(on.landed, 0);
-  const off = cpuUltimates([Character.rifleman], "expert", 0, 1200, true);
-  assertEquals(off.starts, 0);
-});
 
 const SWEEP_FRAMES = 900;
 

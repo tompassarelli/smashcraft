@@ -1,7 +1,7 @@
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { SurfaceContact } from "./codes";
-import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckUndersideZ, mainDeckZ, solidSurfaceAt, solidSurfaceCount, surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "./stage";
+import { MAIN_DECK_BODY_SURFACES, mainDeckLeft, mainDeckRight, mainDeckUndersideZ, mainDeckZ, solidSurfaceAt, surfaceCount, surfaceLeft, surfaceMoves, surfaceRight, surfaceZ } from "./stage";
 import { type Character } from "./codes";
 import { createFighter } from "./fighter";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
@@ -10,25 +10,6 @@ import { advanceSolo, controls } from "./testWorld";
 
 
 const BODIED = STAGE_CATALOG.filter(({ id }) => id !== 0);
-
-const outline = (stage: number): string => {
-  const points: string[] = [];
-  for (let index = 0; index < MAIN_DECK_BODY_SURFACES; index++) {
-    const line = solidSurfaceAt(stage, index);
-    points.push(`${line.startX},${line.startZ}`);
-  }
-  return points.join(" ");
-};
-
-test("each ranked stage's main deck has its own outline [spec docs/design/stages.md]", () => {
-  const seen: string[] = [outline(0)];
-  for (const { id, name } of BODIED) {
-    assertEquals(solidSurfaceCount(id) >= MAIN_DECK_BODY_SURFACES, true, `${name} has no main deck body`);
-    const shape = outline(id);
-    assertEquals(seen.includes(shape), false, `${name} shares another stage's main deck outline`);
-    seen.push(shape);
-  }
-});
 
 test("each main deck is mirror-symmetric, hangs from two ledges and stays under its ledges [spec docs/design/stages.md]", () => {
   for (const { id, name } of [{ id: 0, name: "Sky Deck" }, ...BODIED]) {

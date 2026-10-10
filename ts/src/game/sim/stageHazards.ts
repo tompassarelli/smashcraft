@@ -142,7 +142,7 @@ export function framesUntilTideTurns(frame: number): number {
 }
 
 
-export const seaLeft = (stage: number): number => stageBounds(stage).blast.left;
+const seaLeft = (stage: number): number => stageBounds(stage).blast.left;
 export const seaRight = (stage: number): number => stageBounds(stage).blast.right;
 
 

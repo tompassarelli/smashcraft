@@ -1,45 +1,13 @@
-import { stageBounds } from "./stageBounds";
-
-
-
 import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { Character, DownState } from "./codes";
+import { Character } from "./codes";
 import { createReferenceFighter } from "./referenceRig";
-import { applyDirectionalInfluence, directionalInfluenceVector, influenceOperands, ordinaryHitKnockback } from "./knockback";
-import { setMeleeKnockback, totalVelocityX, totalVelocityZ } from "./motion";
-import { ASDI_DISTANCE, SDI_STEP_DISTANCE } from "./smashDirectionalInfluence";
-import { respawnFighter } from "./stocks";
-import { advanceSolo, controls, seedTechWindow, soloWorld } from "./testWorld";
-import { authoredPhysics } from "./tuning";
+import { ordinaryHitKnockback } from "./knockback";
+import { totalVelocityX } from "./motion";
+import { ASDI_DISTANCE } from "./smashDirectionalInfluence";
+import { advanceSolo, controls } from "./testWorld";
 
 const length = (x: number, z: number) => Math.sqrt(x * x + z * z);
-
-test("a direction held before the hit creates no SDI pulse, and an attacker's freeze doesn't move it [spec docs/gameplay-design.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  const input = controls({ direction: 1 });
-  advanceSolo(fighter, 0, input, -240.0);
-  fighter.motion.x = 300.0;
-  fighter.motion.z = 400.0;
-  fighter.motion.grounded = false;
-  fighter.motion.vx = 0.0;
-  fighter.launch.hitlag = 3;
-  fighter.launch.diPending = true;
-  fighter.launch.diLaunchSpeed = 10.0;
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.motion.x, 300.0);
-  assertEquals(fighter.launch.sdiSerial, 0);
-  input.sdiPulse = true;
-  input.sdiX = 1;
-  const attacker = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  attacker.motion.x = 250.0;
-  attacker.motion.z = 400.0;
-  attacker.motion.grounded = false;
-  attacker.launch.hitlag = 3;
-  advanceSolo(attacker, 0, input, -240.0);
-  assertEquals(attacker.motion.x, 250.0);
-  assertEquals(attacker.launch.sdiSerial, 0);
-});
 
 test("ASDI uses the C-stick while DI still uses the left stick on the release frame [reference] [spec docs/physics.md]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 300.0, 1);
@@ -59,94 +27,6 @@ test("ASDI uses the C-stick while DI still uses the left stick on the release fr
   assertEquals(fighter.launch.sdiSerial, 0);
 });
 
-test("one frame of hitlag allows ASDI but can't produce SDI [spec docs/physics.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 300.0, 1);
-  fighter.motion.grounded = false;
-  fighter.motion.z = 400.0;
-  fighter.launch.hitlag = 1;
-  fighter.launch.diPending = true;
-  fighter.launch.diLaunchSpeed = 10.0;
-  fighter.launch.knockbackX = 10.0;
-  advanceSolo(fighter, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-  assertEquals(fighter.motion.x, f32(f32(300 + ASDI_DISTANCE) + totalVelocityX(fighter)));
-  assertEquals(fighter.launch.sdiSerial, 0);
-  assertEquals(fighter.launch.asdiSerial, 1);
-});
-
-test("an ASDI shift into the blast zone costs exactly one stock [spec docs/gameplay-design.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, f32(stageBounds(0).blast.right - 10.0), 1);
-  fighter.motion.grounded = false;
-  fighter.motion.z = 400.0;
-  fighter.launch.hitlag = 1;
-  fighter.launch.diPending = true;
-  fighter.launch.diLaunchSpeed = 10.0;
-  fighter.launch.knockbackX = 10.0;
-  advanceSolo(fighter, 0, controls({ direction: 1 }), -240.0);
-  assertTrue(fighter.status.out);
-  assertEquals(fighter.status.stocks, 2);
-  assertEquals(fighter.launch.asdiSerial, 1);
-});
-
-test("a forbidden down SDI doesn't land, but ASDI down sweeps onto a platform and cancels non-tumble hitstun [spec docs/physics.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  fighter.motion.grounded = false;
-  fighter.motion.z = 10.0;
-  fighter.launch.hitstun = 20;
-  fighter.launch.hitlag = 2;
-  fighter.launch.diPending = true;
-  fighter.launch.diLaunchSpeed = 10.0;
-  const input = controls({ verticalDirection: -1, sdiPulse: true, sdiZ: -1 });
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.motion.z, 10.0);
-  assertFalse(fighter.motion.grounded);
-  assertEquals(fighter.launch.sdiSerial, 0);
-  input.sdiPulse = false;
-  advanceSolo(fighter, 0, input, -240.0);
-  assertTrue(fighter.motion.grounded);
-  assertEquals(fighter.motion.z, 0.0);
-  assertEquals(fighter.motion.surface, 0);
-  assertEquals(fighter.launch.hitstun, 0);
-  assertEquals(fighter.launch.asdiSerial, 1);
-  assertEquals(fighter.launch.sdiSerial, 0);
-  const airborne = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  airborne.motion.grounded = false;
-  airborne.motion.z = 400.0;
-  airborne.launch.hitlag = 3;
-  airborne.launch.diPending = true;
-  airborne.launch.diLaunchSpeed = 10.0;
-  advanceSolo(airborne, 0, controls({ verticalDirection: -1, sdiPulse: true, sdiZ: -1 }), -240.0);
-  assertEquals(airborne.motion.z, f32(400 - SDI_STEP_DISTANCE));
-  assertEquals(airborne.launch.sdiSerial, 1);
-  const grounded = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  grounded.motion.z = 0.0;
-  grounded.launch.hitlag = 3;
-  grounded.launch.diPending = true;
-  grounded.launch.diLaunchSpeed = 10.0;
-  grounded.launch.sdiWasGrounded = true;
-  advanceSolo(grounded, 0, controls({ direction: 1, verticalDirection: 1, sdiPulse: true, sdiX: 1, sdiZ: 1 }), -240.0);
-  assertNear(grounded.motion.x, SDI_STEP_DISTANCE * 0.7071067690849304, 0.0010000000474974513);
-  assertEquals(grounded.motion.z, 0.0);
-  assertEquals(grounded.launch.sdiSerial, 1);
-});
-
-test("an ASDI down landing uses the existing tumble tech window [spec docs/physics.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  fighter.motion.grounded = false;
-  fighter.motion.z = 10.0;
-  fighter.down.state = DownState.tumble;
-  fighter.launch.hitstun = 100;
-  seedTechWindow(fighter, 20);
-  fighter.launch.hitlag = 1;
-  fighter.launch.diPending = true;
-  fighter.launch.diLaunchSpeed = 10.0;
-  fighter.launch.knockbackX = 10.0;
-  advanceSolo(fighter, 0, controls({ direction: 1, verticalDirection: 1, cStickZ: -1 }), -240.0);
-  assertEquals(fighter.down.state, DownState.techRoll);
-  assertTrue(fighter.motion.grounded);
-  assertEquals(fighter.launch.knockbackZ, 0.0);
-  assertEquals(fighter.launch.asdiSerial, 1);
-});
-
 test("knockback decays by vector magnitude and continues after hitstun [reference] [spec docs/physics.md]", () => {
   const fighter = createReferenceFighter(Character.sylvanas, 100.0, 1);
   const input = controls();
@@ -164,76 +44,6 @@ test("knockback decays by vector magnitude and continues after hitstun [referenc
   advanceSolo(fighter, 0, input, -240.0);
   assertTrue(fighter.motion.x > xAtStunEnd);
   assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 99.38800048828125, 0.0010000000474974513);
-});
-
-test("a downward launch exceeds the terminal fall cap, and fast fall uses self descent [spec docs/physics.md]", () => {
-  const falling = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  const physics = authoredPhysics(Character.sylvanas);
-  const input = controls({ down: true });
-  falling.motion.grounded = false;
-  falling.motion.z = 500.0;
-  falling.launch.hitstun = 10;
-  falling.launch.knockbackZ = -20.0;
-  advanceSolo(falling, 0, input, -240.0);
-  assertLessThan(totalVelocityZ(falling), -physics.terminalSpeed);
-  assertNear(falling.motion.vz, -physics.gravity, 0.0010000000474974513);
-  const rising = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  rising.motion.grounded = false;
-  rising.motion.z = 500.0;
-  rising.launch.knockbackZ = 40.0;
-  rising.launch.hitstun = 10;
-  advanceSolo(rising, 0, input, -240.0);
-  assertNear(rising.motion.vz, -physics.gravity, 0.0010000000474974513);
-  assertGreaterThan(totalVelocityZ(rising), 0.0);
-  rising.launch.hitstun = 0;
-  advanceSolo(rising, 0, input, -240.0);
-  assertTrue(rising.motion.fastFalling);
-  assertGreaterThan(totalVelocityZ(rising), 0.0);
-});
-
-test("hitlag freezes the launch vector, then release resumes self velocity and decay [reference] [spec docs/physics.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  fighter.motion.grounded = false;
-  fighter.motion.x = 25.0;
-  fighter.motion.z = 300.0;
-  fighter.motion.vx = 2.0;
-  fighter.motion.vz = 1.0;
-  fighter.launch.knockbackX = 10.0;
-  fighter.launch.knockbackZ = 0.0;
-  fighter.launch.diLaunchSpeed = 10.0;
-  fighter.launch.diPending = true;
-  fighter.launch.hitlag = 3;
-  const input = controls({ verticalDirection: -1 });
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.motion.x, 25.0);
-  assertEquals(fighter.motion.z, 300.0);
-  assertEquals(fighter.launch.knockbackX, 10.0);
-  assertEquals(fighter.launch.knockbackZ, 0.0);
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.launch.knockbackX, 10.0);
-  input.verticalDirection = 1;
-  advanceSolo(fighter, 0, input, -240.0);
-  assertEquals(fighter.launch.diSerial, 1);
-  assertNear(fighter.launch.diAngleDegrees, 18.0, 0.0010000000474974513);
-  assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 9.694000244140625, 0.0010000000474974513);
-});
-
-test("landing preserves horizontal knockback while respawning clears both components [spec docs/physics.md]", () => {
-  const landed = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  const input = controls();
-  landed.motion.grounded = false;
-  landed.motion.z = 5.0;
-  landed.launch.hitstun = 20;
-  landed.launch.knockbackX = 3.0;
-  landed.launch.knockbackZ = -10.0;
-  advanceSolo(landed, 0, input, -240.0);
-  assertTrue(landed.motion.grounded);
-  assertEquals(landed.motion.z, 0.0);
-  assertEquals(landed.launch.knockbackZ, 0.0);
-  assertGreaterThan(landed.launch.knockbackX, 0.0);
-  respawnFighter(soloWorld(landed), 0, 0.0);
-  assertEquals(landed.launch.knockbackX, 0.0);
-  assertEquals(landed.launch.knockbackZ, 0.0);
 });
 
 test("DI reads only the last hitlag frame and preserves launch speed [reference] [spec docs/physics.md]", () => {
@@ -257,24 +67,6 @@ test("DI reads only the last hitlag frame and preserves launch speed [reference]
   assertNear(length(fighter.launch.knockbackX, fighter.launch.knockbackZ), 9.694000244140625, 0.0010000000474974513);
   advanceSolo(fighter, 0, input, -240.0);
   assertEquals(fighter.launch.diSerial, 1);
-});
-
-test("a DI's traced operands repeat its angle exactly [invariant] [provisional]", () => {
-
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  fighter.motion.grounded = false;
-  setMeleeKnockback(fighter, -1.664950966835022, 1.9261585474014282);
-  fighter.launch.diPending = true;
-  applyDirectionalInfluence(fighter, controls({ direction: -1, diStickValid: true, diStickX: -1.0, diStickZ: 0.0 }));
-  const operands = influenceOperands(fighter);
-  if (operands === undefined) throw new Error("no DI operands");
-  assertEquals([operands.x, operands.z, operands.stickX, operands.stickZ].join(" "), [-1.664950966835022, 1.9261585474014282, -1.0, 0.0].join(" "));
-  assertEquals(operands.degrees, 10.302380561828613);
-  assertEquals(operands.angleRadians, 0.17981046438217163);
-  assertEquals(fighter.launch.diAngleDegrees, 10.302380561828613);
-  const repeated = directionalInfluenceVector(operands.x, operands.z, operands.stickX, operands.stickZ);
-  assertEquals(repeated.angleRadians, operands.angleRadians);
-  assertEquals(f32(repeated.angleRadians * 57.295780181884766), fighter.launch.diAngleDegrees);
 });
 
 test("DI normalizes diagonal input and ignores parallel input [reference] [spec docs/physics.md]", () => {

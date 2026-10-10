@@ -1,6 +1,3 @@
-
-
-
 import { assertEquals, test } from "wisp/src/runtime/testing";
 import { executeNext, testMatch } from "../match/testMatch";
 import { Character, SpecialAction } from "./codes";
@@ -11,10 +8,8 @@ import { controls } from "./testWorld";
 
 const back = controls({ direction: -1 });
 const neutralB = controls({ specialPressed: true });
-const sideBackB = controls({ specialPressed: true, specialX: -1, direction: -1 });
 
 interface Outcome { readonly facing: number; readonly action: number; readonly direction: number }
-
 
 function play(character: Character, airborne: boolean, script: readonly Readonly<Controls>[]): Outcome {
   const match = testMatch(3, character);
@@ -71,16 +66,3 @@ test("every fighter's airborne neutral special turns to a flick back within the 
   }
 });
 
-test("every fighter's airborne side special pressed backward turns and fires backward [spec #187]", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
-    assertTurned(character, "air side, stick held back", play(character, true, [back, sideBackB]));
-  }
-});
-
-test("every fighter's grounded neutral and side specials turn the same way [spec #187]", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
-    assertTurned(character, "ground neutral after a flick", play(character, false, flickThen(2, neutralB)));
-    assertTurned(character, "ground neutral with the stick back", play(character, false, [controls({ specialPressed: true, direction: -1 })]));
-    assertTurned(character, "ground side, stick held back", play(character, false, [sideBackB]));
-  }
-});

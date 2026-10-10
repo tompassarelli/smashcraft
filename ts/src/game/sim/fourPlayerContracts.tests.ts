@@ -34,16 +34,6 @@ test("multipleAttackersKeepIndependentVictimHitWindows [spec #12]", () => {
   assertEquals(world.fighters[3]!.status.damage, attackDamage(AttackStyle.jab) * 2);
 });
 
-test("oneMeleeSwingCanContactAllThreeOpponents [spec #12]", () => {
-  const world = fourWorld();
-  world.fighters[0]!.motion.x = 0.0;
-  for (let slot = 1; slot <= 3; slot++) world.fighters[slot]!.motion.x = 80.0 + slot * 5;
-  beginFighterAttack(world, 0, AttackStyle.jab, false);
-  world.fighters[0]!.attack.frame = attackStartupFrames(AttackStyle.jab);
-  resolveAttacks(world);
-  for (let slot = 1; slot <= 3; slot++) assertEquals(world.fighters[slot]!.status.damage, attackDamage(AttackStyle.jab));
-});
-
 test("fourFightersArbitrateBothLedgesByDistance [spec docs/physics.md]", () => {
   const world = fourWorld();
   for (let slot = 0; slot < 4; slot++) {

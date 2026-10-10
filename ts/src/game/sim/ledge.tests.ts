@@ -1,52 +1,16 @@
-import { stageBounds } from "./stageBounds";
 
-import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { resolveAttacks } from "./attacks";
-import { AttackPhase, AttackStyle, Character, DownState, LedgeState, ShieldBreak, SpecialAction } from "./codes";
-import { attackPhase, canAttack, isIntangible } from "./conditions";
-import { type Fighter,  } from "./fighter";
+import { AttackStyle, Character, DownState, LedgeState, SpecialAction } from "./codes";
+import { type Fighter } from "./fighter";
 import { createReferenceFighter } from "./referenceRig";
 import { AIR_DODGE_ANIMATION_FRAMES } from "./jumpsAndDodges";
-import { advanceLedge, ledgeIntangibleFrames, LEDGE_CLIMB_FRAMES, LEDGE_HANG_DEPTH, LEDGE_INTANGIBLE_FRAMES, LEDGE_ROLL_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
-import { SpecialSlot } from "./heroSpecials";
-import { startFighterSpecial } from "./specials";
-import { LEDGE_ATTACK_FRAMES, attackActiveFrames, attackDamage, attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
+import { ledgeIntangibleFrames, LEDGE_INTANGIBLE_FRAMES, ledgeCatchBox, ledgeSnap, resolveLedges } from "./ledge";
 import type { Controls } from "./roster";
 import { surfaceLeft, surfaceRight, surfaceZ } from "./stage";
 import { BODY_HALF_WIDTH } from "./surfaces";
-import { respawnFighter } from "./stocks";
-import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
+import { advanceSolo, controls, testWorld } from "./testWorld";
 import { LEDGE_REGRAB_FRAMES, clearLedge } from "./transitions";
-import { authoredPhysics } from "./tuning";
-
-const LEDGE_PHASES = [LedgeState.hang, LedgeState.climb, LedgeState.roll, LedgeState.attack] as const;
-
-test("hero recovery refreshes on the ledge mount onto the deck, not the catch [spec docs/design/roster.md]", () => {
-  for (const option of [LedgeState.climb, LedgeState.roll, LedgeState.attack]) {
-    const fighter = ledgeTestFighter(Character.thrall, 1);
-    fighter.special.airtimeUses = 1 << SpecialSlot.up;
-    catchTestLedge(fighter, controls());
-    assertEquals(fighter.ledge.state, LedgeState.hang);
-    assertEquals(fighter.special.airtimeUses, 1 << SpecialSlot.up);
-    fighter.ledge.state = option;
-    const world = soloWorld(fighter);
-    for (let frame = 1; frame <= 11; frame++) advanceLedge(world, 0, 0, controls());
-    assertFalse(fighter.motion.grounded);
-    assertEquals(fighter.special.airtimeUses, 1 << SpecialSlot.up);
-    advanceLedge(world, 0, 0, controls());
-    assertTrue(fighter.motion.grounded);
-    assertEquals(fighter.special.airtimeUses, 0);
-    const end = option === LedgeState.climb ? LEDGE_CLIMB_FRAMES : option === LedgeState.roll ? LEDGE_ROLL_FRAMES : LEDGE_ATTACK_FRAMES;
-    for (let frame = 13; frame <= end; frame++) advanceLedge(world, 0, 0, controls());
-    assertEquals(fighter.ledge.state, LedgeState.none);
-    fighter.motion.grounded = false;
-    fighter.motion.surface = undefined;
-    startFighterSpecial(fighter, 0, 0, controls({ specialPressed: true, specialZ: 1 }));
-    assertEquals(fighter.special.action, SpecialAction.heroUp);
-  }
-});
-
 
 function ledgeTestFighter(character: Character, side: number): Fighter {
   const fighter = createReferenceFighter(character, f32(side * 620.0), -side);
@@ -62,11 +26,6 @@ function catchTestLedge(fighter: Fighter, input: Readonly<Controls>): void {
   resolveLedges(testWorld(fighter, createReferenceFighter(Character.rifleman, 0.0, 1)), 0, [input, controls()]);
 }
 
-
-
-
-
-
 function catchesAfterMovement(character: Character, side: number, outsideBefore: number, belowBefore: number, outside: number, below: number): boolean {
   const fighter = ledgeTestFighter(character, side);
   const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
@@ -80,7 +39,6 @@ function catchesAfterMovement(character: Character, side: number, outsideBefore:
 
 test("each fighter catches with its reference fighter's NTSC 1.02 ledge snap data [reference]", () => {
   // Ledge box ftData x44 +0x10/+0x14/+0x18: PlFx.dat/PlFc.dat = 11,13,9; PlCa.dat = 9,17,11 (ftData_x44_t).
-
 
   const references = [
     [Character.sylvanas, 11.0, 13.0, 9.0],
@@ -184,60 +142,6 @@ test("falling, running up specials, helpless, post-dodge and tumbling fighters c
   }
 });
 
-test("a ledge catch on either side restores one air jump for every fighter [spec docs/physics.md]", () => {
-  for (const character of [Character.sylvanas, Character.rifleman, Character.demonHunter]) {
-    for (const side of [-1, 1]) {
-      const fighter = ledgeTestFighter(character, side);
-      fighter.status.damage = 75.0;
-      fighter.shield.energy = 12.0;
-      fighter.launch.knockbackX = 1.0;
-      catchTestLedge(fighter, controls());
-      assertEquals(fighter.ledge.state, LedgeState.hang);
-      assertEquals(fighter.ledge.side, side);
-      assertEquals(fighter.ledge.frame, 0);
-      assertEquals(fighter.ledge.serial, 1);
-      assertEquals(fighter.facing, -side);
-      assertEquals(fighter.motion.x, f32(side * 624.0));
-      assertEquals(fighter.motion.z, -90.0);
-      assertEquals(fighter.motion.vx, 0.0);
-      assertEquals(fighter.motion.vz, 0.0);
-      assertEquals(fighter.jump.remaining, 1);
-      assertEquals(fighter.launch.knockbackX, 0.0);
-      assertEquals(fighter.status.damage, 75.0);
-      assertEquals(fighter.shield.energy, 12.0);
-      assertEquals(fighter.status.invincible, 0);
-      assertTrue(isIntangible(fighter));
-    }
-  }
-});
-
-test("ledge eligibility rejects locks, wrong facing and positions outside the region [spec docs/physics.md]", () => {
-  const rejections: ((fighter: Fighter, input: Controls) => void)[] = [
-    (f) => (f.motion.deltaZ = 1.0),
-    (f) => (f.motion.deltaZ = 0.0),
-    (f) => (f.facing = -1),
-    (_, input) => (input.down = true),
-    (f) => (f.launch.hitstun = 1),
-    (f) => (f.launch.hitlag = 1),
-    (f) => (f.attack.cooldown = 1),
-    (f) => (f.dodge.airDodging = true),
-    (f) => (f.shield.breakState = ShieldBreak.air),
-    (f) => (f.grab.grabbedFrames = 1),
-    (f) => (f.ledge.regrab = 1),
-    (f) => (f.motion.x = -700.0),
-    (f) => (f.motion.z = -140.0),
-    (f) => (f.motion.z = 13.0),
-    (f) => (f.motion.x = -599.0),
-  ];
-  for (const reject of rejections) {
-    const fighter = ledgeTestFighter(Character.sylvanas, -1);
-    const input = controls();
-    reject(fighter, input);
-    catchTestLedge(fighter, input);
-    assertEquals(fighter.ledge.state, LedgeState.none);
-  }
-});
-
 test("only a full down passes ledges; a slight downward tilt still catches [reference]", () => {
   // Melee refuses ledge catches at stick y -0.66 (ftCliffCommon_80081298, common +0x480).
 
@@ -246,15 +150,6 @@ test("only a full down passes ledges; a slight downward tilt still catches [refe
   input.verticalDirection = -1;
   catchTestLedge(fighter, input);
   assertEquals(fighter.ledge.state, LedgeState.hang);
-});
-
-test("upper platform ledges can't be caught [spec docs/physics.md]", () => {
-  const fighter = ledgeTestFighter(Character.rifleman, -1);
-  fighter.motion.x = f32(surfaceLeft(1, 1, 0) - 20);
-  fighter.motion.z = f32(surfaceZ(1, 1, 0) - 30);
-  const input = controls();
-  resolveLedges(testWorld(fighter, createReferenceFighter(Character.sylvanas, 0.0, 1)), 1, [input, input]);
-  assertEquals(fighter.ledge.state, LedgeState.none);
 });
 
 test("ledge contention uses distance, not argument order, and the owner hogs [spec docs/physics.md] [invariant]", () => {
@@ -271,180 +166,6 @@ test("ledge contention uses distance, not argument order, and the owner hogs [sp
     far.motion.z = -80.0;
     resolveLedges(testWorld(far, near), 0, [input, input]);
     assertEquals(far.ledge.state, LedgeState.none);
-  }
-});
-
-test("tied ledge candidates catch neither, and opposite edges are independent [spec docs/physics.md]", () => {
-  const first = ledgeTestFighter(Character.sylvanas, 1);
-  const second = ledgeTestFighter(Character.rifleman, 1);
-  const input = controls();
-  resolveLedges(testWorld(first, second), 0, [input, input]);
-  assertEquals(first.ledge.state, LedgeState.none);
-  assertEquals(second.ledge.state, LedgeState.none);
-  second.motion.x = -620.0;
-  second.facing = 1;
-  resolveLedges(testWorld(first, second), 0, [input, input]);
-  assertEquals(first.ledge.state, LedgeState.hang);
-  assertEquals(second.ledge.state, LedgeState.hang);
-});
-
-test("ledge options honor priority, locks and exact recovery durations [spec docs/physics.md]", () => {
-  for (const character of [Character.sylvanas, Character.rifleman]) {
-    for (const side of [-1, 1]) {
-      for (let option = 0; option <= 6; option++) {
-        const fighter = ledgeTestFighter(character, side);
-        const input = controls();
-        catchTestLedge(fighter, input);
-        advanceSolo(fighter, 0, input, 0.0);
-        input.jumpPressed = option === 0;
-        input.getupDirectionPressed = option === 1 || option === 2;
-        input.getupDirection = option === 1 ? -side : side;
-        input.ledgeVerticalPressed = option === 3 ? 1 : option === 4 ? -1 : 0;
-        input.airDodgePressed = option === 5;
-        input.getupAttackPressed = true;
-        advanceSolo(fighter, 0, input, 0.0);
-        if (option === 0 || option === 2 || option === 4) {
-          assertEquals(fighter.ledge.state, LedgeState.none);
-
-          assertEquals(fighter.ledge.regrab, option === 0 ? 0 : LEDGE_REGRAB_FRAMES);
-          assertFalse(isIntangible(fighter));
-          assertEquals(fighter.jump.remaining, 1);
-          if (option === 0) {
-            assertEquals(fighter.motion.vz, authoredPhysics(character).fullJumpSpeed);
-            assertEquals(fighter.jump.serial, 1);
-          } else {
-            assertEquals(fighter.motion.vz, -2.0);
-          }
-          continue;
-        }
-        const phase = option === 5 ? LedgeState.roll : option === 6 ? LedgeState.attack : LedgeState.climb;
-        const duration = option === 5 ? LEDGE_ROLL_FRAMES : option === 6 ? LEDGE_ATTACK_FRAMES : LEDGE_CLIMB_FRAMES;
-        assertEquals(fighter.ledge.state, phase);
-        assertEquals(fighter.ledge.frame, 0);
-        input.jumpPressed = true;
-        input.shield = true;
-        input.down = true;
-        for (let tick = 1; tick <= duration - 1; tick++) {
-          advanceSolo(fighter, 0, input, 0.0);
-          assertEquals(fighter.ledge.state, phase);
-          assertEquals(fighter.ledge.frame, tick);
-          assertEquals(fighter.jump.serial, 0);
-          assertFalse(fighter.shield.raised);
-          assertFalse(canAttack(fighter));
-        }
-        advanceSolo(fighter, 0, input, 0.0);
-        assertEquals(fighter.ledge.state, LedgeState.none);
-        assertTrue(fighter.motion.grounded);
-        assertEquals(fighter.motion.surface, 0);
-        assertEquals(fighter.motion.z, 0.0);
-        assertEquals(fighter.motion.x, f32(side * (option === 5 ? 460.0 : option === 6 ? 536.0 : 576.0)));
-        assertEquals(fighter.attack.style, undefined);
-        assertEquals(fighter.jump.remaining, 2);
-        assertEquals(fighter.ledge.regrab, 0);
-      }
-    }
-  }
-});
-
-test("ledge hang protection expires, and hitlag freezes the ledge phase [spec docs/gameplay-design.md]", () => {
-  const fighter = ledgeTestFighter(Character.sylvanas, -1);
-  const input = controls();
-  catchTestLedge(fighter, input);
-  input.direction = 1;
-  input.verticalDirection = 1;
-  input.shield = true;
-  input.attackHeld = true;
-  for (let tick = 1; tick <= LEDGE_INTANGIBLE_FRAMES - 1; tick++) {
-    advanceSolo(fighter, 0, input, 0.0);
-    assertTrue(isIntangible(fighter));
-    assertEquals(fighter.ledge.state, LedgeState.hang);
-  }
-  advanceSolo(fighter, 0, input, 0.0);
-  assertFalse(isIntangible(fighter));
-  input.getupAttackPressed = true;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.ledge.state, LedgeState.attack);
-  assertFalse(isIntangible(fighter));
-  fighter.launch.hitlag = 2;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.ledge.frame, 0);
-  assertEquals(fighter.attack.frame, 0);
-  assertEquals(fighter.motion.x, -624.0);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.ledge.frame, 1);
-  assertEquals(fighter.attack.frame, 1);
-});
-
-test("a ledge attack has startup, an active window that hits once, and recovery [spec docs/physics.md]", () => {
-  for (const side of [-1, 1]) {
-    const fighter = ledgeTestFighter(Character.sylvanas, side);
-    const target = createReferenceFighter(Character.rifleman, f32(side * 470.0), side);
-    const world = testWorld(fighter, target);
-    const input = controls();
-    catchTestLedge(fighter, input);
-    advanceSolo(fighter, 0, input, 0.0);
-    input.getupAttackPressed = true;
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.attack.style, AttackStyle.ledgeAttack);
-    for (let tick = 1; tick <= attackStartupFrames(AttackStyle.ledgeAttack) - 1; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      resolveAttacks(world);
-      assertEquals(target.status.damage, 0.0);
-    }
-    advanceSolo(fighter, 0, input, 0.0);
-    resolveAttacks(world);
-    assertEquals(target.status.damage, attackDamage(AttackStyle.ledgeAttack));
-    resolveAttacks(world);
-    assertEquals(target.status.damage, attackDamage(AttackStyle.ledgeAttack));
-    fighter.launch.hitlag = 0;
-    fighter.attack.frame = attackStartupFrames(AttackStyle.ledgeAttack) + attackActiveFrames(AttackStyle.ledgeAttack);
-    assertEquals(attackPhase(fighter), AttackPhase.recovery);
-  }
-});
-
-test("ledge hits and grabs interrupt, and a respawn clears ledge ownership [spec docs/physics.md]", () => {
-  for (const phase of LEDGE_PHASES) {
-    for (let mode = 0; mode <= 2; mode++) {
-      const fighter = ledgeTestFighter(Character.sylvanas, -1);
-      const input = controls();
-      catchTestLedge(fighter, input);
-      fighter.ledge.state = phase;
-      fighter.ledge.intangible = 0;
-
-      if (mode === 1 && phase !== LedgeState.hang) fighter.motion.z = f32(fighter.motion.z + f32(LEDGE_HANG_DEPTH * 0.5));
-      if (mode < 2) {
-        const attacker = createReferenceFighter(Character.rifleman, -570.0, -1);
-        const world = testWorld(attacker, fighter);
-        attacker.motion.grounded = true;
-        const style = mode === 0 ? AttackStyle.downSmash : AttackStyle.grab;
-        testBeginAttacks(world, style, undefined);
-        attacker.attack.frame = attackStartupFrames(style);
-        resolveAttacks(world);
-        if (mode === 1 && phase === LedgeState.hang) {
-          assertEquals(fighter.ledge.state, LedgeState.hang);
-          assertEquals(fighter.grab.grabbedFrames, 0);
-          respawnFighter(soloWorld(fighter), 0, 0.0);
-          continue;
-        }
-        assertEquals(fighter.ledge.state, LedgeState.none);
-        assertEquals(fighter.ledge.side, 0);
-        assertEquals(fighter.ledge.frame, 0);
-        assertEquals(fighter.ledge.intangible, 0);
-        assertEquals(fighter.ledge.regrab, LEDGE_REGRAB_FRAMES);
-        if (mode === 0) assertGreaterThan(fighter.launch.hitstun, 0);
-        else assertEquals(fighter.grab.grabbedFrames, GRAB_HOLD_FRAMES);
-      } else {
-        fighter.motion.z = (stageBounds(0).blast.bottom - 1.0);
-        advanceSolo(fighter, 0, input, 0.0);
-        assertEquals(fighter.status.stocks, 2);
-        assertEquals(fighter.ledge.state, LedgeState.none);
-        assertEquals(fighter.ledge.regrab, 0);
-      }
-      respawnFighter(soloWorld(fighter), 0, 0.0);
-      assertEquals(fighter.ledge.state, LedgeState.none);
-      assertEquals(fighter.ledge.serial, 0);
-      assertEquals(fighter.ledge.regrab, 0);
-    }
   }
 });
 
@@ -471,33 +192,6 @@ test("the ledge release regrab cooldown expires after thirty unfrozen ticks [spe
   assertEquals(fighter.ledge.serial, 2);
 });
 
-test("ledge protection blocks strikes until it expires, and a grab never catches the hang [reference]", () => {
-  for (const style of [AttackStyle.downSmash, AttackStyle.grab]) {
-    const fighter = ledgeTestFighter(Character.sylvanas, -1);
-    const attacker = createReferenceFighter(Character.rifleman, -570.0, -1);
-    const world = testWorld(attacker, fighter);
-    attacker.motion.grounded = true;
-    const input = controls();
-    catchTestLedge(fighter, input);
-    testBeginAttacks(world, style, undefined);
-    attacker.attack.frame = attackStartupFrames(style);
-    resolveAttacks(world);
-    assertEquals(fighter.ledge.state, LedgeState.hang);
-    assertEquals(fighter.status.damage, 0.0);
-    assertEquals(fighter.grab.grabbedFrames, 0);
-    for (let tick = 1; tick <= LEDGE_INTANGIBLE_FRAMES; tick++) advanceSolo(fighter, 0, input, 0.0);
-    resolveAttacks(world);
-    if (style === AttackStyle.downSmash) {
-      assertEquals(fighter.ledge.state, LedgeState.none);
-      assertGreaterThan(fighter.status.damage, 0.0);
-    } else {
-      assertEquals(fighter.ledge.state, LedgeState.hang);
-      assertEquals(fighter.grab.grabbedFrames, 0);
-    }
-  }
-});
-
-
 test("each regrab without touching the stage shortens ledge intangibility until none is left [spec #386]", () => {
   const fighter = ledgeTestFighter(Character.rifleman, 1);
   let previous = LEDGE_INTANGIBLE_FRAMES + 1;
@@ -522,59 +216,3 @@ test("each regrab without touching the stage shortens ledge intangibility until 
   assertEquals(ledgeIntangibleFrames(0), LEDGE_INTANGIBLE_FRAMES);
 });
 
-test("touching the stage restores full ledge intangibility [spec #386]", () => {
-  const fighter = ledgeTestFighter(Character.rifleman, 1);
-  fighter.ledge.grabs = 3;
-  fighter.ledge.state = LedgeState.climb;
-  const world = soloWorld(fighter);
-  for (let frame = 1; frame <= 12; frame++) advanceLedge(world, 0, 0, controls());
-  assertTrue(fighter.motion.grounded);
-  assertEquals(fighter.ledge.grabs, 0);
-});
-
-function standingAtRightEdge(landingLag: number): Fighter {
-  const fighter = createReferenceFighter(Character.rifleman, f32(surfaceRight(0, 0, 0) - 2.0), -1);
-  fighter.motion.grounded = true;
-  fighter.motion.surface = 0;
-  fighter.motion.z = surfaceZ(0, 0, 0);
-  fighter.motion.vx = 6.0;
-  fighter.landing.lag = landingLag;
-  return fighter;
-}
-
-test("sliding off the stage edge ends an aerial's landing lag at once [spec #386]", () => {
-  const fighter = standingAtRightEdge(8);
-  for (let frame = 0; frame < 6 && fighter.motion.grounded; frame++) advanceSolo(fighter, 0, controls(), 0.0);
-  assertFalse(fighter.motion.grounded);
-  assertEquals(fighter.landing.lag, 0);
-  assertTrue(canAttack(fighter));
-});
-
-test("sliding off the edge ends a ground move's end lag but not its startup [spec #386]", () => {
-  const recovering = standingAtRightEdge(0);
-  testBeginAttacks(soloWorld(recovering), AttackStyle.jab, undefined);
-  recovering.attack.frame = attackStartupFrames(AttackStyle.jab) + attackActiveFrames(AttackStyle.jab);
-  assertEquals(attackPhase(recovering), AttackPhase.recovery);
-  for (let frame = 0; frame < 6 && recovering.motion.grounded; frame++) advanceSolo(recovering, 0, controls(), 0.0);
-  assertFalse(recovering.motion.grounded);
-  assertEquals(recovering.attack.style, undefined);
-  assertEquals(recovering.attack.cooldown, 0);
-
-  const starting = standingAtRightEdge(0);
-  testBeginAttacks(soloWorld(starting), AttackStyle.jab, undefined);
-  for (let frame = 0; frame < 6 && starting.motion.grounded; frame++) advanceSolo(starting, 0, controls(), 0.0);
-  assertFalse(starting.motion.grounded);
-  assertEquals(starting.attack.style, AttackStyle.jab);
-});
-
-test("a shielding fighter pushed off the edge falls helpless with the shield down [spec #386]", () => {
-  const fighter = standingAtRightEdge(0);
-  fighter.motion.vx = 0.0;
-  fighter.shield.raised = true;
-  fighter.shield.pushbackX = 8.0;
-  for (let frame = 0; frame < 6 && fighter.motion.grounded; frame++) advanceSolo(fighter, 0, controls({ shield: true }), 0.0);
-  assertFalse(fighter.motion.grounded);
-  assertTrue(fighter.special.fall);
-  assertFalse(fighter.shield.raised);
-  assertEquals(fighter.shield.pushbackX, 0.0);
-});

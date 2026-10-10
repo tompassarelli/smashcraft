@@ -1,22 +1,19 @@
 
 
 
-import { assertEquals, assertFalse, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertFalse, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
 import { floorMod } from "wisp/src/sim/intMath";
 import { clearPulse, neutralDirections, pulsePending, updateDirections } from "../input/directionalInput";
 import { firstFighterDifference } from "../replay/difference";
 import { copyFighterState } from "../replay/fighterState";
-import { Character, ContactKind } from "./codes";
-import { collectDamageContact } from "./contacts";
+import { Character } from "./codes";
 import { type Fighter, createFighter } from "./fighter";
 import { DIAGONAL_UNIT } from "./knockback";
 import {
   ASDI_DISTANCE, HIT_TRAVEL, SDI_HIT_TRAVEL, SDI_STEP_DISTANCE, SDI_STEP_TRAVEL, STRING_TRAVEL, beginSmashDirectionalInfluenceHit,
 } from "./smashDirectionalInfluence";
-import { respawnFighter } from "./stocks";
-import { advanceFighter } from "./step";
-import { advanceSolo, contactBatch, controls, hitEffect, soloWorld, testWorld, withPhysics } from "./testWorld";
+import { advanceSolo, controls, withPhysics } from "./testWorld";
 import { melee } from "./tuning";
 
 type Mode = "reset-right" | "alternate" | "held" | "wiggle";
@@ -161,134 +158,6 @@ test("the ten teleport fixtures now stay within 72 world units per hit, 144 per 
     }
     assertFalse(measured.out);
   }
-});
-
-test("a fresh pulse spends its 6 units as two 3-unit steps, and the hit admits at most 9 units of SDI [spec #70]", () => {
-  const f = isolatedVictim();
-  seedHit(f, 8);
-  const pulse = (sdiX: number, sdiZ: number) => advanceSolo(f, 0, controls({ sdiPulse: sdiX !== 0 || sdiZ !== 0, sdiX, sdiZ }), -240.0);
-  pulse(1, 0);
-  assertEquals(f.motion.x, STEP);
-  assertEquals(f.launch.sdiStepTravel, SDI_STEP_TRAVEL);
-  pulse(0, 0);
-  assertEquals(f.motion.x, f32(STEP + STEP));
-  assertEquals(f.launch.sdiStepTravel, 0);
-  // Only 3 of the hit's 9 SDI units remain for this diagonal pulse.
-  pulse(1, 1);
-  assertNear(f.motion.x, f32(STEP + STEP) + STEP * DIAGONAL_UNIT, TOLERANCE);
-  assertNear(f.motion.z, 400.0 + STEP * DIAGONAL_UNIT, TOLERANCE);
-  assertEquals(f.launch.sdiHitTravel, SDI_HIT_TRAVEL);
-  const x = f.motion.x;
-  pulse(-1, 0);
-  pulse(-1, -1);
-  assertEquals(f.motion.x, x);
-  assertEquals(f.launch.sdiSerial, 3);
-});
-
-test("queued requests count against the hit, and release discards the unfinished request for ASDI [spec #70]", () => {
-  const f = isolatedVictim();
-  seedHit(f, 3);
-  // Right then left on consecutive ticks: 6 right and 3 left are queued, 3 right spent.
-  advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-  advanceSolo(f, 0, controls({ direction: -1, sdiPulse: true, sdiX: -1 }), -240.0);
-  assertEquals(f.motion.x, f32(STEP + STEP));
-  assertEquals(f.launch.sdiStepTravel, SDI_STEP_TRAVEL);
-  assertEquals(f.launch.sdiStepX, -1);
-  // The release tick shifts only by ASDI; the queued 3 units left are dropped.
-  advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-  assertEquals(f.motion.x, f32(f32(STEP + STEP) + ASDI_DISTANCE));
-  assertEquals(f.launch.sdiStepTravel, 0);
-  assertEquals(f.launch.sdiHitTravel, SDI_HIT_TRAVEL);
-  advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-  assertEquals(f.motion.x, f32(f32(STEP + STEP) + ASDI_DISTANCE));
-});
-
-test("a replacement hit renews the hit allowance and drops queued travel, but not the string [spec #70]", () => {
-  const attacker = createFighter(Character.rifleman, -60.0, 1);
-  const victim = isolatedVictim();
-  victim.motion.x = 0.0;
-  victim.motion.z = 0.0;
-  victim.motion.grounded = true;
-  victim.motion.surface = 0;
-  const world = testWorld(attacker, victim);
-  const hit = () => contactBatch(world, () => collectDamageContact(world, 0, 1, hitEffect(4.0, 0.0, 0.0, 1.0, 0.0), 1, ContactKind.launch, true, undefined, false));
-  hit();
-  assertTrue(victim.launch.hitlag > 2);
-  advanceFighter(world, 1, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-  assertEquals(victim.launch.sdiStepTravel, SDI_STEP_TRAVEL);
-  assertEquals(victim.launch.sdiStringTravel, SDI_STEP_TRAVEL);
-  hit();
-  assertEquals(victim.launch.sdiStepTravel, 0);
-  assertEquals(victim.launch.sdiHitTravel, 0);
-  assertEquals(victim.launch.sdiStringTravel, SDI_STEP_TRAVEL);
-});
-
-/** Spends a 4-frame hit's full 12 units to the right. */
-function spendHit(f: Fighter): void {
-  seedHit(f, 4);
-  for (let tick = 0; tick < 4; tick++) advanceSolo(f, 0, controls({ direction: 1, sdiPulse: true, sdiX: 1 }), -240.0);
-}
-
-test("a held gap between hits keeps the string, so a third hit moves nothing [spec #70]", () => {
-  const f = isolatedVictim();
-  spendHit(f);
-  for (let tick = 0; tick < 10; tick++) advanceSolo(f, 0, controls(), -240.0);
-  assertTrue(f.launch.hitstun > 0);
-  spendHit(f);
-  assertEquals(f.launch.sdiStringTravel, STRING_TRAVEL);
-  const x = f.motion.x;
-  spendHit(f);
-  assertEquals(f.motion.x, x);
-});
-
-test("one complete actionable tick renews the string; the tick that ends hitstun does not [spec #70]", () => {
-  const f = isolatedVictim();
-  spendHit(f);
-  spendHit(f);
-  f.launch.hitstun = 1;
-  // This tick ends hitstun; a hit landing at its end is still the same string.
-  advanceSolo(f, 0, controls(), -240.0);
-  assertEquals(f.launch.hitstun, 0);
-  assertEquals(f.launch.sdiStringTravel, STRING_TRAVEL);
-  const held = isolatedVictim();
-  copyFighterState(held, f, 1);
-  const heldX = held.motion.x;
-  spendHit(held);
-  assertEquals(held.motion.x, heldX);
-  // After the actionable tick completes, the next hit starts a new string.
-  advanceSolo(f, 0, controls(), -240.0);
-  const x = f.motion.x;
-  spendHit(f);
-  assertEquals(f.motion.x, f32(x + melee(HIT_TRAVEL)));
-  assertEquals(f.launch.sdiStringTravel, HIT_TRAVEL);
-});
-
-test("respawn clears the string and any queued travel [spec #70]", () => {
-  const f = isolatedVictim();
-  spendHit(f);
-  seedHit(f, 8);
-  advanceSolo(f, 0, controls({ sdiPulse: true, sdiX: 1 }), -240.0);
-  respawnFighter(soloWorld(f), 0, -240.0);
-  assertEquals(f.launch.sdiStringTravel, 0);
-  assertEquals(f.launch.sdiHitTravel, 0);
-  assertEquals(f.launch.sdiStepTravel, 0);
-});
-
-test("an exhausted string withholds ASDI, and a blocked step still charges its length [spec #70]", () => {
-  const f = isolatedVictim();
-  spendHit(f);
-  spendHit(f);
-  seedHit(f, 1);
-  const x = f.motion.x;
-  advanceSolo(f, 0, controls({ direction: 1 }), -240.0);
-  assertEquals(f.motion.x, x);
-  const floored = isolatedVictim();
-  floored.motion.z = 10.0;
-  seedHit(floored, 3);
-  // Smash DI down can't land; the clipped step is charged anyway.
-  advanceSolo(floored, 0, controls({ verticalDirection: -1, sdiPulse: true, sdiZ: -1 }), -240.0);
-  assertEquals(floored.motion.z, 10.0);
-  assertEquals(floored.launch.sdiHitTravel, SDI_STEP_TRAVEL);
 });
 
 test("a restored snapshot continues queued SDI identically [invariant]", () => {

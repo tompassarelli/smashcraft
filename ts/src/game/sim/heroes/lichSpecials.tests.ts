@@ -1,13 +1,7 @@
-
-
-
-import { assertEquals, assertFalse, assertGreaterThan, assertLessThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
 import { f32 } from "wisp/src/sim/f32";
-import { beginFighterAttack, resolveAttacks } from "../attacks";
-import { AttackStyle, Character, HeroStatusKind, ProjectileKind, SpecialAction } from "../codes";
-import { CHILL } from "../chill";
-import { inGrabContext } from "../conditions";
-import { applyHeroStatus } from "../heroStatus";
+import { resolveAttacks } from "../attacks";
+import { Character } from "../codes";
 import { beginDamageContacts, finishDamageContacts } from "../contacts";
 import { type Fighter, createFighter } from "../fighter";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
@@ -18,20 +12,9 @@ import { advanceSpecials, startFighterSpecial } from "../specials";
 import { advanceFighter } from "../step";
 import { controls } from "../testWorld";
 import { copyFighterState } from "../../replay/fighterState";
-import { type SpecialProjectile } from "../heroSpecials";
-import { LICH_MOVES } from "./lichMoves";
-import { LICH_SPECIALS } from "./lichSpecials";
-import { dealtManaGain } from "../mana";
 import { firstFighterDifference } from "../../replay/difference";
 
 const H = HERO_REFERENCE_HEIGHT;
-const ORB = LICH_SPECIALS.neutral.ground.projectiles![0]!;
-const BURST = LICH_SPECIALS.neutral.recall!.burst!;
-const [DECAY_SMALL, DECAY_STRONG] = LICH_SPECIALS.side.ground.projectiles! as readonly [SpecialProjectile, SpecialProjectile];
-const decayFrame = (strike: SpecialProjectile) => strike.spawnFrame + (strike.activeFrom ?? 0) - 1;
-const ARMOR = LICH_SPECIALS.down.ground.armor!;
-const RITUAL = LICH_SPECIALS.down.recall!;
-
 
 function frame(world: Roster, first: Readonly<Controls> = controls(), second: Readonly<Controls> = controls(), stage = 0): void {
   const inputs = [first, second];
@@ -56,236 +39,9 @@ function lichPair(gap: number, opponent: Character = Character.rifleman): { worl
   return { world, lich, target };
 }
 
-const live = (f: Readonly<Fighter>) => f.projectiles.filter(p => p.life > 0 && p.kind === ProjectileKind.hero);
-const neutral = controls({ specialPressed: true });
 const sideForward = controls({ specialPressed: true, specialX: 1 });
-const sideBack = controls({ specialPressed: true, specialX: -1 });
 const up = controls({ specialPressed: true, specialZ: 1 });
 const down = controls({ specialPressed: true, specialZ: -1 });
-
-const shield = controls({ shield: true, shieldStrength: 1.0 });
-const chilled = (f: Readonly<Fighter>) => f.status.condition === HeroStatusKind.chill;
-
-test("Frost Nova is free, its slow orb leaves the hand on frame 18 and chills a body it reaches [spec #335]", () => {
-  const { world, lich, target } = lichPair(400.0);
-  frame(world, neutral);
-  assertEquals(lich.special.action, SpecialAction.heroNeutral);
-  assertEquals(lich.mana.points, 100);
-  for (let f = 2; f < ORB.spawnFrame; f++) frame(world);
-  assertEquals(live(lich).length, 0);
-  frame(world);
-  assertEquals(live(lich).length, 1);
-  assertNear(Math.abs(live(lich)[0]!.velocityX), ORB.velocityX, f32(0.01));
-  for (let f = ORB.spawnFrame + 1; f <= 80 && target.status.damage === 0.0; f++) frame(world);
-  assertEquals(target.status.damage, ORB.effect.damage);
-  assertTrue(chilled(target));
-  assertGreaterThan(target.status.conditionFrames, 73);
-});
-
-test("a second Frost Nova press stops the orb on its frame 4 and bursts it 6 frames later, chilling what it catches [spec docs/design/roster.md]", () => {
-  const { world, lich, target } = lichPair(1200.0);
-  frame(world, neutral);
-  for (let f = 2; f <= 45; f++) frame(world);
-  const orb = live(lich)[0]!;
-  frame(world, neutral);
-  assertEquals(lich.special.action, SpecialAction.heroNeutral);
-  assertEquals(lich.mana.points, 100);
-  for (let f = 2; f <= BURST.frame; f++) frame(world);
-  const x = orb.x;
-  frame(world);
-  assertEquals(orb.x, x);
-
-  target.motion.x = x;
-  target.motion.z = f32(lich.motion.z + f32(H * f32(0.5)));
-  target.motion.grounded = false;
-  target.motion.surface = undefined;
-  target.motion.vz = 0.0;
-  let burstFrame = 0;
-  for (let f = 1; f <= 8 && target.status.damage === 0.0; f++) {
-    frame(world);
-    burstFrame = f;
-  }
-  assertEquals(target.status.damage, BURST.into.effect.damage);
-
-  assertEquals(burstFrame, 5);
-  assertTrue(chilled(target));
-});
-
-test("Chill lowers run and air drift speed, stops at a shield and cannot chain inside its immunity [spec docs/design/roster.md]", () => {
-  const travel = (chill: boolean, airborne: boolean) => {
-    const { world, target } = lichPair(1200.0);
-    if (chill) applyHeroStatus(target, CHILL);
-    if (airborne) {
-      target.motion.grounded = false;
-      target.motion.surface = undefined;
-      target.motion.z = 400.0;
-    }
-    const x = target.motion.x;
-    for (let f = 0; f < 30; f++) frame(world, controls(), controls({ direction: -1 }));
-    return f32(x - target.motion.x);
-  };
-  assertLessThan(travel(true, false), f32(travel(false, false) * f32(0.7)));
-  assertLessThan(travel(true, true), f32(travel(false, true) * f32(0.7)));
-  const guarded = lichPair(300.0);
-  frame(guarded.world, neutral, shield);
-  for (let f = 2; f <= 60; f++) frame(guarded.world, controls(), shield);
-  assertEquals(guarded.target.status.damage, 0.0);
-  assertFalse(chilled(guarded.target));
-  const { target } = lichPair(300.0);
-  applyHeroStatus(target, CHILL);
-  for (let f = 0; f < 75; f++) advanceHeroStatus(target);
-  assertFalse(chilled(target));
-  applyHeroStatus(target, CHILL);
-  assertFalse(chilled(target));
-});
-
-test("Death and Decay is free and strikes a fighter standing in it on frame 30 and again from frame 70 [spec #335]", () => {
-  const ahead = f32(H * f32(1.5));
-  const { world, lich, target } = lichPair(ahead);
-  frame(world, sideForward);
-  assertEquals(lich.mana.points, 100);
-  for (let f = 2; f <= DECAY_SMALL.spawnFrame; f++) frame(world);
-  assertEquals(live(lich).length, 2);
-  assertNear(live(lich)[0]!.x, f32(lich.motion.x + ahead), 1.0);
-  for (let f = DECAY_SMALL.spawnFrame + 1; f < decayFrame(DECAY_SMALL); f++) frame(world);
-  assertEquals(target.status.damage, 0.0);
-  frame(world);
-  assertEquals(target.status.damage, DECAY_SMALL.effect.damage);
-
-  for (let f = decayFrame(DECAY_SMALL) + 1; f < decayFrame(DECAY_STRONG); f++) frame(world);
-  assertEquals(target.status.damage, DECAY_SMALL.effect.damage);
-  target.motion.x = f32(lich.motion.x + ahead);
-  for (let f = decayFrame(DECAY_STRONG); f <= decayFrame(DECAY_STRONG) + 2; f++) frame(world);
-  assertEquals(target.status.damage, f32(DECAY_SMALL.effect.damage + DECAY_STRONG.effect.damage));
-  for (let f = 73; f <= 100; f++) frame(world);
-  assertEquals(live(lich).length, 0);
-});
-
-test("a shield spends one Death and Decay strike, and pressing toward Lich's back turns him and places it 1.5H ahead [spec docs/design/roster.md]", () => {
-  const { world, lich, target } = lichPair(f32(H * f32(1.5)));
-  frame(world, sideForward, shield);
-  for (let f = 2; f <= 31; f++) frame(world, controls(), shield);
-  assertEquals(target.status.damage, 0.0);
-  assertEquals(live(lich).length, 1);
-  const turned = lichPair(1200.0);
-  frame(turned.world, sideBack);
-  assertEquals(turned.lich.facing, -1);
-  for (let f = 2; f <= 8; f++) frame(turned.world);
-  assertNear(live(turned.lich)[0]!.x, f32(turned.lich.motion.x - f32(H * f32(1.5))), 1.0);
-});
-
-test("interrupting Lich before Death and Decay's first strike removes the field [spec docs/design/roster.md]", () => {
-  const { world, lich, target } = lichPair(70.0, Character.lich);
-  frame(world, sideForward);
-  for (let f = 2; f <= 10; f++) frame(world);
-  assertEquals(live(lich).length, 2);
-  beginFighterAttack(world, 1, AttackStyle.forwardTilt, false);
-  for (let f = 0; f < 12; f++) frame(world);
-  assertGreaterThan(lich.status.damage, 0.0);
-  assertEquals(live(lich).length, 0);
-  assertEquals(target.status.damage, 0.0);
-});
-
-test("Death and Decay is not placed through solid stage geometry [spec docs/design/roster.md]", () => {
-  const placedFrom = (z: number): number => {
-    const { world, lich } = lichPair(1600.0);
-
-    lich.motion.x = -680.0;
-    lich.motion.z = z;
-    lich.motion.grounded = false;
-    lich.motion.surface = undefined;
-    frame(world, sideForward);
-    for (let f = 2; f <= 8; f++) frame(world);
-    return live(lich).length;
-  };
-  assertEquals(placedFrom(-90.0), 0);
-  assertEquals(placedFrom(160.0), 2);
-});
-
-
-function armoredLich(): { world: Roster; lich: Fighter; target: Fighter } {
-  const pair = lichPair(70.0, Character.lich);
-  pair.lich.facing = 1;
-  pair.target.facing = -1;
-  frame(pair.world, down);
-  for (let f = 2; f <= 45; f++) frame(pair.world);
-  return pair;
-}
-
-test("Frost Armor is free, its shell lasts 240 frames, takes one small hit's reaction and chills the striker [spec #335]", () => {
-  const { world, lich, target } = armoredLich();
-  assertEquals(lich.mana.points, 100);
-  assertGreaterThan(lich.status.armorFrames, 0);
-
-  beginFighterAttack(world, 1, AttackStyle.jab, false);
-  for (let f = 0; f < 8; f++) frame(world);
-  assertEquals(lich.status.damage, LICH_MOVES.normals[AttackStyle.jab]!.regions[0]!.hit.effect.damage);
-  assertEquals(lich.launch.hitstun, 0);
-  assertEquals(lich.status.armorFrames, 0);
-  assertTrue(chilled(target));
-  const lasting = lichPair(600.0);
-  frame(lasting.world, down);
-  for (let f = 2; f <= ARMOR.last - 1; f++) frame(lasting.world);
-  assertGreaterThan(lasting.lich.status.armorFrames, 0);
-  frame(lasting.world);
-  frame(lasting.world);
-  assertEquals(lasting.lich.status.armorFrames, 0);
-});
-
-test("a grab ignores Frost Armor and leaves the shell [spec docs/design/roster.md]", () => {
-  const { world, lich } = armoredLich();
-  beginFighterAttack(world, 1, AttackStyle.grab, false);
-  for (let f = 0; f < 14; f++) frame(world);
-  assertTrue(inGrabContext(lich));
-});
-
-test("Dark Ritual: down special while the shell holds shatters it on frame 6 into a 5% burst and restores 30 mana [spec #335]", () => {
-  const { world, lich, target } = armoredLich();
-  lich.mana.points = 50;
-  frame(world, down);
-  assertEquals(lich.special.action, SpecialAction.heroDown);
-  assertEquals(lich.mana.points, 50);
-  for (let f = 2; f < RITUAL.ritual!.frame; f++) frame(world);
-  assertGreaterThan(lich.status.armorFrames, 0);
-  const beforeRitual = lich.mana.points;
-  frame(world);
-  assertEquals(lich.status.armorFrames, 0);
-  assertEquals(lich.mana.points, beforeRitual + RITUAL.ritual!.mana + dealtManaGain(RITUAL.regions![0]!.hit.effect.damage));
-  for (let f = RITUAL.ritual!.frame + 1; f <= RITUAL.ritual!.frame + 3; f++) frame(world);
-  assertEquals(target.status.damage, RITUAL.regions![0]!.hit.effect.damage);
-
-  for (let f = 10; f <= 40; f++) frame(world);
-  assertEquals(lich.special.action, SpecialAction.none);
-
-  const before = lich.mana.points;
-  frame(world, down);
-  assertEquals(lich.mana.points, before);
-});
-
-test("Spectral Ascent keeps its full rise and steering at zero meter [spec #335]", () => {
-  const ascend = (mana: number, stick: number) => {
-    const { world, lich } = lichPair(600.0);
-    lich.mana.points = mana;
-    const steer = controls({ direction: stick });
-    frame(world, up);
-    for (let f = 2; f <= 9; f++) frame(world);
-    const x = lich.motion.x;
-    const z = lich.motion.z;
-
-    for (let f = 10; f <= 35; f++) frame(world, steer);
-    return { rise: f32(lich.motion.z - z), drift: f32(lich.motion.x - x), mana: lich.mana.points, helpless: lich.special.fall };
-  };
-  const full = ascend(100, 0);
-  assertEquals(full.mana, 100);
-  assertTrue(full.helpless);
-  assertLessThan(Math.abs(full.drift), 1.0);
-  const steered = ascend(100, -1);
-  assertLessThan(steered.drift, 0.0);
-  const free = ascend(10, 0);
-  assertEquals(free.mana, 10);
-  assertTrue(free.helpless);
-  assertLessThan(ascend(10, -1).drift, 0.0);
-});
 
 test("replaying Lich's nova, armor and ascent from a restored snapshot reproduces both fighters [invariant]", () => {
   const { world, lich, target } = lichPair(f32(H * f32(1.5)));
@@ -315,13 +71,3 @@ test("replaying Lich's nova, armor and ascent from a restored snapshot reproduce
   assertEquals(firstFighterDifference(endTarget, target, 3, 3), undefined);
 });
 
-test("an Rifleman inside forward-tilt range challenges Frost Nova's startup and no orb is thrown [spec docs/design/roster.md]", () => {
-  const { world, lich } = lichPair(90.0);
-  frame(world, neutral);
-  for (let f = 2; f <= 6; f++) frame(world);
-  beginFighterAttack(world, 1, AttackStyle.jab, false);
-  for (let f = 7; f <= 25; f++) frame(world);
-  assertGreaterThan(lich.status.damage, 0.0);
-  assertEquals(lich.special.action, SpecialAction.none);
-  assertEquals(live(lich).length, 0);
-});

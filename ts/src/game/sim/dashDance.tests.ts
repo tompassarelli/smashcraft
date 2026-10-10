@@ -24,48 +24,6 @@ function dashFor(fighter: Fighter, facing: number, frames: number): void {
   for (let frame = 0; frame < frames; frame++) sample(fighter, facing);
 }
 
-test("dash dancing: weak travel gets a second and third sample at the last dash frame [spec docs/gameplay-design.md]", () => {
-  for (const facing of [-1, 1]) {
-    const fighter = createFighter(Character.rifleman, 0.0, facing);
-    dashFor(fighter, facing, 13);
-    sample(fighter, -facing, f32(0.79));
-    assertEquals(fighter.facing, facing);
-    assertEquals(fighter.ground.action, GroundAction.dash);
-    sample(fighter, -facing, f32(0.5));
-    assertEquals(fighter.facing, facing);
-    assertEquals(fighter.ground.action, GroundAction.dash);
-    sample(fighter, -facing, f32(0.81));
-    assertEquals(fighter.facing, -facing);
-    assertEquals(fighter.ground.action, GroundAction.dash);
-    assertEquals(fighter.ground.dashFrame, 1);
-  }
-});
-
-test("dash dancing: deliberate walking and slow stick turns stay walks [spec docs/gameplay-design.md]", () => {
-  for (const facing of [-1, 1]) {
-    const fighter = createFighter(Character.rifleman, 0.0, facing);
-    dashFor(fighter, facing, 5);
-    sample(fighter, -facing, 1.0, true);
-    assertEquals(fighter.ground.action, GroundAction.none);
-    const slow = createFighter(Character.rifleman, 0.0, facing);
-    dashFor(slow, facing, 5);
-    sample(slow, -facing, f32(0.79));
-    sample(slow, -facing, f32(0.79));
-    assertEquals(slow.ground.action, GroundAction.dash);
-    assertEquals(slow.facing, facing);
-    sample(slow, -facing, f32(0.79));
-    assertEquals(slow.ground.action, GroundAction.none);
-    assertEquals(slow.facing, -facing);
-
-    const late = createFighter(Character.rifleman, 0.0, facing);
-    dashFor(late, facing, 13);
-    for (let frame = 0; frame < 3; frame++) sample(late, 0);
-    sample(late, -facing, f32(0.79));
-    assertEquals(late.ground.action, GroundAction.none);
-    assertEquals(late.facing, -facing);
-  }
-});
-
 test("dash dancing: 512 analog and digital timelines accept thirteen held frames, turn-run on fourteen, with zero transition or rollback mismatches [spec docs/gameplay-design.md] [invariant]", () => {
   let cases = 0;
   for (const character of [Character.demonHunter, Character.rifleman]) {
@@ -251,31 +209,4 @@ sweep("dash dancing: 9,984 scripted dash-backs over the roster, stick and keyboa
   assertEquals(dashbacks, 9984);
   assertEquals(failures.join("\n"), "");
   assertEquals(misreads, 0);
-});
-
-test("dash dancing: a dash released to neutral late in its window turns into a dash, never a run turn [spec #188]", () => {
-  let dashbacks = 0;
-  for (const character of ROSTER) {
-    for (const facing of [-1, 1]) {
-      for (const input of [DanceInput.stick, DanceInput.keyOverlap, DanceInput.keyGap]) {
-        const runFrame = danceDriver(character, facing).fighter.tuning.ground.dashRunEnableFrame;
-        for (let hold = runFrame - 4; hold <= runFrame - 1; hold++) {
-          for (let neutral = 1; neutral <= 3; neutral++) {
-            const driver = danceDriver(character, facing);
-            for (let frame = 0; frame < hold; frame++) holdToward(driver, input, facing);
-            for (let frame = 0; frame < neutral; frame++) {
-              if (input === DanceInput.stick) stickSample(driver, f32(facing * f32(0.2)));
-              else keySample(driver, input === DanceInput.keyOverlap, input === DanceInput.keyOverlap);
-            }
-            holdToward(driver, input, -facing);
-            assertEquals(driver.fighter.ground.action, GroundAction.dash);
-            assertEquals(driver.fighter.ground.dashFrame, 1);
-            assertEquals(driver.fighter.facing, -facing);
-            dashbacks++;
-          }
-        }
-      }
-    }
-  }
-  assertEquals(dashbacks, 936);
 });

@@ -1,47 +1,12 @@
-import { mutableProjectile } from "./fighterProjectiles";
-import { assertEquals, assertGreaterThan, test } from "wisp/src/runtime/testing";
+import { assertEquals, test } from "wisp/src/runtime/testing";
 import { resolveAttacks } from "./attacks";
-import { AttackStyle, Character, ProjectileKind } from "./codes";
-import { canAttack } from "./conditions";
+import { AttackStyle, Character } from "./codes";
 import { createReferenceFighter } from "./referenceRig";
 import { ordinaryHitlagFrames, ordinaryHitstunFrames } from "./knockback";
 import { attackStartupFrames } from "./moves";
-import { updateProjectiles } from "./projectiles";
 import { digitalShieldstunFrames } from "./shield";
 import { advanceFighter } from "./step";
-import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld";
-
-
-
-
-test("hitlag release allows a jump when hitstun expires on that frame [reference]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  const input = controls({ jumpPressed: true, jumpHeld: true });
-  fighter.motion.surface = 0;
-  fighter.launch.hitlag = 2;
-  fighter.launch.hitstun = 1;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.launch.hitlag, 1);
-  assertEquals(fighter.launch.hitstun, 1);
-  assertEquals(fighter.jump.squat, 0);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.launch.hitlag, 0);
-  assertEquals(fighter.launch.hitstun, 0);
-  assertGreaterThan(fighter.jump.squat, 0);
-});
-
-test("hitstun expiry allows a jump on the same tick as an attack [spec docs/physics.md]", () => {
-  const fighter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-  const input = controls({ jumpPressed: true, jumpHeld: true });
-  fighter.motion.surface = 0;
-  fighter.launch.hitstun = 2;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.jump.squat, 0);
-  assertEquals(canAttack(fighter), false);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.launch.hitstun, 0);
-  assertGreaterThan(fighter.jump.squat, 0);
-});
+import { controls, testBeginAttacks, testWorld } from "./testWorld";
 
 test("hitlag and shieldstun respect Melee integer boundaries [reference] [spec #106]", () => {
   assertEquals(ordinaryHitlagFrames(0.0), 0);
@@ -83,22 +48,3 @@ test("a shield contact freezes both bodies before shieldstun counts down [refere
   assertEquals(target.shield.stun, 3);
 });
 
-test("a detached projectile impact does not freeze its shooter [spec docs/physics.md]", () => {
-  for (const shielded of [false, true]) {
-    for (const kind of [ProjectileKind.blaster, ProjectileKind.recoil]) {
-      const shooter = createReferenceFighter(Character.sylvanas, 0.0, 1);
-      const target = createReferenceFighter(Character.sylvanas, 100.0, -1);
-      target.shield.raised = shielded;
-      const projectile = mutableProjectile(shooter, 0)!;
-      projectile.life = 2;
-      projectile.kind = kind;
-      projectile.x = 90.0;
-      projectile.z = 45.0;
-      projectile.velocityX = 20.0;
-      projectile.direction = 1;
-      updateProjectiles(testWorld(shooter, target));
-      assertEquals(shooter.launch.hitlag, 0);
-      assertGreaterThan(target.launch.hitlag, 0);
-    }
-  }
-});

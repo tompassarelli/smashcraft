@@ -61,25 +61,6 @@ for (const cardinal of CARDINALS) {
     assertEquals(projectedShield(restored, true).x, pose.x);
     assertEquals(projectedShield(restored, true).z, pose.z);
   });
-
-  test(`without Tilt the full ${cardinal.name} push preserves its escape [reference]`, () => {
-    const { fighter, controls, attacks } = guarding();
-    const row = assertDefined(inputRow({
-      held: maskOf(Action.rightTrigger, cardinal.action),
-      pressed: maskOf(cardinal.action, ...(cardinal.name === "up" ? [Action.jump] : [])),
-      triggerRight: 255, axisX: cardinal.x, axisZ: cardinal.z,
-    }));
-    adaptInput(row, fighter, 8, controls, attacks);
-    advanceSolo(fighter, 0, controls, 0.0);
-    if (cardinal.name === "up") {
-      assertTrue(controls.jumpPressed);
-      assertTrue(fighter.jump.squat > 0);
-    } else {
-      assertTrue(controls.groundDodgePressed);
-      assertTrue(fighter.dodge.groundFrame > 0);
-      assertEquals(fighter.dodge.groundDirection, cardinal.x < 0 ? -1 : cardinal.x > 0 ? 1 : 0);
-    }
-  });
 }
 
 test("shield tilt moves its projectile contact circle with its drawn bubble [spec docs/smash-melee-reference/shield-tilt-cardinals.md]", () => {

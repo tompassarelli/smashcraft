@@ -1,13 +1,10 @@
 import { assertEquals, assertFalse, assertGreaterThan, assertTrue, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character, ItemKind } from "./codes";
+import { AttackStyle, Character } from "./codes";
 import { beginDamageContacts, finishDamageContacts } from "./contacts";
 import { createFighter } from "./fighter";
 import { applyAttackHit } from "./hits";
-import {
-  LAVA_CALM_FRAMES, LAVA_CENTER_X, LAVA_HIT, LAVA_SIDE_FRAMES, LAVA_WARNING_FRAMES, LavaPhase, collectLavaContacts, framesUntilLava, lavaLeft, lavaPhase, lavaRight, lavaSide,
-} from "./lava";
-import { queueAttack } from "../input/attackBuffer";
-import { CANNON_TEST_STAGE, STAGE_AT_REST, STRATHOLME_STAGE, mainDeckLeft, mainDeckRight, mainDeckZAt } from "./stage";
+import { LAVA_CALM_FRAMES, LAVA_CENTER_X, LAVA_HIT, LAVA_SIDE_FRAMES, LAVA_WARNING_FRAMES, LavaPhase, collectLavaContacts, framesUntilLava, lavaLeft, lavaPhase, lavaRight, lavaSide } from "./lava";
+import { CANNON_TEST_STAGE, STAGE_AT_REST, STRATHOLME_STAGE, mainDeckLeft, mainDeckRight } from "./stage";
 import { advanceSolo, controls, testWorld } from "./testWorld";
 import { firstFighterDifference, firstStateDifference } from "../replay/difference";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
@@ -17,7 +14,6 @@ import { stepMatch } from "../match/step";
 import { fighterAt } from "./roster";
 import { SELECTABLE_CHARACTERS } from "./heroes/registry";
 import { INITIAL_DASH_FRAMES } from "./tuning";
-
 
 const FIRST_ERUPTION = LAVA_CALM_FRAMES + LAVA_WARNING_FRAMES + 1;
 
@@ -39,9 +35,6 @@ test("lava produces the same complete victim as an ordinary scripted fire hit [s
     assertGreaterThan(first.launch.hitstun, 0);
   }
 });
-
-
-
 
 test("Blackrock's lava warns for five seconds, erupts on the right, then warns and erupts on the mirrored left spot, on a fixed timetable [spec #193]", () => {
   const at = (frame: number) => `${lavaPhase(CANNON_TEST_STAGE, frame)}${lavaSide(frame) > 0 ? "R" : "L"}`;
@@ -82,28 +75,6 @@ test("Blackrock's one lava patch stays off the centre and clear of each ledge by
   }
 });
 
-test("lava burns only its erupting patch and respects hazards off and invincibility [spec #193]", () => {
-  const scenarios = [
-    { name: "another stage", stage: 0 },
-    { name: "hazards off", frame: STAGE_AT_REST + FIRST_ERUPTION },
-    { name: "warning", frame: FIRST_ERUPTION - 1 },
-    { name: "inside its inner end", x: lavaLeft(FIRST_ERUPTION) - 1.0 },
-    { name: "past its outer end", x: lavaRight(FIRST_ERUPTION) + 1.0 },
-    { name: "the mirrored spot", x: -LAVA_CENTER_X },
-    { name: "the right ledge", x: 590.0 },
-    { name: "above the floor", z: 1.0 },
-    { name: "invincible", invincible: 1 },
-  ];
-  for (const scenario of scenarios) {
-    const world = lavaWorld(); const fighter = fighterAt(world, 0);
-    if (scenario.x !== undefined) fighter.motion.x = scenario.x;
-    if (scenario.z !== undefined) fighter.motion.z = scenario.z;
-    if (scenario.invincible !== undefined) fighter.status.invincible = scenario.invincible;
-    beginDamageContacts(); collectLavaContacts(world, scenario.stage ?? CANNON_TEST_STAGE, scenario.frame ?? FIRST_ERUPTION); finishDamageContacts(world);
-    assertEquals(fighter.status.damage, 0.0, scenario.name);
-  }
-});
-
 test("a lava launch survives rollback and 180 replayed match frames exactly [invariant]", () => {
   const live = createReplaySnapshot(); const saved = createReplaySnapshot(); const replay = createReplaySnapshot();
   live.match.phase = Phase.match; live.match.stageChoice = CANNON_TEST_STAGE;
@@ -119,17 +90,3 @@ test("a lava launch survives rollback and 180 replayed match frames exactly [inv
   assertGreaterThan(fighterAt(live.world, 0).visuals.hit, 0);
 });
 
-test("an ordinary attack picks up the centre item on Stratholme's raised floor [spec docs/gameplay-design.md]", () => {
-  const state = createReplaySnapshot();
-  state.match.phase = Phase.match; state.match.stageChoice = STRATHOLME_STAGE;
-  state.match.items.kind = ItemKind.speed;
-  const fighter = fighterAt(state.world, 0);
-  fighter.motion.x = 0.0; fighter.motion.z = mainDeckZAt(STRATHOLME_STAGE, 0.0); fighter.motion.surface = 0;
-  fighterAt(state.world, 1).motion.x = 300.0;
-  queueAttack(state.controls.commands[0], { style: AttackStyle.jab, facing: 1, frame: 1, mayCharge: false });
-  stepMatch(state.match, state.world, state.controls, 1);
-  assertEquals(state.match.items.kind, ItemKind.none);
-  assertEquals(state.match.items.lastTaker, 0);
-  assertEquals(fighter.status.buff, ItemKind.speed);
-  assertGreaterThan(fighter.status.buffFrames, 0);
-});

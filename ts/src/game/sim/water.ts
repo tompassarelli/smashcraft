@@ -32,7 +32,7 @@ export const HYDRA_HIT: Readonly<HitEffect> = { damage: 15.0, growth: 0.0, base:
 
 
 export const WATER_BUOYANCY = melee(0.10000000149011612);
-export const WATER_RISE_CAP = melee(3.0);
+const WATER_RISE_CAP = melee(3.0);
 
 export const SWIM_SPEED = melee(0.6000000238418579);
 export const SWIM_ACCELERATION = melee(0.05000000074505806);
@@ -41,7 +41,7 @@ export const WATER_JUMP_FACTOR = 0.9100000262260437;
 export const WATER_JUMP_REENTRIES = 4;
 
 
-export function waterJumpScale(entries: number): number {
+function waterJumpScale(entries: number): number {
   let scale = 1.0;
   for (let reentry = 1; reentry < min(entries, WATER_JUMP_REENTRIES + 1); reentry++) scale = f32(scale * WATER_JUMP_FACTOR);
   return scale;
@@ -133,7 +133,7 @@ export function advanceWater(world: Roster, stage: number, matchFrame: number, h
 }
 
 
-export function inHydraStrike(markX: number, x: number, z: number): boolean {
+function inHydraStrike(markX: number, x: number, z: number): boolean {
   const dx = f32(x - markX);
   const dz = z < SEA_SURFACE_Z ? f32(z - SEA_SURFACE_Z) : z > SEA_SURFACE_Z + HYDRA_REACH ? f32(z - f32(SEA_SURFACE_Z + HYDRA_REACH)) : 0.0;
   return f32(f32(dx * dx) + f32(dz * dz)) <= f32(HYDRA_RADIUS * HYDRA_RADIUS);

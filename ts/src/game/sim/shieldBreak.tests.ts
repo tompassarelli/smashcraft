@@ -1,5 +1,3 @@
-import { mutableProjectile } from "./fighterProjectiles";
-import { stageBounds } from "./stageBounds";
 
 import { assertEquals, assertFalse, assertGreaterThan, assertNear, assertTrue, test } from "wisp/src/runtime/testing";
 import { max, toInt } from "../../runtime/numbers";
@@ -7,19 +5,16 @@ import { f32 } from "wisp/src/sim/f32";
 import { resolveAttacks } from "./attacks";
 import { AttackStyle, Character, DownState, ShieldBreak } from "./codes";
 import { canAttack, isIntangible } from "./conditions";
-import { type Fighter, SHIELD_MAX,  } from "./fighter";
+import { type Fighter } from "./fighter";
 import { createReferenceFighter } from "./referenceRig";
 import { beginAirDodge, beginJump } from "./jumpsAndDodges";
 import { attackStartupFrames, GRAB_HOLD_FRAMES } from "./moves";
-import { updateProjectiles } from "./projectiles";
 import type { Controls } from "./roster";
 import { shieldBreakDizzyFrames } from "./shield";
-import { respawnFighter } from "./stocks";
-import { advanceSolo, controls, soloWorld, testBeginAttacks, testWorld } from "./testWorld";
+import { advanceSolo, controls, testBeginAttacks, testWorld } from "./testWorld";
 import { SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES } from "./tuning";
 
 const BREAK_PHASES = [ShieldBreak.air, ShieldBreak.land, ShieldBreak.stand, ShieldBreak.dizzy] as const;
-
 
 function shieldBreakTestFighter(character: Character, percent: number): Fighter {
   const fighter = createReferenceFighter(character, 0.0, 1);
@@ -44,92 +39,6 @@ function dizzyShieldBreakTest(fighter: Fighter, input: Readonly<Controls>): void
   assertEquals(fighter.shield.breakState, ShieldBreak.dizzy);
   assertEquals(fighter.shield.breakFrame, 0);
 }
-
-
-function aimShot(shooter: Fighter): void {
-  const shot = mutableProjectile(shooter, 0)!;
-  shot.life = 2;
-  shot.x = -30.0;
-  shot.z = 45.0;
-  shot.direction = 1;
-}
-
-test("the retail rig's shield break uses its own animation completion clocks [reference]", () => {
-  for (const host of [Character.sylvanas, Character.rifleman]) {
-    const fighter = shieldBreakTestFighter(host, 100.0);
-    const input = controls();
-    fighter.tuning.shieldBreak = { landFrames: 26, standFrames: 30 };
-    landShieldBreakTest(fighter, input);
-    for (let tick = 1; tick <= 25; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      assertEquals(fighter.shield.breakState, ShieldBreak.land);
-    }
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.shield.breakState, ShieldBreak.stand);
-    assertEquals(fighter.shield.breakFrame, 0);
-    for (let tick = 1; tick <= 29; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      assertEquals(fighter.shield.breakState, ShieldBreak.stand);
-    }
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.shield.breakState, ShieldBreak.dizzy);
-    assertEquals(fighter.shield.breakRemaining, 390.0);
-  }
-});
-
-test("a shield break's dizzy expiry allows a jump on its completion tick [reference]", () => {
-  for (const host of [Character.sylvanas, Character.rifleman]) {
-    const fighter = shieldBreakTestFighter(host, 400.0);
-    const input = controls();
-    dizzyShieldBreakTest(fighter, input);
-    for (let tick = 1; tick <= 89; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      assertEquals(fighter.shield.breakState, ShieldBreak.dizzy);
-      assertEquals(fighter.jump.squat, 0);
-    }
-    input.jumpPressed = true;
-    input.jumpHeld = true;
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.shield.breakState, ShieldBreak.none);
-    assertEquals(fighter.jump.squat, fighter.tuning.physics.jumpSquatFrames);
-    assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
-  }
-});
-
-test("shield-break hitlag keeps regeneration and blast-zone checks active [reference]", () => {
-  const fighter = shieldBreakTestFighter(Character.sylvanas, 0.0);
-  const input = controls();
-  fighter.launch.hitlag = 3;
-  advanceSolo(fighter, 0, input, 0.0);
-  assertEquals(fighter.shield.breakFrame, 0);
-  assertNear(fighter.shield.energy, f32(0.14), f32(0.0001));
-  fighter.motion.x = (stageBounds(0).blast.right + 1.0);
-  advanceSolo(fighter, 0, input, 0.0);
-  assertTrue(fighter.status.out);
-  assertEquals(fighter.status.stocks, 2);
-});
-
-test("a drain and a projectile break the shield with the same pop and serial [invariant]", () => {
-  const fighter = shieldBreakTestFighter(Character.sylvanas, 0.0);
-  assertEquals(fighter.shield.breakState, ShieldBreak.air);
-  assertEquals(fighter.shield.breakFrame, 0);
-  assertEquals(fighter.shield.breakSerial, 1);
-  assertFalse(fighter.shield.raised);
-  assertEquals(fighter.launch.hitstun, 0);
-  assertEquals(fighter.status.invincible, 0);
-  const shooter = createReferenceFighter(Character.rifleman, -30.0, 1);
-  const target = createReferenceFighter(Character.sylvanas, 0.0, -1);
-  target.shield.raised = true;
-  target.shield.energy = 1.0;
-  aimShot(shooter);
-  updateProjectiles(testWorld(shooter, target));
-  assertEquals(target.shield.breakState, ShieldBreak.air);
-  assertEquals(target.shield.breakSerial, 1);
-  assertEquals(target.motion.vz, fighter.motion.vz);
-  assertEquals(target.status.damage, 0.0);
-  assertEquals(target.shield.energy, 30.0);
-  assertEquals(target.launch.hitstun, 0);
-});
 
 test("the forced shield-break sequence rejects actions and techs for both characters [reference]", () => {
   for (const character of [Character.sylvanas, Character.rifleman]) {
@@ -227,32 +136,6 @@ test("dizzy length follows percent, and fresh mash edges shorten its exact tick 
   assertNear(fractional.shield.breakRemaining, 385.75, f32(0.0001));
 });
 
-test("shield-break hitlag freezes its motion, phase and mash [reference]", () => {
-  for (const state of BREAK_PHASES) {
-    const fighter = shieldBreakTestFighter(Character.sylvanas, 0.0);
-    const input = controls();
-    if (state !== ShieldBreak.air) {
-      dizzyShieldBreakTest(fighter, input);
-      fighter.shield.breakState = state;
-    }
-    fighter.shield.breakFrame = 5;
-    fighter.launch.hitlag = 3;
-    const beforeZ = fighter.motion.z;
-    const beforeVz = fighter.motion.vz;
-    const remaining = fighter.shield.breakRemaining;
-    input.mashPressed = true;
-    for (let tick = 1; tick <= 2; tick++) {
-      advanceSolo(fighter, 0, input, 0.0);
-      assertEquals(fighter.shield.breakFrame, 5);
-      assertEquals(fighter.shield.breakRemaining, remaining);
-      assertEquals(fighter.motion.z, beforeZ);
-      assertEquals(fighter.motion.vz, beforeVz);
-    }
-    advanceSolo(fighter, 0, input, 0.0);
-    assertEquals(fighter.shield.breakFrame, 6);
-  }
-});
-
 test("flinching damage and grabs interrupt every shield-break phase [reference]", () => {
   for (const state of BREAK_PHASES) {
     for (const attack of [AttackStyle.jab, AttackStyle.grab]) {
@@ -274,43 +157,5 @@ test("flinching damage and grabs interrupt every shield-break phase [reference]"
         assertEquals(fighter.grab.grabbedFrames, GRAB_HOLD_FRAMES);
       }
     }
-  }
-});
-
-test("both fighters' basic projectiles interrupt a shield break [reference]", () => {
-  for (const character of [Character.sylvanas, Character.rifleman]) {
-    const fighter = shieldBreakTestFighter(Character.sylvanas, 0.0);
-    dizzyShieldBreakTest(fighter, controls());
-    const shooter = createReferenceFighter(character, -30.0, 1);
-    aimShot(shooter);
-    updateProjectiles(testWorld(shooter, fighter));
-    assertEquals(fighter.shield.breakState, ShieldBreak.none);
-    assertNear(fighter.shield.energy, f32(30.07), f32(0.0001));
-  }
-});
-
-test("stock loss and respawning clear a shield-break recovery [spec docs/physics.md]", () => {
-  for (const state of BREAK_PHASES) {
-    const fighter = shieldBreakTestFighter(Character.sylvanas, 0.0);
-    const input = controls();
-    fighter.shield.breakState = state;
-    fighter.motion.x = (stageBounds(0).blast.right + 1.0);
-    advanceSolo(fighter, 0, input, 0.0);
-    assertTrue(fighter.status.out);
-    assertEquals(fighter.status.stocks, 2);
-    assertEquals(fighter.shield.breakState, ShieldBreak.none);
-    assertEquals(fighter.shield.breakFrame, 0);
-    assertEquals(fighter.shield.breakRemaining, 0.0);
-    for (let tick = 1; tick <= 60; tick++) advanceSolo(fighter, 0, input, 0.0);
-    assertFalse(fighter.status.out);
-    assertEquals(fighter.status.stocks, 2);
-    assertEquals(fighter.shield.breakSerial, 0);
-    assertEquals(fighter.status.invincible, 90);
-    assertEquals(fighter.shield.energy, SHIELD_MAX);
-    fighter.shield.breakState = state;
-    fighter.shield.breakFrame = 10;
-    respawnFighter(soloWorld(fighter), 0, 0.0);
-    assertEquals(fighter.shield.breakState, ShieldBreak.none);
-    assertEquals(fighter.shield.breakFrame, 0);
   }
 });

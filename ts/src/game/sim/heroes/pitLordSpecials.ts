@@ -25,7 +25,7 @@ const meteor = (spawnFrame: number, offset: number): SpecialProjectile => ({
   model: "Abilities\\Weapons\\DemolisherFireMissile\\DemolisherFireMissile.mdx",
 });
 
-export const RAIN_OF_FIRE = [meteor(25, f32(1.8)), meteor(31, f32(2.2)), meteor(37, f32(2.6))] as const;
+const RAIN_OF_FIRE = [meteor(25, f32(1.8)), meteor(31, f32(2.2)), meteor(37, f32(2.6))] as const;
 const rain = (air: boolean): AuthoredSpecial => ({
   endFrame: 60, projectiles: RAIN_OF_FIRE,
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
@@ -42,7 +42,7 @@ const chargeMotion = (distance: number): readonly SpecialMotion[] => [
   { ...frames(19, 26), velocityX: perFrame(distance, 19, 26), velocityZ: 0.0, stopsAtBody: true },
   { ...frames(27, 27), velocityX: 0.0, velocityZ: 0.0 },
 ];
-export const RUIN_CHARGE: AuthoredSpecial = {
+const RUIN_CHARGE: AuthoredSpecial = {
   endFrame: 64,
   regions: [heroRegion(19, 26, CHARGE_BODY, CHARGE)],
   hurt: CHARGE_HURT,
