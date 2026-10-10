@@ -232,6 +232,15 @@ export class MatchPresentation {
     if (this.resultView !== undefined) {
       this.resultFrames++;
       this.placeResultPoses();
+      if (this.resultFrames === 12) {
+        for (const [index, row] of this.resultView.rows.entries()) {
+          if (row.slot !== this.resultView.winnerSlot) continue;
+          const placement = resultFighterPlacement(this.resultStage, index, this.resultView.rows.length);
+          const burst = AddSpecialEffect("Abilities\\Spells\\Other\\Levelup\\LevelupCaster.mdx", this.origin.x + placement.x, this.origin.y);
+          BlzSetSpecialEffectZ(burst, this.origin.z + placement.z);
+          DestroyEffect(burst);
+        }
+      }
     }
     if (this.pending === undefined) return false;
     if (this.delay > 0) {
