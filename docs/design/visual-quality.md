@@ -838,6 +838,17 @@ down, 8.3% to 2.9%), Chain Lightning 0.5 (Thrall, 11.6% to 3.0%), Frost Nova
 2.9%), Holy Bolt 0.8 (Forsaken Paladin, 4.3% to 3.1%) and Carrion Swarm 0.85
 (Dreadlord, 3.8-4.1% to 2.7%).
 
+The check also plays a meter drop (#385) as `meter-drop:telegraph-and-orb`:
+three seconds of telegraph, then the orb, measured for coverage only (a drop
+stays until taken). Definitive draws the drop with mesh models Wisp can render,
+since its MassTeleportTarget and FrostWyrmMissile are Popcorn only there. On
+10 Oct 2026, near camera at 640x360, Classic marker (MassTeleportTarget, 0.45)
+0.81% and orb (FrostWyrmMissile, 0.8) 1.20%; Definitive marker (AneuTarget's
+arrow, 2.5) 0.89% and orb (the Rune item, 2.0) 1.12%. Definitive variants
+tried: GlowingRunes (Popcorn, undrawn) with Rune 1.0 (0.25%), AneuTarget 1.5
+(0.33%) with Rune 2.0 (1.03%), and SelectionCircle 2.0 (0.04%) with Rune 1.5
+(0.61%).
+
 ## How the numbers are taken
 
 Fighter contrast is measured on native captures of the offline LAN pool

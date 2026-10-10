@@ -1,5 +1,5 @@
 import { assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
-import { floorMod } from "wisp/src/sim/intMath";
+import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { clearAttackBuffer } from "../input/attackBuffer";
 import { stateChecksum } from "../replay/canonical";
 import { firstStateDifference } from "../replay/difference";
@@ -109,7 +109,7 @@ test("a match rule, training and configured runs keep drops off [spec #385]", ()
   assertEquals(run.drops.nextSpawnFrame, 0);
 });
 
-test("seeded drops and pickups replay from a saved snapshot exactly [spec #385] [invariant]", () => {
+test("seeded drops and pickups replay exactly from a match-start snapshot and from snapshots taken mid-telegraph [spec #385] [invariant]", () => {
   const live = createReplaySnapshot();
   live.match.phase = Phase.match;
   live.match.stageChoice = 0;
@@ -119,22 +119,33 @@ test("seeded drops and pickups replay from a saved snapshot exactly [spec #385] 
   fighterAt(live.world, 1).motion.x = 300.0;
   scheduleMeterDrops(live.match);
   const seed = createReplaySnapshot();
-  const replay = createReplaySnapshot();
   copyReplayState(seed, live);
+  const pending = [createReplaySnapshot(), createReplaySnapshot()];
+  const pendingFrames: number[] = [];
   const hashes: string[] = [];
   const frames = 75 * MATCH_TICKS_PER_SECOND;
   for (let frame = 1; frame <= frames; frame++) {
+    if (pendingFrames.length < pending.length && dropTelegraphFrames(live.match.drops, frame) === MATCH_TICKS_PER_SECOND) {
+      copyReplayState(pending[pendingFrames.length] ?? seed, live);
+      pendingFrames.push(frame);
+    }
     stepMatch(live.match, live.world, live.controls, frame);
     if (floorMod(frame, 300) === 0) hashes.push(stateChecksum(live));
   }
   assertTrue(live.match.drops.pickupSerial >= 3);
-  copyReplayState(replay, seed);
-  let hashIndex = 0;
-  for (let frame = 1; frame <= frames; frame++) {
-    stepMatch(replay.match, replay.world, replay.controls, frame);
-    if (floorMod(frame, 300) === 0) assertEquals(stateChecksum(replay), hashes[hashIndex++] ?? "missing", `frame ${frame}`);
+  assertEquals(pendingFrames.length, 2);
+  const starts = [{ snapshot: seed, from: 1 }, ...pendingFrames.map((from, index) => ({ snapshot: pending[index] ?? seed, from }))];
+  for (const { snapshot, from } of starts) {
+    const replay = createReplaySnapshot();
+    copyReplayState(replay, snapshot);
+    const pickups = replay.match.drops.pickupSerial;
+    for (let frame = from; frame <= frames; frame++) {
+      stepMatch(replay.match, replay.world, replay.controls, frame);
+      if (floorMod(frame, 300) === 0) assertEquals(stateChecksum(replay), hashes[floorDiv(frame, 300) - 1] ?? "missing", `from ${from}, frame ${frame}`);
+    }
+    assertTrue(replay.match.drops.pickupSerial > pickups);
+    assertEquals(firstStateDifference(live, replay), undefined, `from ${from}`);
   }
-  assertEquals(firstStateDifference(live, replay), undefined);
 });
 
 test("computers contest drops by tier, after their own reaction to the telegraph [spec #385]", () => {

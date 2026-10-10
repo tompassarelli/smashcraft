@@ -17,7 +17,7 @@ import { fighterName } from "../sim/heroes/registry";
 
 declare global { var __smashcraftCueDefinitive: boolean | undefined; }
 
-function definitiveCues(): boolean {
+export function definitiveCues(): boolean {
   if (globalThis.__smashcraftCueDefinitive === undefined) {
     BlzLoadTOCFile("war3mapImported\\CueGraphics.toc");
     globalThis.__smashcraftCueDefinitive = GetLocalizedString("SMASHCRAFT_CUE_GRAPHICS") === "definitive";

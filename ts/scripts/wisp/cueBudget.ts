@@ -31,6 +31,9 @@ import { projectileActive, updateProjectiles } from "../../src/game/sim/projecti
 import { type Controls, createRoster, neutralControls, type Roster } from "../../src/game/sim/roster";
 import { advanceSpecials, startFighterSpecial } from "../../src/game/sim/specials";
 import { advanceFighter } from "../../src/game/sim/step";
+import { DROP_TELEGRAPH_FRAMES, advanceMeterDrops, meterDropPoint } from "../../src/game/match/meterDrops";
+import { Phase, createMatchState } from "../../src/game/match/rules";
+import { MeterDropPresentation } from "../../src/game/render/meterDropPresentation";
 
 export const CUE_FADE_FRAMES = 12;
 export const CUE_COVERAGE_LIMIT = 0.04;
@@ -52,6 +55,7 @@ export interface CueMove {
   readonly style?: AttackStyle;
   readonly special?: (typeof SPECIALS)[number];
   readonly ultimate?: true;
+  readonly drop?: boolean;
 }
 
 export interface CueMeasurement {
@@ -108,6 +112,7 @@ export function cueMoves(): CueMove[] {
     moves.push({ character, name: `${fighterSlug(character)}:${special.slot}-special`, special });
   }
   for (const character of Object.values(Character)) moves.push({ character, name: `${fighterSlug(character)}:ultimate`, ultimate: true });
+  moves.push({ character: Character.rifleman, name: "meter-drop:telegraph-and-orb", drop: true });
   return moves;
 }
 
@@ -138,7 +143,56 @@ function dangerous(f: Fighter, style: AttackStyle | undefined): boolean {
 const near = createMatchCamera();
 extremeCamera(near, 0, MATCH_CAMERA_ASPECT, "near");
 
+function aimNear(x: number, z: number): void {
+  SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
+  SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
+  SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, near.distance, 0.0);
+  SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + z + 100.0, 0.0);
+  SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(near, MATCH_CAMERA_ASPECT), 0.0);
+  SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
+  SetCameraPosition(x, PLAYABLE_BOUNDS.centreY);
+}
+
+function dropScenes(graphics: Graphics): ReturnType<typeof cueScenes> {
+  const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: (client) => ({
+    ...SMASHCRAFT_HEADLESS.natives?.(client),
+    GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? graphics : key,
+  }) });
+  try {
+    const clients = runtime.clients({ install() {}, start() {} }, [0]);
+    const client = clients.client(0);
+    clients.start();
+    const origin = { x: 0.0, y: PLAYABLE_BOUNDS.centreY, z: FLOOR_HEIGHT };
+    let drops: MeterDropPresentation | undefined;
+    client.run(() => { drops = new MeterDropPresentation(origin); });
+    if (drops === undefined) throw new Error("missing drop renderer");
+    const game = createMatchState();
+    game.phase = Phase.match;
+    game.stageChoice = 0;
+    game.drops.nextSpawnFrame = DROP_TELEGRAPH_FRAMES + 1;
+    game.drops.nextPoint = 0;
+    game.drops.draws = 1;
+    const world = createRoster(1, [createFighter(Character.rifleman, 1000.0, 1)]);
+    const point = meterDropPoint(0, 0);
+    const scenes: RenderScene[] = [];
+    let empty: RenderScene | undefined;
+    for (let tick = 0; tick < LIMIT; tick++) {
+      game.matchFrame = tick + 1;
+      advanceMeterDrops(game, world);
+      const shown = drops;
+      client.run(() => { shown.present(game); aimNear(origin.x + point.x, point.z); });
+      clients.frames(1);
+      const scene = captureScene(client, { visibleOnly: true });
+      empty ??= { ...scene, frame: -1, effects: [] };
+      scenes.push({ ...scene, frame: tick, units: [] });
+    }
+    if (empty === undefined) throw new Error("no frames");
+    return { scenes, poses: [], lastDanger: LIMIT - 1, empty };
+  } finally { runtime.restore(); }
+}
+
 export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene } {
+  if (move.drop === true) return dropScenes(graphics);
   const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: (client) => ({
     ...SMASHCRAFT_HEADLESS.natives?.(client),
     GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? graphics : key,
@@ -183,13 +237,7 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
         renderers.cues.confirm(f, true, tick / 60);
         renderers.cues.present(f, true, false);
         renderers.shots.present(f, true, false);
-        SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
-        SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
-        SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, near.distance, 0.0);
-        SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + f.motion.z + 100.0, 0.0);
-        SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(near, MATCH_CAMERA_ASPECT), 0.0);
-        SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
-        SetCameraPosition(origin.x + f.motion.x, origin.y);
+        aimNear(origin.x + f.motion.x, f.motion.z);
       });
       clients.frames(1);
       const scene = captureScene(client, { visibleOnly: true });
