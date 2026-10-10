@@ -167,12 +167,12 @@ export class FighterHud {
     const previous = this.shownStocks;
     if (previous === shownStocks) return;
     this.shownStocks = shownStocks;
-    const icons = shownStocks > STOCK_ICONS ? 1 : shownStocks;
+    const icons = shownStocks > 0 ? 1 : 0;
     for (let index = 0; index < this.stocks.length; index++) {
       const icon = this.stocks[index];
       if (icon !== undefined) BlzFrameSetVisible(icon, index < icons);
     }
-    BlzFrameSetVisible(this.stockCount, shownStocks > STOCK_ICONS);
+    BlzFrameSetVisible(this.stockCount, shownStocks > 0);
     BlzFrameSetText(this.stockCount, `x${I2S(shownStocks)}`);
   }
 

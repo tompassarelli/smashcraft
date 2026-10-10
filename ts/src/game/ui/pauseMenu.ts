@@ -19,7 +19,8 @@ export class PauseMenu {
   constructor(select: (choice: number, clicker: player) => void) {
     this.clicks = new ButtonClicks("ui.pause.click", select, choice => this.highlight(choice));
     this.root = createBackdrop("SmashcraftPause", consoleUi(), 1800);
-    BlzFrameSetTexture(this.root, "UI\\Widgets\\EscMenu\\Human\\human-options-menu-background.blp", 0, true);
+    BlzFrameSetTexture(this.root, "ReplaceableTextures\\TeamColor\\TeamColor20.blp", 0, true);
+    BlzFrameSetVertexColor(this.root, -13619144);
     placeTopLeft(this.root, f32(0.08), f32(0.53));
     BlzFrameSetSize(this.root, f32(0.64), f32(0.46));
     BlzFrameSetLevel(this.root, 20);
@@ -30,6 +31,7 @@ export class PauseMenu {
       BlzFrameSetFont(frame, MENU_FONT, size, 0);
       BlzFrameSetTextAlignment(frame, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
       BlzFrameSetEnable(frame, false);
+      BlzFrameSetLevel(frame, 21);
       return frame;
     };
     this.heading = label("SmashcraftPauseHeading", f32(0.42), f32(0.04), f32(0.023));
@@ -68,6 +70,7 @@ export class PauseMenu {
     BlzFrameSetVisible(this.root, paused || title);
     if (!paused && !title) return;
     BlzFrameSetText(this.heading, title ? "Smashcraft" : "Paused");
+    BlzFrameSetFont(this.heading, MENU_FONT, title ? f32(0.034) : f32(0.023), 0);
     if (this.title !== title || this.choice !== choice) this.hovered = undefined;
     this.title = title;
     this.choice = choice;
@@ -82,13 +85,14 @@ export class PauseMenu {
       placeTopLeft(button, f32(0.26), y);
       placeTopLeft(option, f32(0.26), y);
     }
-    BlzFrameSetText(this.help, title ? "A / Start: play    Click: play" : "Stick / arrows: choose    A: select    Click: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
+    BlzFrameSetText(this.help, title ? "A / Start / Click: Play" : "Stick / arrows: choose    A: select    Click: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
     BlzFrameSetVisible(this.controls, !title);
-    BlzFrameSetText(this.controls, "Q: full shield    T: light shield    P: tilt    Z / LB (tom pad): short hop    X / RB (tom pad): meter\n"
-      + "Shield before landing: tech; hold left/right for a tech roll.\n"
-      + "Shield + Special: EX special (one bar segment).\nAttack + Special (A + X): Ultimate (full bar).\nShield + left/right: roll; down: dodge.\n"
-      + "Knocked down: Attack/Special to strike; Up/Jump/Shield to stand; left/right to roll.\n"
-      + "Ledge: Up/toward stage to climb; Jump to leap; Shield to roll; Attack to strike; Down/away to let go."
+    BlzFrameSetText(this.controls, "Q: full shield · T: light shield · P: tilt · Z / LB (pad): short hop · X / RB (pad): meter\n"
+      + "Shield before landing: tech; + left/right: tech roll.\n"
+      + "Shield + Special: EX (one bar) · Attack + Special (A + X): Ultimate (full bar).\n"
+      + "Shield + left/right: roll · Shield + down: dodge.\n"
+      + "Downed: Attack/Special: strike · Up/Jump/Shield: stand · left/right: roll.\n"
+      + "Ledge: Up/toward: climb · Jump: leap · Shield: roll · Attack: strike · Down/away: let go."
       + (training ? `\nF2: training hints ${hints ? "On" : "Off"}` : ""));
   }
 }

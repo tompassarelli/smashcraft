@@ -75,6 +75,7 @@ export class MatchPresentation {
   private readonly voices: (sound | undefined)[] = [];
   private readonly sounds = new SoundBank();
   private readonly panel: framehandle;
+  private readonly help: framehandle;
   private readonly title: framehandle;
   private readonly lines: readonly framehandle[];
   private readonly poses: (VictoryPose | undefined)[] = [];
@@ -93,7 +94,8 @@ export class MatchPresentation {
     this.sounds.prepare(SoundKind.interfaceFile, interfaceSoundPaths(SELECTABLE_CHARACTERS));
     const parent = gameUi();
     this.panel = createBackdrop("MatchResultsPanel", parent, 0);
-    BlzFrameSetTexture(this.panel, PANEL_TEXTURE, 0, true);
+    BlzFrameSetTexture(this.panel, "ReplaceableTextures\\TeamColor\\TeamColor20.blp", 0, true);
+    BlzFrameSetVertexColor(this.panel, -13619144);
 
     BlzFrameSetAbsPoint(this.panel, FRAMEPOINT_TOPRIGHT, f32(0.79), f32(0.52));
     BlzFrameSetSize(this.panel, f32(0.36), f32(0.05) + PARTICIPANT_CAPACITY * f32(0.04));
@@ -108,11 +110,16 @@ export class MatchPresentation {
       const line = createText(`MatchResultsLine${I2S(index)}`, this.panel, 0);
       BlzFrameSetPoint(line, FRAMEPOINT_TOPLEFT, this.panel, FRAMEPOINT_TOPLEFT, f32(0.018), f32(-0.045) - index * f32(0.04));
       BlzFrameSetSize(line, f32(0.33), f32(0.036));
-      BlzFrameSetFont(line, MENU_FONT, f32(0.01), 0);
+      BlzFrameSetFont(line, MENU_FONT, f32(0.009), 0);
       BlzFrameSetTextAlignment(line, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
       lines.push(line);
     }
     this.lines = lines;
+    this.help = createText("MatchResultsHelp", this.panel, 0);
+    BlzFrameSetSize(this.help, f32(0.33), f32(0.04));
+    BlzFrameSetFont(this.help, MENU_FONT, f32(0.009), 0);
+    BlzFrameSetTextAlignment(this.help, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
+    BlzFrameSetEnable(this.help, false);
     BlzFrameSetVisible(this.panel, false);
   }
 
@@ -240,9 +247,11 @@ export class MatchPresentation {
   private showResults(view: ResultsView): void {
     const { winner } = view;
     BlzFrameSetText(this.title, winner === undefined ? "No contest" : "Results");
+    BlzFrameSetSize(this.panel, f32(0.36), f32(f32(0.095) + view.rows.length * f32(0.04)));
+    BlzFrameSetPoint(this.help, FRAMEPOINT_TOPLEFT, this.panel, FRAMEPOINT_TOPLEFT, f32(0.018), f32(-0.045) - view.rows.length * f32(0.04));
     for (let index = 0; index < this.lines.length; index++) {
       const row = view.rows[index];
-      BlzFrameSetText(at(this.lines, index), row === undefined ? "" : row.winner ? `|cffffcc00${row.text}|r` : row.text);
+      BlzFrameSetText(at(this.lines, index), row === undefined ? "" : row.winner ? `|cffffcc00${row.text}|r` : `|cffeeeeee${row.text}|r`);
     }
     BlzFrameSetVisible(this.panel, true);
     this.music = undefined;
@@ -253,6 +262,10 @@ export class MatchPresentation {
     this.cue(MatchCue.cheer);
     this.playFile(warcryVoice(winner));
     this.posing = view.rows[0]?.slot;
+  }
+
+  showResultHelp(text: string): void {
+    BlzFrameSetText(this.help, text.replace(". Press", ".\nPress"));
   }
 
   preparePoses(world: Readonly<Roster>): void {

@@ -103,7 +103,7 @@ type SelectionButton = { kind: "tile"; tile: number } | { kind: "mode"; slot: nu
 type MenuFocus = { readonly kind: "fighter" | "settings"; readonly slot: number };
 const titleCase = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
 function cpuCardSummary(game: Readonly<MatchState>, slot: number): string {
-  return `${titleCase(game.cpuOpponents[slot] ?? CPU_OPPONENT_DEFAULT)}\n${titleCase(game.cpuTiers[slot] ?? CPU_TIER_DEFAULT)}`;
+  return `CPU · ${titleCase(game.cpuOpponents[slot] ?? CPU_OPPONENT_DEFAULT)}\n${titleCase(game.cpuTiers[slot] ?? CPU_TIER_DEFAULT)}`;
 }
 
 
@@ -263,7 +263,7 @@ export class SelectionPanel {
       const portrait = tilePortrait(scale);
       const inset = (TILE_PORTRAIT_SLOT * scale - portrait) / 2;
       const tilePortraitFrame = art(root, `MeleeTilePortrait${name}`, portraitTexture(PLAYABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
-      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.0078) * scale);
+      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.002) * scale, y - f32(0.106) * scale, f32(0.108) * scale, f32(0.023) * scale, f32(0.0064) * scale);
       BlzFrameSetText(tileName, nameText(PLAYABLE_CHARACTERS[choice]));
       this.tiles.push([tileFrame, tilePortraitFrame, tileName]);
       const button = BlzCreateFrameByType("BUTTON", `MeleeTileButton${name}`, root, "", 0);
@@ -289,6 +289,7 @@ export class SelectionPanel {
       placeTopLeft(settings, box.x, box.y);
       BlzFrameSetSize(settings, box.width, box.height);
       BlzFrameSetText(settings, "Opponent settings");
+      BlzFrameSetFont(settings, MENU_FONT, f32(0.0075), 0);
       this.clicks.add(settings, { kind: "cpuSettings", slot });
       const summary = label(root, `MeleeCpuSummary${name}`, x + f32(0.004), f32(0.139), f32(0.152), f32(0.031), f32(0.009));
       return { card, tag, mode, portrait, name: name_, status, chip, summary, settings };
@@ -330,7 +331,8 @@ export class SelectionPanel {
     const titleBox = selectionTitleBox(height <= 0 ? f32(4.0 / 3.0) : I2R(BlzGetLocalClientWidth()) / I2R(height));
     this.modeLabel = page(createText(`MeleeModeLabel${suffix}`, gameUi(), 478 + participantId), titleBox.left, titleBox.top, titleBox.width, titleBox.height);
     BlzFrameSetFont(this.modeLabel, MENU_FONT, f32(0.022), 0);
-    BlzFrameSetTextAlignment(this.modeLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT);
+    placeTopLeft(this.modeLabel, titleBox.left + f32(0.006), titleBox.top);
+    BlzFrameSetTextAlignment(this.modeLabel, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
     BlzFrameSetEnable(this.modeLabel, false);
     this.movesFrames = [
       this.movesTitle, this.movesBody,
@@ -810,12 +812,12 @@ export class SelectionPanel {
       const carried = drag.dragging === slot || (!ready && drag.held === slot && drag.hover !== undefined);
       if (carried && active) pinching = true;
       const chipChoice = tileOfCharacter(choice ?? Character.rifleman);
-      const size = ready ? f32(0.048) * this.roster.grid.scale : f32(0.06);
+      const size = ready ? (carried ? f32(0.048) : f32(0.026)) * this.roster.grid.scale : f32(0.06);
       BlzFrameSetSize(frames.chip, size, size);
       placeTopLeft(
         frames.chip,
-        carried ? carriedChipLeft(x, size) : ready ? chipX(this.roster.grid, slot, chipChoice) : cardX(slot) + f32(0.06),
-        carried ? carriedChipTop(y, size) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.2),
+        carried ? carriedChipLeft(x, size) : ready ? chipX(this.roster.grid, slot, chipChoice) : cardX(slot) + f32(0.096),
+        carried ? carriedChipTop(y, size) : ready ? chipY(this.roster.grid, slot, chipChoice) : f32(0.135),
       );
     }
     this.showHand(pinching && width > 0 && height > 0 && !settingsOpen && !this.tutorialOpen, x, y);
