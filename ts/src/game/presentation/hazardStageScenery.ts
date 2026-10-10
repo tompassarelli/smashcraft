@@ -60,6 +60,9 @@ export const NORDRASSIL_SCENERY: StageScenery = {
     { model: SPIRE, x: 4050.0, y: 4600.0, z: -1561.0, scale: 4.25, yaw: 20.0, matrixScale: [4.0, 1.0, 1.25] },
     { model: ASHEN_MOUND, x: -4050.0, y: 4000.0, z: -1711.0, scale: 13.0, yaw: 190.0, matrixScale: [4.5, 1.0, 1.5] },
     { model: ASHEN_MOUND, x: 4050.0, y: 3950.0, z: -1467.0, scale: 16.5, yaw: 175.0, matrixScale: [4.0, 1.0, 1.0] },
+    { model: BACK, x: -220.0, y: 5000.0, z: -1374.0, scale: 5.25, yaw: 40.0, matrixScale: [3.0, 1.0, 1.0] },
+    { model: SPIRE, x: 210.0, y: 5000.0, z: -1711.0, scale: 4.5, yaw: 285.0, matrixScale: [2.5, 1.0, 1.25] },
+    { model: BACK, x: 520.0, y: 5000.0, z: -1440.0, scale: 4.0, yaw: 190.0, matrixScale: [3.0, 1.0, 1.25] },
   ],
 };
 
