@@ -5,9 +5,14 @@ map in the Warcraft III Maps folder and open it from Custom Games. Fighters
 look Classic or Definitive by your Graphics setting; after changing it,
 restart Warcraft III, because the new look applies only when the game starts. A
 controller is optional: the Smashcraft controller helper turns its buttons
-and sticks into the same keys (A attacks, X specials, B or Y jumps, RB grabs,
-either trigger shields, LB walks, left-stick click (L3) short hops, Start pauses). The current prototype includes character and stage
-selection, three fighters, a bot opponent, floating platforms, blast zones,
+and sticks into the same keys. The default controls already match the helper;
+if you saved Custom controls earlier, press F1, choose QWERTY and Save.
+The default Melee layout uses A to
+attack, B for specials, X/Y to jump and RB to grab; Tom's layout uses A to
+attack, X for specials, Y to jump, B to grab, LB to short hop and RB + X for
+an EX special. In both layouts, either trigger shields or air-dodges and
+Start pauses. The current prototype includes character and stage
+selection, 26 fighters, a bot opponent, floating platforms, blast zones,
 stocks, rematches, and configurable controls.
 
 For solo practice, place only your own fighter chip and press Y, then choose
@@ -63,8 +68,8 @@ Opponent settings. W/R changes the focused fighter; N opens focused settings.
 Inside the panel, Space/E visits Opponent, Difficulty and Done; W/R changes
 the value. N advances to the next row or chooses Done, and U or Close returns
 to Opponent settings while retaining choices. Start closes the panel; release
-and press it again to continue. Controller menus use stick or D-pad, A to
-choose and X to go back. The panel shows your current control bindings.
+and press it again to continue. Controller menus use the left stick to move
+the pointer, A to choose and B to go back. The panel shows your current control bindings.
 
 F1 opens Controls before a match. Choose QWERTY or Custom, click either key
 slot to rebind it, then Save. Saved controls load automatically on the next map
@@ -87,8 +92,8 @@ hold runs out and faster with mashing; the mark on it shows when a pummel would
 land. Mash and wiggle the same way to break out of Rifleman's frost trap
 sooner; its bar shows how long the ice has left.
 
-Z always gives the existing short hop, however long you hold it; on a pad,
-click the left stick (L3). The ordinary jump keys still full hop when held and
+Z always gives the existing short hop, however long you hold it; in Tom's pad
+layout, press LB. In Melee, tap X or Y to short hop. The ordinary jump keys still full hop when held and
 short hop when released during startup. In the air, Z uses your second jump.
 
 Attacks buffer for six frames, including through jump squat. Hold P to walk;
@@ -103,7 +108,7 @@ alternate jump key.
 Specials use U with a direction; every fighter's specials and
 ultimate are listed by name in the [move list](move-list.md). Shield + U is
 the EX form, costing one of the super bar's three segments. At a full bar,
-N + U together (A + X on a controller) is the fighter's ultimate; the
+N + U together (A + B in Melee or A + X in Tom's controller layout) is the fighter's ultimate; the
 Ultimates rule at fighter selection turns them off.
 
 Use Warcraft's ordinary Quit Mission to leave and recreate a custom game.
