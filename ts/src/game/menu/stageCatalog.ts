@@ -29,7 +29,7 @@ export const STAGE_CATALOG: readonly StageInfo[] = [
   { id: 13, name: "Ahn'Qiraj", texture: "war3mapImported\\StageCardAhnQiraj.blp", description: "An open arena among ancient Qiraji ruins.\nA rising platform breaks the silence." },
   { id: 6, name: "Stratholme", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\Lordaeron-TopLeft.blp", description: "Rooftops over a burning city at dusk.\nTwo low balconies, one high roof." },
   { id: 7, name: "Tomb of Sargeras", texture: "UI\\Glues\\Loading\\Backgrounds\\Campaigns\\DrownedRuinsExpansion-TopLeft.blp", description: "Sunken ruins awash in the tide.\nTwo platforms reach out past the edges." },
-  { id: 0, name: "Sky Deck (test)", texture: "war3mapImported\\StageCardSkyDeck.blp", description: "One open platform for practice and testing.\nRoom to fight, nowhere to hide." },
+  { id: 0, name: "Sky Deck", texture: "war3mapImported\\StageCardSkyDeck.blp", description: "One open platform for practice and testing.\nRoom to fight, nowhere to hide." },
 ];
 
 export function stageTileIndex(choice: number): number {
