@@ -46,7 +46,7 @@ publishes menu phases too: its ready file `CustomMapData/wc3-melee-ready.txt` na
 the build and `INPUT keyboard-d2-r24` (the development build uses `INPUT callback`). Newer than the game's start and any different build's menu,
 it is a Smashcraft session on keys (`session=BUILD/keys/N`): the service
 runs no helper, uses the pointer in fighter, stage and results menus, and presses the pad's keys during matches through the same mapper as
-`wc3-controller --emit` (the default melee layout: A n, B u, X/Y i, RB o, LT q, RT v; tom: A n, B o, X u, Y i, LB z, RB x (meter), LT q, RT v;
+`wc3-controller --emit` (the default melee layout: A n, B u, X/Y i, RB o, LT q, RT 7; tom: A n, B o, X u, Y i, LB z, RB x (meter), LT q, RT 7;
 Start y, left stick w/r/e/space, right stick b/m/j/h, plus p in tom so it tilts and throws aerials), into the game's window
 while niri focuses it. Focus loss releases them, and nothing presses again
 until the pad is neutral. The status reads `state=serving` once that output runs.
