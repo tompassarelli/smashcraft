@@ -27,7 +27,7 @@ import { confirmedChecksum, startInputTrace, traceParticipant } from "./diagnost
 import { probeFrameCostClock } from "./frameCost";
 import { probeRenderClock } from "./renderClock";
 import { startDrawingBetweenFrames } from "./betweenFrames";
-import { showBackdrop, showStageLighting } from "./stageScenery";
+import { showBackdrop, showStageLighting, leverCommand } from "./stageScenery";
 import { clearCapturedInputs } from "./inputs";
 import { journalEpoch, journalIdentity } from "./journal";
 import { chatBusy, requestPause } from "./journalPause";
@@ -371,6 +371,10 @@ export function applyDeveloperCommand(s: ShellState, actor: number, original: st
   } else if (message === "-dev view near" || message === "-dev view far" || message === "-dev view off") {
     s.viewExtreme = message === "-dev view near" ? "near" : message === "-dev view far" ? "far" : undefined;
     receipt = `dev: view ${s.viewExtreme ?? "off"}`;
+  } else if (message.startsWith("-dev lever ")) {
+    const words = message.slice(11).split(" ");
+    leverCommand(s, words[0] ?? "", words[1] ?? "", words[2] ?? "");
+    receipt = "";
   } else if (message.startsWith("-dev fogv ")) {
 
     const v = message.slice(10).split(" ").map((word) => S2R(word));

@@ -1,5 +1,14 @@
 # Native
 
+Development builds expose the retained 3.0.0 lever diagnostic: `-dev lever fog on|off`,
+`-dev lever density NUMBER`, `-dev lever oversky on|off`, `-dev lever shadows COUNT`
+and `-dev lever light INDEX on|off`. Compare `-dev lighting stock|stage` and
+`-dev backdrop on|off` in the same paused scene. Use `-dev view near|far` with
+`-dev lever camz -100000|100000` to reach the camera's lowest or highest allowed
+height; `-dev lever camz off` restores the normal extreme height and
+`-dev view off` restores the match camera. The override still passes through
+the existing camera limits.
+
 - One-client Definitive look captures (signed-in clone b, c or d):
   `bun scripts/nativeCapture.ts build --out MAP.w3x --control PAD|DIR...` bakes
   the scripts and their `capture` frames into a native-capture map that plays
