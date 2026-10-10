@@ -2,9 +2,9 @@ import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { heroHurtPose } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
-import { groundHit } from "./groundNormals";
+import { groundHitWith } from "./authoring";
 
-export const anubarakHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 75 | 80 | 90, growth = 83.69999694824219, base = 26.0, behind = false) => groundHit(damage, angle, growth, base, HitElement.normal, behind);
+export const anubarakHit = groundHitWith({ growth: 83.69999694824219, base: 26.0, element: HitElement.normal });
 const claw = (x1: number, z1: number, x2: number, z2: number, radius = 15.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const shell = hurtPart(-24.0, 32.0, 18.0, 88.0, 35.0);
 const tilt = (z: number, angle: 25 | 40 | 55) => heroMove(10, 4, 24, 0, [heroRegion(10, 13, claw(32.0, 60.0, 124.0, z), anubarakHit(12.276000022888184, angle))]);

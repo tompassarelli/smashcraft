@@ -3,11 +3,11 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { type StrikeCapsule, heroMove, heroMoves, heroRegion, heroHurtPose, jabStep, cleanLateMove } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
-import { groundHit } from "./groundNormals";
+import { groundHitWith } from "./authoring";
 
 export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });
-export const thrallHit = (damage: number, angle: 20 | 25 | 35 | 40 | 45 | 50 | 55 | 70 | 75 | 85 | 90, growth: number, base: number, back = false, element: HitElement = HitElement.normal) => groundHit(damage, angle, growth, base, element, back);
-const normal = (first: number, active: number, recovery: number, landing: number, strike: StrikeCapsule, damage: number, angle: 20 | 25 | 35 | 40 | 45 | 50 | 55 | 70 | 75 | 85 | 90, growth = 88.73999786376953, base = 24.0, back = false) => heroMove(first, active, recovery, landing, [heroRegion(first, first + active - 1, strike, thrallHit(damage, angle, growth, base, back))]);
+export const thrallHit = groundHitWith({ growth: 88.73999786376953, base: 24.0, element: HitElement.normal });
+const normal = (first: number, active: number, recovery: number, landing: number, strike: StrikeCapsule, damage: number, angle: 20 | 25 | 35 | 40 | 45 | 50 | 55 | 70 | 75 | 85 | 90, growth?: number, base?: number, back = false) => heroMove(first, active, recovery, landing, [heroRegion(first, first + active - 1, strike, thrallHit(damage, angle, growth, base, back))]);
 const body = hurtCapsule(Character.thrall);
 const wolf = hurtPart(-48.0, 36.0, 70.0, 36.0, 28.0);
 const paw = hurtPart(48.0, 34.0, 96.0, 34.0, 20.0);

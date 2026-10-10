@@ -3,10 +3,9 @@ import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart, hurtPose, type HurtPose } from "../hurtboxes";
-import { groundHit } from "./groundNormals";
+import { groundHitWith } from "./authoring";
 
-export const malfurionHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 85.0, base = 24.0, behind = false) =>
-  groundHit(damage, angle, growth, base, HitElement.normal, behind);
+export const malfurionHit = groundHitWith({ growth: 85.0, base: 24.0, element: HitElement.normal });
 const path = (x1: number, z1: number, x2: number, z2: number, radius = 9.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const body = hurtCapsule(Character.malfurion);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
