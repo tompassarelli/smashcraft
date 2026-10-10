@@ -21,6 +21,12 @@
   Its saved samples include each menu's reachable table field shapes and
   representative reference paths: compare the full shape union between a
   warm-up high and a later rise to identify the retaining lifecycle.
+  `bun wisp soak handles` plays smashcraft:test/handle-baseline.test.ts's
+  four-computer match and rematch on the compiled integrity build in 32-bit
+  Lua (about 2 minutes, over the Lua suite's per-test ceiling) and fails unless
+  every live Warcraft handle kind at fighter selection after the rematch equals
+  its count after the match (#409). The first match adds handles the menu keeps:
+  the stage-loading cover's frames and one fighter body per fighter.
   Native handles are checked separately: their emulator-owned record identities
   are excluded from map tables because Warcraft exposes them as opaque handles.
   Overnight playtest (#403): `bun scripts/playtest.ts --first N --count M --out FILE`

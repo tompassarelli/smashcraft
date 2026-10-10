@@ -9,6 +9,7 @@ import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/com
 import { makeSoak } from "wisp/scripts/wisp/commands/soak";
 import { step } from "wisp/scripts/wisp/timings";
 import { SOAK_OUT } from "../soak";
+import { soakHandles } from "./soakHandles";
 import { soakMemory } from "./soakMemory";
 
 class HelperSoakFailure extends Schema.TaggedError<HelperSoakFailure>()("HelperSoakFailure", {
@@ -57,4 +58,4 @@ const throughHelper: Command = (args) => Effect.gen(function*() {
   if (found !== 0) return yield* new HelperSoakFailure({ problem: `${String(found)} matches found something; their folders are in ${out}` });
 });
 
-export const soak: Command = (args) => (args[0] === "memory" ? soakMemory(args.slice(1)) : args.includes("--helper") ? throughHelper(args) : headless(args));
+export const soak: Command = (args) => (args[0] === "memory" ? soakMemory(args.slice(1)) : args[0] === "handles" ? soakHandles(args.slice(1)) : args.includes("--helper") ? throughHelper(args) : headless(args));
