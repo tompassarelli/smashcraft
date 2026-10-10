@@ -6,7 +6,7 @@ import { MENU_FONT } from "./hudLayout";
 export class PauseMenu {
   private readonly root: framehandle;
   private readonly heading: framehandle;
-  private readonly options: framehandle;
+  private readonly options: framehandle[] = [];
   private readonly help: framehandle;
   private readonly controls: framehandle;
 
@@ -33,12 +33,13 @@ export class PauseMenu {
       return frame;
     };
     this.heading = label("SmashcraftPauseHeading", f32(0.42), f32(0.04), f32(0.023));
-    this.options = label("SmashcraftPauseOptions", f32(0.37), f32(0.13), f32(0.018));
     for (let row = 0; row < 3; row++) {
+      const y = f32(f32(0.359) - f32(row * f32(0.036)));
       const button = BlzCreateFrameByType("BUTTON", `SmashcraftPauseOption${I2S(row)}`, this.root, "", 1801);
-      placeTopLeft(button, f32(0.26), f32(f32(0.359) - f32(row * f32(0.036))));
+      placeTopLeft(button, f32(0.26), y);
       BlzFrameSetSize(button, f32(0.28), f32(0.036));
       this.buttons.push(this.clicks.add(button, row));
+      this.options.push(label(`SmashcraftPauseOptions${I2S(row)}`, y, f32(0.036), f32(0.018)));
     }
     this.help = label("SmashcraftPauseHelp", f32(0.23), f32(0.05), f32(0.010));
     this.controls = label("SmashcraftPauseControls", f32(0.49), f32(0.1), f32(0.009));
@@ -55,7 +56,12 @@ export class PauseMenu {
   private highlight(choice: number | undefined): void {
     this.hovered = choice;
     const selected = choice ?? this.choice;
-    BlzFrameSetText(this.options, this.title ? `${choice === undefined ? "" : "|cffffcc00"}> Play <${choice === undefined ? "" : "|r"}` : ["Resume", "Character select", "Main menu"].map((text, row) => row === selected ? `|cffffcc00> ${text} <|r` : text).join("\n\n"));
+    for (let row = 0; row < this.options.length; row++) {
+      const frame = this.options[row];
+      if (frame === undefined) continue;
+      const text = this.title ? "> Play <" : ["Resume", "Character select", "Main menu"][row] ?? "";
+      BlzFrameSetText(frame, (this.title ? choice !== undefined : row === selected) ? `|cffffcc00${this.title ? text : `> ${text} <`}|r` : text);
+    }
   }
 
   update(paused: boolean, choice: number, title: boolean, training = false, hints = false): void {
@@ -68,9 +74,13 @@ export class PauseMenu {
     this.highlight(this.hovered);
     for (let row = 0; row < this.buttons.length; row++) {
       const button = this.buttons[row];
-      if (button === undefined) continue;
+      const option = this.options[row];
+      if (button === undefined || option === undefined) continue;
       BlzFrameSetVisible(button, !title || row === 0);
-      placeTopLeft(button, f32(0.26), title ? f32(0.323) : f32(f32(0.359) - f32(row * f32(0.036))));
+      BlzFrameSetVisible(option, !title || row === 0);
+      const y = title ? f32(0.323) : f32(f32(0.359) - f32(row * f32(0.036)));
+      placeTopLeft(button, f32(0.26), y);
+      placeTopLeft(option, f32(0.26), y);
     }
     BlzFrameSetText(this.help, title ? "A / Start: play    Click: play" : "Stick / arrows: choose    A: select    Click: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
     BlzFrameSetVisible(this.controls, !title);
