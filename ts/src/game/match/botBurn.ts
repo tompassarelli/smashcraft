@@ -4,9 +4,11 @@ import type { Fighter } from "../sim/fighter";
 import type { Controls } from "../sim/roster";
 import { steerOnGround } from "./botFooting";
 import { moveReachAhead } from "./botMoves";
+import { PunishKind, type PunishWindow, punishWindow } from "./botPunish";
 import { BURN_MEMORY_FRAMES, type BotStrategy } from "./botStrategy";
 
 const BURN_MARGIN = 30.0;
+const opening: PunishWindow = { frames: 0, kind: PunishKind.none, elapsed: 0, key: 0, earliest: 0 };
 
 export function burnedMove(state: Readonly<BotStrategy>, target: Readonly<Fighter>, frame: number, observationAge: number): AttackStyle | undefined {
   if (state.burnStyle === -1 || state.burnCount <= 0 || frame - state.burnFrame > BURN_MEMORY_FRAMES + observationAge || target.character !== state.burnCharacter) return undefined;
@@ -14,8 +16,9 @@ export function burnedMove(state: Readonly<BotStrategy>, target: Readonly<Fighte
   return state.burnStyle;
 }
 
-export function keepClearOfBurn(state: Readonly<BotStrategy>, burned: AttackStyle | undefined, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, input: Controls): boolean {
+export function keepClearOfBurn(state: Readonly<BotStrategy>, burned: AttackStyle | undefined, own: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, frame: number, observationAge: number, matchFrame: number, input: Controls): boolean {
   if (burned === undefined || !own.motion.grounded) return false;
+  if (punishWindow(target, frame, opening, observationAge, stage, matchFrame)) return true;
   const reach = Math.max(moveReachAhead(target.character, burned, own, target.tuning.moves), state.burnGap);
   const away = own.motion.x < target.motion.x ? -1 : 1;
   const edge = f32(reach + BURN_MARGIN);
