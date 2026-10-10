@@ -20,7 +20,7 @@ const gestures = [
   {character:Character.blademaster,name:"Sword Plunge",chest:12,wrist:95,arm:15,knee:85},
   {character:Character.mountainKing,name:"Boot Stomp",chest:-15,wrist:0,arm:-65,knee:0},
   {character:Character.lich,name:"Frost Press",chest:48,wrist:45,arm:20,knee:0},
-  {character:Character.dreadlord,name:"Claw Dive",chest:45,wrist:40,arm:25,knee:70},
+  {character:Character.dreadlord,name:"Claw Dive",chest:60,wrist:70,arm:-25,knee:90},
   {character:Character.pitLord,name:"Four Hooves",chest:-15,wrist:0,arm:-70,knee:0},
   {character:Character.beastmaster,name:"Twin Axe Drop",chest:35,wrist:90,arm:-15,knee:65},
 ];
@@ -30,6 +30,9 @@ function pitch(q: Float32Array | Int32Array, degrees: number): Float32Array {
   const norm=Math.hypot(...v);for(let i=0;i<v.length;i++)v[i]=v[i]!/norm;return v;
 }
 function joint(name:string,g:typeof gestures[number],coil:boolean):number {
+  if(g.character===Character.dreadlord&&name==="Bone_Pelvis")return coil?-35:30;
+  if(g.character===Character.dreadlord&&name==="Bone_Root")return coil?-18:24;
+  if(g.character===Character.dreadlord&&name==="Recovery Motion")return coil?-22:45;
   if (/^(Bone_Chest|Chest|Bone NECK)$/.test(name)) return coil?-20:g.chest;
   if (name === "Bone_Head" && g.character!==Character.lich) return coil?-10:20;
   if (g.character===Character.lich) {
@@ -39,7 +42,7 @@ function joint(name:string,g:typeof gestures[number],coil:boolean):number {
     if(/^(Mesh04|Mesh05)$/.test(name))return coil?30:15;
     if(/^(Mesh02|Mesh03)$/.test(name))return coil?0:65;
   }
-  if (/^(Bone_Arm1_[LR]|UpArm[LR]|[RL][Ss]houlder)$/.test(name))return coil?-125:g.arm;
+  if (/^(Bone_Arm1_[LR]|UpArm[LR]|[RL][Ss]houlder)$/.test(name))return coil?g.character===Character.dreadlord?135:-125:g.arm;
   if (/^(Bone_Arm2_[LR]|LowArm[LR]|[RL]elbow)$/.test(name))return coil?55:0;
   if (/^(Bone_Hand_[LR]|Hand[LR])$/.test(name))return coil?0:g.wrist;
   if (/^(Bone_Leg1_[LR]|UpperLeg[LR]|[RL]hip)$/.test(name)) {
@@ -74,8 +77,11 @@ for(const g of gestures){
     track.Keys=track.Keys.filter(k=>k.Frame<start||k.Frame>end);
     const match=/^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path),node=match?source[match[1] as "Bones"|"Helpers"][Number(match[2])]:undefined;
     if(node&&joint(node.Name,g,false)!==0)joints++;
-    for(const [frame,coil]of [[0,false],[Math.max(1,move.startupFrames-3),true],[move.startupFrames,false],[move.startupFrames+move.activeFrames,false],[move.totalFrames,false]] as const){
-      const degrees=node?joint(node.Name,g,coil):0;
+    const phases=g.character===Character.dreadlord?[[0,false],[Math.max(1,move.startupFrames-3),true],[move.startupFrames-1,false],[move.startupFrames,false],[move.startupFrames+move.activeFrames+2,false],[move.totalFrames,false]] as const:[[0,false],[Math.max(1,move.startupFrames-3),true],[move.startupFrames,false],[move.startupFrames+move.activeFrames,false],[move.totalFrames,false]] as const;
+    for(const [frame,coil]of phases){
+      const body=/^(Bone_Chest|Bone_Pelvis|Bone_Root|Bone_Leg[12]_[LR]|Recovery Motion)$/.test(node?.Name??"");
+      const drive=g.character===Character.dreadlord?(frame===move.startupFrames-1&&!body?-0.5:frame===move.startupFrames+move.activeFrames+2?1.35:1):1;
+      const degrees=node?joint(node.Name,g,coil)*drive:0;
       const returning=frame===0||frame===move.totalFrames;
       const Vector=degrees&&!returning?pitch(first.Vector,degrees):first.Vector.slice();
       const tangent=()=>match||track.LineType===mdx.LineType.Bezier?Vector.slice():new Float32Array(Vector.length);

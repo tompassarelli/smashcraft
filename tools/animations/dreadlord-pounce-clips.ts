@@ -48,15 +48,18 @@ for (const [name, frames] of [["travel",16],["bite",16],["recovery",34]] as cons
       const t=frame/frames, n=node?.Name??"";
       let amount=0;
       if(name==="travel") {
-        if(/(Arm1|shoulder|UpArm)/i.test(n)) amount=/R/.test(n)?-65:-95;
+        const coil=frame<3?-0.7+1.7*frame/3:1;
+        if(/(Arm1|shoulder|UpArm)/i.test(n)) amount=(/R/.test(n)?-85:-110)*(frame<4?-0.7+1.7*frame/4:1);
         if(/(Leg1|hip|UpperLeg)/i.test(n)) amount=/R/.test(n)?-35:-70;
         if(/(Leg2|knee|LowerLeg)/i.test(n)) amount=95;
-        if(/(Chest|NECK)/i.test(n)) amount=15;
+        if(/(Chest|NECK)/i.test(n)) amount=38*coil;
+        if(n==="Bone_Pelvis")amount=24*coil;
       } else if(name==="bite") {
-        const bite=Math.sin(Math.PI*t);
-        if(/(Chest|NECK|Head)/i.test(n)) amount=50*bite;
-        if(/(Arm1|shoulder|UpArm)/i.test(n)) amount=-90;
-        if(/(Arm2|elbow|LowArm)/i.test(n)) amount=60+25*bite;
+        const bite=frame<3?-0.65+1.65*frame/3:frame<8?1+0.3*(frame-3)/5:1.3*(1-(frame-8)/8);
+        if(/(Chest|NECK|Head)/i.test(n)) amount=58*bite;
+        if(n==="Bone_Pelvis")amount=30*bite;
+        if(/(Arm1|shoulder|UpArm)/i.test(n)) amount=-75*(frame<4?-0.65+1.65*frame/4:bite);
+        if(/(Arm2|elbow|LowArm)/i.test(n)) amount=-28*bite;
       } else {
         if(/(Chest|NECK)/i.test(n)) amount=30*(1-t);
         if(/(Leg1|hip|UpperLeg)/i.test(n)) amount=-40*(1-t);
@@ -67,7 +70,7 @@ for (const [name, frames] of [["travel",16],["bite",16],["recovery",34]] as cons
     }
   });
   for(let frame=0;frame<=frames;frame++) {
-    const t=frame/frames, roll=name==="travel"?360*t:0, lean=name==="travel"?80:name==="bite"?15*Math.sin(Math.PI*t):60*(1-t)*(1-t);
+    const t=frame/frames, roll=name==="travel"?360*t:0, lean=name==="travel"?frame<3?-25+105*frame/3:80:name==="bite"?frame<3?-18+42*frame/3:frame<8?24+8*(frame-3)/5:32*(1-(frame-8)/8):60*(1-t)*(1-t);
     helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotation(roll,lean)});
   }
   bindings.push(`  ${name}: { index: ${index}, seconds: ${seconds((end-start)/1000)} },`);

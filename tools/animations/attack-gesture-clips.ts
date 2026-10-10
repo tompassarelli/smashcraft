@@ -59,7 +59,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
     backAir: [-42, 70, 42, -25, -35, 55, 80, -22],
     jab3: [44, -68, -35, -32, 20, -42, 65, 18],
     neutralAir: [35, -75, -100, -25, 25, -55, 80, 20],
-    upAir: [-44, -145, -100, -25, 40, -55, 80, -22],
+    upAir: [-44, -145, -90, -25, 40, -55, 80, -22],
     upTilt: [-38, -135, -90, -20, 30, -35, 55, -18],
     forwardSmash: [58, -85, -55, -35, 45, -65, 90, 24],
     neutralSpecial: [48, -72, -45, -25, 30, -45, 65, 20],
@@ -400,12 +400,12 @@ for(const [id,poses]of Object.entries(PLAN)) {
     if(hop&&!driven)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const shadowLow = character === 9 && pose === "downTilt";
     if (wardenWeaponPose(character,pose) || shadowLow) aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
-    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow?", aligned: true":""} }`;
+    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${driven || wardenWeaponPose(character,pose) || shadowLow?", aligned: true":""} }`;
     bindings.push(`    ${pose}: ${binding},`);
     if(special&&pose!=="ultimate")for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
     const moments=[Math.max(1,contact-3),contact,Math.min(total-1,contact+5)];
     for(const facing of [1,-1])for(const frame of moments)drawnFrames.push({frame,facing,clip:index,seconds:frame/60,phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]});
-    records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:wardenWeaponPose(character,pose) || shadowLow});
+    records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:driven || wardenWeaponPose(character,pose) || shadowLow});
   }
   bindings.push("  },");
   const bytes=encodeVerified(parseSource(generateMDX(model))),after=new DrawnModel(bytes,1);
