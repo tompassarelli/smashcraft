@@ -1,4 +1,10 @@
 unit	tests	cpu_s
+test/air-drift.test.ts	3	1.321
+test/cpu-field.test.ts	1	2.820
+test/melee-oracle.test.ts	2	6.061
+test/playtest.test.ts	1	0.080
+test/projectile-rules.test.ts	5	5.239
+test/rifleman-blaster.test.ts	4	0.320
 src/game/assets/stageLighting.tests.ts	8	0.002
 src/game/assets/stagePalette.tests.ts	3	0.003
 src/game/classic/classic.tests.ts	8	1.111
