@@ -9,7 +9,7 @@ import { applyDirectionalInfluence, influenceOperands } from "../../src/game/sim
 import { setMeleeKnockback } from "../../src/game/sim/motion";
 import { neutralControls } from "../../src/game/sim/roster";
 import { HabitChoice } from "../../src/game/match/botHabits";
-import { reach } from "../../scripts/wisp/memoryCensus";
+import { reach } from "./memoryCensus";
 
 test("copied bot reads add no reachable tables when reads appear after warmup [invariant]", () => {
   const source = createBotStrategy();

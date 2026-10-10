@@ -3,9 +3,9 @@ import { emptyInput } from "../src/game/input/inputRow";
 import { FighterAgencyForecast } from "../src/game/presentation/fighterAgency";
 import { Character, DownState, GrabAction } from "../src/game/sim/codes";
 import { fighterAt } from "../src/game/sim/roster";
-import { analyzeAgency, agencyLetters, runFrame } from "./agency";
-import { attackerPlan, standingMatch } from "./agencySweep";
-import { sweep } from "../test/sweep";
+import { analyzeAgency, agencyLetters, runFrame } from "../scripts/agency";
+import { attackerPlan, standingMatch } from "../scripts/agencySweep";
+import { sweep } from "./sweep";
 
 /** Compares each scenario for each victim; `throws` names the committed throws to compare. */
 function compareLiveAgency(victims: readonly Character[], throws: readonly GrabAction[], scenarios = true): void {

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { interactionTimingProblem } from "./interactionTiming";
+import { interactionTimingProblem } from "../scripts/interactionTiming";
 
 test("authored reaction options allow the adopted budget after their first visible cue [spec docs/design/execution-windows.md]", () => {
   expect(interactionTimingProblem({ kind: "reaction", cueFrame: 7, lastResponseFrame: 21, choices: 1 })).toBeDefined();

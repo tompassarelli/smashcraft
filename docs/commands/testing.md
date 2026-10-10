@@ -7,6 +7,13 @@
   test (wisp:docs/farm.md). Don't run the full suites on this machine.
   `bun run check` type-checks.
 
+- Where tests live: a module's tests are in one place. Map code (everything
+  compiled to Lua, under ts/src and the Lua parts of ts/scripts/wisp) keeps
+  camelCase `*.tests.ts` beside its module; the Lua32 suite and
+  test/game.test.ts run them. Host tools test in kebab-case
+  `ts/test/*.test.ts`, which `bun run test` runs; list a new one in
+  smashcraft:ts/tsconfig.json's `include` so `bun run check` type-checks it.
+
 - Sweeps: a test that plays many matches, a whole roster or every stage is a
   sweep: register it with `sweep()` (smashcraft:ts/src/runtime/sweep.ts, or
   smashcraft:ts/test/sweep.ts in Bun-only files) and keep its smallest form,

@@ -5,7 +5,7 @@
 // on the reflector's last frame and one frame late. A traveling projectile
 // reflects inside the reflector's frames and not after them (a later frame of
 // the 4-frame hit parry may still parry it); a marker, zone or summon is never
-// reflected. `bun test ./scripts/powershieldReflect.tests.ts` prints the table.
+// reflected. `bun test ./test/powershield-reflect.test.ts` prints the table.
 import { expect } from "bun:test";
 import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
@@ -13,8 +13,8 @@ import { type Fighter, SHIELD_MAX } from "../src/game/sim/fighter";
 import { HERO_ROSTER, heroDefinition } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
 import { fighter, frame, projectileShieldActions, scene } from "../src/game/match/padScene";
-import { isProjectileSummon } from "./interactions";
-import { sweep } from "../test/sweep";
+import { isProjectileSummon } from "../scripts/interactions";
+import { sweep } from "./sweep";
 
 type Held = readonly Action[];
 type Outcome = "reflected" | "parried" | "blocked" | "hit";

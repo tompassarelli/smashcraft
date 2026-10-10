@@ -217,4 +217,4 @@ src/game/ui/selectionLayout.tests.ts	2	0	1
 src/game/ui/slotColors.tests.ts	2	0	1
 src/platform/shell/playerFileQueue.tests.ts	3	0	14
 src/sim/meleeScalarMath.tests.ts	2	88000	4
-test/lua/memoryCensus.tests.ts	4	3389000	3404
+scripts/wisp/memoryCensus.tests.ts	4	3389000	3404

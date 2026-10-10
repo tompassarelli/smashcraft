@@ -1,6 +1,6 @@
 import { expect } from "bun:test";
-import { sweep } from "../test/sweep";
-import { belowLead, platformAdvantages } from "./platformAdvantage";
+import { sweep } from "./sweep";
+import { belowLead, platformAdvantages } from "../scripts/platformAdvantage";
 
 // Positions are used, not camped (smashcraft:docs/gameplay-design.md,
 // "Platforms"): across every selectable pair, the fighter below a platform

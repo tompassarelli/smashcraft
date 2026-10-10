@@ -1,11 +1,11 @@
 
 import { expect, test } from "bun:test";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../src/game/sim/heroes/registry";
-import { BALANCE_SPEC } from "./balance";
+import { BALANCE_SPEC } from "../scripts/balance";
 
-import recordedBaseline from "./balanceBaseline.json";
-import { currentRosterKits } from "./balanceKit";
-import { kitFailures, type Baseline } from "./balanceOptimizer";
+import recordedBaseline from "../scripts/balanceBaseline.json";
+import { currentRosterKits } from "../scripts/balanceKit";
+import { kitFailures, type Baseline } from "../scripts/balanceOptimizer";
 
 const S = BALANCE_SPEC;
 

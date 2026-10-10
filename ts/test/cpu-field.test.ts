@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { playCpuMatch } from "./cpuField";
+import { playCpuMatch } from "../scripts/cpuField";
 import { Character } from "../src/game/sim/codes";
 
 test("a camping match plays the same twice from its seed and the fighter ahead on stocks camps [invariant]", () => {

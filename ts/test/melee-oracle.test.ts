@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { oracleProblems, runOracle } from "./meleeOracle";
+import { oracleProblems, runOracle } from "../scripts/meleeOracle";
 
 const rows = runOracle();
 

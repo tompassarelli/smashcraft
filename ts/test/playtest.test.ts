@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { DEFAULT_CONFIG, classify, type Combo, type MatchSpec, type Observation, type Run } from "./playtestCore";
+import { DEFAULT_CONFIG, classify, type Combo, type MatchSpec, type Observation, type Run } from "../scripts/playtestCore";
 
 const random = (seed: number) => () => {
   seed = (seed + 0x6d2b79f5) | 0;

@@ -216,7 +216,7 @@ Historical fixture before #339: - **One momentum rule for everyone.** Every figh
   keep their authored motion.
 - Gravity, fall speed, the 1.70 jump cap and the air dodge are unchanged.
 
-smashcraft:ts/scripts/airDrift.tests.ts holds every fighter to the band and
+smashcraft:ts/test/air-drift.test.ts holds every fighter to the band and
 the rule. Its cross-up test dashes 8 frames from 40 Melee units in front of
 a shielding mirror, jumps holding forward and throws an aerial, which must
 meet the shield from behind. `bun scripts/airDrift.ts` prints the roster
@@ -690,7 +690,7 @@ Smashcraft's shared physics follows Melee's NTSC 1.02 rules, as roadmaps #2
 and #9 set out, checked against the decompilation and by `bun wisp oracle`
 (smashcraft:docs/physics.md). Where Smashcraft departs from Melee, the
 departure is a row in the table below, and the oracle reports each departure it
-exercises under that row's name; smashcraft:ts/scripts/meleeOracle.tests.ts
+exercises under that row's name; smashcraft:ts/test/melee-oracle.test.ts
 checks that every oracle departure names a row here.
 
 ## Deviations from Melee
@@ -1571,7 +1571,7 @@ smashcraft:ts/src/game/sim/shield.ts (`AERIAL_SHIELD_STUN_MULTIPLIER`):
 
 The [interaction graph](design/interaction-graph.md) measures the spread for
 each fighter (aerial on shield rows: advancing, early advancing, fade-back and
-fade-forward, unspaced and spaced). smashcraft:ts/scripts/interactions.tests.ts
+fade-forward, unspaced and spaced). smashcraft:ts/test/interactions.test.ts
 pins one safe and one punishable aerial per fighter.
 
 ## Powershield and parry
@@ -1678,7 +1678,7 @@ projectile properties are described in [projectiles](design/projectiles.md).
    grab, jump out of shield into any aerial, both rolls, spot dodge and the
    raise-timed powershield; no fighter trades one of them away.
 
-smashcraft:ts/scripts/projectileRules.tests.ts measures every fighter's
+smashcraft:ts/test/projectile-rules.test.ts measures every fighter's
 projectiles, the original three and each registered hero's, through the
 interaction graph's projectile situations (each special that makes a
 projectile, fired at a mirror defender 60, 240 and 480 apart): the
@@ -1686,7 +1686,7 @@ powershield presses that reflect it (at least 2), the out-of-shield punishes
 from point blank, the most out at once with the special pressed every other
 frame, its flight, and the answers of a standing defender. Rule 6 is checked
 from a held shield: each out-of-shield option must start. Rule 1 itself is
-smashcraft:ts/scripts/powershieldReflect.tests.ts: each of those projectiles,
+smashcraft:ts/test/powershield-reflect.test.ts: each of those projectiles,
 meeting the shield on its first frame, on the reflector's last frame and one
 frame late, must reflect on the first two and not on the third (it prints the
 table; a press that only parries does not count as a reflection). Swift

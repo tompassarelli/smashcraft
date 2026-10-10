@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { drawnModels } from "./cueBudget";
+import { drawnModels } from "../scripts/wisp/cueBudget";
 
 test("the widest list names only drawn effects: a parked model (scale 0, under the floor) is dropped, a drawn one kept [invariant]", () => {
   expect(drawnModels([
