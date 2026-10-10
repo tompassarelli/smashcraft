@@ -65,14 +65,14 @@ export function beginJump(f: Fighter, horizontal: number, shortHop = false): voi
 
 
 
-export function beginAirDodge(f: Fighter, horizontal: number, vertical: number): void {
+export function beginAirDodge(f: Fighter, horizontal: number, vertical: number, bufferedDuringJumpSquat = false): void {
   const { motion, launch, dodge } = f;
   if (lockedOut(f) || motion.grounded || dodge.airDodging || dodge.airUsed || dodge.airMotionFrames > 0) return;
   observeActionDecision(DODGE_BITS);
   motion.fastFalling = false;
   const dx = sign(horizontal);
   const dz = sign(vertical);
-  if (dx !== 0 && dz === 0) {
+  if (bufferedDuringJumpSquat && dx !== 0 && dz === 0) {
     motion.vx = f32(f32(dx * AIR_DODGE_SPEED) * SHALLOW_DODGE_COS);
     motion.vz = -f32(AIR_DODGE_SPEED * SHALLOW_DODGE_SIN);
   } else {
