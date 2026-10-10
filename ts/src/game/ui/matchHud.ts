@@ -116,6 +116,7 @@ export class FighterHud {
     BlzFrameSetTextAlignment(this.stockCount, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT);
     BlzFrameSetEnable(this.stockCount, false);
     this.body = [this.plate, this.portrait, this.damage, this.tenths, this.name, this.slotLabel];
+    for (const frame of [...this.body, ...this.stocks, this.stockCount]) BlzFrameSetLevel(frame, 21);
     this.layout(slot, count);
     this.update(false, Character.rifleman, 0.0, 0);
   }

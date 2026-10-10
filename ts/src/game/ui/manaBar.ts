@@ -62,7 +62,7 @@ export class ManaBar {
     this.frames().forEach((frame, index) => {
       BlzFrameSetEnable(frame, false);
       BlzFrameSetVisible(frame, false);
-      BlzFrameSetLevel(frame, 8 + (index === 0 ? 0 : index <= 2 ? 1 : 2));
+      BlzFrameSetLevel(frame, 22 + (index === 0 ? 0 : index <= 2 ? 1 : 2));
     });
   }
 

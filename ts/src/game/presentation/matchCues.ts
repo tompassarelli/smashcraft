@@ -108,7 +108,7 @@ export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, 
     const fighter = fighterAt(world, slot);
     const winner = game.winner === slot;
     const stocks = game.endless ? "" : `Stocks ${fighter.status.stocks}  ·  `;
-    const label = humanFighterActive(game, slot) ? `P${slot + 1}` : cpuOpponentSummary(game, slot).replace(`CPU ${slot + 1}`, `P${slot + 1} · CPU`);
+    const label = humanFighterActive(game, slot) ? `P${slot + 1}` : cpuOpponentSummary(game, slot).replace(`CPU ${slot + 1} · `, `P${slot + 1} · CPU `);
     const text = `${winner ? "WINNER  " : ""}${label} · ${fighterName(fighter.character)}\n`
       + `${stocks}Damage ${percent(fighter.status.damage)}  ·  KOs ${tally.kos[slot]}  ·  Falls ${tally.falls[slot]}`;
     const row = { slot, winner, text };

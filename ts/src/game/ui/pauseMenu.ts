@@ -22,7 +22,7 @@ export class PauseMenu {
     BlzFrameSetTexture(this.root, "ReplaceableTextures\\TeamColor\\TeamColor20.blp", 0, true);
     BlzFrameSetVertexColor(this.root, -13619144);
     placeTopLeft(this.root, f32(0.08), f32(0.53));
-    BlzFrameSetSize(this.root, f32(0.64), f32(0.46));
+    BlzFrameSetSize(this.root, f32(0.64), f32(0.53));
     BlzFrameSetLevel(this.root, 20);
     const label = (name: string, y: number, height: number, size: number, parent = this.root) => {
       const frame = createText(name, parent, 1801);
@@ -43,10 +43,10 @@ export class PauseMenu {
       this.buttons.push(this.clicks.add(button, row));
       this.options.push(label(`SmashcraftPauseOptions${I2S(row)}`, y, f32(0.036), f32(0.018), button));
     }
-    this.help = label("SmashcraftPauseHelp", f32(0.23), f32(0.05), f32(0.010));
-    this.controls = label("SmashcraftPauseControls", f32(0.49), f32(0.1), f32(0.009));
-    placeTopLeft(this.controls, f32(0.10), f32(0.18));
-    BlzFrameSetSize(this.controls, f32(0.60), f32(0.10));
+    this.help = label("SmashcraftPauseHelp", f32(0.245), f32(0.045), f32(0.010));
+    this.controls = label("SmashcraftPauseControls", f32(0.19), f32(0.078), f32(0.0085));
+    placeTopLeft(this.controls, f32(0.10), f32(0.19));
+    BlzFrameSetSize(this.controls, f32(0.60), f32(0.078));
     BlzFrameSetVisible(this.root, false);
   }
 
@@ -87,14 +87,14 @@ export class PauseMenu {
       placeTopLeft(button, f32(0.26), y);
       placeTopLeft(option, f32(0.26), y);
     }
-    BlzFrameSetText(this.help, title ? "A / Start / Click: Play" : "Stick / arrows: choose    A: select    Click: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
+    BlzFrameSetText(this.help, title ? "A / Start / Click: Play" : "Stick / arrows: choose · A: select · Click: select\nStart / Y: resume · Escape: character select\nIJKL: camera · +/-: zoom · O/P: tilt · H: HUD");
     BlzFrameSetVisible(this.controls, !title);
     BlzFrameSetText(this.controls, "Q: full shield · T: light shield · P: tilt · Z: short hop · X: meter\n"
-      + "Shield before landing: tech; + left/right: tech roll.\n"
-      + "Shield + Special: EX (one bar) · Attack + Special: Ultimate (full bar).\n"
-      + "Shield + left/right: roll · Shield + down: dodge.\n"
-      + "Downed: Attack/Special: strike · Up/Jump/Shield: stand · left/right: roll.\n"
-      + "Ledge: Up/toward: climb · Jump: leap · Shield: roll · Attack: strike · Down/away: let go."
+      + "Shield just before landing: tech (hold left/right to roll)\n"
+      + "Shield + Special: EX (one bar) · Attack + Special: Ultimate (full bar)\n"
+      + "Shield + left/right: roll · Shield + down: dodge\n"
+      + "Downed: Attack/Special: strike · Up/Jump/Shield: stand · left/right: roll\n"
+      + "Ledge: Up/toward: climb · Jump: leap · Shield: roll · Attack: strike · Down/away: let go"
       + (training ? `\nF2: training hints ${hints ? "On" : "Off"}` : ""));
   }
 }
