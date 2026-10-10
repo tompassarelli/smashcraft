@@ -53,6 +53,8 @@ const dreadlordActions: Readonly<Record<string, Action>> = {
   pummel: { pose: "pummel", first: held, coil: gesture(held, { chest: -28, free: 50, twist: -18, knee: 20 }), contact: gesture(held, { chest: 50, free: -75, elbow: -25, twist: 18, knee: 35 }), last: held },
   throwForward: { pose: "throwForward", first: held, coil: gesture(held, { chest: -30, grip: 35, twist: -25, knee: 20 }), contact: gesture(held, { chest: 50, grip: -75, free: -65, elbow: -25, twist: 20, knee: 40 }), last: neutral },
   throwBack: { pose: "throwBack", first: held, coil: gesture(held, { chest: 40, grip: -60, free: -70, twist: 35, knee: 20 }), contact: gesture(held, { chest: -48, grip: 60, free: 75, elbow: -25, twist: -70, knee: 45 }), last: neutral },
+  throwUp: { pose: "throwUp", first: held, coil: gesture(held, { chest: 38, grip: 45, free: 35, knee: 35 }), contact: gesture(held, { chest: -35, grip: -140, free: -110, elbow: -15, head: -20, knee: 10 }), last: neutral },
+  throwDown: { pose: "throwDown", first: held, coil: gesture(held, { chest: -35, grip: 100, free: 80, knee: 20 }), contact: gesture(held, { chest: 65, grip: -25, free: -20, elbow: -15, knee: 55, head: 12 }), last: neutral },
 };
 
 function blend(a: Gesture, b: Gesture, t: number): Gesture {

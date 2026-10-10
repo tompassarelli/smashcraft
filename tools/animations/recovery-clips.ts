@@ -7,10 +7,13 @@ import { DrawnModel } from "../../ts/scripts/wisp/hurtboxView";
 import { Character } from "../../ts/src/game/sim/codes";
 import { authoredPhysics } from "../../ts/src/game/sim/tuning";
 import { seconds } from "./asset-info";
+import { RECOVERY_CLIPS } from "../../ts/src/game/presentation/recoveryClipInfo";
 import { fighters, ensure, parseSource, tracks, onGlobalClock, encodeVerified } from "./original-clips";
 
 const [assets, output] = process.argv.slice(2).map(p => resolve(p));
 const metadataOnly = process.argv.includes("--metadata-only");
+const characterAt=process.argv.indexOf("--character"),selected=characterAt<0?undefined:Number(process.argv[characterAt+1]);
+ensure(selected===undefined||selected===Character.dreadlord,"--character supports Dreadlord's recovery attacks (8)");
 ensure(assets && output, "usage: bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 const project = resolve(import.meta.dir, "../..");
 ensure(relative(project, output).startsWith(".."), "Derived models must stay outside the checkout");
@@ -71,6 +74,11 @@ function quaternion(y: number, z: number): Float32Array {
 const generated: string[] = [];
 const records: unknown[] = [];
 for (const [character, fighter] of fighters.entries()) {
+  if(selected!==undefined&&character!==selected){
+    const retained=RECOVERY_CLIPS[character as keyof typeof RECOVERY_CLIPS];
+    if(retained)generated.push(`  ${character}: {`,...Object.entries(retained).map(([pose,clip])=>`    ${pose}: { index: ${clip.index}, seconds: ${seconds(clip.seconds)} },`),"  },");
+    continue;
+  }
   if (character === Character.demonHunter || character === Character.lichKing || character === Character.forsakenPaladin) continue;
   if (metadataOnly) {
     const model = parseSource(await Bun.file(join(output, fighter.source)).arrayBuffer());
@@ -85,7 +93,8 @@ for (const [character, fighter] of fighters.entries()) {
   }
   const source = parseSource(await Bun.file(join(assets, fighter.source)).arrayBuffer());
   const model = structuredClone(source);
-  ensure(!source.Helpers.some(n => n.Name === "Recovery Motion"), `${fighter.name}: use an unmodified source when regenerating`);
+  const retained=source.Helpers.find(n=>n.Name==="Recovery Motion");
+  ensure(!retained||character===Character.dreadlord, `${fighter.name}: use an unmodified source when regenerating`);
   const stand = source.Sequences.find(s => /^stand ready$/i.test(s.Name)) ?? source.Sequences.find(s => /^stand(?:\s*-?\s*\d+)?$/i.test(s.Name));
   const attack = source.Sequences.find(s => /^attack(?:\s*-?\s*\d+)?$/i.test(s.Name));
   ensure(stand && attack, `${fighter.name}: no standing/attack donor`);
@@ -94,9 +103,10 @@ for (const [character, fighter] of fighters.entries()) {
   const heights = Array.from(standing).filter((_, i) => i % 2 === 1);
   const centre = (Math.min(...heights) + Math.max(...heights)) / 2;
   const id = model.Nodes.length;
-  const helper: mdx.Helper = { Name: "Recovery Motion", ObjectId: id, Parent: null, Flags: 0,
+  const helper: mdx.Helper = retained?model.Helpers.find(n=>n.ObjectId===retained.ObjectId)!:{ Name: "Recovery Motion", ObjectId: id, Parent: null, Flags: 0,
     PivotPoint: new Float32Array([0, 0, centre]),
     Rotation: { LineType: 1, GlobalSeqId: -1, Keys: [] }, Translation: { LineType: 1, GlobalSeqId: -1, Keys: [] }, Scaling: { LineType: 1, GlobalSeqId: -1, Keys: [] } };
+  if(!retained){
   for (const node of [...model.Bones, ...model.Helpers, ...model.Attachments]) if (node.Parent == null) node.Parent = id;
   model.Helpers.push(helper); model.Nodes.push(helper); model.PivotPoints.push(helper.PivotPoint);
 
@@ -105,26 +115,46 @@ for (const [character, fighter] of fighters.entries()) {
     helper.Translation?.Keys.push({ Frame, Vector: new Float32Array([0, 0, 0]) });
     helper.Scaling?.Keys.push({ Frame, Vector: new Float32Array([1, 1, 1]) });
   }
+  }
   const originalTracks = new Map<string, mdx.AnimVector>();
   tracks(source, (track, path) => originalTracks.set(path, track));
   let cursor = Math.max(...source.Sequences.map(s => s.Interval[1])) + 100;
   const bindings: string[] = [];
-  for (const action of actions(character)) {
-    const donor = action.attack ? attack : stand;
-    const start = cursor, end = start + Math.round(action.frames * 1000 / 60);
-    const index = model.Sequences.length;
+  const authored=retained?actions(character).filter(a=>a.attack):actions(character),rewritten=new Set<number>();
+  for (const action of authored) {
+    const driven=character===Character.dreadlord&&action.attack;
+    const donor = action.attack&&!driven ? attack : stand;
+    const existing=retained?model.Sequences.findIndex(s=>s.Name===`Recovery ${action.pose}`):-1;
+    const start = existing<0?cursor:model.Sequences[existing]!.Interval[0], end = existing<0?start + Math.round(action.frames * 1000 / 60):model.Sequences[existing]!.Interval[1];
+    const index = existing<0?model.Sequences.length:existing;rewritten.add(index);
     cursor = end + 100;
-    model.Sequences.push({ ...donor, Name: `Recovery ${action.pose}`, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
+    if(existing<0)model.Sequences.push({ ...donor, Name: `Recovery ${action.pose}`, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
       MinimumExtent: new Float32Array([-300, -300, -200]), MaximumExtent: new Float32Array([300, 300, 350]), BoundsRadius: 400 });
+    if(existing>=0)for(const track of [helper.Rotation,helper.Translation,helper.Scaling])if(track)track.Keys=track.Keys.filter(k=>k.Frame<start||k.Frame>end);
     tracks(model, (track, path) => {
       const original = originalTracks.get(path);
       if (!original || onGlobalClock(original)) return;
+      if(retained&&path.startsWith(`.Helpers.${model.Helpers.indexOf(helper)}.`))return;
+      if(existing>=0)track.Keys=track.Keys.filter(k=>k.Frame<start||k.Frame>end);
+      if(driven&&/^\.(Bones|Helpers)\.\d+\.Rotation$/.test(path)){
+        const match=/^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path)!,node=model[match[1] as "Bones"|"Helpers"][Number(match[2])]!,first=original.Keys.find(k=>k.Frame>=stand.Interval[0]&&k.Frame<=stand.Interval[1]);
+        if(!first)return;
+        const chest=node.Name==="Bone_Chest",pelvis=node.Name==="Bone_Pelvis",body=chest||pelvis||/^Bone_Leg[12]_[LR]$/.test(node.Name),contact=action.pose==="getUpAttack"?16:20;
+        const degrees=chest?50:pelvis?30:node.Name==="Bone_Head"?-15:/^Bone_Arm1_[LR]$/.test(node.Name)?node.Name.endsWith("_R")?-75:-50:/^Bone_Arm2_[LR]$/.test(node.Name)?-25:/^Bone_Leg1_[LR]$/.test(node.Name)?-45:/^Bone_Leg2_[LR]$/.test(node.Name)?65:0;
+        for(let frame=0;frame<=action.frames;frame++){
+          const coil=contact-3,peak=body?contact-1:contact,amount=frame<coil?-0.8*Math.sin(frame/coil*Math.PI/2):frame<=peak?-0.8+1.8*(frame-coil)/(peak-coil):frame<contact+4?1+0.25*(frame-peak)/(contact+4-peak):1.25*Math.max(0,1-(frame-contact-4)/(action.frames-contact-4));
+          const turn=quaternion(degrees*amount,0),[x=0,y=0,z=0,w=1]=first.Vector,[a=0,b=0,c=0,d=1]=turn,Vector=new Float32Array([d*x+a*w+b*z-c*y,d*y-a*z+b*w+c*x,d*z+a*y-b*x+c*w,d*w-a*x-b*y-c*z]);
+          track.Keys.push({...first,Frame:start+Math.round(frame*1000/60),Vector,...first.InTan?{InTan:Vector.slice(),OutTan:Vector.slice()}:{}});
+        }
+        track.Keys.sort((a,b)=>a.Frame-b.Frame);return;
+      }
 
 
       const channelDonor = /^\.(Bones|Helpers|Attachments|CollisionShapes)\./.test(path) ? donor : stand;
       for (const key of original.Keys) if (key.Frame >= channelDonor.Interval[0] && key.Frame <= channelDonor.Interval[1]) {
         track.Keys.push({ ...key, Frame: Math.round(start + (key.Frame - channelDonor.Interval[0]) * (end - start) / (channelDonor.Interval[1] - channelDonor.Interval[0])) });
       }
+      if(existing>=0)track.Keys.sort((a,b)=>a.Frame-b.Frame);
     });
     const translation: mdx.AnimKeyframe[] = [];
     for (let frame = 0; frame <= action.frames; frame++) {
@@ -134,6 +164,7 @@ for (const [character, fighter] of fighters.entries()) {
       const key = { Frame, Vector: new Float32Array([0, 0, p.height]) };
       translation.push(key); helper.Translation?.Keys.push(key);
     }
+    for(const track of [helper.Rotation,helper.Translation,helper.Scaling])track?.Keys.sort((a,b)=>a.Frame-b.Frame);
     if (!action.airborne) {
       const drawn = new DrawnModel(generateMDX(model), 1);
       for (let frame = 0; frame <= action.frames; frame++) {
@@ -148,19 +179,21 @@ for (const [character, fighter] of fighters.entries()) {
     }
     bindings.push(`    ${action.pose}: { index: ${index}, seconds: ${seconds((end - start) / 1000)} },`);
   }
+  if(retained){bindings.length=0;for(const action of actions(character)){const index=model.Sequences.findIndex(s=>s.Name===`Recovery ${action.pose}`),sequence=model.Sequences[index];ensure(sequence,`${action.pose}: missing retained recovery`);bindings.push(`    ${action.pose}: { index: ${index}, seconds: ${seconds((sequence.Interval[1]-sequence.Interval[0])/1000)} },`);}}
 
 
   const packaged = parseSource(generateMDX(model));
   const encoded = encodeVerified(packaged);
   const finalPreview = new DrawnModel(encoded, 1);
-  for (const [index, sequence] of source.Sequences.entries()) for (const progress of [0, 0.5, 1]) {
+    for (const [index, sequence] of source.Sequences.entries()) for (const progress of [0, 0.5, 1]) {
+    if(rewritten.has(index))continue;
     const time = (sequence.Interval[1] - sequence.Interval[0]) * progress / 1000;
     const before = preview.triangles(index, time, 1), after = finalPreview.triangles(index, time, 1);
     ensure(before.length === after.length && before.every((v, i) => Math.abs(v - (after[i] ?? Infinity)) < 0.001),
       `${fighter.name}/${sequence.Name}: an existing posed body changed`);
   }
-  for (const [offset, action] of actions(character).entries()) {
-    const index = source.Sequences.length + offset;
+  for (const action of authored) {
+    const index = model.Sequences.findIndex(s=>s.Name===`Recovery ${action.pose}`);
     const first = finalPreview.triangles(index, 0, 1);
     let motion = 0;
     for (let frame = 1; frame <= action.frames; frame++) {
@@ -174,8 +207,8 @@ for (const [character, fighter] of fighters.entries()) {
   chmodSync(join(output, fighter.source), 0o644);
   await Bun.write(join(output, fighter.source), encoded);
   generated.push(`  ${character}: {`, ...bindings, "  },");
-  records.push({ fighter: fighter.name, source: fighter.source, originalSequences: source.Sequences.length, appended: actions(character).map(a => a.pose) });
-  console.log(`RECOVERY_CLIPS_PASS ${fighter.name}: ${bindings.length} appended actions, existing ${source.Sequences.length} indices preserved`);
+  records.push({ fighter: fighter.name, source: fighter.source, originalSequences: source.Sequences.length, appended: authored.map(a => a.pose) });
+  console.log(`RECOVERY_CLIPS_PASS ${fighter.name}: ${authored.length} ${retained?"reauthored":"appended"} actions, existing ${source.Sequences.length} indices preserved`);
 }
 await Bun.write(join(project, "ts/src/game/presentation/recoveryClipInfo.ts"), [
   "// Generated by tools/animations/recovery-clips.ts; regenerate instead of editing.",

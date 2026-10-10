@@ -8,9 +8,11 @@ recovery clips and nine-way pain reactions. The project index of sources,
 with URLs, verified timestamps and rights, is
 smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
 
-`bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` from
+`bun tools/animations/recovery-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character 8]` from
   the repository root appends fighter recovery and transition clips before
   storing their families and refreshing the clip pool (smashcraft:docs/fighter-animation-work.md).
+  `--character 8` reauthors only Dreadlord's existing get-up and ledge attacks,
+  retaining the other recovery clips and all existing clip indices.
   `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
   clips and writing both-facing silhouette sheets for the native review.
