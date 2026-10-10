@@ -122,7 +122,7 @@ export class ProjectilePresentation {
       parked[slot] = false;
       const projectile = fighter?.projectiles[index];
       if (projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot])) {
-        const birth = pool?.path.includes("FreezingBreathMissile") === true || pool?.path.includes("WaterElementalMissile") === true;
+        const birth = pool?.path.includes("FreezingBreathMissile") === true || pool?.path.includes("WaterElementalMissile") === true || pool?.path.includes("FrostWyrmMissile") === true;
         BlzSetSpecialEffectAnimation(model, pose.animationSequence ?? (birth ? "birth" : "stand"));
         BlzSetSpecialEffectTime(model, 0.0);
         this.serials[slot] = projectile.serial;

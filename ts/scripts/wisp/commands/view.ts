@@ -338,8 +338,14 @@ const cues = (args: readonly string[]) => Effect.gen(function*() {
   for (const row of [...rows].sort((a, b) => b.linger - a.linger || b.coverage - a.coverage)) {
     yield* Console.log(`${row.over.length > 0 ? "OVER" : "ok  "} ${row.move} ${row.graphics}: danger to ${row.lastDanger}, shown ${row.firstShown}-${frames(row.lastShown)}, linger ${frames(row.linger)}, covers ${(row.coverage * 100).toFixed(1)}% (${row.widest.join(", ")})${row.colour === undefined ? "" : `, colour rgb(${row.colour.join(",")}), ${row.feedback}`}${row.popcorn ? " (Popcorn undrawn)" : ""}${row.over.length > 0 ? `; ${row.over.join("; ")}` : ""}`);
   }
+  const models = rows.flatMap((row) => (row.models ?? []).map((model) => ({ row, model })));
+  for (const { row, model } of models) {
+    yield* Console.log(`${model.pixels > 0 ? "px  " : "ZERO"} ${row.move} ${row.graphics} ${model.model}: ${model.pixels} px at most, shown on ${model.frames} frames${model.popcorn ? " (Popcorn undrawn)" : ""}`);
+  }
+  const zero = models.filter(({ model }) => model.pixels === 0);
   const over = rows.filter((row) => row.over.length > 0);
-  yield* Console.log(`${rows.length} cue measurements, ${over.length} over budget; frames in ${CUE_FRAMES}`);
+  yield* Console.log(`${rows.length} cue measurements, ${over.length} over budget; ${models.length} special form cue models, ${zero.length} at 0 px; frames in ${CUE_FRAMES}`);
+  if (zero.length > 0) return yield* new MapBuildFailure({ operation: "draw every special form's cue models", path: "ts/scripts/wisp/cueBudget.ts", cause: zero.map(({ row, model }) => `${row.move} ${row.graphics} ${model.model}`).join(", ") });
   if (over.length > 0) return yield* new MapBuildFailure({ operation: "check the effect budget", path: "docs/design/visual-quality.md", cause: over.map((row) => `${row.move} ${row.graphics}`).join(", ") });
 });
 

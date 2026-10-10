@@ -521,7 +521,7 @@ export function specialCueState(fighter: Readonly<Fighter>): CueState {
 }
 
 
-const ORIGINAL_ACTIONS: { readonly [character: number]: readonly SpecialAction[] } = {
+export const ORIGINAL_ACTIONS: { readonly [character: number]: readonly SpecialAction[] } = {
   [Character.rifleman]: [SpecialAction.riflemanBlaster, SpecialAction.riflemanBear, SpecialAction.riflemanRecovery, SpecialAction.riflemanTrap],
   [Character.demonHunter]: [SpecialAction.demonHunterManaBurn, SpecialAction.demonHunterFelRush, SpecialAction.demonHunterWingAscent, SpecialAction.demonHunterImmolate],
 };

@@ -684,7 +684,7 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
 }
 
 
-function enterFollowUp(f: Fighter, next: Readonly<AuthoredSpecial>): void {
+export function enterFollowUp(f: Fighter, next: Readonly<AuthoredSpecial>): void {
   const { special } = f;
   special.exArmorUsed = special.ex;
   special.frame = 0;
