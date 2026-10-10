@@ -126,7 +126,7 @@ export class ManaBar {
   }
 
   pickup(points: number): void {
-    this.pickupLeft = MANA_GLOW_UPDATES;
+    this.pickupLeft = MANA_GLOW_UPDATES + 1;
     if (!this.visible) return;
     this.shownFill = manaFill(points);
     BlzFrameSetSize(this.fill, Math.max(LINE_WIDTH, this.width * this.shownFill), this.height);
