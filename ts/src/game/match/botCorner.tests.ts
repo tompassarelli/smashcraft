@@ -12,6 +12,14 @@ test("only Advanced and Expert computers edge-cancel, press and escape the corne
   }
 });
 
+test("edge cancels and corner escapes rise with skill: Intermediate below Advanced below Expert [spec #386]", () => {
+  for (const opponent of CPU_OPPONENT_IDS) {
+    const intermediate = cpuSkill(opponent, "intermediate"), advanced = cpuSkill(opponent, "advanced"), expert = cpuSkill(opponent, "expert");
+    assertEquals(intermediate.edgeCancelTenths < advanced.edgeCancelTenths && advanced.edgeCancelTenths < expert.edgeCancelTenths, true);
+    assertEquals(intermediate.cornerEscapeTenths < advanced.cornerEscapeTenths && advanced.cornerEscapeTenths < expert.cornerEscapeTenths, true);
+  }
+});
+
 test("the corner measurement uses the computer's corner band and lip distance [invariant]", () => {
   assertEquals(MEASURED_BAND, CORNER_BAND);
   assertEquals(insideLip(0, mainDeckRight(0)), 0.0);

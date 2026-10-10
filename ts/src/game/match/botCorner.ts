@@ -25,6 +25,7 @@ const CANCEL_REACH = 200.0;
 const ESCAPE_FRAMES = 30;
 /** An opponent this close on the centre side closes the corner. */
 const CLOSING = 320.0;
+const EARLY_CLOSING = 480.0;
 
 /** Distance inside the nearer lip of the main deck; negative past it. */
 export function insideLip(stage: number, x: number): number {
@@ -55,12 +56,16 @@ const atLedge = (f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number)
  * with speed outward: the landing slides off and the edge cancel ends its lag.
  */
 export function steerEdgeCancel(f: Fighter, target: Readonly<Fighter> | undefined, stage: number, skill: CpuSkill, input: Controls): boolean {
-  if (!skill.cornerPlay || target === undefined || target.status.out || !atLedge(f, target, stage)) return false;
+  if (skill.edgeCancelTenths <= 0 || target === undefined || target.status.out) return false;
   if (f.launch.hitstun > 0 || f.special.fall || f.down.state !== DownState.none || f.ledge.state !== LedgeState.none || f.grab.target !== undefined) return false;
   const side = lipSide(f.motion.x);
   const inside = insideLip(stage, f.motion.x);
   if (inside < 0.0 || inside > CANCEL_REACH) return false;
   if (f.motion.grounded || (f.attack.style === undefined && inside > CARRY_REACH)) return false;
+  // Away from a cornered opponent it carries only a fall already drifting out, with a jump left to return
+  // on: some once they fall, or at every chance (Expert) each from the hop's rise.
+  if (!atLedge(f, target, stage) && (f.jump.remaining <= 0 || f32(f.motion.vx * side) <= 0.0
+    || (f.motion.vz > 0.0 && skill.edgeCancelTenths < 10) || !botChance(f.attack.serial, f.character * 7 + side, skill.edgeCancelTenths, 10))) return false;
   // Aim the landing just inside the lip: the slide carries it off before the lag ends.
   const out = f32(f.motion.vx * side);
   const landing = f32(inside - f32(out * landingFrames(f)));
@@ -98,7 +103,7 @@ const CARRY_REACH = 110.0;
  * the steering above keeps carrying (the shield-overshoot mixup).
  */
 export function pressEdgeCancel(f: Fighter, target: Readonly<Fighter>, stage: number, skill: CpuSkill, slot: number, frame: number, input: Controls, commands: AttackBuffer): boolean {
-  if (!skill.cornerPlay || target.status.out || !atLedge(f, target, stage) || f.launch.hitstun > 0 || f.special.fall) return false;
+  if (skill.edgeCancelTenths <= 0 || target.status.out || !atLedge(f, target, stage) || f.launch.hitstun > 0 || f.special.fall) return false;
   const side = lipSide(f.motion.x);
   const inside = insideLip(stage, f.motion.x);
   if (inside < CARRY_INSIDE || inside > CANCEL_REACH) return false;
@@ -106,7 +111,7 @@ export function pressEdgeCancel(f: Fighter, target: Readonly<Fighter>, stage: nu
     // A hop starts only with the opponent between it and the lip.
     if (insideLip(stage, target.motion.x) >= inside) return false;
     if (f.motion.surface !== 0 || !canAttack(f) || f.shield.raised || f.jump.squat > 0) return false;
-    if (!botChance(floorDiv(frame, CARRY_FRAMES), slot * 19 + f.character, skill.kitTenths, 10)) return false;
+    if (!botChance(floorDiv(frame, CARRY_FRAMES), slot * 19 + f.character, skill.edgeCancelTenths, 10)) return false;
     // Farther out it dashes in first, so the hop carries the dash's speed.
     if (inside > CARRY_REACH || f32(f.motion.vx * side) < 0.0) {
       input.direction = side;
@@ -142,9 +147,9 @@ export function pokeGoal(target: Readonly<Fighter>): number {
 const EscapeOption = { jump: 0, roll: 1, shield: 2 } as const;
 type EscapeOption = (typeof EscapeOption)[keyof typeof EscapeOption];
 
-function escapeOption(f: Readonly<Fighter>, slot: number, frame: number): EscapeOption {
+function escapeOption(f: Readonly<Fighter>, skill: CpuSkill, slot: number, frame: number): EscapeOption {
   const choice = botChoice(floorDiv(frame, ESCAPE_FRAMES), slot * 31 + f.character, 10);
-  return choice < 4 ? EscapeOption.jump : choice < 8 ? EscapeOption.roll : EscapeOption.shield;
+  return choice < floorDiv(skill.cornerEscapeTenths, 2) ? EscapeOption.jump : choice < skill.cornerEscapeTenths ? EscapeOption.roll : EscapeOption.shield;
 }
 
 /**
@@ -156,16 +161,17 @@ export function escapeCorner(f: Fighter, target: Readonly<Fighter>, stage: numbe
   if (!skill.cornerPlay || target.status.out || f.launch.hitstun > 0 || f.special.fall || f.down.state !== DownState.none) return false;
   const side = lipSide(f.motion.x);
   const gap = Math.abs(f32(target.motion.x - f.motion.x));
-  if (gap > CLOSING) return false;
+  // Every escape (Expert) starts before the opponent closes in: a wider gap still counts as closing.
+  if (gap > (skill.cornerEscapeTenths >= 10 ? EARLY_CLOSING : CLOSING)) return false;
   if (!f.motion.grounded) {
     // A hop out keeps drifting to the centre while it rises over the opponent.
     const inside = insideLip(stage, f.motion.x);
-    if (inside < 0.0 || inside > CORNER_BAND + POKE_GAP || f.motion.vz <= 0.0 || escapeOption(f, slot, frame) !== EscapeOption.jump) return false;
+    if (inside < 0.0 || inside > CORNER_BAND + POKE_GAP || f.motion.vz <= 0.0 || escapeOption(f, skill, slot, frame) !== EscapeOption.jump) return false;
     input.direction = -side;
     return true;
   }
   if (!cornered(f, target, stage) || f.motion.surface !== 0 || !canAttack(f)) return false;
-  switch (escapeOption(f, slot, frame)) {
+  switch (escapeOption(f, skill, slot, frame)) {
     case EscapeOption.jump:
       input.jumpPressed = true;
       input.jumpHeld = true;
