@@ -191,7 +191,8 @@ const ultimateContact = ultimate.projectiles?.[0]?.spawnFrame;
 ensure(ultimateContact !== undefined, "Locust Swarm release missing");
 const authoredActions: Action[] = [...actions, ...damageActions, { pose: "ultimate", frames: ultimate.endFrame, contact: ultimateContact, gesture: cast }];
 for (const [ordinal, action] of authoredActions.entries()) {
-  const index = model.Sequences.length, start = cursor, end = start + Math.round(action.frames * 1000 / 60); cursor = end + 100;
+  const index = model.Sequences.length, start = cursor + (action.pose === "ultimate" ? actions.filter(a => /^victim(Pummel|Throw)/.test(a.pose)).length * 1100 : 0), end = start + Math.round(action.frames * 1000 / 60);
+  if (action.pose !== "ultimate") cursor = end + 100;
   const name = !action.pain ? `Anubarak ${action.pose}` : `Anubarak Damage ${Math.floor((ordinal - actions.length) / 3)} ${(ordinal - actions.length) % 3}`;
   model.Sequences.push({ ...stand, Name: name, Interval: new Uint32Array([start, end]), NonLooping: true, MoveSpeed: 0, Rarity: 0,
     MinimumExtent: new Float32Array([-300, -300, -200]), MaximumExtent: new Float32Array([300, 300, 350]), BoundsRadius: 400 });
