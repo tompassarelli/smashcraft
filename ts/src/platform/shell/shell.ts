@@ -18,7 +18,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { on, trampoline } from "wisp/src/platform/dispatch";
 import { DRAW_EVENT, beginPresentedFrame, drawBetweenFrames, startFrameClock } from "./betweenFrames";
 import { EDITBOX_ENTER, EditboxIngress } from "../editboxJournal";
-import { localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
+import { confirmedChecksum, localParticipantSlot, traceTick, writeReadyMarker } from "./diagnostics";
 import { writeDrawnFrame } from "./drawnFrame";
 import { heldVisualFrame } from "../../game/shell/visualCapture";
 import { holdPresentedCapture, serviceVisualCapture } from "./visualCapture";
@@ -80,6 +80,10 @@ declare global {
 function gameTick(s: ShellState): void {
   if (!beforeNativeDriverTick(s)) return;
   if (s.build.pausePositionProbe && s.game.phase === Phase.match && s.probe?.run === 0) probe.startProbe(s.probe, false);
+  const recorder = s.probe;
+  if (s.build.epochProbe === true && recorder !== undefined) {
+    probe.serviceEpochProbe(recorder, s.game.phase === Phase.match ? activeRollback(s)?.epoch : undefined, () => `checksum ${recorder.epoch ?? -1} ${s.runtime.simulationFrame} ${confirmedChecksum(s)} ${s.game.phase}`);
+  }
   const pausedBefore = s.session.paused;
   view.serviceResumePresentation(s);
   serviceVisualCapture(s);
