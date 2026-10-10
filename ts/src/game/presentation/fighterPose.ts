@@ -177,7 +177,8 @@ export function advanceFighterPose(
   const rate = selectClip(pose, fighter, world, phase, hit, charging);
 
 
-  pose.rate = fighter.launch.hitlag > 0 || charging ? 0.0 : rate;
+  const stopped = pose.animation === `motion${IllidanLocomotion.stop}` && pose.motion.transitionRemaining === 0;
+  pose.rate = fighter.launch.hitlag > 0 || charging || stopped ? 0.0 : rate;
 }
 
 function advanceJumpClip(pose: FighterPose, f: Readonly<Fighter>, phase: AttackPhase, wasOut: boolean, jumped: boolean): void {
