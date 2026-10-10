@@ -41,6 +41,9 @@ on:
       tag:
         description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
+      farm-runner:
+        description: Runner label for the shard and probe jobs in place of the FARM_RUNNER variable (measures a box before enabling it)
+        default: ""
 
 run-name: Balance ${{ inputs.ref }} ${{ inputs.opponent }} ${{ inputs.tier }} ${{ inputs.per-pair }} a pair ${{ inputs.tag }}
 
@@ -109,7 +112,7 @@ jobs:
 
   shard:
     needs: plan
-    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && (inputs.farm-runner || vars.FARM_RUNNER) || 'ubuntu-latest' }}
     timeout-minutes: ${{ fromJSON(needs.plan.outputs.shard-timeout) }}
     strategy:
       fail-fast: true
@@ -215,7 +218,7 @@ jobs:
   probe:
     needs: [plan, merge]
     if: ${{ inputs.matchups == '' && inputs.probe != '0' }}
-    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && (inputs.farm-runner || vars.FARM_RUNNER) || 'ubuntu-latest' }}
     timeout-minutes: ${{ fromJSON(needs.plan.outputs.probe-timeout) }}
     strategy:
       fail-fast: true
