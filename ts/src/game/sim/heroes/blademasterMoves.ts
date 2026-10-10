@@ -3,7 +3,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
-import { BLADEMASTER_GROUND, groundPoses } from "./groundNormals";
+import { BLADEMASTER_GROUND, groundHit, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import { drillStrikes, linkAt, multiHit } from "./multiHit";
@@ -136,6 +136,13 @@ const BODY: FighterHurtboxes = {
 export const BLADEMASTER_MOVES: FighterMoves = {
   normals: {
     ...BLADEMASTER_GROUND.normals,
+    [AttackStyle.upTilt]: heroMove(6, 5, 18, 0, path(6, [
+      capsule(41.01948928833008, 115.76545715332031, 159.71731567382812, 122.42921447753906),
+      capsule(25.587867736816406, 135.66477966308594, 97.7462387084961, 230.10630798339844),
+      capsule(-1.499945878982544, 150.3919219970703, -19.133634567260742, 267.951416015625),
+      capsule(-33.79160690307617, 144.56675720214844, -132.7989501953125, 210.371337890625),
+      capsule(-49.44817352294922, 121.78135681152344, -168.27792358398438, 119.9704360961914),
+    ], groundHit(6.685000419616699, 85, 66.85000610351562, 38.0, HitElement.slash))),
     [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(11.977133750915527, "KILL", 40), hit(15.17103385925293, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(15, 4, 30, 0, path(15, [
       capsule(16.0, 38.0, 24.0, f32(L - BLADE_RADIUS)),

@@ -82,8 +82,8 @@ for(const g of gestures){
   const last=first+(move?.activeFrames??1)-1;
   const start=cursor,end=start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
   model.Sequences.push({...stand,Name:`Sword Gesture ${g.name}`,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400});
-  const controlFrames=[0,Math.max(1,first-3),first,("second" in g?g.second:last+2),total];
-  const poses=[guard,g.prep,g.hit,g.exit,guard];
+  const controlFrames=g.style===AttackStyle.upTilt ? [0,first-3,first,first+1,first+2,first+3,last,last+2,total-4,total] : [0,Math.max(1,first-3),first,("second" in g?g.second:last+2),total];
+  const poses=g.style===AttackStyle.upTilt ? [guard,pose([40,-50,120],[165,-50,120],8,-15),pose([40,-50,120],[165,-50,120],8,-10),pose([28,-50,140],[108,-50,242],-6,-4),pose([0,-50,150],[-22,-50,275],-10,0),pose([-28,-50,140],[-131,-50,212],-6,4),pose([-40,-50,120],[-165,-50,120],4,10),pose([0,-50,145],[0,-50,270],-6,14),pose([30,-50,115],[-15,-50,235],0,4),guard] : [guard,g.prep,g.hit,g.exit,guard];
   const rotations=new Map<number,Float32Array[]>();
   for(let phase=0;phase<poses.length;phase++){
     const p=poses[phase]!;
@@ -104,9 +104,9 @@ for(const g of gestures){
     });
     const renderer=new ModelRenderer(temp);renderer.setSequence(source.Sequences.length);
     const data=Reflect.get(renderer,"rendererData") as {frame:number;nodes:{matrix:Float32Array}[]};data.frame=start;renderer.update(0);
-    const position=(n:mdx.Node):number[]=>{const m=data.nodes[n.ObjectId]!.matrix,v=temp.PivotPoints[n.ObjectId]!;return [m[0]!*v[0]!+m[4]!*v[1]!+m[8]!*v[2]!+m[12]!,m[1]!*v[0]!+m[5]!*v[1]!+m[9]!*v[2]!+m[13]!,m[2]!*v[0]!+m[6]!*v[1]!+m[10]!*v[2]!+m[14]!];};
-    const aim=(joint:mdx.Node,effector:mdx.Node,target:V)=>{
-      const origin=position(joint),a=position(effector).map((v,i)=>v-origin[i]!),b=target.map((v,i)=>v-origin[i]!);const an=Math.hypot(...a),bn=Math.hypot(...b);if(an<0.001||bn<0.001)return;
+    const position=(n:mdx.Node,v=temp.PivotPoints[n.ObjectId]!):number[]=>{const m=data.nodes[n.ObjectId]!.matrix;return [m[0]!*v[0]!+m[4]!*v[1]!+m[8]!*v[2]!+m[12]!,m[1]!*v[0]!+m[5]!*v[1]!+m[9]!*v[2]!+m[13]!,m[2]!*v[0]!+m[6]!*v[1]!+m[10]!*v[2]!+m[14]!];};
+    const aim=(joint:mdx.Node,effector:mdx.Node,target:V,endpoint?:Float32Array)=>{
+      const origin=position(joint),a=position(effector,endpoint).map((v,i)=>v-origin[i]!),b=target.map((v,i)=>v-origin[i]!);const an=Math.hypot(...a),bn=Math.hypot(...b);if(an<0.001||bn<0.001)return;
       const av=a.map(v=>v/an),bv=b.map(v=>v/bn),cross=[av[1]!*bv[2]!-av[2]!*bv[1]!,av[2]!*bv[0]!-av[0]!*bv[2]!,av[0]!*bv[1]!-av[1]!*bv[0]!],cn=Math.hypot(...cross);if(cn<0.00001)return;
       const axis=cross.map(v=>v/cn),parent=joint.Parent==null?undefined:data.nodes[joint.Parent]?.matrix;
       const local=parent?[0,1,2].map(i=>(axis[0]!*parent[i*4]!+axis[1]!*parent[i*4+1]!+axis[2]!*parent[i*4+2]!)/Math.hypot(parent[i*4]!,parent[i*4+1]!,parent[i*4+2]!)):axis;
@@ -114,7 +114,8 @@ for(const g of gestures){
     };
     if(phase!==0&&phase!==poses.length-1){
       for(let iteration=0;iteration<12;iteration++)for(const joint of arm.toReversed())aim(joint,hand,p.hand);
-      aim(hand,tip,p.tip);
+      if(g.style===AttackStyle.upTilt) aim(hand,sword,p.tip,new Float32Array([90.45929718017578,63.46139907836914,82.50170135498047]));
+      else aim(hand,tip,p.tip);
     }
     for(const n of [...temp.Bones,...temp.Helpers])if(n.Rotation){const q=n.Rotation.Keys.at(-1)?.Vector;if(q){const list=rotations.get(n.ObjectId)??[];list.push(Float32Array.from(q));rotations.set(n.ObjectId,list);}}
   }
