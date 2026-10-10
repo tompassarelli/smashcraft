@@ -16,8 +16,9 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   `bun tools/animations/drill-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
   Blademaster, Warden and Shadow Hunter down-air drills, preserving earlier
   clips and writing both-facing silhouette sheets for the native review.
-  `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT` appends
+  `bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]` appends
   downward contact poses for the seven stock heroes whose casts/swings pointed forward.
+  `--character 8` reauthors Dreadlord's dive while retaining every other fighter.
   `bun tools/animations/attack-gesture-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT [--character ID]`
   appends distinct roster attack gestures without changing combat data or old clips;
   `--character` regenerates one fighter while retaining other generated bindings;

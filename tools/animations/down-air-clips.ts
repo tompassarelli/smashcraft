@@ -10,7 +10,7 @@ import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } 
 const [input, output] = process.argv.slice(2, 4).map(p => resolve(p));
 const characterAt = process.argv.indexOf("--character");
 const selected = characterAt < 0 ? undefined : Number(process.argv[characterAt + 1]);
-ensure(selected === undefined || selected === Character.lich, "--character supports Lich's contact repair (6)");
+ensure(selected === undefined || selected === Character.lich || selected === Character.dreadlord, "--character supports Lich (6) and Dreadlord (8)");
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/down-air-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 mkdirSync(output, {recursive:true});
