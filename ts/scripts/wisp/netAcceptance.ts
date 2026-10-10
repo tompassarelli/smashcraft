@@ -81,7 +81,7 @@ const RollbackReport = Schema.Struct({ window: Schema.Finite, delay: Schema.Fini
 const decodeRollback = Schema.decodeUnknownSync(Schema.fromJsonString(RollbackReport));
 const CapturedRow = Schema.Struct({ frame: Schema.Finite, pressed: Schema.Finite, tick: Schema.Finite, frontier: Schema.Finite, drawnTick: Schema.Finite, pressTicks: Schema.Array(Schema.Finite) });
 const PressReport = Schema.Struct({
-  slot: Schema.Finite, delay: Schema.Finite, conflicts: Schema.Finite, unmatched: Schema.Finite, lost: Schema.Finite, captured: Schema.Array(CapturedRow),
+  slot: Schema.Finite, delay: Schema.Finite, endFrame: Schema.Finite, conflicts: Schema.Finite, unmatched: Schema.Finite, lost: Schema.Finite, captured: Schema.Array(CapturedRow),
   received: Schema.Record(Schema.String, Schema.Record(Schema.String, Schema.Finite)),
 });
 const decodePresses = Schema.decodeUnknownSync(Schema.fromJsonString(PressReport));
@@ -168,15 +168,17 @@ export const runAcceptance = (options: { readonly matches: number; readonly fram
 /** One player's presses against the other side: lost or extra presses, rows off their assigned frame or missing remotely, and press-to-drawn ticks. */
 export function pressAccounting(local: SideResult, remote: SideResult) {
   const report = local.presses;
-  if (report === undefined) return { presses: 0, lost: 1, extra: 1, offFrame: 1, remoteMismatch: 1, drawn: [], delay: 0 };
+  if (report === undefined) return { presses: 0, lost: 1, extra: 1, offFrame: 1, remoteMismatch: 1, afterEnd: 0, drawn: [], delay: 0 };
   const remoteRows = remote.presses?.received[`${report.slot}`] ?? {};
   const ownFrames = new Set(report.captured.map((row) => row.frame));
-  const drawn = report.captured.flatMap((row) => row.pressTicks.map((tick) => row.drawnTick < 0 ? Infinity : row.drawnTick - tick));
+  const afterEnd = (row: typeof CapturedRow.Type) => row.drawnTick < 0 && row.frame >= report.endFrame;
+  const drawn = report.captured.filter((row) => !afterEnd(row)).flatMap((row) => row.pressTicks.map((tick) => row.drawnTick < 0 ? Infinity : row.drawnTick - tick));
   return {
     presses: report.captured.reduce((sum, row) => sum + row.pressTicks.length, 0), lost: report.lost,
     extra: report.unmatched + Object.keys(remoteRows).filter((frame) => !ownFrames.has(Number(frame))).length + report.conflicts,
     offFrame: report.captured.filter((row) => row.frame - row.frontier !== report.delay).length,
     remoteMismatch: report.captured.filter((row) => remoteRows[`${row.frame}`] !== row.pressed).length,
+    afterEnd: report.captured.filter(afterEnd).reduce((sum, row) => sum + row.pressTicks.length, 0),
     drawn, delay: report.delay,
   };
 }
@@ -213,7 +215,7 @@ function pressSummary(sides: readonly Accounting[]) {
   const sum = (pick: (side: Accounting) => number) => sides.reduce((total, side) => total + pick(side), 0);
   const presses = sum((side) => side.presses);
   return {
-    presses, pressesLost: sum((side) => side.lost), pressesExtra: sum((side) => side.extra),
+    presses, pressesLost: sum((side) => side.lost), pressesExtra: sum((side) => side.extra), pressesAfterEnd: sum((side) => side.afterEnd),
     onAssignedFrame: presses === 0 ? 0 : 1 - (sum((side) => side.offFrame) + sum((side) => side.remoteMismatch)) / Math.max(1, sides.reduce((total, side) => total + side.drawn.length, 0)),
     offFrame: sum((side) => side.offFrame), remoteMismatch: sum((side) => side.remoteMismatch), inputDelay: Math.max(0, ...sides.map((side) => side.delay)),
     drawnWithin3: drawn.length === 0 ? 0 : drawn.filter((ticks) => ticks <= 3).length / drawn.length,
