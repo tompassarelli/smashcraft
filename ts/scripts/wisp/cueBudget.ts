@@ -12,7 +12,7 @@ import { captureScene, renderScenes, type DrawnPose, type RenderScene } from "wi
 import type { Graphics } from "wisp/scripts/wisp/graphicsProfiles";
 import { SMASHCRAFT_HEADLESS } from "./headless";
 import { headlessRender } from "./headlessRender";
-import { DISJOINT_MODELS, disjointNormals } from "../../src/game/presentation/disjointCues";
+import { DISJOINT_CUES, disjointNormals } from "../../src/game/presentation/disjointCues";
 import { ATTACK_CUES } from "../../src/game/presentation/attackCues";
 import { ARENA_CAMERA, FLOOR_HEIGHT, PLAYABLE_BOUNDS, cameraFieldOfView, extremeCamera } from "../../src/game/presentation/arenaCamera";
 import { ACTIVE_CUE_FRAMES, type Cue, ORIGINAL_ACTIONS, ORIGINAL_BRANCH_CUES, specialCueState } from "../../src/game/presentation/specialCues";
@@ -370,7 +370,7 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
     const scenes: RenderScene[] = [];
     const poses: (readonly ParkPose[])[] = [];
     const expected = new Set<string>();
-    if (move.style !== undefined && disjointNormals(f).includes(move.style)) expected.add(DISJOINT_MODELS[move.character] ?? "");
+    if (move.style !== undefined && disjointNormals(f).includes(move.style)) expected.add(DISJOINT_CUES[move.character]?.model ?? "");
     const look = (cue: Cue) => (graphics === "definitive" ? cue.definitive ?? cue : cue);
     let lastDanger = -1, ended = -1, lastLive = 0;
     let empty: RenderScene | undefined;
