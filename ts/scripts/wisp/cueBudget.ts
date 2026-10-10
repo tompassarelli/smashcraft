@@ -7,7 +7,7 @@ import { Effect } from "effect";
 import { ChildProcess } from "effect/process";
 import { runProcess } from "../hostProcess";
 import { installHeadless } from "wisp/scripts/wisp/headless";
-import { captureScene, renderScenes, type RenderScene } from "wisp/scripts/wisp/headlessRender";
+import { captureScene, renderScenes, type DrawnPose, type RenderScene } from "wisp/scripts/wisp/headlessRender";
 import type { Graphics } from "wisp/scripts/wisp/graphicsProfiles";
 import { SMASHCRAFT_HEADLESS } from "./headless";
 import { headlessRender } from "./headlessRender";
@@ -341,6 +341,11 @@ function drawnPixels(empty: Uint8Array, frame: Uint8Array): { readonly share: nu
   return { share: drawn / (frame.length / 4), colour: sum.map((total) => drawn === 0 ? 0 : Math.round(total / drawn)) };
 }
 
+/** The models of the effects that put pixels on screen: shown, scaled and not flat. A parked effect is scale 0 under the floor. */
+export function drawnModels(effects: readonly Pick<DrawnPose, "model" | "alpha" | "scale" | "flat">[]): string[] {
+  return effects.filter(({ alpha, scale, flat }) => alpha > 0 && scale > 0 && !flat).map(({ model }) => model.split("\\").at(-1) ?? model);
+}
+
 const rgba = (path: string) => Effect.gen(function*() {
   const raw = path.replace(/\.png$/, ".rgba");
   yield* runProcess(ChildProcess.make("magick", [path, "-depth", "8", `rgba:${raw}`], { stdin: "ignore" }));
@@ -376,7 +381,7 @@ export const measureCueMoves = (moves: readonly CueMove[], graphics: Graphics, d
     const firstShown = shown[0] ?? -1, lastShown = Math.max(shown.at(-1) ?? -1, tail);
     const linger = lastShown < 0 ? 0 : Math.max(0, lastShown - Math.max(lastDanger, 0));
     const coverage = Math.max(0, ...shares);
-    const widest = [...new Set(scenes[shares.indexOf(coverage)]?.effects.map(({ model }) => model.split("\\").at(-1) ?? model) ?? [])];
+    const widest = [...new Set(drawnModels(scenes[shares.indexOf(coverage)]?.effects ?? []))];
     const over = [
       ...(linger > CUE_FADE_FRAMES ? [`shown ${linger} frames after its last hit or frame, limit ${CUE_FADE_FRAMES}`] : []),
       ...(coverage > CUE_COVERAGE_LIMIT ? [`covers ${(coverage * 100).toFixed(1)}% of the screen, limit ${(CUE_COVERAGE_LIMIT * 100).toFixed(1)}%`] : []),
