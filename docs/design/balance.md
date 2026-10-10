@@ -388,6 +388,37 @@ up (Kobold 29.9→35.3%, Anub'arak 30.7→37.0%, Dreadlord 31.8→39.6%) and the
 high end down (Goblin Tinker 62.7→54.9%, Grom 65.9→61.4%), but 14 fighters
 are still outside the band; Rifleman rose to 77.3%.
 
+Step 2 multiplies on top of step 1 (same field, same seeds). Fighters kept at
+or under step 1's feel-lock count use half the kill-percent compensation; the
+others keep it all. Kobold, Murloc, Lich, Medivh and Pit Lord keep their
+forward smash. Rifleman's ground blaster deals 3 instead of 4 (9 frames of
+flinch instead of 12) and his bear swipes for 7.9 instead of 9.3, with growth
+raised so it still kills near its old percent; his normals stay the reference.
+
+| Fighter | Damage | Growth |
+| --- | ---: | ---: |
+| kobold | ×1.11 | ×0.967 |
+| anub'arak | ×1.11 | ×0.967 |
+| murloc | ×1.13 | ×0.961 |
+| medivh | ×1.06 | ×0.982 |
+| forsaken-paladin | ×1.14 | ×0.916 |
+| lich | ×1.14 | ×0.916 |
+| pit-lord | ×1.14 | ×0.916 |
+| dreadlord | ×1.06 | ×0.964 |
+| shadow-hunter | ×0.93 | ×1.039 |
+| blademaster | ×0.90 | ×1.055 |
+| beastmaster | ×0.86 | ×1.077 |
+| goblin-tinker | ×0.97 | ×1.017 |
+| warden | ×0.88 | ×1.132 |
+| grom-hellscream | ×0.89 | ×1.121 |
+| jaina-proudmoore | ×0.97 | ×1.033 |
+| chen-stormstout | ×0.97 | ×1.033 |
+
+The field puts 18 of 26 inside 45–55%. Still outside: Dreadlord 37.2%,
+Lich 42.6%, Kobold 42.8%, Forsaken Paladin 43.4%, Cairne 44.9%, Grom 58.2%,
+Warden 58.5%, Rifleman 71.4%. Dreadlord fell with more damage, so his gap is
+not damage.
+
 ## Player panel and equal skill ceilings (#358)
 
 Every fighter targets a 45–55% mean over all six Expert personalities, with
