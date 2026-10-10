@@ -311,11 +311,11 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Peon | heavy | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Goblin Tinker | light | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Goblin Tinker | light | back throw | 0/0 | 0/0 | 0/0 | 0/0 |
-| Goblin Tinker | light | up throw | 1/1 | 1/1 in up smash, out down smash | 1/1 KD in up smash, out forward smash | 1/1 KD in down smash, out down special |
+| Goblin Tinker | light | up throw | 1/1 | 1/1 in up smash, out down smash | 1/1 KD in up smash, out forward smash | 1/1 KD in down smash, out dash, dash attack |
 | Goblin Tinker | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Goblin Tinker | medium | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Goblin Tinker | medium | back throw | 0/0 | 0/0 | 0/0 | 0/0 |
-| Goblin Tinker | medium | up throw | 1/1 | 1/1 in up smash, out down smash | 1/1 KD in up smash, out forward smash | 1/1 in up smash, out down special |
+| Goblin Tinker | medium | up throw | 1/1 | 1/1 in up smash, out down smash | 1/1 KD in up smash, out forward smash | 1/1 in up smash, out dash, dash attack |
 | Goblin Tinker | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Goblin Tinker | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Goblin Tinker | heavy | back throw | 0/0 | 0/0 | 0/0 | 0/0 |
