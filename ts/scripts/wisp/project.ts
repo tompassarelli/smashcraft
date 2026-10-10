@@ -5,15 +5,13 @@ import { UsageFailure } from "wisp/scripts/wisp/command";
 import type { BuildProject } from "wisp/scripts/wisp/mapBuild";
 import { GameFiles } from "wisp/scripts/wisp/gameFiles";
 import { SourceErrors } from "wisp/scripts/wisp/sourceErrors";
+import { type Profile, profiles } from "./profiles";
 
 export const tsDirectory = join(import.meta.dir, "../..");
 export const projectRoot = join(tsDirectory, "..");
 export const clientState = join(homedir(), ".local/state/smashcraft/clients.json");
 export const sourceMapDirectory = join(tsDirectory, "build/source-maps");
 
-
-const profiles = ["main", "integrity", "pause-probe", "playable", "native-input", "analog-keys", "analog-cursor", "native-perf", "physics-probe", "frame-cost", "stack-trace", "damage-blend-probe", "native-driver", "native-capture"] as const;
-type Profile = (typeof profiles)[number];
 
 export const sceneProfiles: ReadonlySet<Profile> = new Set<Profile>(["main", "integrity", "pause-probe"]);
 const profileConfigs: Readonly<Record<Profile, string>> = {

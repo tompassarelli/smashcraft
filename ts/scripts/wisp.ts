@@ -10,13 +10,15 @@ import type { Teardown } from "effect/Runtime";
 import type { Command } from "wisp/scripts/wisp/command";
 import { step, timingsLayer } from "wisp/scripts/wisp/timings";
 import { platformLayer } from "wisp/scripts/platform/layer";
+import { profiles } from "./wisp/profiles";
 
+const PROFILE = `[--profile ${profiles.join("|")}]`;
 
 const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Promise<Command> }> = {
-  hot: { usage: "hot --data DIR [--data DIR ...] [--watch] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/hot")).hot },
+  hot: { usage: `hot --data DIR [--data DIR ...] [--watch] ${PROFILE}`, load: async () => (await import("./wisp/commands/hot")).hot },
   map: { usage: "map build --name NAME --out OUT.w3x [--base BASE.w3m] [--container MAP.w3x] [--assets DIR] [--summon DIR] [--packager PATH] [--profile NAME] | map rebuild MAP.w3x [--profile NAME]", load: async () => (await import("./wisp/commands/map")).map },
   inputs: { usage: "inputs add FAMILY PATH | check | path [base|container|assets|summon]   (content-addressed private build inputs named by build-inputs.json: docs/build-inputs.md)", load: async () => (await import("./wisp/commands/inputs")).inputs },
-  fresh: { usage: "fresh MAP.w3x [--rebuild] [--no-quick] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace] [--clients-file FILE]", load: async () => (await import("./wisp/commands/fresh")).fresh },
+  fresh: { usage: `fresh MAP.w3x [--rebuild] [--no-quick] ${PROFILE} [--clients-file FILE]`, load: async () => (await import("./wisp/commands/fresh")).fresh },
   anim: { usage: "anim score [--fighter NAME]... [--graphics classic|definitive] [--assets DIR] | anim judge fetch | anim judge prepare --out PRIVATE_DIR [--fighter NAME]... [--move FIGHTER:MOVE]... [--graphics classic|definitive] | anim judge record SCORES.jsonl...   (the animation scorecard: docs/animation-scorecard.md)", load: async () => (await import("./wisp/commands/anim")).anim },
   judge: { usage: "judge DIR --rubric FILE", load: async () => (await import("./wisp/commands/judge")).judge },
   oracle: { usage: "oracle", load: async () => (await import("./wisp/commands/oracle")).oracle },
@@ -35,7 +37,7 @@ const COMMANDS: Record<string, { readonly usage: string; readonly load: () => Pr
   dev: { usage: "dev [--data DIR --data DIR]", load: async () => (await import("./wisp/commands/dev")).dev },
   play: { usage: "play [--install-green | --standalone [--script FILE] [--presentation native|pool-confirmed|pool-predicted] [--headless --frames N --out DIR] [--capture-frames N,N]]   (standalone browser player, Tom's Warcraft desktop, or --install-green: build and install the newest green main without launching Warcraft)", load: async () => (await import("./wisp/commands/play")).play },
   controller: { usage: "controller   (Tom's Xbox controller for any Smashcraft session on his desktop: points the always-on controller service at main's helper, or runs it here)", load: async () => (await import("./wisp/commands/controller")).controller },
-  tune: { usage: "tune --data DIR [--data DIR ...] [--port N] [--profile main|integrity|playable|native-perf|physics-probe|frame-cost|stack-trace]", load: async () => (await import("./wisp/commands/tune")).tune },
+  tune: { usage: `tune --data DIR [--data DIR ...] [--port N] ${PROFILE}`, load: async () => (await import("./wisp/commands/tune")).tune },
   repro: { usage: "repro FILE [--view] [--test NAME] [--shrink [--out FILE]] [--frame N --out FILE] [--diff-frame N|previous]", load: async () => (await import("./wisp/commands/repro")).repro },
   replay: { usage: "replay FILE [--out JOINED]", load: async () => (await import("./wisp/commands/replay")).replay },
   net: {
