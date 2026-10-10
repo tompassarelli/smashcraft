@@ -49,6 +49,11 @@ const actions: readonly Action[] = [
   { pose: "throwDown", first: held, coil: gesture(held, { chest: -18, grip: -148, free: -98 }), contact: gesture(held, { chest: 66, grip: -36, free: -32, elbow: -5, knee: 36, head: 12 }), last: gesture(neutral, { chest: 12, knee: 10 }) },
   { pose: "victimThrowDown", first: captive, coil: gesture(captive, { chest: -24, grip: -118, knee: 45 }), contact: gesture(captive, { chest: 76, head: -8, grip: -40, free: 36, knee: 70, twist: 25 }), last: neutral },
 ];
+const dreadlordActions: Readonly<Record<string, Action>> = {
+  pummel: { pose: "pummel", first: held, coil: gesture(held, { chest: -28, free: 50, twist: -18, knee: 20 }), contact: gesture(held, { chest: 50, free: -75, elbow: -25, twist: 18, knee: 35 }), last: held },
+  throwForward: { pose: "throwForward", first: held, coil: gesture(held, { chest: -30, grip: 35, twist: -25, knee: 20 }), contact: gesture(held, { chest: 50, grip: -75, free: -65, elbow: -25, twist: 20, knee: 40 }), last: neutral },
+  throwBack: { pose: "throwBack", first: held, coil: gesture(held, { chest: 40, grip: -60, free: -70, twist: 35, knee: 20 }), contact: gesture(held, { chest: -48, grip: 60, free: 75, elbow: -25, twist: -70, knee: 45 }), last: neutral },
+};
 
 function blend(a: Gesture, b: Gesture, t: number): Gesture {
   const v = (key: keyof Gesture) => a[key] * (1 - t) + b[key] * t;
@@ -63,7 +68,9 @@ function phasesFor(action: Action, character: number): readonly { readonly at: n
     : action.pose === "victimPummel" ? contact - contact / PUMMEL_CONTACT_FRAME : 0.3;
 
   const contactPose = character === Character.lichKing && action.pose === "grab" ? gesture(action.contact, { chest: 18 }) : action.contact;
-  return [{ at: 0, pose: action.first }, { at: coil, pose: action.coil }, { at: contact, pose: contactPose }, { at: activeEnd, pose: contactPose }, { at: 1, pose: action.last }];
+  const driven=character===Character.dreadlord&&dreadlordActions[action.pose]!==undefined;
+  const follow=driven?gesture(contactPose,{chest:contactPose.chest*1.25,grip:contactPose.grip*1.2,free:contactPose.free*1.2,knee:contactPose.knee*1.15}):contactPose;
+  return [{ at: 0, pose: action.first }, { at: coil, pose: action.coil }, ...(driven?[{at:contact-1/60,pose:blend(action.coil,contactPose,0.85)}]:[]), { at: contact, pose: contactPose }, { at: activeEnd, pose: follow }, { at: 1, pose: action.last }];
 }
 function at(action: Action, character: number, t: number): Gesture {
   if (action.hold) return action.first;
@@ -119,7 +126,8 @@ for (const [character, fighter] of fighters.entries()) {
   let cursor = Math.max(...source.Sequences.map(s => s.Interval[1])) + 100;
   const bindings: string[] = [], indices: number[] = [];
   const rewritten = new Set<number>();
-  for (const action of actions) {
+  for (const original of actions) {
+    const action=character===Character.dreadlord?dreadlordActions[original.pose]??original:original;
     const existing = model.Sequences.findIndex(s => s.Name === `Paired Grab ${action.pose}`);
     const index = existing < 0 ? model.Sequences.length : existing;
     const start = existing < 0 ? cursor : model.Sequences[index]!.Interval[0];
@@ -140,9 +148,18 @@ for (const [character, fighter] of fighters.entries()) {
       const match = /^\.(Bones|Helpers)\.(\d+)\.Rotation$/.exec(path);
       const node = match ? source[match[1] as "Bones" | "Helpers"][Number(match[2])] : undefined;
       for (const { at: t } of phasesFor(action, character)) {
-        const [pitch, yaw] = node ? articulation(node.Name, at(action, character, t), fighter.name) : [0, 0];
+        const driven=character===Character.dreadlord&&dreadlordActions[action.pose]!==undefined;
+        const body=driven&&/^(Bone_Chest|Bone_Pelvis|Bone_Leg[12]_[LR]|Recovery Motion)$/.test(node?.Name??"");
+        const posed=at(action,character,body&&t>0&&t<0.6?Math.min(0.6,t+1/60):t);
+        const [pitch, yaw] = node?.Name==="Bone_Pelvis"&&driven?[posed.chest*0.55,posed.twist*0.5]:node ? articulation(node.Name, posed, fighter.name) : [0, 0];
         const transform = (q: Float32Array | Int32Array) => pitch || yaw ? rotate(q, pitch, yaw) : q.slice();
         const Vector = transform(first.Vector);
+        const translated=/^\.(Bones|Helpers)\.(\d+)\.Translation$/.exec(path),translatedNode=translated?source[translated[1] as "Bones"|"Helpers"][Number(translated[2])]:undefined;
+        if(driven&&translatedNode?.Name==="Recovery Motion"){
+          const shift=at(action,character,t>0&&t<0.6?Math.min(0.6,t+1/60):t).chest;
+          Vector[0]=Vector[0]!+shift*0.5;
+          if(action.pose==="throwUp")Vector[2]=Vector[2]!-shift*0.25;
+        }
         if (match) {
 
 
