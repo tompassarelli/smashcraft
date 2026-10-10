@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroMoves, heroRegion, type AuthoredThrow, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { LICH_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
@@ -118,10 +118,8 @@ const LICH_BODY: FighterHurtboxes = {
 };
 
 const GRAB_EFFECT ={ damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
-export const LICH_MOVES: FighterMoves = {
+export const LICH_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   hurtboxes: LICH_BODY,
   normals: {
@@ -160,4 +158,4 @@ export const LICH_MOVES: FighterMoves = {
     [GrabAction.throwUp]: throwMove(17, 13, 7.468999862670898, "JUGGLE", 90),
     [GrabAction.throwDown]: throwMove(19, 26, 6.4019999504089355, "CHASE", 70),
   },
-};
+});

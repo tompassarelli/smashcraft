@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
-import { type FighterMoves, type StrikeCapsule, heroMove, heroRegion, heroHurtPose, jabStep, cleanLateMove } from "../heroMoves";
+import { type StrikeCapsule, heroMove, heroMoves, heroRegion, heroHurtPose, jabStep, cleanLateMove } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -13,8 +13,8 @@ const wolf = hurtPart(-48.0, 36.0, 70.0, 36.0, 28.0);
 const paw = hurtPart(48.0, 34.0, 96.0, 34.0, 20.0);
 const down = { damage: 13.0, growth: 103.52999877929688, base: 24.0, launchX: 0.0, launchZ: -1.0, electric: false, element: HitElement.normal };
 
-export const THRALL_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const THRALL_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [body, wolf],
     attacks: {
@@ -59,4 +59,4 @@ export const THRALL_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 28, effect: thrallHit(7.168000221252441, 75, 83.80999755859375, 60.0, true) },
     [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 42, effect: thrallHit(6.144000053405762, 70, 39.439998626708984, 75.0) },
   },
-};
+});

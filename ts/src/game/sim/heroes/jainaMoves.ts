@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, cleanLateMove } from "../heroMoves";
 import { hurtPart, hurtPose, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -17,8 +17,8 @@ const tilt = (height: number, angle: 25 | 35 | 55) => heroMove(9, 3, 22, 0,
   [heroRegion(9, 11, path(28.0, 54.0, 115.0, height, 8.0), jainaHit(7.616000175476074, angle))]);
 const noHit = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false };
 
-export const JAINA_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const JAINA_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [torso], crouch: [hurtPart(0.0, 4.0, 0.0, f32(body.z2 * f32(0.6)), body.radius)],
     attacks: {
@@ -64,4 +64,4 @@ export const JAINA_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 25, effect: jainaHit(6.664000034332275, 90, 73.70999908447266, 45.0) },
     [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 43, effect: jainaHit(5.711999893188477, 70, 42.119998931884766, 75.0) },
   },
-};
+});

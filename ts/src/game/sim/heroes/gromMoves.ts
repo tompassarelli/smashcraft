@@ -1,5 +1,5 @@
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { groundHit } from "./groundNormals";
 import { hurtPart } from "../hurtboxes";
 
@@ -9,8 +9,8 @@ const move = (first: number, active: number, total: number, landing: number, reg
 const tilt = (z: number, angle: 25 | 35 | 55) => move(9, 3, 28, 0, [heroRegion(9, 11, axe(24.0, 55.0, 104.0, z), gromHit(8.949599266052246, angle))]);
 const torso = hurtPart(0.0, 8.0, 0.0, 125.0, 24.0);
 const reach = (first: number, last: number, x: number, z: number) => [heroHurtPose(first, last, [torso, hurtPart(10.0, 60.0, x, z, 10.0)])];
-export const GROM_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const GROM_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: { stand: [torso], crouch: [hurtPart(0.0, 8.0, 0.0, 75.0, 24.0)], attacks: {
     [AttackStyle.jab]: reach(2, 8, 36.0, 52.0), [AttackStyle.jab2]: reach(4, 10, 48.0, 55.0),
     [AttackStyle.forwardTilt]: reach(7, 14, 60.0, 55.0), [AttackStyle.forwardTiltUp]: reach(7, 14, 52.0, 90.0), [AttackStyle.forwardTiltDown]: reach(7, 14, 52.0, 24.0),
@@ -44,4 +44,4 @@ export const GROM_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 28, effect: gromHit(7.23199987411499, 75, 93.92500305175781, 60.0, true) },
     [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 40, effect: gromHit(6.328000068664551, 25, 44.20000076293945, 72.0) },
   },
-};
+});
