@@ -617,7 +617,7 @@ export class SelectionPanel {
 
   menuBindings(bindings: Readonly<KeyBindings>): void {
     const name = (action: Action) => keyLabel(keyFor(bindings, action, 0));
-    this.menuPrompt = this.controls === "journal" ? "Move: Stick or D-pad · Choose: A · Back: X"
+    this.menuPrompt = this.controls === "journal" ? "Stick: move pointer · A / Click: choose · Start or click Done: back"
       : `Move: ${name(Action.moveLeft)}/${name(Action.moveRight)} + ${name(Action.moveUp)}/${name(Action.moveDown)}   Choose: ${name(Action.attack)}   Back: ${name(Action.special)}`;
   }
 
