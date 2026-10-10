@@ -8,14 +8,16 @@ import { heroDefinition } from "../sim/heroes/registry";
 import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
 import { PARKED_CUE_TIME_SCALE, type ParkedFlags, type WorldOrigin, parkCue } from "./effects";
-import { PROJECTILE_DRAW_SCALES, fighterProjectileModels, projectileModelOf, ultimateProjectiles } from "../presentation/projectileArt";
+import { DEFINITIVE_ULTIMATE_MODELS, PROJECTILE_DRAW_SCALES, fighterProjectileModels, projectileModelOf, ultimateProjectiles } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
 import { heroProjectileArt } from "../presentation/projectileArt";
+import { definitiveCues } from "./specialCueEffects";
 
 
 interface Pool {
   readonly path: string;
+  readonly drawn: string;
 
   readonly effects: readonly number[];
   readonly boundaries: readonly number[];
@@ -39,6 +41,7 @@ export class ProjectilePresentation {
   ) {
     const hero = heroDefinition(character) !== undefined;
     const paths = fighterProjectileModels(character);
+    const swaps = definitiveCues() ? DEFINITIVE_ULTIMATE_MODELS[character] : undefined;
     const ultimateOnly = paths.filter((path, index) => index > 0 && !hero && ultimateProjectiles(character).some((spec) => spec.model === path));
     paths.forEach((path, index) => {
 
@@ -47,10 +50,11 @@ export class ProjectilePresentation {
       const boundaries: number[] = [];
       const specials = heroDefinition(character)?.specials;
 
+      const drawn = swaps?.[path] ?? path;
       const groundPool = specials !== undefined && heroProjectileArt(specials).some(({ spec }) => spec.model === path && spec.pool !== undefined && spec.pool.growth > 0.0);
       for (let slot = 0; slot < size; slot++) {
         effects.push(this.models.length);
-        this.models.push(AddSpecialEffect(path, origin.x, origin.y));
+        this.models.push(AddSpecialEffect(drawn, origin.x, origin.y));
         this.visible.push(false);
         if (groundPool) {
           boundaries.push(this.models.length);
@@ -62,7 +66,7 @@ export class ProjectilePresentation {
           this.visible.push(false);
         }
       }
-      this.pools.push({ path, effects, boundaries });
+      this.pools.push({ path, drawn, effects, boundaries });
     });
     for (let index = 0; index < PROJECTILE_CAPACITY; index++) this.assigned.push(-1);
     this.clear();
@@ -127,7 +131,7 @@ export class ProjectilePresentation {
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y, this.origin.z + pose.z);
-      BlzSetSpecialEffectScale(model, pose.modelScale * (pool === undefined ? 1.0 : PROJECTILE_DRAW_SCALES[pool.path] ?? 1.0));
+      BlzSetSpecialEffectScale(model, pose.modelScale * (pool === undefined ? 1.0 : PROJECTILE_DRAW_SCALES[pool.drawn] ?? 1.0));
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
       if (pose.animationSeconds !== undefined) {

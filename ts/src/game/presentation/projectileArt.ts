@@ -104,6 +104,18 @@ export const PROJECTILE_DRAW_SCALES: { readonly [model: string]: number | undefi
   "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl": f32(0.6),
   "Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx": f32(0.7),
   "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx": f32(0.7),
+  "Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx": 0.5,
+};
+
+
+export const DEFINITIVE_ULTIMATE_MODELS: { readonly [character: number]: { readonly [model: string]: string | undefined } | undefined } = {
+  [Character.demonHunter]: { "Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx": "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx" },
+  [Character.forsakenPaladin]: { "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx": "Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl" },
+  [Character.pitLord]: { "Abilities\\Spells\\Undead\\Curse\\CurseTarget.mdx": "Abilities\\Weapons\\VoidWalkerMissile\\VoidWalkerMissile.mdx" },
+  [Character.sylvanas]: { "Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx": "Units\\Undead\\Banshee\\Banshee.mdx" },
+  [Character.kaelthas]: { "Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdx": "Abilities\\Weapons\\SorceressMissile\\SorceressMissile.mdx" },
+  [Character.grom]: { "Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx": "Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.mdx" },
+  [Character.medivh]: { "Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx": "Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx" },
 };
 
 
