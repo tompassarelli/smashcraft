@@ -14,7 +14,7 @@ import type { FrameControls } from "../../game/match/controls";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from "../../game/match/rules";
 import { fighterOffscreen, fitFighterFrames } from "../../game/presentation/fighterFraming";
-import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, finalCamera, localCamera } from "../../game/presentation/arenaCamera";
 
 import { beginPauseCamera, advancePauseCamera, pauseCameraAngle, pauseHudHidden } from "./pauseCamera";
 import { type MatchCamera, copyMatchCamera } from "../../game/sim/matchCamera";
@@ -511,6 +511,7 @@ export function lockArenaCamera(s: ShellState): void {
     framing.distance = 1450.0;
     framing.tangent = 0.2679491937160492;
   }
+  finalCamera(framing, game.stageChoice);
   probeCamera(s.probe, game.camera, framing, centerX, FLOOR_HEIGHT);
   const duration = s.cameraTween === true && game.phase === Phase.match && !s.session.paused ? FRAME_SECONDS : 0.0;
   applyArenaCamera(s, framing, aspect, pauseCameraAngle(s), duration);
