@@ -1,12 +1,14 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { AttackStyle, GrabAction, type Character } from "../src/game/sim/codes";
+import { AttackStyle, Character, GrabAction, ProjectileKind } from "../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../src/game/sim/heroes/registry";
 import { authoredTuning } from "../src/game/sim/tuning";
 import { attackDurationFramesForGrounding, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, isAerialAttack } from "../src/game/sim/moves";
 import { GROUND_ROLL_FRAMES, SPOT_DODGE_FRAMES } from "../src/game/sim/conditions";
 import { SHIELD_RELEASE_LAG_FRAMES, shieldstunDuration } from "../src/game/sim/shield";
 import { currentFeel } from "./balanceFeel";
+import { currentKit } from "./balanceKit";
+import * as specials from "../src/game/sim/specials";
 import { type Envelope, type Field, type Measures, type MoveClass, type MoveRow, type Range, type Sample, type Tolerances, MOVE_CLASSES, buildEnvelope } from "./genreEnvelope";
 
 const ROOT = join(import.meta.dir, "../..");
@@ -94,28 +96,69 @@ const numberAt = (row: Record<string, unknown>, key: string): number | undefined
 
 function specialRows(fighter: string, specials: unknown, feel: ReturnType<typeof currentFeel>): MoveRow[] {
   const rows: MoveRow[] = [];
-  const visit = (node: unknown, path: string): void => {
+  const visit = (node: unknown, path: string, actionEnd?: number, eventFrame?: number): void => {
     if (!isRecord(node)) return;
-    const end = numberAt(node, "endFrame");
+    const end = numberAt(node, "endFrame") ?? actionEnd;
+    const event = numberAt(node, "frame") ?? eventFrame;
     const regions = Array.isArray(node.regions) ? node.regions.filter((region): region is Region => isRecord(region) && typeof region.firstFrame === "number" && typeof region.lastFrame === "number" && isRecord(region.hit)) : [];
     const spawns = Array.isArray(node.projectiles) ? node.projectiles.flatMap((projectile) => isRecord(projectile) && typeof projectile.spawnFrame === "number" ? [projectile.spawnFrame] : []) : [];
     if (end !== undefined && (regions.length > 0 || spawns.length > 0)) {
       const first = Math.min(...regions.map((region) => region.firstFrame), ...spawns);
-      const last = regions.length > 0 ? Math.max(...regions.map((region) => region.lastFrame)) : Math.min(...spawns);
+      const last = regions.length > 0 ? Math.max(...regions.map((region) => region.lastFrame)) : Math.max(...spawns);
       const samples = Object.entries(feel).filter(([key]) => key.startsWith(`special.${path}.regions.`) || key.startsWith(`special.${path}.projectiles.`)).map(([, sample]) => sample);
       const kills = samples.flatMap((sample) => sample.killPercent === undefined ? [] : [sample.killPercent]);
       rows.push({ fighter, move: `special.${path}`, measures: defined([
         ["startup", first + 1],
-        ["active", regions.length > 0 ? last - first + 1 : null],
-        ["endLag", end > last ? end - last - 1 : null],
+        ["active", last - first + 1],
+        ["endLag", end - last - 1],
+        ["total", end + 1],
         ["landingLag", numberAt(node, "landingLag") ?? null],
         ["shieldAdvantage", samples.length > 0 ? Math.max(...samples.map((sample) => sample.advantage)) : null],
         ["killPercent", kills.length > 0 ? Math.min(...kills) : null],
       ]) });
     }
-    for (const [key, child] of Object.entries(node)) if (key !== "regions" && key !== "projectiles" && key !== "table") visit(child, `${path}.${key}`);
+    const sample = feel[`special.${path}`];
+    const spawn = event ?? numberAt(node, "spawnFrame");
+    if (end !== undefined && spawn !== undefined && isRecord(node.effect) && sample !== undefined) {
+      rows.push({ fighter, move: `special.${path}`, measures: { ...specialMeasures(spawn, spawn, end), shieldAdvantage: sample.advantage, ...(sample.killPercent === undefined ? {} : { killPercent: sample.killPercent }) } });
+    }
+    for (const [key, child] of Object.entries(node)) if (key !== "regions" && key !== "projectiles" && key !== "table") visit(child, `${path}.${key}`, end, event);
   };
   if (isRecord(specials)) for (const [slot, child] of Object.entries(specials)) visit(child, slot);
+  return rows;
+}
+
+const specialMeasures = (first: number, last: number, end: number): Measures => ({ startup: first + 1, active: last - first + 1, endLag: end - last - 1, total: end + 1 });
+
+function originalSpecialMeasures(character: Character): Readonly<Record<string, Measures>> {
+  if (character !== Character.rifleman && character !== Character.demonHunter) return {};
+  const values = currentKit(character).values;
+  const number = (name: string): number => {
+    const value = Object.entries(values).find(([path]) => path.endsWith(`.${name}`))?.[1];
+    if (value === undefined) throw new Error(`Original special timing missing: ${name}`);
+    return value;
+  };
+  if (character === Character.rifleman) {
+    const shot = number("RIFLEMAN_BLASTER_GROUND_SHOT_FRAME");
+    const bear = specialMeasures(specials.RIFLEMAN_BEAR_CAST_FRAMES, specials.RIFLEMAN_BEAR_CAST_FRAMES, specials.RIFLEMAN_BEAR_SUMMON_FRAMES);
+    return {
+      [`special.projectile.${ProjectileKind.blaster}`]: specialMeasures(shot, shot, number("RIFLEMAN_BLASTER_GROUND_FRAMES")),
+      [`special.projectile.${ProjectileKind.recoil}`]: specialMeasures(specials.RIFLEMAN_RECOVERY_STARTUP_FRAMES, specials.RIFLEMAN_RECOVERY_STARTUP_FRAMES, number("RIFLEMAN_RECOVERY_FRAMES")),
+      "special.bear": bear, "special.bear.ex": bear,
+    };
+  }
+  const rows: Record<string, Measures> = {
+    [`special.projectile.${ProjectileKind.manaBurn}`]: specialMeasures(specials.DEMONHUNTER_MANA_BURN_STARTUP, specials.DEMONHUNTER_MANA_BURN_STARTUP, specials.DEMONHUNTER_MANA_BURN_STARTUP + specials.DEMONHUNTER_MANA_BURN_RECOVERY),
+    "special.glide": specialMeasures(specials.DEMONHUNTER_GLIDE_SLASH_FIRST, specials.DEMONHUNTER_GLIDE_SLASH_LAST, number("DEMONHUNTER_GLIDE_SLASH_FRAMES")),
+    [`special.flame.${specials.FLAME_CRASH_FORM}`]: specialMeasures(specials.FLAME_CRASH_HANG_LAST + 1, specials.FLAME_CRASH_FRAMES - 1, specials.FLAME_CRASH_FRAMES),
+    [`special.flame.${specials.FLAME_CRASH_FORM}.grounded`]: specialMeasures(specials.FLAME_CRASH_HANG_LAST + 1, specials.FLAME_CRASH_FRAMES - 1, specials.FLAME_CRASH_FRAMES),
+    [`special.flame.${specials.FLAME_CRASH_LANDING_FORM}`]: specialMeasures(1, specials.FLAME_CRASH_BURST_LAST, specials.FLAME_CRASH_LANDING_FRAMES),
+  };
+  for (const ex of [false, true]) {
+    rows[`special.rush.${ex}`] = specialMeasures(specials.FEL_RUSH_FIRST, specials.FEL_RUSH_LAST, specials.FEL_RUSH_FRAMES);
+    rows[`special.chaos.${ex}`] = specialMeasures(specials.CHAOS_STRIKE_FIRST, specials.CHAOS_STRIKE_LAST, specials.CHAOS_STRIKE_FRAMES);
+    for (const grounded of [false, true]) rows[`special.immolate.${grounded}.${ex}`] = specialMeasures(specials.DEMONHUNTER_IMMOLATE_STARTUP, specials.DEMONHUNTER_IMMOLATE_STARTUP + specials.DEMONHUNTER_IMMOLATE_ACTIVE - 1, specials.DEMONHUNTER_IMMOLATE_DURATION);
+  }
   return rows;
 }
 
@@ -149,10 +192,11 @@ export function fighterRows(character: Character): MoveRow[] {
     rows.push({ fighter, move: `throw.${name}`, measures: defined([["startup", contact + 1], ["active", 1], ["endLag", grabActionDuration(action, tuning.moves) - contact - 1], ["killPercent", kill ?? null]]) });
   }
   rows.push(...specialRows(fighter, tuning.specials, feel));
+  const originalFrames = originalSpecialMeasures(character);
   for (const [key, sample] of Object.entries(feel)) {
     if (!key.startsWith("special.") || key.includes(".regions.") || key.includes(".projectiles.")) continue;
     if (rows.some((row) => row.move === key)) continue;
-    rows.push({ fighter, move: key, measures: defined([["shieldAdvantage", sample.advantage], ["killPercent", sample.killPercent ?? null]]) });
+    rows.push({ fighter, move: key, measures: { ...originalFrames[key], ...defined([["shieldAdvantage", sample.advantage], ["killPercent", sample.killPercent ?? null]]) } });
   }
   rows.push({ fighter, move: "jump-squat", measures: { total: tuning.physics.jumpSquatFrames } });
   return rows;

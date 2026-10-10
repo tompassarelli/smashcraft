@@ -92,6 +92,8 @@ its class's genre frame-data envelope, ranked by distance (#426). It is
 advisory: it never fails, and it becomes a gate only after Tom has reviewed
 the outlier list. `--ranges` prints the envelope, `--json` the outliers.
 
+Non-hit specials (movement, guards, buffs, recalls and commands without a hit effect) are outside the genre envelope.
+
 The envelope is smashcraft:tools/move-data/genre-envelope.json plus the Melee
 corpus in smashcraft:references/melee-frame-data/. For each move class (jab,
 tilt, dash attack, smash, aerial, special, grab, throw, get-up/ledge attack,
