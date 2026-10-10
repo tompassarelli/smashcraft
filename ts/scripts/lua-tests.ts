@@ -87,7 +87,7 @@ if (modules.length === 0) throw new Error("No Lua test modules match GAME_TESTS 
 
 
 
-const loaded = [...modules, ...(remainder ? ["test/lua/memoryCensus.tests.ts"] : [])];
+const loaded = [...modules, ...(remainder ? ["scripts/wisp/memoryCensus.tests.ts"] : [])];
 refuseUntagged(".", loaded);
 await runAdmitted("moderate", "smashcraft:lua-tests", 1800);
 const lua = await Effect.runPromise(stockLua);

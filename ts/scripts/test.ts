@@ -21,10 +21,7 @@ import { platformLayer } from "wisp/scripts/platform/layer";
 const TEST_TIMEOUT_MS = 60_000;
 const project = resolve(import.meta.dir, "..");
 process.chdir(project);
-const files = [
-  ...new Bun.Glob("**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}").scanSync(project),
-  ...new Bun.Glob("scripts/**/*.tests.ts").scanSync(project),
-]
+const files = [...new Bun.Glob("**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}").scanSync(project)]
   .filter((file) => !file.startsWith("build/") && !file.split("/").some((part) => part === "node_modules" || part === ".git"))
   .sort();
 if (files.length === 0) throw new Error("No tests found");

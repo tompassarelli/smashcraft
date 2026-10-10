@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { FARM_WORKFLOWS, MAIN_ONLY, admit, balanceTimeouts, liveness, revertedBy, type Facts } from "./farmGuard";
+import { FARM_WORKFLOWS, MAIN_ONLY, admit, balanceTimeouts, liveness, revertedBy, type Facts } from "../scripts/farmGuard";
 
 const sheriffRevert = {
   sha: "50cdde8af763923a4c3aa0e02bbabe36d06d57ae",

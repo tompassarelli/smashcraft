@@ -4,11 +4,11 @@
 // situations (interactions.ts). A fighter that breaks a rule on purpose names a
 // departure below and in that section.
 import { expect, test } from "bun:test";
-import { sweep } from "../test/sweep";
+import { sweep } from "./sweep";
 import { Character } from "../src/game/sim/codes";
 import { HERO_ROSTER } from "../src/game/sim/heroes/registry";
 import { SHIELD_REFLECTOR_ACTIVE_FRAMES } from "../src/game/sim/shield";
-import { PROJECTILE_SPACINGS, outOfShieldStarts, projectileRows } from "./interactions";
+import { PROJECTILE_SPACINGS, outOfShieldStarts, projectileRows } from "../scripts/interactions";
 
 const POINT_BLANK = PROJECTILE_SPACINGS[0];
 const MIN_POWERSHIELD_PRESSES = 2;

@@ -1833,7 +1833,7 @@ get-up options and timings, the tumble threshold, pass-through platforms, the
 main deck's walls and underside (where launches meet them, the techs off them,
 the push-off and wall jumps), shield release and dodges, and ledge catches, one
 from against the wall.
-smashcraft:ts/scripts/meleeOracle.tests.ts runs the table in the test suite and
+smashcraft:ts/test/melee-oracle.test.ts runs the table in the test suite and
 fails on any mismatch not listed in its `KNOWN_MISMATCHES`, and on a listed row
 that now passes. A difference from Melee recorded in the deviations table of
 smashcraft:docs/gameplay-design.md is reported as a departure under that row's

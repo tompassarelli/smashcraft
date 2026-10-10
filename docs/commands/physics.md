@@ -2,7 +2,7 @@
 
 - Air drift: `bun scripts/airDrift.ts` prints every fighter's air speed,
   air acceleration, dash/run-jump takeoff speed and dash-jump cross-up;
-  smashcraft:ts/scripts/airDrift.tests.ts holds them to the bands in
+  smashcraft:ts/test/air-drift.test.ts holds them to the bands in
   smashcraft:docs/gameplay-design.md ("Air drift and jump momentum").
   Analog ingress diagnostics use `bun wisp map build --profile analog-keys`
   or `--profile analog-cursor`; both keep one fixed top-down camera and the

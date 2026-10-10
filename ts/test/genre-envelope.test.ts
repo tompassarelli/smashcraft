@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { AttackStyle } from "../src/game/sim/codes";
-import { type Envelope, FIELDS, MOVE_CLASSES, type Tolerances, allowance, classify, outliers } from "./genreEnvelope";
+import { type Envelope, FIELDS, MOVE_CLASSES, type Tolerances, allowance, classify, outliers } from "../scripts/genreEnvelope";
 
 const random = (seed: number) => () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
 const TOLERANCES: Tolerances = { frames: 3, shieldAdvantage: 3, killPercentShare: 0.15, special: { frames: 10, shieldAdvantage: 10, killPercentShare: 0.3 }, ex: { frames: 15, shieldAdvantage: 15, killPercentShare: 0.4 } };

@@ -1714,7 +1714,7 @@ fighter's win rate against the field is between 45% and 55%**, with both
 computers at **Wren Expert** and at least **400 matches a pair**: every pair
 of different fighters, both orders, on every soak stage, over seeded
 matches. The numbers live in one constant, `BALANCE_GATE` in
-smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/scripts/cpuField.tests.ts
+smashcraft:ts/scripts/cpuField.ts. smashcraft:ts/test/cpu-field.test.ts
 checks that this section states the constant's numbers, so changing the gate
 means changing the code and this section together.
 

@@ -1,8 +1,8 @@
 import { expect } from "bun:test";
-import { sweep } from "../test/sweep";
+import { sweep } from "./sweep";
 import { AttackStyle, Character } from "../src/game/sim/codes";
 import { GameplanSpecial } from "../src/game/sim/gameplan";
-import { gameplanKeyMovesCheck } from "./cpuField";
+import { gameplanKeyMovesCheck } from "../scripts/cpuField";
 
 sweep("Dreadlord's computer uses each key move above the mean move share over three seeds of mirrors on every soak stage [k3 measure #105]", () => {
   const check = gameplanKeyMovesCheck(Character.dreadlord, {
