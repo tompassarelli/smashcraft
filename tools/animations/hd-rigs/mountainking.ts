@@ -4,6 +4,7 @@ export const stockPath = 'war3.w3mod:_de.w3mod:units\\human\\heromountainking\\h
 export const fitScale = 0.65;
 // The stock Stand Ready stands off the origin; Classic stands on it.
 export const alignRoot = true;
+export const stockRestJoints = ['@pelvis', '@chest'];
 // The axe and hammer are separate root bones in DE, rather than hand children.
 export const classic = {
     pelvis: 'Bone_Pelvis',
