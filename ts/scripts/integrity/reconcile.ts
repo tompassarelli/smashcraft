@@ -294,307 +294,381 @@ function sameModes(changes: readonly SlotMode[], expected: readonly (readonly [n
 
 
 
-export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, window?: number): IntegrityResult {
-  const { metadata, producer } = evidence;
-  const failures: string[] = [];
-  const require = (condition: boolean, message: string): boolean => {
-    if (!condition) failures.push(message);
-    return condition;
-  };
-  const journey = metadata.events.filter((event) => event.epoch === undefined || pair.includes(event.epoch));
+/** What integrityResult measures from a capture, before verdict judges it. */
+export interface Observations {
+  readonly failures: string[];
+  readonly injected: [number, number];
+  readonly presses: [number, number];
+  lost: number;
+  duplicated: number;
+  reordered: number;
+  stuck: number;
+  correct: number;
+  total: number;
+  readonly localDelays: number[];
+  readonly heldDelays: number[];
+  readonly opponentLateness: number[];
+  readonly rollbackDepths: number[];
+  readonly stallLengths: number[];
+  readonly localStarts: LocalStart[];
+  readonly mismatchedEdges: string[];
+  missingLocal: number;
+  heldMissing: number;
+  illegalPresses: number;
+  legalPresses: number;
+  readonly rollbackLimits: Set<number>;
+  readonly endpoints: Map<string, Endpoint>;
+  readonly coverage: readonly [Set<string>, Set<string>];
+  readonly sameFrameTaps: [number, number];
+}
 
+export const emptyObservations = (): Observations => ({
+  failures: [], injected: [0, 0], presses: [0, 0], lost: 0, duplicated: 0, reordered: 0, stuck: 0, correct: 0, total: 0,
+  localDelays: [], heldDelays: [], opponentLateness: [], rollbackDepths: [], stallLengths: [], localStarts: [], mismatchedEdges: [],
+  missingLocal: 0, heldMissing: 0, illegalPresses: 0, legalPresses: 0, rollbackLimits: new Set(), endpoints: new Map(),
+  coverage: [new Set(), new Set()], sameFrameTaps: [0, 0],
+});
+
+function demand(seen: Observations, condition: boolean, message: string): boolean {
+  if (!condition) seen.failures.push(message);
+  return condition;
+}
+
+const clientKey = (epoch: number, client: Slot) => `epoch-${epoch}-client-${client}`;
+
+/** Each slot's producer edges reached its kernel device in order, with the producer's timestamps. */
+function checkSources(evidence: CaptureEvidence, seen: Observations): void {
   for (const slot of SLOTS) {
-    const sent = producer.filter((edge) => edge.source === `slot-${slot}`);
+    const sent = evidence.producer.filter((edge) => edge.source === `slot-${slot}`);
     const kernel = evidence.kernel[slot].filter((event) => event.type !== 0);
-    require(sent.length === kernel.length, `slot ${slot}: producer/kernel edge count differs`);
+    demand(seen, sent.length === kernel.length, `slot ${slot}: producer/kernel edge count differs`);
     for (let i = 0; i < Math.min(sent.length, kernel.length); i++) {
       const edge = sent[i];
       const observed = kernel[i];
       if (edge === undefined || observed === undefined) throw new MalformedEvidence(`slot ${slot}: source edge ${i} absent`);
-      require(edge.type === observed.type && edge.code === observed.code && edge.value === observed.value, `slot ${slot}: producer/kernel source order differs`);
-      if (edge.injectedNs !== undefined) require(edge.injectedNs === observed.kernelNs, `slot ${slot}: uinput did not preserve the producer timestamp`);
+      demand(seen, edge.type === observed.type && edge.code === observed.code && edge.value === observed.value, `slot ${slot}: producer/kernel source order differs`);
+      if (edge.injectedNs !== undefined) demand(seen, edge.injectedNs === observed.kernelNs, `slot ${slot}: uinput did not preserve the producer timestamp`);
     }
   }
+}
 
-  const injected: [number, number] = [0, 0];
-  const presses: [number, number] = [0, 0];
-  let lost = 0, duplicated = 0, reordered = 0, stuck = 0, correct = 0, total = 0;
-  const localDelays: number[] = [], heldDelays: number[] = [], opponentLateness: number[] = [], rollbackDepths: number[] = [], stallLengths: number[] = [];
-  const localStarts: LocalStart[] = [];
-
-  const mismatchedEdges: string[] = [];
-  let missingLocal = 0, heldMissing = 0, illegalPresses = 0, legalPresses = 0;
-  const native = new Map<string, NativeRow[]>();
-  const rollbackLimits = new Set<number>();
-  const endpoints = new Map<string, Endpoint>();
-  const coverage = [new Set<string>(), new Set<string>()] as const;
-  const sameFrameTaps: [number, number] = [0, 0];
-  const clientKey = (epoch: number, client: Slot) => `epoch-${epoch}-client-${client}`;
-
-  for (const epoch of pair) {
-    for (const client of SLOTS) {
-      const exported = evidence.exports.get(epoch)?.[client];
-      const firstPage = exported?.pages[0];
-      if (!require(firstPage !== undefined, `epoch ${epoch} client ${client}: response pages absent`) || exported === undefined || firstPage === undefined) continue;
-      const header = integrityHeader(firstPage);
-      if (!require(header !== undefined, `epoch ${epoch} client ${client}: integrity header absent`) || header === undefined) continue;
-      require(header.dropped === 0, `epoch ${epoch} client ${client}: integrity rows dropped`);
-      const rows = integrityRows(exported.pages, `epoch ${epoch} client ${client}`);
-      require(rows.length === header.retained, `epoch ${epoch} client ${client}: incomplete integrity export`);
-      const what = `epoch ${epoch} client ${client} integrity row`;
-      const events: NativeRow[] = [];
-      for (const row of rows) {
-        const serial = integer(row[0], what);
-        const stage = row[1];
-        if (stage === undefined) throw new MalformedEvidence(`${what} ${serial}: stage missing`);
-        if (stage === "checksum") {
-          if (integer(row[2], what) !== epoch) continue;
-          const checksum = row[4];
-          if (checksum === undefined) throw new MalformedEvidence(`${what} ${serial}: checksum missing`);
-          endpoints.set(clientKey(epoch, client), [integer(row[3], what), checksum, integer(row[5], what)]);
-          continue;
-        }
-        const values = row.slice(2).map((field) => integer(field, what));
-        if (!require(values.length > 0 && values[0] === epoch, `epoch ${epoch} client ${client}: wrong trace epoch`)) continue;
-        events.push({ serial, stage, values });
-        if (stage === "rollback") rollbackDepths.push(at(values, 1, what));
-      }
-      native.set(clientKey(epoch, client), events);
-      const stalls = events.filter((event) => event.stage === "stall").map((event) => event.serial);
-      if (stalls.length > 0) {
-        let length = 1;
-        for (let i = 1; i < stalls.length; i++) {
-          if (stalls[i] === at(stalls, i - 1, `epoch ${epoch} client ${client} stall serial`) + 1) {
-            length++;
-          } else {
-            stallLengths.push(length);
-            length = 1;
-          }
-        }
-        stallLengths.push(length);
-      }
-      const trace = exported.trace;
-      require(trace !== undefined && !trace.includes("journal input fail"), `epoch ${epoch} client ${client}: missing trace or journal failure`);
-      for (const match of trace?.matchAll(/common K \d+ confirmed \d+ R (\d+)/g) ?? []) rollbackLimits.add(Number(match[1]));
-
-
-      require(endpoints.get(clientKey(epoch, client))?.[2] === 3, `epoch ${epoch} client ${client}: final result checksum absent`);
+/** One client's exported integrity rows for an epoch: its checksum endpoint, trace rows, stalls and rollback limit. */
+function readClient(evidence: CaptureEvidence, epoch: number, client: Slot, seen: Observations): readonly NativeRow[] | undefined {
+  const exported = evidence.exports.get(epoch)?.[client];
+  const firstPage = exported?.pages[0];
+  if (!demand(seen, firstPage !== undefined, `epoch ${epoch} client ${client}: response pages absent`) || exported === undefined || firstPage === undefined) return undefined;
+  const header = integrityHeader(firstPage);
+  if (!demand(seen, header !== undefined, `epoch ${epoch} client ${client}: integrity header absent`) || header === undefined) return undefined;
+  demand(seen, header.dropped === 0, `epoch ${epoch} client ${client}: integrity rows dropped`);
+  const rows = integrityRows(exported.pages, `epoch ${epoch} client ${client}`);
+  demand(seen, rows.length === header.retained, `epoch ${epoch} client ${client}: incomplete integrity export`);
+  const what = `epoch ${epoch} client ${client} integrity row`;
+  const events: NativeRow[] = [];
+  for (const row of rows) {
+    const serial = integer(row[0], what);
+    const stage = row[1];
+    if (stage === undefined) throw new MalformedEvidence(`${what} ${serial}: stage missing`);
+    if (stage === "checksum") {
+      if (integer(row[2], what) !== epoch) continue;
+      const checksum = row[4];
+      if (checksum === undefined) throw new MalformedEvidence(`${what} ${serial}: checksum missing`);
+      seen.endpoints.set(clientKey(epoch, client), [integer(row[3], what), checksum, integer(row[5], what)]);
+      continue;
     }
-    require(sameEndpoint(endpoints.get(clientKey(epoch, 0)), endpoints.get(clientKey(epoch, 1))), `epoch ${epoch}: final checksums differ`);
-
-    const boundary = journey.find((event) => event.event === "start" && event.epoch === epoch);
-    const end = journey.find((event) => event.event === "end" && event.epoch === epoch);
-    if (boundary?.event !== "start" || end?.event !== "end") throw new MalformedEvidence(`epoch ${epoch}: start or end receipt absent`);
-    const resumes = journey.flatMap((event) => (event.event === "integrity-resume" && event.epoch === epoch ? [event.publications] : []));
-    for (const slot of SLOTS) {
-      const segments = [boundary.publications[slot], ...resumes.map((publications) => publications[slot])]
-        .map((publication): readonly [number, number] => [publication.estimateNs, integer(/frame=(\d+)/.exec(publication.contents)?.[1], `epoch ${epoch} receipt frame`)])
-        .sort(compareSegments);
-      const firstSegment = segments[0];
-      if (firstSegment === undefined) throw new MalformedEvidence(`epoch ${epoch} slot ${slot}: start segment absent`);
-      const finalNs = end.publications[slot].estimateNs;
-      const finalFrame = endpoints.get(clientKey(epoch, slot))?.[0] ?? Number.MAX_SAFE_INTEGER;
-      const expected = new EdgeCounts();
-      const expectedHeld = new Map<number, number>();
-      const sourceStates = new Map<string, number>();
-      const sourceEdges: string[][] = [];
-      const previousDown = new Map<string, readonly [frame: number, ns: number]>();
-
-      const frameAt = (ns: number) => {
-        const [anchor, first] = segments.filter((segment) => segment[0] <= ns).reduce((a, b) => (compareSegments(a, b) >= 0 ? a : b));
-        return first + floorDiv((ns - anchor) * 60, NS_PER_SECOND);
-      };
-
-      const stopped = journey.flatMap((event) => {
-        if ((event.event !== "integrity-stall" && event.event !== "bot-stall") || event.epoch !== epoch || event.stoppedNs < firstSegment[0]) return [];
-        const stalledSlot = event.event === "bot-stall" ? event.slot : event.kind === "helper" ? 0 : 1;
-        return [{ from: frameAt(event.stoppedNs), to: frameAt(event.continuedNs), side: stalledSlot === slot ? "own" as const : "opponent" as const }];
-      });
-      const stallSide = (frame: number): StallSide =>
-        stopped.some((window) => window.side === "own" && frame >= window.from && frame <= window.to) ? "own"
-        : stopped.some((window) => frame >= window.from && frame <= window.to) ? "opponent" : "none";
-      const afterStall = (frame: number) => {
-        const ended = stopped.filter((window) => window.to < frame).map((window) => frame - window.to);
-        return ended.length === 0 ? undefined : Math.min(...ended);
-      };
-      for (const edge of producer) {
-        if (edge.source !== `slot-${slot}` || !(edge.phase.startsWith(`match-${epoch}-`) || edge.phase.startsWith(`bot-${epoch}-`))) continue;
-        if (edge.type === 1 && edge.code === START_BUTTON) continue;
-        const before = edge.injectedNs ?? edge.beforeNs;
-        const after = edge.injectedNs ?? edge.afterNs;
-        if (before >= finalNs || before < firstSegment[0]) continue;
-        const frame = frameAt(before);
-        require(frame === frameAt(after), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
-
-        if (frame > finalFrame) continue;
-        let old = 0;
-        for (const mask of sourceStates.values()) old |= mask;
-        const source = `${edge.type}:${edge.code}`;
-        sourceStates.set(source, sourceMask(edge, metadata.padLayout));
-        let held = 0;
-        for (const mask of sourceStates.values()) held |= mask;
-        expectedHeld.set(frame, held);
-        const edgeKeys = frameEdges(frame, held & ~old, old & ~held);
-        for (const key of edgeKeys) expected.add(key);
-        if (!edge.phase.includes("-integrity-") && !edge.phase.startsWith(`bot-${epoch}-beat:`)) continue;
-        injected[slot]++;
-        if (edge.value !== 0) presses[slot]++;
-        coverage[slot].add(edge.phase.slice(edge.phase.lastIndexOf(":") + 1));
-        require(edgeKeys.length > 0, `epoch ${epoch} slot ${slot}: source transition has no action edge`);
-        sourceEdges.push(edgeKeys);
-        const down = previousDown.get(source);
-        if (edge.value !== 0) {
-          previousDown.set(source, [frame, before]);
-        } else if (down !== undefined) {
-          previousDown.delete(source);
-          if (frame === down[0] && before - down[1] >= 4_000_000 && before - down[1] <= 12_000_000) sameFrameTaps[slot]++;
-        }
+    const values = row.slice(2).map((field) => integer(field, what));
+    if (!demand(seen, values.length > 0 && values[0] === epoch, `epoch ${epoch} client ${client}: wrong trace epoch`)) continue;
+    events.push({ serial, stage, values });
+    if (stage === "rollback") seen.rollbackDepths.push(at(values, 1, what));
+  }
+  const stalls = events.filter((event) => event.stage === "stall").map((event) => event.serial);
+  if (stalls.length > 0) {
+    let length = 1;
+    for (let i = 1; i < stalls.length; i++) {
+      if (stalls[i] === at(stalls, i - 1, `epoch ${epoch} client ${client} stall serial`) + 1) {
+        length++;
+      } else {
+        seen.stallLengths.push(length);
+        length = 1;
       }
+    }
+    seen.stallLengths.push(length);
+  }
+  const trace = exported.trace;
+  demand(seen, trace !== undefined && !trace.includes("journal input fail"), `epoch ${epoch} client ${client}: missing trace or journal failure`);
+  for (const match of trace?.matchAll(/common K \d+ confirmed \d+ R (\d+)/g) ?? []) seen.rollbackLimits.add(Number(match[1]));
+  return events;
+}
 
-      const observedClients: EdgeCounts[] = [];
-      for (const client of SLOTS) {
-        const events = native.get(clientKey(epoch, client)) ?? [];
-        const what = `epoch ${epoch} client ${client} confirmed row`;
-        const observed = new EdgeCounts();
-        const frames: number[] = [];
-        for (const { stage, values } of events) {
-          if (stage !== "confirmed" || values[1] !== slot) continue;
-          if (values.length !== 7) throw new MalformedEvidence(`${what}: ${values.length} fields`);
-          const frame = at(values, 2, what), held = at(values, 3, what), pressed = at(values, 4, what), released = at(values, 5, what);
-          frames.push(frame);
-          for (const key of frameEdges(frame, pressed, released)) observed.add(key);
-          const expectedMask = expectedHeld.get(frame);
-          if (expectedMask !== undefined && held !== expectedMask) stuck++;
-        }
-        for (const key of expected.excessKeys(observed)) mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: lost ${key}`);
-        for (const key of observed.excessKeys(expected)) mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: extra ${key}`);
-        lost += expected.excess(observed);
-        duplicated += observed.excess(expected);
-        for (let i = 1; i < frames.length; i++) if (at(frames, i, what) <= at(frames, i - 1, what)) reordered++;
-        observedClients.push(observed);
-        if (client === slot) continue;
-        for (const { stage, values } of events) {
-          if (stage !== "receive" || values[1] !== slot) continue;
-          const what = `epoch ${epoch} client ${client} receive row`;
-          const lateness = Math.max(0, at(values, 6, what) - 1 - at(values, 2, what));
-          const edges = popcount(at(values, 4, what)) + popcount(at(values, 5, what));
-          for (let i = 0; i < edges; i++) opponentLateness.push(lateness);
-        }
-      }
-      for (const keys of sourceEdges) {
-        total++;
-        if (keys.length > 0 && observedClients.every((observed) => keys.every((key) => observed.get(key) === expected.get(key) && expected.get(key) === 1))) correct++;
-      }
+/** Where a slot's match ran in time: its receipt segments, final frame and the stalls around each frame. */
+interface SlotClock {
+  readonly epoch: number;
+  readonly slot: Slot;
+  readonly startNs: number;
+  readonly finalNs: number;
+  readonly finalFrame: number;
+  readonly frameAt: (ns: number) => number;
+  readonly stallSide: (frame: number) => StallSide;
+  readonly afterStall: (frame: number) => number | undefined;
+}
 
-      const local = native.get(clientKey(epoch, slot)) ?? [];
-      const what = `epoch ${epoch} slot ${slot} local row`;
-      const captures = new Map<number, number>();
-      const predicted = new Map<number, readonly [serial: number, actions: number]>();
-      const held = new Set<number>();
-      for (const { serial, stage, values } of local) {
-        if (stage === "capture" && values[1] === slot) captures.set(at(values, 2, what), serial);
-        if (stage === "held" && values[1] === slot) held.add(at(values, 2, what));
-        if (stage === "action" && values[1] === slot) predicted.set(at(values, 2, what), [serial, at(values, 5, what)]);
-      }
-      for (const { serial, stage, values } of local) {
-        if (stage !== "legal" || values[1] !== slot) continue;
-        if (values.length !== 6) throw new MalformedEvidence(`${what}: ${values.length} fields`);
-        const frame = at(values, 2, what), pressed = at(values, 3, what), legal = at(values, 4, what), started = at(values, 5, what);
-        legalPresses += popcount(legal);
-        illegalPresses += popcount(pressed & ~legal);
-        require((started & legal) === legal, `epoch ${epoch} slot ${slot} frame ${frame}: legal confirmed action failed`);
-        if (legal === 0) continue;
-        const prediction = predicted.get(frame);
-        const capture = captures.get(frame);
-        const stall = stallSide(frame);
-        const wasHeld = held.has(frame);
-        if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
-          if (wasHeld) heldMissing += popcount(legal);
-          else missingLocal += popcount(legal);
+function slotClock(journey: readonly JourneyEvent[], epoch: number, slot: Slot, seen: Observations): SlotClock {
+  const boundary = journey.find((event) => event.event === "start" && event.epoch === epoch);
+  const end = journey.find((event) => event.event === "end" && event.epoch === epoch);
+  if (boundary?.event !== "start" || end?.event !== "end") throw new MalformedEvidence(`epoch ${epoch}: start or end receipt absent`);
+  const resumes = journey.flatMap((event) => (event.event === "integrity-resume" && event.epoch === epoch ? [event.publications] : []));
+  const segments = [boundary.publications[slot], ...resumes.map((publications) => publications[slot])]
+    .map((publication): readonly [number, number] => [publication.estimateNs, integer(/frame=(\d+)/.exec(publication.contents)?.[1], `epoch ${epoch} receipt frame`)])
+    .sort(compareSegments);
+  const firstSegment = segments[0];
+  if (firstSegment === undefined) throw new MalformedEvidence(`epoch ${epoch} slot ${slot}: start segment absent`);
+  const frameAt = (ns: number) => {
+    const [anchor, first] = segments.filter((segment) => segment[0] <= ns).reduce((a, b) => (compareSegments(a, b) >= 0 ? a : b));
+    return first + floorDiv((ns - anchor) * 60, NS_PER_SECOND);
+  };
+  const stopped = journey.flatMap((event) => {
+    if ((event.event !== "integrity-stall" && event.event !== "bot-stall") || event.epoch !== epoch || event.stoppedNs < firstSegment[0]) return [];
+    const stalledSlot = event.event === "bot-stall" ? event.slot : event.kind === "helper" ? 0 : 1;
+    return [{ from: frameAt(event.stoppedNs), to: frameAt(event.continuedNs), side: stalledSlot === slot ? "own" as const : "opponent" as const }];
+  });
+  return {
+    epoch, slot, frameAt,
+    startNs: firstSegment[0],
+    finalNs: end.publications[slot].estimateNs,
+    finalFrame: seen.endpoints.get(clientKey(epoch, slot))?.[0] ?? Number.MAX_SAFE_INTEGER,
+    stallSide: (frame) =>
+      stopped.some((window) => window.side === "own" && frame >= window.from && frame <= window.to) ? "own"
+      : stopped.some((window) => frame >= window.from && frame <= window.to) ? "opponent" : "none",
+    afterStall: (frame) => {
+      const ended = stopped.filter((window) => window.to < frame).map((window) => frame - window.to);
+      return ended.length === 0 ? undefined : Math.min(...ended);
+    },
+  };
+}
 
-          const confirmedAfter = capture === undefined ? undefined : serial - capture;
-          for (let i = popcount(legal); i > 0; i--) localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: afterStall(frame), held: wasHeld });
-          continue;
-        }
+/** The action edges a slot's producer edges should cause, frame by frame, and which of them the integrity phases injected. */
+function expectedEdges(evidence: CaptureEvidence, clock: SlotClock, seen: Observations) {
+  const { epoch, slot } = clock;
+  const expected = new EdgeCounts();
+  const expectedHeld = new Map<number, number>();
+  const sourceStates = new Map<string, number>();
+  const sourceEdges: string[][] = [];
+  const previousDown = new Map<string, readonly [frame: number, ns: number]>();
+  for (const edge of evidence.producer) {
+    if (edge.source !== `slot-${slot}` || !(edge.phase.startsWith(`match-${epoch}-`) || edge.phase.startsWith(`bot-${epoch}-`))) continue;
+    if (edge.type === 1 && edge.code === START_BUTTON) continue;
+    const before = edge.injectedNs ?? edge.beforeNs;
+    const after = edge.injectedNs ?? edge.afterNs;
+    if (before >= clock.finalNs || before < clock.startNs) continue;
+    const frame = clock.frameAt(before);
+    demand(seen, frame === clock.frameAt(after), `epoch ${epoch} slot ${slot}: injection crossed frame boundary at ${before}`);
 
-
-        for (let i = popcount(legal); i > 0; i--) {
-          (wasHeld ? heldDelays : localDelays).push(prediction[0] - capture);
-          localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: afterStall(frame), held: wasHeld });
-        }
-      }
+    if (frame > clock.finalFrame) continue;
+    let old = 0;
+    for (const mask of sourceStates.values()) old |= mask;
+    const source = `${edge.type}:${edge.code}`;
+    sourceStates.set(source, sourceMask(edge, evidence.metadata.padLayout));
+    let held = 0;
+    for (const mask of sourceStates.values()) held |= mask;
+    expectedHeld.set(frame, held);
+    const edgeKeys = frameEdges(frame, held & ~old, old & ~held);
+    for (const key of edgeKeys) expected.add(key);
+    if (!edge.phase.includes("-integrity-") && !edge.phase.startsWith(`bot-${epoch}-beat:`)) continue;
+    seen.injected[slot]++;
+    if (edge.value !== 0) seen.presses[slot]++;
+    seen.coverage[slot].add(edge.phase.slice(edge.phase.lastIndexOf(":") + 1));
+    demand(seen, edgeKeys.length > 0, `epoch ${epoch} slot ${slot}: source transition has no action edge`);
+    sourceEdges.push(edgeKeys);
+    const down = previousDown.get(source);
+    if (edge.value !== 0) {
+      previousDown.set(source, [frame, before]);
+    } else if (down !== undefined) {
+      previousDown.delete(source);
+      if (frame === down[0] && before - down[1] >= 4_000_000 && before - down[1] <= 12_000_000) seen.sameFrameTaps[slot]++;
     }
   }
+  return { expected, expectedHeld, sourceEdges };
+}
 
+/** Compares the confirmed edges each client applied for a slot with the expected ones, and counts the opponent's lateness. */
+function observedEdges(native: ReadonlyMap<string, readonly NativeRow[]>, epoch: number, slot: Slot, { expected, expectedHeld, sourceEdges }: ReturnType<typeof expectedEdges>, seen: Observations): void {
+  const observedClients: EdgeCounts[] = [];
+  for (const client of SLOTS) {
+    const events = native.get(clientKey(epoch, client)) ?? [];
+    const what = `epoch ${epoch} client ${client} confirmed row`;
+    const observed = new EdgeCounts();
+    const frames: number[] = [];
+    for (const { stage, values } of events) {
+      if (stage !== "confirmed" || values[1] !== slot) continue;
+      if (values.length !== 7) throw new MalformedEvidence(`${what}: ${values.length} fields`);
+      const frame = at(values, 2, what), held = at(values, 3, what), pressed = at(values, 4, what), released = at(values, 5, what);
+      frames.push(frame);
+      for (const key of frameEdges(frame, pressed, released)) observed.add(key);
+      const expectedMask = expectedHeld.get(frame);
+      if (expectedMask !== undefined && held !== expectedMask) seen.stuck++;
+    }
+    for (const key of expected.excessKeys(observed)) seen.mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: lost ${key}`);
+    for (const key of observed.excessKeys(expected)) seen.mismatchedEdges.push(`epoch ${epoch} slot ${slot} client ${client}: extra ${key}`);
+    seen.lost += expected.excess(observed);
+    seen.duplicated += observed.excess(expected);
+    for (let i = 1; i < frames.length; i++) if (at(frames, i, what) <= at(frames, i - 1, what)) seen.reordered++;
+    observedClients.push(observed);
+    if (client === slot) continue;
+    for (const { stage, values } of events) {
+      if (stage !== "receive" || values[1] !== slot) continue;
+      const what = `epoch ${epoch} client ${client} receive row`;
+      const lateness = Math.max(0, at(values, 6, what) - 1 - at(values, 2, what));
+      const edges = popcount(at(values, 4, what)) + popcount(at(values, 5, what));
+      for (let i = 0; i < edges; i++) seen.opponentLateness.push(lateness);
+    }
+  }
+  for (const keys of sourceEdges) {
+    seen.total++;
+    if (keys.length > 0 && observedClients.every((observed) => keys.every((key) => observed.get(key) === expected.get(key) && expected.get(key) === 1))) seen.correct++;
+  }
+}
+
+/** How many frames after its capture each legal confirmed action started locally. */
+function localStartsOf(native: ReadonlyMap<string, readonly NativeRow[]>, clock: SlotClock, seen: Observations): void {
+  const { epoch, slot } = clock;
+  const local = native.get(clientKey(epoch, slot)) ?? [];
+  const what = `epoch ${epoch} slot ${slot} local row`;
+  const captures = new Map<number, number>();
+  const predicted = new Map<number, readonly [serial: number, actions: number]>();
+  const held = new Set<number>();
+  for (const { serial, stage, values } of local) {
+    if (stage === "capture" && values[1] === slot) captures.set(at(values, 2, what), serial);
+    if (stage === "held" && values[1] === slot) held.add(at(values, 2, what));
+    if (stage === "action" && values[1] === slot) predicted.set(at(values, 2, what), [serial, at(values, 5, what)]);
+  }
+  for (const { serial, stage, values } of local) {
+    if (stage !== "legal" || values[1] !== slot) continue;
+    if (values.length !== 6) throw new MalformedEvidence(`${what}: ${values.length} fields`);
+    const frame = at(values, 2, what), pressed = at(values, 3, what), legal = at(values, 4, what), started = at(values, 5, what);
+    seen.legalPresses += popcount(legal);
+    seen.illegalPresses += popcount(pressed & ~legal);
+    demand(seen, (started & legal) === legal, `epoch ${epoch} slot ${slot} frame ${frame}: legal confirmed action failed`);
+    if (legal === 0) continue;
+    const prediction = predicted.get(frame);
+    const capture = captures.get(frame);
+    const stall = clock.stallSide(frame);
+    const wasHeld = held.has(frame);
+    if (capture === undefined || prediction === undefined || (prediction[1] & legal) !== legal) {
+      if (wasHeld) seen.heldMissing += popcount(legal);
+      else seen.missingLocal += popcount(legal);
+
+      const confirmedAfter = capture === undefined ? undefined : serial - capture;
+      for (let i = popcount(legal); i > 0; i--) seen.localStarts.push({ epoch, slot, frame, delay: undefined, confirmedAfter, stall, afterStall: clock.afterStall(frame), held: wasHeld });
+      continue;
+    }
+
+
+    for (let i = popcount(legal); i > 0; i--) {
+      (wasHeld ? seen.heldDelays : seen.localDelays).push(prediction[0] - capture);
+      seen.localStarts.push({ epoch, slot, frame, delay: prediction[0] - capture, confirmedAfter: undefined, stall, afterStall: clock.afterStall(frame), held: wasHeld });
+    }
+  }
+}
+
+/** The capture's coverage and the journey's scripted moments: stalls, pause, slot changes and the four-fighter roster. */
+function checkJourney(evidence: CaptureEvidence, journey: readonly JourneyEvent[], pair: EpochPair, seen: Observations): void {
+  const { metadata } = evidence;
   for (const slot of SLOTS) {
-    require(injected[slot] >= 500, `slot ${slot}: fewer than 500 injected edges`);
-    require(requiredBindings(metadata.padLayout).every((binding) => coverage[slot].has(binding)), `slot ${slot}: missing binding coverage`);
-    require(sameFrameTaps[slot] > 0, `slot ${slot}: no observed same-frame 5 ms tap`);
+    demand(seen, seen.injected[slot] >= 500, `slot ${slot}: fewer than 500 injected edges`);
+    demand(seen, requiredBindings(metadata.padLayout).every((binding) => seen.coverage[slot].has(binding)), `slot ${slot}: missing binding coverage`);
+    demand(seen, seen.sameFrameTaps[slot] > 0, `slot ${slot}: no observed same-frame 5 ms tap`);
   }
   const stalls = journey.flatMap((event) => (event.event === "integrity-stall" ? [event] : []));
   const stallKinds = stalls.map((stall) => stall.kind).sort();
-  require(stallKinds.length === 2 && stallKinds[0] === "game" && stallKinds[1] === "helper", "required process stalls absent");
+  demand(seen, stallKinds.length === 2 && stallKinds[0] === "game" && stallKinds[1] === "helper", "required process stalls absent");
   for (const stall of stalls) {
     const stopped = stall.continuedNs - stall.stoppedNs;
-    require(stall.verifiedStoppedState && stopped >= 240_000_000 && stopped <= 350_000_000, `${stall.kind} stall duration/state unproven`);
+    demand(seen, stall.verifiedStoppedState && stopped >= 240_000_000 && stopped <= 350_000_000, `${stall.kind} stall duration/state unproven`);
   }
-  require(journey.some((event) => event.event === "integrity-pause") && journey.some((event) => event.event === "integrity-resume"), "Start pause/resume absent");
+  demand(seen, journey.some((event) => event.event === "integrity-pause") && journey.some((event) => event.event === "integrity-resume"), "Start pause/resume absent");
   const change = journey.find((event) => event.event === "integrity-slot-change");
-  const fourFighters = metadata.fourFighters;
-  const expectedModes = fourFighters ? [[3, 8], [7, 8], [3, 12]] as const : [[7, 0], [3, 4]] as const;
-  require(change?.event === "integrity-slot-change" && sameModes(change.changes, expectedModes), "rematch slot change absent");
-  if (fourFighters) {
-    const setup = journey.find((event) => event.event === "four-fighter-setup");
-    require(setup?.event === "four-fighter-setup" && sameModes(setup.changes, [[7, 0], [3, 4], [11, 4], [3, 12]]), "two-human two-CPU setup absent");
-    for (const epoch of pair) {
-      for (const client of SLOTS) {
-        const trace = evidence.exports.get(epoch)?.[client].trace;
-        require(trace?.includes("connected 3 human-fighters 3 computers 12 fighters 15") === true, `epoch ${epoch} client ${client}: native four-fighter roster absent`);
-      }
+  const expectedModes = metadata.fourFighters ? [[3, 8], [7, 8], [3, 12]] as const : [[7, 0], [3, 4]] as const;
+  demand(seen, change?.event === "integrity-slot-change" && sameModes(change.changes, expectedModes), "rematch slot change absent");
+  if (!metadata.fourFighters) return;
+  const setup = journey.find((event) => event.event === "four-fighter-setup");
+  demand(seen, setup?.event === "four-fighter-setup" && sameModes(setup.changes, [[7, 0], [3, 4], [11, 4], [3, 12]]), "two-human two-CPU setup absent");
+  for (const epoch of pair) {
+    for (const client of SLOTS) {
+      const trace = evidence.exports.get(epoch)?.[client].trace;
+      demand(seen, trace?.includes("connected 3 human-fighters 3 computers 12 fighters 15") === true, `epoch ${epoch} client ${client}: native four-fighter roster absent`);
     }
   }
+}
 
+/** Judges a capture's observations: the four gates, the commanded rollback window and the result. Pure. */
+export function verdict(seen: Observations, metadata: Pick<CaptureMetadata, "scope" | "build" | "fourFighters" | "helperSha256">, pair: EpochPair, playerViewFailures: readonly string[], window?: number): IntegrityResult {
+  const { localDelays, endpoints, rollbackLimits } = seen;
+  const failures = [...seen.failures];
   const gates = {
-    edges: lost === 0 && duplicated === 0 && reordered === 0 && stuck === 0,
-    expectedFrame: total > 0 && correct === total,
-    localStart: legalPresses > 0 && missingLocal === 0 && localDelays.length > 0 && Math.min(...localDelays) >= 0 && Math.max(...localDelays) <= 1,
+    edges: seen.lost === 0 && seen.duplicated === 0 && seen.reordered === 0 && seen.stuck === 0,
+    expectedFrame: seen.total > 0 && seen.correct === seen.total,
+    localStart: seen.legalPresses > 0 && seen.missingLocal === 0 && localDelays.length > 0 && Math.min(...localDelays) >= 0 && Math.max(...localDelays) <= 1,
     checksums: endpoints.size === 4 && pair.every((epoch) => sameEndpoint(endpoints.get(clientKey(epoch, 0)), endpoints.get(clientKey(epoch, 1)))),
   };
-  require(rollbackLimits.size === 1, "native rollback limit absent or inconsistent");
+  if (rollbackLimits.size !== 1) failures.push("native rollback limit absent or inconsistent");
   const rollbackLimit = rollbackLimits.size === 0 ? undefined : Math.min(...rollbackLimits);
-  if (window !== undefined) require(rollbackLimit === window, `native rollback limit ${rollbackLimit ?? "None"} is not the commanded ${window}`);
+  if (window !== undefined && rollbackLimit !== window) failures.push(`native rollback limit ${rollbackLimit ?? "None"} is not the commanded ${window}`);
   return {
     scope: metadata.scope,
     build: metadata.build,
     rollbackLimit,
-    fourFighters,
+    fourFighters: metadata.fourFighters,
     helperSha256: metadata.helperSha256,
-    injected,
-    lost,
-    duplicated,
-    reordered,
-    stuck,
-    expectedFrame: { correct, total, percent: total > 0 ? (100 * correct) / total : undefined },
+    injected: seen.injected,
+    lost: seen.lost,
+    duplicated: seen.duplicated,
+    reordered: seen.reordered,
+    stuck: seen.stuck,
+    expectedFrame: { correct: seen.correct, total: seen.total, percent: seen.total > 0 ? (100 * seen.correct) / seen.total : undefined },
     localStart: distribution(localDelays),
-    heldLocalStart: distribution(heldDelays),
-    heldMissingFirstPrediction: heldMissing,
-    localStarts,
-    mismatchedEdges,
-    presses,
-    pressedBindings: [[...coverage[0]].sort(), [...coverage[1]].sort()],
-    legalActionEdges: legalPresses,
-    illegalActionEdges: illegalPresses,
-    legalActionsMissingFirstPrediction: missingLocal,
-    opponentLateness: distribution(opponentLateness),
-    rollbackDepth: distribution(rollbackDepths),
-    stalls: { count: stallLengths.length, longest: Math.max(0, ...stallLengths) },
-    sameFrameTaps,
+    heldLocalStart: distribution(seen.heldDelays),
+    heldMissingFirstPrediction: seen.heldMissing,
+    localStarts: seen.localStarts,
+    mismatchedEdges: seen.mismatchedEdges,
+    presses: seen.presses,
+    pressedBindings: [[...seen.coverage[0]].sort(), [...seen.coverage[1]].sort()],
+    legalActionEdges: seen.legalPresses,
+    illegalActionEdges: seen.illegalPresses,
+    legalActionsMissingFirstPrediction: seen.missingLocal,
+    opponentLateness: distribution(seen.opponentLateness),
+    rollbackDepth: distribution(seen.rollbackDepths),
+    stalls: { count: seen.stallLengths.length, longest: Math.max(0, ...seen.stallLengths) },
+    sameFrameTaps: seen.sameFrameTaps,
     checksums: endpoints,
     gates,
-    playerViewFailures: journey.flatMap((event) => (event.event === "player-view" && event.failure !== undefined ? [`match ${event.epoch} at ${event.at}: ${event.failure}`] : [])),
+    playerViewFailures,
     failures,
     passed: Object.values(gates).every(Boolean) && failures.length === 0,
   };
+}
+
+export function integrityResult(evidence: CaptureEvidence, pair: EpochPair, window?: number): IntegrityResult {
+  const { metadata } = evidence;
+  const seen = emptyObservations();
+  const journey = metadata.events.filter((event) => event.epoch === undefined || pair.includes(event.epoch));
+  checkSources(evidence, seen);
+  const native = new Map<string, readonly NativeRow[]>();
+  for (const epoch of pair) {
+    for (const client of SLOTS) {
+      const events = readClient(evidence, epoch, client, seen);
+      if (events === undefined) continue;
+      native.set(clientKey(epoch, client), events);
+      demand(seen, seen.endpoints.get(clientKey(epoch, client))?.[2] === 3, `epoch ${epoch} client ${client}: final result checksum absent`);
+    }
+    demand(seen, sameEndpoint(seen.endpoints.get(clientKey(epoch, 0)), seen.endpoints.get(clientKey(epoch, 1))), `epoch ${epoch}: final checksums differ`);
+    for (const slot of SLOTS) {
+      const clock = slotClock(journey, epoch, slot, seen);
+      observedEdges(native, epoch, slot, expectedEdges(evidence, clock, seen), seen);
+      localStartsOf(native, clock, seen);
+    }
+  }
+  checkJourney(evidence, journey, pair, seen);
+  const playerViewFailures = journey.flatMap((event) => (event.event === "player-view" && event.failure !== undefined ? [`match ${event.epoch} at ${event.at}: ${event.failure}`] : []));
+  return verdict(seen, metadata, pair, playerViewFailures, window);
 }
 
 
