@@ -10,7 +10,7 @@ import { isCpuTier, type CpuTier } from "../src/game/match/cpuProfiles";
 
 // #385's camping field: the fighter ahead on stocks camps, with drops off,
 // the shipped drops and each field variant, on the same matches. Shards run
-// as child processes (--workers, at most 4) over interleaved fighter pairs.
+// as child processes (--workers, 4 by default) over interleaved fighter pairs.
 
 export const CAMPING_RULES = ["off", ...DROP_VARIANTS] as const;
 export type CampingRule = (typeof CAMPING_RULES)[number];
@@ -123,7 +123,7 @@ class CampingFailure extends Schema.TaggedError<CampingFailure>()("CampingFailur
 }
 
 const playShards = (rules: readonly CampingRule[], values: Record<string, string | undefined>) => Effect.gen(function*() {
-  const workers = Math.min(4, Number(values.workers ?? 4));
+  const workers = Number(values.workers ?? 4);
   const passed = Object.entries(values).flatMap(([name, value]) => name === "workers" || value === undefined ? [] : [`--${name}`, String(value)]);
   const started = performance.now();
   const shards = yield* Effect.forEach(Array.from({ length: workers }, (_, index) => index), index => Effect.gen(function*() {

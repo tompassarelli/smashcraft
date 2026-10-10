@@ -123,7 +123,20 @@ interface SideRecord {
   readonly punishes: PunishTotals;
   /** Corner and edge play (#386, #387): lags ended by sliding off a main-deck lip, corners entered and left to the centre unhit, hits on an opponent recovering below the deck, those landed from off stage, and stocks they took. */
   readonly edges: EdgePlay;
+  /** Ledge play (#386): frames at or below the ledge, frames in, and hits landed and taken from the ledge (holding it or within LEDGE_PLAY_FRAMES of letting go) and on the main deck. */
+  readonly ledge?: LedgePlay;
 }
+
+export interface LedgePlay {
+  belowFrames: number;
+  inFrames: number;
+  ledgeLanded: number;
+  ledgeTaken: number;
+  stageLanded: number;
+  stageTaken: number;
+}
+
+const LEDGE_PLAY_FRAMES = 60;
 
 export interface EdgePlay {
   edgeCancels: number;
@@ -228,6 +241,8 @@ export interface FieldOptions {
   readonly dropVariant?: DropVariant;
   /** The fighter ahead on stocks camps (campPolicy.ts). */
   readonly camp?: boolean;
+  /** Field-only: "melee" restores full ledge intangibility on every grab (no #386 decay). */
+  readonly ledgeRule?: "melee";
 }
 
 interface Watch {
@@ -256,6 +271,7 @@ interface Watch {
   cornered: boolean;
   recovering: boolean;
   edgeGuarded: boolean;
+  ledgeUntil: number;
 }
 
 interface Punish {
@@ -273,7 +289,7 @@ interface Punish {
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
   serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined, lastStarted: undefined, lastHitMove: undefined, punish: undefined, stockFirstHit: true,
-  grounded: f.motion.grounded, lagging: false, cornered: false, recovering: false, edgeGuarded: false,
+  grounded: f.motion.grounded, lagging: false, cornered: false, recovering: false, edgeGuarded: false, ledgeUntil: -1,
 });
 
 
@@ -358,6 +374,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   const side = (character: Character): SideRecord => ({
     fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, manaSpent: 0, specialsStarted: 0, specialsRefused: 0, stocksPlayed: 0, stockLosses: [],
     damageByMove: {}, kosByMove: {}, rangedDamage: 0, approachFrames: 0, retreatFrames: 0, punishes: emptyPunishes(), edges: emptyEdgePlay(),
+    ledge: { belowFrames: 0, inFrames: 0, ledgeLanded: 0, ledgeTaken: 0, stageLanded: 0, stageTaken: 0 },
   });
   const spam = [options.spam?.[fighterSlug(a)], options.spam?.[fighterSlug(b)]] as const;
   const sides: [SideRecord, SideRecord] = [side(a), side(b)];
@@ -393,6 +410,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     if (!captureFrame(row, frame, world.mask, produced, runtime)) throw new Error(`capture refused frame ${frame}`);
     if (!executeMatchFrame(row, match, world, controls, runtime, frame)) throw new Error(`execution refused frame ${frame}`);
     if (dropRule !== undefined) advanceDropVariant(dropRule, match, world);
+    if (options.ledgeRule === "melee") for (const slot of [0, 1] as const) fighterAt(world, slot).ledge.grabs = 0;
     if (match.drops.pickupSerial !== pickups) {
       pickups = match.drops.pickupSerial;
       if (match.drops.lastTaker === 0 || match.drops.lastTaker === 1) takes[match.drops.lastTaker]++;
@@ -432,6 +450,18 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       if ((startedSpecial || branched) && f.mana.points < seen.mana) own.manaSpent += seen.mana - f.mana.points;
       own.specialsRefused += f.visuals.manaDenied - seen.denied;
       const hit = f.visuals.hit !== seen.hits;
+      const ledge = own.ledge;
+      if (f.ledge.state !== LedgeState.none) seen.ledgeUntil = frame + LEDGE_PLAY_FRAMES;
+      if (ledge !== undefined && !f.status.out) {
+        ledge.inFrames++;
+        if (f.ledge.state !== LedgeState.none || f.motion.z < 0.0) ledge.belowFrames++;
+      }
+      if (hit && other?.ledge !== undefined && ledge !== undefined) {
+        if (seen.ledgeUntil >= frame) ledge.ledgeTaken++;
+        else if (onMainDeck(f, stage)) ledge.stageTaken++;
+        if (opponent.ledge.state !== LedgeState.none || opponentSeen.ledgeUntil >= frame) other.ledge.ledgeLanded++;
+        else if (onMainDeck(opponent, stage)) other.ledge.stageLanded++;
+      }
       const dealt = f.status.damage > seen.damage ? f.status.damage - seen.damage : 0;
       if (hit && other !== undefined) {
         other.hitsLanded++;
@@ -924,6 +954,37 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
 
 const percent = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).toFixed(0)}%`);
 
+/** Ledge play (#386): the share of in-play frames at or below the ledge, and per fighter the share of hit exchanges it wins from the ledge against on the main deck, flagged when the ledge share is higher at 95% (two-proportion z > 1.96). */
+export function ledgePlayLines(records: readonly MatchRecord[]): string[] {
+  let below = 0, inFrames = 0;
+  const by: Record<string, LedgePlay> = {};
+  for (const record of records) for (const side of record.sides) {
+    const ledge = side.ledge;
+    if (ledge === undefined) continue;
+    below += ledge.belowFrames;
+    inFrames += ledge.inFrames;
+    const row = by[side.fighter] ??= { belowFrames: 0, inFrames: 0, ledgeLanded: 0, ledgeTaken: 0, stageLanded: 0, stageTaken: 0 };
+    for (const key of ["belowFrames", "inFrames", "ledgeLanded", "ledgeTaken", "stageLanded", "stageTaken"] as const) row[key] += ledge[key];
+  }
+  if (inFrames === 0) return [];
+  const pct = (n: number) => `${(100 * n).toFixed(1)}%`;
+  const lines = [`Ledge play: ${pct(below / inFrames)} of in-play frames at or below the ledge.`, "", "| Fighter | at/below ledge | exchanges won from the ledge | on stage | ledge higher at 95% |", "|---|---|---|---|---|"];
+  let higher = 0;
+  for (const fighter of Object.keys(by).sort()) {
+    const row = by[fighter];
+    if (row === undefined) continue;
+    const n1 = row.ledgeLanded + row.ledgeTaken, n2 = row.stageLanded + row.stageTaken;
+    const p1 = n1 === 0 ? 0 : row.ledgeLanded / n1, p2 = n2 === 0 ? 0 : row.stageLanded / n2;
+    const pooled = n1 + n2 === 0 ? 0 : (row.ledgeLanded + row.stageLanded) / (n1 + n2);
+    const se = Math.sqrt(pooled * (1 - pooled) * (1 / Math.max(1, n1) + 1 / Math.max(1, n2)));
+    const flagged = n1 > 0 && n2 > 0 && se > 0 && (p1 - p2) / se > 1.96;
+    if (flagged) higher++;
+    lines.push(`| ${fighter} | ${pct(row.belowFrames / Math.max(1, row.inFrames))} | ${pct(p1)} of ${n1} | ${pct(p2)} of ${n2} | ${flagged ? "yes" : "no"} |`);
+  }
+  lines.push("", `Ledge play: ${higher} fighter(s) win more exchanges from the ledge than on stage at 95%.`);
+  return lines;
+}
+
 /** Corner and edge play per computer tier, per side-match: the #386 and #387 measures. */
 export function edgePlayLines(records: readonly MatchRecord[]): string[] {
   const tiers = new Map<string, { sides: number; minutes: number; play: EdgePlay }>();
@@ -1115,7 +1176,7 @@ if (import.meta.main) {
   const { values } = parseArgs({
     args: process.argv.slice(2),
     options: { variants: { type: "string" }, "per-pair": { type: "string" }, seeds: { type: "string" }, "seed-offset": { type: "string" }, opponents: { type: "string" }, tiers: { type: "string" }, stocks: { type: "string" }, minutes: { type: "string" }, json: { type: "string" }, merge: { type: "string" }, fighters: { type: "string" }, pairs: { type: "string" },
-      "probe-fighter": { type: "string" }, from: { type: "string" }, probe: { type: "string" } },
+      "probe-fighter": { type: "string" }, from: { type: "string" }, probe: { type: "string" }, "ledge-rule": { type: "string" } },
     strict: true,
   });
   const fighterNamed = (slug: string) => {
@@ -1161,7 +1222,9 @@ if (import.meta.main) {
     ...(pairs === undefined ? {} : { pairs }),
     ...(values["per-pair"] === undefined ? {} : { perPair: Number(values["per-pair"]) }),
     ...(spam === undefined ? {} : { spam }),
+    ...(values["ledge-rule"] === "melee" ? { ledgeRule: "melee" as const } : {}),
   };
+  if (values["ledge-rule"] !== undefined && values["ledge-rule"] !== "melee") throw new Error("--ledge-rule takes melee");
   if (values.merge === undefined) {
     const pairCount = pairs?.length ?? ((fighters ?? SELECTABLE_CHARACTERS).length * ((fighters ?? SELECTABLE_CHARACTERS).length - 1)) / 2;
     if (pairCount > 1 && admitsThroughHelper()) {
@@ -1187,6 +1250,8 @@ if (import.meta.main) {
   console.log("");
   console.log(fieldTable(summaries, records));
   console.log(edgePlayLines(records).join("\n"));
+  console.log("");
+  console.log(ledgePlayLines(records).join("\n"));
   console.log("");
   console.log(balanceTables(summaries, probeResults(values.probe?.split(",").filter(Boolean) ?? []), readProfiles()));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);
