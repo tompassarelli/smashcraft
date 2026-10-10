@@ -150,6 +150,12 @@ export class ReplayHistory {
   private repairInputs = 0;
   private readonly scope: ScopedFrame = { slot: 0, after: createReplaySnapshot(), reused: 0 };
   private scopedSteps = 0;
+  /**
+   * After a held scoped step: the frame after it and its slot, whose state and
+   * earlier-run fighter that step already proved apart from the others.
+   */
+  private provenFrame = -1;
+  private provenSlot = -1;
   scopedRepair: ScopedRepair = "auto";
   /** Tests see each scoped frame: the state before it (its snapshot), its row and the state it reached. */
   observeScoped: ((frame: number, before: Readonly<ReplayState>, row: MatchFrameInput, after: Readonly<ReplayState>) => void) | undefined;
@@ -401,6 +407,7 @@ export class ReplayHistory {
       this.repairDirty = 0;
       this.repairShown = 0;
       this.repairInputs = 0;
+      this.provenFrame = -1;
       restored = true;
     }
     let frame = start;
@@ -440,6 +447,7 @@ export class ReplayHistory {
       this.repairShown = 0;
       this.repairInputs = 0;
       this.skippedFrames += resume - frame;
+      this.provenFrame = -1;
       converged = resume === this.nextFrame;
       if (!converged) copyReplayState(state, this.snapshotAt(resume));
       frame = resume;
@@ -489,9 +497,12 @@ export class ReplayHistory {
    * The one fighter frame `frame` may play alone: the correction changed only
    * it, the frame's earlier run reached the next snapshot, every computer
    * repeats its decision, and in neither run can it touch another fighter.
-   * Reads the frame's snapshot before the repair rewrites it.
+   * Reads the frame's snapshot before the repair rewrites it. A held scoped
+   * step on the frame before already proved the first two distance tests.
    */
   private scopedSlot(frame: number, state: Readonly<ReplayState>, repeated: RepeatedComputers | undefined, dirty: number): number | undefined {
+    const proven = frame === this.provenFrame ? this.provenSlot : -1;
+    this.provenFrame = -1;
     if (this.scopedRepair === "off" || frame + 1 >= this.nextFrame || !this.follows[this.slotOf(frame + 1)]) return undefined;
     // With no fighter changed yet, any human may play the frame.
     const slot = dirty === 0 ? firstHuman(state) : soleSlot(dirty);
@@ -503,8 +514,10 @@ export class ReplayHistory {
     if (this.scopedRepair === "force") return slot;
     const after = this.snapshotAt(frame + 1).world;
     const earlier = this.snapshotAt(frame).world;
-    if (!apartFromOthers(slot, fighterAt(state.world, slot), state.world)) return undefined;
-    if (!apartFromOthers(slot, fighterAt(earlier, slot), state.world)) return undefined;
+    if (slot !== proven) {
+      if (!apartFromOthers(slot, fighterAt(state.world, slot), state.world)) return undefined;
+      if (!apartFromOthers(slot, fighterAt(earlier, slot), state.world)) return undefined;
+    }
     if (!apartFromOthers(slot, fighterAt(after, slot), after)) return undefined;
     if (!authoredMotionApartFromOthers(slot, fighterAt(state.world, slot), after)) return undefined;
     return slot;
@@ -521,6 +534,11 @@ export class ReplayHistory {
       if (!executeMatchFrame(row, state.match, state.world, state.controls, state.runtime, frame, repeated, this.scope)) return false;
       const held = this.scopedRepair === "force" || (apartFromOthers(scoped, fighterAt(state.world, scoped), state.world) && scopedStepHeld(scoped, state.match, state.world, after.match));
       if (held) {
+        // The state's other fighters are the next snapshot's, so its proofs carry to the next frame.
+        if (this.scopedRepair === "auto" && state.world.mask === after.world.mask) {
+          this.provenFrame = frame + 1;
+          this.provenSlot = scoped;
+        }
         this.repairShown |= 1 << scoped;
         this.scopedSteps++;
         this.observeScoped?.(frame, this.snapshotAt(frame), row, state);
