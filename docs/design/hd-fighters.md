@@ -163,6 +163,9 @@ levers, tore at the joints and pointed elsewhere: Shadow Hunter's forearm stood
   both looks from the published family and fails a Definitive body more than 10% from
   both Classic and its hurt top; Pit Lord (0.87 of Classic), Kael'thas (0.86) and
   Medivh (0.89) pass on their hurt tops (1.09, 0.92, 1.00), which they fit better than Classic.
+  Warden's back wings and Murloc's back spikes set that height and left their heads 8–31%
+  low (#415): their `fitScale` now puts the Stand head within 5% of Classic and `limbScales`
+  shrinks those back pieces (and Murloc's oversized head) so the drawn height stays within 10%.
   `limbScales` uniformly fits an arm and its attached hand or weapon about the
   shoulder when its proportions differ from Classic; it leaves the torso and legs
   in place. Legged bodies plant visible leg and foot surfaces against Classic after

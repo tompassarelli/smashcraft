@@ -1,6 +1,7 @@
 export const character = 21;
 export const stockPath = 'war3.w3mod:_de.w3mod:units\\creeps\\murloc\\murloc.mdx';
-export const fitScale = 0.532;
+export const fitScale = 0.735;
+export const limbScales = [['UpperSkike_C3_0_jnt', 0.45], ['UpperSpike_L3_0_jnt', 0.45], ['UpperSpike_R3_0_jnt', 0.45], ['MidSkike_C0_0_jnt', 0.5], ['bone_head', 0.9]] as const;
 export const classic = {
     pelvis: 'Bone_Pelvis',
     chest: 'Bone_Chest',
