@@ -14,6 +14,7 @@ import { HitAreaEffects } from "./hitAreaEffects";
 import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
 import { modelFailed } from "wisp/src/platform/modelFailures";
 import { fighterName } from "../sim/heroes/registry";
+import { specialAreaRegion } from "../presentation/disjointCues";
 
 declare global { var __smashcraftCueDefinitive: boolean | undefined; }
 
@@ -58,6 +59,7 @@ export class SpecialCueEffects {
   private readonly popcorn: PopcornCue[] = [];
   private confirmedCue: Cue | undefined;
   private confirmedKey = 0;
+  private confirmedFrame = 0;
   private readonly definitive: boolean;
   private readonly front: number;
   private readonly scale: number;
@@ -77,7 +79,7 @@ export class SpecialCueEffects {
       if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
       else if (shared && this.voices[cue.model] === undefined) {
         const models: effect[] = [];
-        for (let voice = 0; voice < POPCORN_VOICES; voice++) {
+        for (let voice = 0; voice < (cue.birth?.voices ?? POPCORN_VOICES); voice++) {
           const model = AddSpecialEffect(cue.model, origin.x, origin.y);
           this.parkPopcorn(model);
           models.push(model);
@@ -103,6 +105,7 @@ export class SpecialCueEffects {
     this.popcorn.length = 0;
     this.confirmedCue = undefined;
     this.confirmedKey = 0;
+    this.confirmedFrame = 0;
   }
 
 
@@ -118,8 +121,16 @@ export class SpecialCueEffects {
         key = 100 + attack.key;
       }
     }
-    if (cue !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey)) {
-      const model = this.popcornModel(cue.model);
+    const strike = cue?.birth?.strike === undefined || fighter === undefined ? undefined : specialAreaRegion(fighter, cue.birth.strike).strike;
+    if (cue?.birth?.strike !== undefined && strike === undefined) cue = undefined;
+    const frame = fighter?.special.frame ?? 0;
+    if (cue !== undefined && fighter !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey || (cue.birth?.eachFrame === true && frame !== this.confirmedFrame))) {
+      const anchor = CUE_ANCHORS[cue.anchor];
+      const model = this.popcornModel(cue, {
+        x: this.origin.x + fighter.motion.x + fighter.facing * (strike?.x2 ?? anchor.x * this.scale),
+        y: this.front,
+        z: this.origin.z + fighter.motion.z + (strike?.z2 ?? anchor.z * this.scale),
+      }, fighter.facing);
       if (model !== undefined) this.popcorn.push({ cue, model, born: now, seekStep: 0 });
     }
     for (let index = this.popcorn.length - 1; index >= 0; index--) {
@@ -131,6 +142,7 @@ export class SpecialCueEffects {
     }
     this.confirmedCue = cue;
     this.confirmedKey = key;
+    this.confirmedFrame = frame;
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
@@ -164,6 +176,11 @@ export class SpecialCueEffects {
       }
     }
     if (cue !== undefined) cue = this.look(cue);
+    if (cue?.birth?.strike !== undefined && fighter !== undefined) {
+      const strike = specialAreaRegion(fighter, cue.birth.strike).strike;
+      if (strike === undefined) cue = undefined;
+      else { x = strike.x2; z = strike.z2; }
+    }
     const parked = (this.parked ??= []);
     const failed = cue !== undefined && modelFailed(cue.model);
     if (failed && fighter !== undefined && cue !== undefined) {
@@ -217,7 +234,7 @@ export class SpecialCueEffects {
         BlzSetSpecialEffectYaw(entry.model, facingYaw(fighter.facing));
         BlzSetSpecialEffectPitch(entry.model, entry.cue.pitch ?? 0.0);
         BlzSetSpecialEffectScale(entry.model, entry.cue.scale * this.scale);
-        if (!this.definitive) {
+        if (!this.definitive && entry.cue.birth === undefined) {
           if (entry.seekStep === 0 && entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(entry.model, entry.cue.sequence);
           if (entry.seekStep < 2) { BlzSetSpecialEffectTime(entry.model, entry.cue.seconds ?? 0.0); entry.seekStep++; }
           BlzSetSpecialEffectTimeScale(entry.model, paused || fighter.launch.hitlag > 0 ? 0.0 : 1.0);
@@ -232,13 +249,27 @@ export class SpecialCueEffects {
     return this.definitive ? cue.definitive ?? cue : cue;
   }
 
-  private popcornModel(path: string): effect | undefined {
-    if (!this.shared) return AddSpecialEffect(path, this.origin.x, this.origin.y);
+  private popcornModel(cue: Cue, position: WorldOrigin, facing: number): effect | undefined {
+    const path = cue.model;
+    if (!this.shared) {
+      const model = AddSpecialEffect(path, position.x, position.y);
+      BlzSetSpecialEffectPosition(model, position.x, position.y, position.z);
+      BlzSetSpecialEffectScale(model, cue.scale * this.scale);
+      BlzSetSpecialEffectYaw(model, facingYaw(facing));
+      BlzSetSpecialEffectPitch(model, cue.pitch ?? 0.0);
+      BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+      return model;
+    }
     const voices = this.voices[path];
     const model = voices?.models[voices.next];
     if (voices === undefined || model === undefined) return undefined;
     voices.next = voices.next + 1 >= voices.models.length ? 0 : voices.next + 1;
     for (let index = this.popcorn.length - 1; index >= 0; index--) if (this.popcorn[index]?.model === model) this.popcorn.splice(index, 1);
+    BlzSetSpecialEffectPosition(model, position.x, position.y, position.z);
+    BlzSetSpecialEffectScale(model, cue.scale * this.scale);
+    BlzSetSpecialEffectYaw(model, facingYaw(facing));
+    BlzSetSpecialEffectPitch(model, cue.pitch ?? 0.0);
+    BlzSetSpecialEffectTimeScale(model, 1.0);
     BlzSpecialEffectClearSubAnimations(model);
     BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
     return model;
