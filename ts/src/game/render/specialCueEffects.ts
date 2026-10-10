@@ -6,7 +6,7 @@
 
 import type { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
-import { ATTACK_CUES, type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
+import { ATTACK_CUES, type AttackCueState, attackCueState, fighterAttackCues, fighterRenderedCues } from "../presentation/attackCues";
 import { characterModelScale } from "../presentation/modelScale";
 import { CUE_ANCHORS, MISSING_CUE_MODEL, type Cue, specialCueState } from "../presentation/specialCues";
 import { PARKED_CUE_TIME_SCALE, type ParkedFlags, type WorldOrigin, facingYaw, parkCue, parkOnce, placeEffect } from "./effects";
@@ -71,8 +71,9 @@ export class SpecialCueEffects {
     this.front = origin.y - 12.0;
     this.scale = characterModelScale(character);
     this.definitive = definitiveCues();
+    const attackCues = fighterAttackCues(character);
     for (const cue of fighterRenderedCues(character)) {
-      if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
+      if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true || attackCues.includes(cue)) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
       else if (shared && this.voices[cue.model] === undefined) {
         const models: effect[] = [];
         for (let voice = 0; voice < POPCORN_VOICES; voice++) {
@@ -178,7 +179,14 @@ export class SpecialCueEffects {
       const { model } = entry;
       parked[index] = false;
       placeEffect(model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
-      if (this.shown !== cue || this.shownKey !== key) {
+      const reborn = this.definitive && DEFINITIVE_CUE_EMITTERS[entry.cue.model] === true;
+      const started = this.shown !== cue || this.shownKey !== key;
+      if (reborn) {
+        if (started) {
+          BlzSpecialEffectClearSubAnimations(model);
+          BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+        }
+      } else if (started) {
         if (entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(model, entry.cue.sequence);
         BlzSetSpecialEffectTime(model, entry.cue.seconds ?? 0.0);
         this.seekAgain = true;
@@ -211,7 +219,7 @@ export class SpecialCueEffects {
         if (!this.definitive) {
           if (entry.seekStep === 0 && entry.cue.sequence !== undefined) BlzSetSpecialEffectAnimation(entry.model, entry.cue.sequence);
           if (entry.seekStep < 2) { BlzSetSpecialEffectTime(entry.model, entry.cue.seconds ?? 0.0); entry.seekStep++; }
-          BlzSetSpecialEffectTimeScale(entry.model, paused || fighter.launch.hitlag > 0 ? 0.0 : 1.0);
+          BlzSetSpecialEffectTimeScale(entry.model, paused || fighter.launch.hitlag > 0 ? 0.0 : entry.cue.timeScale ?? 1.0);
         }
       }
     }
@@ -247,7 +255,7 @@ export class SpecialCueEffects {
       const entry = this.cues[index];
       if (entry !== undefined) BlzSetSpecialEffectTimeScale(entry.model, paused ? 0.0 : parked[index] === true ? PARKED_CUE_TIME_SCALE : entry.cue.timeScale ?? 1.0);
     }
-    if (!this.definitive) for (const { model } of this.popcorn) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
+    if (!this.definitive) for (const { model, cue } of this.popcorn) BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : cue.timeScale ?? 1.0);
   }
 
   destroy(): void {

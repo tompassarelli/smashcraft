@@ -1,0 +1,26 @@
+# Flames of Azzinoth (Illidan's down smash) on its active frames for #380: a against b, no contact.
+#! chat -dev quick hero illidan
+50 a capture
+60 a cstick 0 -1
+62 a capture
+64 a cstick 0 0
+64 a capture
+66 a capture
+68 a capture
+70 a capture
+72 a capture
+74 a capture
+76 a capture
+78 a capture
+80 a capture
+82 a capture
+84 a capture
+86 a capture
+88 a capture
+90 a capture
+92 a capture
+94 a capture
+96 a capture
+98 a capture
+100 a capture
+#! cue 62-100 Flames of Azzinoth: effect=FlameStrike1
