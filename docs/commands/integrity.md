@@ -18,10 +18,18 @@
   match and rematch (smashcraft:docs/playable-0047.md).
   `bun wisp integrity result DIR` reconciles either session from its recorded kind.
 
-- Delay readout: `bun wisp integrity delay RUN_DIR...` prints input delay
-  (service callbacks from a press's `capture` row to its first `action`
-  prediction) and rollback depth, p50 / p95 / max, per client from the
-  latest probe run's response pages under each directory
-  (smashcraft:ts/scripts/integrity/delayReadout.ts, #396). `pad` runs keep
+- Delay readout: `bun wisp integrity delay RUN_DIR...` prints, per client
+  from the latest probe run's response pages under each directory
+  (smashcraft:ts/scripts/integrity/delayReadout.ts, #396), p50 / p95 / max of:
+  input delay (service callbacks from a press's `capture` row to its first
+  `action` prediction); own echo (the frontier at an own edge row's `receive`
+  minus the frontier at its `capture`); edge-row lateness (a remote edge
+  row's `receive` frontier minus its frame); rollback depth (each `rollback`
+  row); and cursor offset (this client's speculative frame after a service
+  callback minus the other client's after the same callback, for two clients
+  in one directory whose recordings both start at the epoch's first match
+  callback). It also prints each epoch's agreed delay and requests (the
+  `delay <epoch> <agreed> <requests>` row), window halts (`stall` rows) and
+  the integrity, transport and edge rows dropped from the export. `pad` runs keep
   those pages beside their traces, but a pad run writes them only when the
   probe was started (Ctrl+G) and exported (Ctrl+H).

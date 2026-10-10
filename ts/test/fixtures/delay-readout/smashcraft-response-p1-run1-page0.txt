@@ -1,0 +1,18 @@
+function PreloadFiles takes nothing returns nothing
+
+	call PreloadStart()
+	call Preload( "RS v=3 build=fixture local=1 run=1 page=0 rows=3 mode=clean edge_pairs=0 edge_limit=64 edge_dropped=3" )
+	call Preload( "integrity retained=6 dropped=2" )
+	call Preload( "transport sent_frames=3 received_frames=3 unmatched_receipts=0 dropped_from_export=0 retained=3" )
+	call Preload( "I 1 delay 1 2 2,3" )
+	call Preload( "I 3 capture 1 1 20 1 1 0 18" )
+	call Preload( "I 3 receive 1 0 10 1 1 0 13" )
+	call Preload( "I 8 receive 1 1 20 1 1 0 25" )
+	call Preload( "I 9 rollback 1 2" )
+	call Preload( "I 10 rollback 1 6" )
+	call Preload( "A 0 1.0 1.0 1.0 1.0 1.0 0 1 8 9 9 0" )
+	call Preload( "A 1 1.0 1.0 1.0 1.0 1.0 1 2 10 11 11 0" )
+	call Preload( "A 2 1.0 1.0 1.0 1.0 1.0 2 3 11 12 12 0" )
+	call PreloadEnd( 0.0 )
+
+endfunction

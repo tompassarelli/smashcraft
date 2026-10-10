@@ -445,7 +445,7 @@ export function exportProbe(probe: ResponseProbe): void {
 export const epochChecksumDue = (probe: ResponseProbe | undefined, frame: number): boolean => probeRecording(probe) && probe.epoch !== undefined && floorMod(frame, CHECKSUM_FRAMES) === 0;
 
 
-export function serviceEpochProbe(probe: ResponseProbe, epoch: number | undefined, checksum: () => string): void {
+export function serviceEpochProbe(probe: ResponseProbe, epoch: number | undefined, checksum: () => string, started: () => string): void {
   if (probe.recording && probe.epoch !== undefined && (epoch !== probe.epoch || probe.rows >= EPOCH_CALLBACKS)) {
     probeIntegrity(probe, checksum());
     exportProbe(probe);
@@ -453,5 +453,8 @@ export function serviceEpochProbe(probe: ResponseProbe, epoch: number | undefine
   if (epoch === undefined || epoch === probe.seenEpoch) return;
   probe.seenEpoch = epoch;
   if (probe.exporting || probe.recording) probe.incomplete.push(epoch);
-  else startProbe(probe, false, epoch);
+  else {
+    startProbe(probe, false, epoch);
+    probeIntegrity(probe, started());
+  }
 }

@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import { expect, test } from "bun:test";
 import { readEvidence, readMetadata } from "../scripts/integrity/evidence";
 import { capturePair, integrityResult, integrityTable, summaryJson } from "../scripts/integrity/reconcile";
+import { clientDelay, delayTable, savedClients, withCursorOffsets } from "../scripts/integrity/delayReadout";
 
 
 const evidence = (run: string) => join(import.meta.dir, "../../evidence", `input-integrity-0042-${run}-20261005`);
@@ -39,4 +40,13 @@ test("the r8 capture reconciles to #26's measured table [k4 reference native]", 
 
   const retained = await Bun.file(join(evidence("r8"), "summary.json")).json();
   expect(summaryJson(result)).toEqual({ ...retained, rollback_limit_frames: 24, four_fighters: false, player_view_failures: [], ...NOTHING_HELD });
+});
+
+
+test("the delay readout reports each client's echo, lateness, depth, agreed delay, cursor offset, halts and drops from a hand-counted pair [spec #396]", () => {
+  const clients = withCursorOffsets(savedClients(join(import.meta.dir, "fixtures/delay-readout")).map(clientDelay));
+  expect(delayTable(clients).slice(2)).toEqual([
+    "| . p0 run1 | 1:2 (2,3) | 1 / 1 / 1 (n=1) | 0 | 4 / 4 / 4 (n=1) | 0 / 3 / 3 (n=2) | 4 / 4 / 4 (n=1) | 1 / 1 / 1 (n=3) | 1 | 0 / 1 / 0 |",
+    "| . p1 run1 | 1:2 (2,3) | None / None / None (n=0) | 1 | 7 / 7 / 7 (n=1) | 3 / 3 / 3 (n=1) | 2 / 6 / 6 (n=2) | -1 / 0 / 0 (n=3) | 0 | 2 / 0 / 3 |",
+  ]);
 });

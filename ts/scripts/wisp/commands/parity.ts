@@ -12,7 +12,7 @@ import { captureMatches, parseCaptureArguments } from "../../integrity/capture";
 import { IntegrityFailure, reconcileCapture, tryIntegrityPromise } from "../../integrity/evidence";
 import { captureHeadless, parseHeadlessArguments } from "../../integrity/headless";
 import { captureScreen, screenCaptureArguments } from "../../integrity/screenCapture";
-import { clientDelay, delayTable, savedClients } from "../../integrity/delayReadout";
+import { clientDelay, delayTable, savedClients, withCursorOffsets } from "../../integrity/delayReadout";
 import { type Command, UsageFailure, describeCause } from "wisp/scripts/wisp/command";
 import { step } from "wisp/scripts/wisp/timings";
 
@@ -95,7 +95,7 @@ export const integrity: Command = ([mode, ...args]) => {
     case "delay":
       if (args.length === 0) return Effect.fail(new UsageFailure({ problem: "integrity delay takes one or more run directories" }));
       return Effect.forEach(args, (directory) => Effect.try({
-        try: () => savedClients(directory).map(clientDelay),
+        try: () => withCursorOffsets(savedClients(directory).map(clientDelay)),
         catch: (cause) => new IntegrityFailure({ operation: "read integrity rows", path: directory, cause: describeCause(cause) }),
       }).pipe(Effect.flatMap((clients) => clients.length === 0
         ? Effect.fail(new IntegrityFailure({ operation: "read integrity rows", path: directory, cause: "no response pages saved" }))
