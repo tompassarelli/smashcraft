@@ -166,9 +166,11 @@ export function checkMemory(run: MemoryRun, limits: MemoryLimits = MEMORY_LIMITS
 function matchSlopes(run: MemoryRun, limits: MemoryLimits): MemoryVerdict {
   const after = run.samples.filter((sample) => sample.kind === "match" && minutes(sample.frame) >= limits.warmupMinutes);
   const match = (sample: MemorySample) => Number(sample.fields.match);
-  if (after.length < 3) return { lines: [], failures: [`only ${after.length} matches after warm-up: play longer`] };
-  const first = match(after[0]!);
-  const last = match(after[after.length - 1]!);
+  const [head] = after;
+  const tail = after.at(-1);
+  if (after.length < 3 || head === undefined || tail === undefined) return { lines: [], failures: [`only ${after.length} matches after warm-up: play longer`] };
+  const first = match(head);
+  const last = match(tail);
   const failures: string[] = [];
   const heap = fit(after.map((sample) => [match(sample), sample.heapKb]));
   const heapSlope = heap.slope;
