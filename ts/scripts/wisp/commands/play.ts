@@ -137,7 +137,7 @@ export function playtest({ build, map, helper, computerSlot, computerOpponent, c
     }),
 
 
-    helper: { service: (game) => helper === undefined ? Effect.succeed("keyboard (this build has no controller helper)") : optionalController(helper, game.pid, build) },
+    helper: { service: (game) => optionalController({ pid: game.pid, build }) },
   };
 }
 
@@ -237,6 +237,7 @@ export const play: Command = (args) => Effect.gen(function*() {
   }
   if (args.includes("--install-green")) {
     const { installGreen } = yield* Effect.tryPromise({ try: () => import("../installGreen"), catch: (cause) => new PlayProblem({ problem: String(cause) }) });
+    console.log(`Controller helper: ${yield* optionalController()}`);
     return yield* installGreen(documentsFolder(PLAYTEST_PREFIX));
   }
   yield* signInTom;
