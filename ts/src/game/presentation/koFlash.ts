@@ -18,7 +18,7 @@ export const KO_BLUR_DISTANCE = 50.0;
 export const KO_BLUR_FADE_FRAMES = 36;
 
 // Reforged and Definitive blend the filter in linear light and draw nothing below alpha 4, so the wash fades by colour at this alpha (#289).
-export const KO_FLASH_FLOOR_ALPHA = 8;
+const KO_FLASH_FLOOR_ALPHA = 8;
 
 export const KO_FLASH_TAIL_FRAMES = 20;
 
