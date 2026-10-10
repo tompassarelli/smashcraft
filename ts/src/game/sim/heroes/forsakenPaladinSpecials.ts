@@ -7,7 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { CHILL } from "../chill";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, frames, recovery, still } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { MEDIUM, capsule, hit, forsakenPaladinReach } from "./forsakenPaladinMoves";
 
@@ -37,20 +37,18 @@ const RIGHTEOUS_FURY: AuthoredSpecial = {
   regions: furyRegions,
   strikeStatus: CHILL,
   hurt: [hurtPose(12, 25, forsakenPaladinReach(48.0, 56.0))],
-  motion: [{ ...frames(15, 20), velocityX: FURY_SPEED, velocityZ: 0.0, stopsAtBody: true }, { ...frames(21, 21), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(15, 20), velocityX: FURY_SPEED, velocityZ: 0.0, stopsAtBody: true }, still(21, 21)],
   armor: { ...frames(15, 18), maxDamage: 5.0 },
 };
-const RIGHTEOUS_FURY_AIR: AuthoredSpecial = {
+const RIGHTEOUS_FURY_AIR = recovery({
   endFrame: RIGHTEOUS_FURY.endFrame,
   cooldownFrames: RIGHTEOUS_FURY.cooldownFrames,
   regions: furyRegions,
   strikeStatus: CHILL,
   hurt: RIGHTEOUS_FURY.hurt,
   motion: RIGHTEOUS_FURY.motion,
-  oncePerAirtime: true,
-  helpless: true,
   landingLag: 20,
-};
+});
 
 
 
@@ -58,16 +56,14 @@ const RIGHTEOUS_FURY_AIR: AuthoredSpecial = {
 
 const ASCENT_FIRST = 8;
 const ASCENT_LAST = 29;
-const ascension = (rise: number): AuthoredSpecial => ({
+const ascension = (rise: number): AuthoredSpecial => recovery({
   endFrame: ASCENT_LAST,
   regions: [heroRegion(10, 15, capsule(10.0, 70.0, 24.0, f32(MEDIUM + 20.0), 16.0), hit(8.576000213623047, "LAUNCH", 80, false, HitElement.holy))],
   motion: [
     { ...frames(ASCENT_FIRST, ASCENT_LAST - 1), velocityX: perFrame(heights(f32(0.2)), ASCENT_FIRST, ASCENT_LAST - 1), velocityZ: perFrame(heights(rise), ASCENT_FIRST, ASCENT_LAST - 1), driftSpeed: perFrame(heights(f32(1.6)), ASCENT_FIRST, ASCENT_LAST - 1) },
-    { ...frames(ASCENT_LAST, ASCENT_LAST), velocityX: 0.0, velocityZ: 0.0 },
+    still(ASCENT_LAST, ASCENT_LAST),
   ],
   hurt: [hurtPose(7, 18, forsakenPaladinReach(10.0, 136.0))],
-  oncePerAirtime: true,
-  helpless: true,
 });
 
 const CONSECRATION: AuthoredSpecial = {

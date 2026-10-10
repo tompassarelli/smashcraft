@@ -6,7 +6,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
 import { type AppliedStatus } from "../heroStatus";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames, recovery } from "../heroSpecials";
 import { capsule, hit } from "./lichKingMoves";
 import { VALKYR_MODEL } from "../../assets/importedModelInfo";
 
@@ -65,14 +65,12 @@ const ASCENT_FRAMES = 23;
 
 
 function ascension(height: number, steer: number): AuthoredSpecial {
-  return {
+  return recovery({
     endFrame: 46,
     facesStick: true,
     motion: [{ ...frames(8, 30), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(steer) / ASCENT_FRAMES) }],
     regions: [heroRegion(8, 30, capsule(0.0, 50.0, 0.0, 110.0, 62.0), hit(9.0, "LAUNCH", 80))],
-    oncePerAirtime: true,
-    helpless: true,
-  };
+  });
 }
 
 

@@ -2,7 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind } from "../codes";
 import { heroRegion, type StrikeCapsule } from "../heroMoves";
 import { withExKit } from "../exSpecialAuthoring";
-import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialCompanion, type SpecialKit, type SpecialPlacement, type SpecialProjectile } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, type SpecialCompanion, type SpecialKit, type SpecialPlacement, type SpecialProjectile, recovery, still } from "../heroSpecials";
 import type { AppliedStatus } from "../heroStatus";
 import { kaelCastBody, kaelHit } from "./kaelthasMoves";
 
@@ -44,10 +44,10 @@ const PHOENIX_SPEED = 16.0;
 const SWIRL: StrikeCapsule = { x1: -20.0, z1: 55.0, x2: 20.0, z2: 55.0, radius: 42.0 };
 const BIRD: StrikeCapsule = { x1: -24.0, z1: 55.0, x2: 24.0, z2: 55.0, radius: 32.0 };
 const swirl = kaelHit(2.069999933242798, 80, 0.0, 30.0);
-const phoenix = (speed: number): AuthoredSpecial => ({
-  endFrame: 84, aimFrames: PHOENIX_AIM_FRAMES, rehits: [25, 31, 37, PHOENIX_CHARGE_FRAMES], oncePerAirtime: true, helpless: true, landingLag: 18,
+const phoenix = (speed: number): AuthoredSpecial => recovery({
+  endFrame: 84, aimFrames: PHOENIX_AIM_FRAMES, rehits: [25, 31, 37, PHOENIX_CHARGE_FRAMES], landingLag: 18,
   motion: [
-    { ...frames(1, 15), velocityX: 0.0, velocityZ: 0.0 },
+    still(1, 15),
     { ...frames(16, PHOENIX_CHARGE_FRAMES), velocityX: 0.0, velocityZ: -0.5 },
     { ...frames(PHOENIX_CHARGE_FRAMES + 1, PHOENIX_CHARGE_FRAMES + PHOENIX_FLIGHT_FRAMES), velocityX: 0.0, velocityZ: speed, aimedSpeed: speed, liftSpeed: 1.5 },
   ],

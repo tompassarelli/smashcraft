@@ -3,7 +3,7 @@ import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT } from "../heroMoves";
-import { type AuthoredSpecial, CompanionOrder, type FighterSpecials, type SpecialCompanion, type SpecialMotion, type SpecialPlacement, type SpecialProjectile, frames } from "../heroSpecials";
+import { type AuthoredSpecial, CompanionOrder, type FighterSpecials, type SpecialCompanion, type SpecialMotion, type SpecialPlacement, type SpecialProjectile, frames, recovery } from "../heroSpecials";
 import { capsule, hit } from "./beastmasterMoves";
 
 const h = (multiple: number): number => f32(HERO_REFERENCE_HEIGHT * f32(multiple));
@@ -77,8 +77,8 @@ const lift = (rise: number, drift: number, steer: number): SpecialMotion[] => {
     });
   return [segment(10, 15, 0.5), segment(16, 27, f32(0.46)), segment(28, 32, f32(0.04))];
 };
-const hawkLift = (rise: number, drift: number, steer: number): AuthoredSpecial => ({
-  name: "Hawk Lift", endFrame: 32, motion: lift(rise, drift, steer), facesStick: true, oncePerAirtime: true, helpless: true,
+const hawkLift = (rise: number, drift: number, steer: number): AuthoredSpecial => recovery({
+  name: "Hawk Lift", endFrame: 32, motion: lift(rise, drift, steer), facesStick: true,
   placement: { ...HAWK_PLACEMENT, frame: 10 },
 });
 export const BEASTMASTER_SPECIALS: FighterSpecials = {

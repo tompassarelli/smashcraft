@@ -3,7 +3,7 @@
 
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, CHARGED_AIM_FRAMES, FollowUpInput, Relocation, chargedAngleMotion, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, CHARGED_AIM_FRAMES, FollowUpInput, Relocation, chargedAngleMotion, frames, recovery } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { BLADE_RADIUS, L, M, capsule, cut, hit, length, reach } from "./blademasterMoves";
 import { path } from "./authoring";
@@ -72,7 +72,7 @@ const rise = (distance: number) => chargedAngleMotion(length(distance), RISE_FRA
 const BLADE_TOP = f32(M - BLADE_RADIUS);
 
 
-const risingBlade: AuthoredSpecial = {
+const risingBlade = recovery({
   endFrame: 24,
   aimFrames: CHARGED_AIM_FRAMES,
   motion: rise(f32(4.1)),
@@ -85,9 +85,7 @@ const risingBlade: AuthoredSpecial = {
     capsule(0.0, 60.0, 0.0, BLADE_TOP),
   ], hit(7.984755039215088, "LAUNCH", 80)),
   hurt: [hurtPose(7, 16, reach(18.0, 128.0))],
-  oncePerAirtime: true,
-  helpless: true,
-};
+});
 
 
 

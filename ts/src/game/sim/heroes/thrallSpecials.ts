@@ -2,7 +2,7 @@ import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, recovery, rise } from "../heroSpecials";
 import { capsule, thrallHit } from "./thrallMoves";
 
 const h = (multiple: number) => f32(HERO_REFERENCE_HEIGHT * multiple);
@@ -17,9 +17,8 @@ const wolf = (spawnFrame: number, air: boolean): SpecialProjectile => ({
   model: "units\\orc\\SpiritWolf\\SpiritWolf.mdx",
 });
 const wolves = (air: boolean): AuthoredSpecial => ({ endFrame: 44, cooldownFrames: 90, projectiles: [wolf(16, air), wolf(24, air)], landingLag: air ? 20 : undefined });
-const sight = (height: number): AuthoredSpecial => ({
-  endFrame: 40, facesStick: true, oncePerAirtime: true, helpless: true,
-  motion: [{ ...frames(1, 8), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(9, 32), velocityX: 0.0, velocityZ: f32(h(height) / 24.0), driftSpeed: f32(h(f32(1.5)) / 24.0) }],
+const sight = (height: number): AuthoredSpecial => recovery({
+  endFrame: 40, facesStick: true, motion: rise(9, 32, f32(h(height) / 24.0), f32(h(f32(1.5)) / 24.0)),
 });
 export const THRALL_SPECIALS: FighterSpecials = {
   neutral: withExKit({ name: "Chain Lightning", description: "Cast a quick lightning bolt to cover the hammer's approach.", ground: { endFrame: 44, projectiles: [bolt], landingLag: 18 } }, { damage: 1.25 }),

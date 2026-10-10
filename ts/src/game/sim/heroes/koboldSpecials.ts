@@ -1,7 +1,7 @@
 import { HitElement } from "../codes";
 import { withExKit } from "../exSpecialAuthoring";
 import { heroRegion } from "../heroMoves";
-import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, recovery, rise } from "../heroSpecials";
 import { koboldHit } from "./koboldMoves";
 
 const wick = (air: boolean): AuthoredSpecial => ({
@@ -15,11 +15,10 @@ const dig = (air: boolean): AuthoredSpecial => ({
   motion: [{ ...frames(8, 22), velocityX: 11.0, velocityZ: 0.0, stopsAtShield: true }],
   regions: [heroRegion(8, 22, { x1: 10.0, z1: 18.0, x2: 50.0, z2: 18.0, radius: 16.0 }, koboldHit(8.968000411987305, 40, 74.23999786376953, 22.0))],
 });
-const escape: AuthoredSpecial = {
-  endFrame: 34, oncePerAirtime: true, helpless: true, facesStick: true,
-  motion: [{ ...frames(1, 5), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(6, 25), velocityX: 0.0, velocityZ: 16.0, driftSpeed: 5.0 }],
+const escape = recovery({
+  endFrame: 34, facesStick: true, motion: rise(6, 25, 16.0, 5.0),
   regions: [heroRegion(6, 14, { x1: 0.0, z1: 18.0, x2: 0.0, z2: 74.0, radius: 22.0 }, koboldHit(5.605000019073486, 80, 64.95999908447266, 30.0))],
-};
+});
 const mine = (air: boolean): AuthoredSpecial => ({
   endFrame: 34, landingLag: air ? 18 : undefined,
   regions: [

@@ -2,7 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, HeroStatusGroup, HeroStatusKind, HitElement, ItemKind } from "./codes";
 import { CHILL } from "./chill";
 import { heroRegion, type MoveRegion, type StrikeCapsule } from "./heroMoves";
-import { frames, type AuthoredSpecial, type SpecialProjectile } from "./heroSpecials";
+import { frames, type AuthoredSpecial, type SpecialProjectile, still } from "./heroSpecials";
 import type { AppliedStatus } from "./heroStatus";
 import type { HitEffect } from "./hitRegions";
 import type { NamedMove } from "./heroes/hero";
@@ -65,7 +65,7 @@ const ILLIDAN: AuthoredSpecial = {
 const BLADESTORM_TICKS = [17, 26, 35, 44, 53, 62] as const;
 const BLADEMASTER: AuthoredSpecial = {
   name: "Bladestorm", endFrame: 104, groundOnly: true,
-  motion: [{ ...frames(17, 74), velocityX: 0.0, velocityZ: 0.0, driftSpeed: 5.0 }, { ...frames(75, 75), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(17, 74), velocityX: 0.0, velocityZ: 0.0, driftSpeed: 5.0 }, still(75, 75)],
   projectiles: [mark("Abilities\\Spells\\Other\\Tornado\\TornadoElementalSmall.mdx", 2, 12, 0.0)],
   regions: [
     ...BLADESTORM_TICKS.map((first): MoveRegion => heroRegion(first, first + 1, capsule(-110.0, 50.0, 110.0, 50.0, 60.0), hit(2.5, 80, 20.0, 35.0, HitElement.slash))),
@@ -263,7 +263,7 @@ const MURLOC: AuthoredSpecial = {
 const GROM: AuthoredSpecial = {
   name: "Blood of Mannoroth", endFrame: 70, groundOnly: true,
   projectiles: [mark("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustTarget.mdx", 1, 16, 0.0)],
-  motion: [{ ...frames(17, 40), velocityX: 22.0, velocityZ: 0.0 }, { ...frames(41, 41), velocityX: 0.0, velocityZ: 0.0 }],
+  motion: [{ ...frames(17, 40), velocityX: 22.0, velocityZ: 0.0 }, still(41, 41)],
   commandGrab: { ...frames(17, 40), strike: capsule(20.0, 50.0, 70.0, 50.0, 40.0), holdFrames: 30, effect: hit(22.0, 40, 90.0, 45.0, HitElement.slash), recovery: 24 },
 };
 

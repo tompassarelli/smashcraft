@@ -1,5 +1,5 @@
 import { withExKit } from "../exSpecialAuthoring";
-import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, frames, recovery } from "../heroSpecials";
 import { peonHit } from "./peonMoves";
 
 const lumberToss = (air: boolean): AuthoredSpecial => ({
@@ -24,9 +24,8 @@ const BURROW: AuthoredSpecial = {
   },
 };
 
-const vault = (x: number, z: number): AuthoredSpecial => ({
-  endFrame: 28, motion: [{ ...frames(8, 28), velocityX: 0.0, velocityZ: z, driftSpeed: x }],
-  oncePerAirtime: true, helpless: true, facesStick: true,
+const vault = (x: number, z: number): AuthoredSpecial => recovery({
+  endFrame: 28, motion: [{ ...frames(8, 28), velocityX: 0.0, velocityZ: z, driftSpeed: x }], facesStick: true,
 });
 
 const repair = (air: boolean): AuthoredSpecial => ({

@@ -3,7 +3,7 @@ import { withExKit } from "../exSpecialAuthoring";
 import { HeroStatusGroup, HeroStatusKind, HitElement } from "../codes";
 import { CHILL } from "../chill";
 import { heroRegion } from "../heroMoves";
-import { frames, type AuthoredSpecial, type FighterSpecials } from "../heroSpecials";
+import { frames, type AuthoredSpecial, type FighterSpecials, recovery, rise } from "../heroSpecials";
 import type { AppliedStatus } from "../heroStatus";
 import { murlocHit } from "./murlocMoves";
 
@@ -20,9 +20,8 @@ const tidalRush = (air: boolean): AuthoredSpecial => ({
   motion: [{ ...frames(8, 22), velocityX: 11.0, velocityZ: 0.0, stopsAtShield: true }],
   regions: [heroRegion(8, 22, { x1: 10.0, z1: 22.0, x2: 46.0, z2: 22.0, radius: 18.0 }, murlocHit(8.583999633789062, 40, 76.4800033569336, 22.0))],
 });
-const tideSpout = (speed: number, drift: number): AuthoredSpecial => ({
-  endFrame: 34, oncePerAirtime: true, helpless: true, facesStick: true,
-  motion: [{ ...frames(1, 5), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(6, 25), velocityX: 0.0, velocityZ: speed, driftSpeed: drift }],
+const tideSpout = (speed: number, drift: number): AuthoredSpecial => recovery({
+  endFrame: 34, facesStick: true, motion: rise(6, 25, speed, drift),
   regions: [heroRegion(6, 14, { x1: 0.0, z1: 20.0, x2: 0.0, z2: 80.0, radius: 26.0 }, murlocHit(5.364999771118164, 80, 66.91999816894531, 30.0))],
 });
 

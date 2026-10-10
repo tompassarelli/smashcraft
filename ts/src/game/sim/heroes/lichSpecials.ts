@@ -5,7 +5,7 @@
 import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, type SpecialProjectile, frames, recovery } from "../heroSpecials";
 import { CHILL } from "../chill";
 import { HitElement } from "../codes";
 import { hit, lichCastBody } from "./lichMoves";
@@ -68,12 +68,10 @@ const ASCENT_FRAMES = 25;
 
 
 function ascent(height: number, steer: number): AuthoredSpecial {
-  return {
+  return recovery({
     endFrame: 34,
     motion: [{ ...frames(10, 34), velocityX: 0.0, velocityZ: f32(h(height) / ASCENT_FRAMES), driftSpeed: f32(h(steer) / ASCENT_FRAMES) }],
-    oncePerAirtime: true,
-    helpless: true,
-  };
+  });
 }
 
 

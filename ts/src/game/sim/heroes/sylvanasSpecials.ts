@@ -2,7 +2,7 @@ import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { HeroStatusGroup, HeroStatusKind } from "../codes";
 import { HERO_REFERENCE_HEIGHT, heroRegion } from "../heroMoves";
-import { type AuthoredSpecial, type FighterSpecials, frames } from "../heroSpecials";
+import { type AuthoredSpecial, type FighterSpecials, frames, recovery, rise } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
 import { sylvanasHit, sylvanasReach, sylvanasStrike } from "./sylvanasMoves";
 
@@ -21,10 +21,9 @@ const SILENCE: AuthoredSpecial = {
   strikeStatus: { kind: HeroStatusKind.silence, frames: 90, group: HeroStatusGroup.silence, immunityFrames: 180 },
   hurt: [hurtPose(14, 24, sylvanasReach(48.0, 68.0))],
 };
-const flight = (rise: number, across: number): AuthoredSpecial => ({
+const flight = (height: number, across: number): AuthoredSpecial => recovery({
   endFrame: 31,
-  motion: [{ ...frames(1, 7), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(8, 31), velocityX: 0.0, velocityZ: f32(f32(HERO_REFERENCE_HEIGHT * rise) / 24.0), driftSpeed: f32(f32(HERO_REFERENCE_HEIGHT * across) / 24.0) }],
-  oncePerAirtime: true, helpless: true,
+  motion: rise(8, 31, f32(f32(HERO_REFERENCE_HEIGHT * height) / 24.0), f32(f32(HERO_REFERENCE_HEIGHT * across) / 24.0)),
 });
 const LIFE_DRAIN: AuthoredSpecial = {
   endFrame: 52, groundOnly: true,
