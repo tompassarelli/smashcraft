@@ -109,7 +109,7 @@ async function definitiveWhite(character: number, name: string, filename: string
   for (const material of model.Materials) {
     for (const layer of material.Layers) {
       layer.Shading = (layer.Shading | mdx.LayerShading.Unshaded) & ~mdx.LayerShading.NoDepthSet;
-      if (layer.FilterMode === mdx.FilterMode.Transparent) layer.FilterMode = mdx.FilterMode.Blend;
+      if (layer.FilterMode === mdx.FilterMode.Transparent || layer.FilterMode === mdx.FilterMode.None) layer.FilterMode = mdx.FilterMode.Blend;
       if (typeof layer.TextureID === "number") {
         const diffuse = layer.TextureID;
         let white = whiteDiffuse.get(diffuse);
@@ -178,8 +178,8 @@ for (const [character, fighter] of fighters.entries()) {
   for (const material of model.Materials) {
     for (const layer of material.Layers) {
       layer.Shading = (layer.Shading | mdx.LayerShading.Unshaded) & ~mdx.LayerShading.NoDepthSet;
-      // Both renderers alpha-test a Transparent layer against the effect alpha, which drops the flash at alpha 190.
-      if (layer.FilterMode === mdx.FilterMode.Transparent) layer.FilterMode = mdx.FilterMode.Blend;
+      // Blend only: a Transparent layer alpha-tests out at alpha 190, and a None layer draws the copy before the body, which then paints over it.
+      if (layer.FilterMode === mdx.FilterMode.Transparent || layer.FilterMode === mdx.FilterMode.None) layer.FilterMode = mdx.FilterMode.Blend;
     }
   }
   for (const texture of model.Textures) {
