@@ -452,13 +452,14 @@ export const headlessBatch = (options: BatchOptions) => Effect.gen(function*() {
 
   const session = (start: number, number: number) => Effect.scoped(Effect.gen(function*() {
     const clients = yield* headlessSession(join(options.out, `session-${number}`), options.helper, options.build);
+    let played = false;
     for (let index = start; index < runs.length; index++) {
       const run = runs[index];
       const row = made[index];
       if (run === undefined || row === undefined) break;
       const out = join(run.dir, "session");
       const restart = yield* Effect.suspend(() => Effect.gen(function*() {
-        if (index > start || row.attempts > 0) {
+        if (played) {
           const at = performance.now();
           const typedMs = Date.now();
           clients.clients.chat(0, RESET_COMMAND);
@@ -466,6 +467,7 @@ export const headlessBatch = (options: BatchOptions) => Effect.gen(function*() {
           row.reset += seconds(at);
         }
         row.attempts++;
+        played = true;
         const at = performance.now();
         const ran = yield* Effect.exit(headlessScript(clients, { scriptPath: run.script, steps: run.steps, helper: options.helper, build: options.build, out, chat: run.chat }));
         row.run += seconds(at);

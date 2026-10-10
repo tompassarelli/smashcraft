@@ -38,7 +38,10 @@
   Never loop `bun wisp fresh` + `bun wisp pad` per script (about a minute a
   script); `--fresh-each` exists only to measure that. `bun wisp pad
   SCRIPT|DIR... --headless ...` plays the same batch in one headless session
-  (smashcraft:docs/native-bot-session.md, "Many scripts in one game").
+  (smashcraft:docs/native-bot-session.md, "Many scripts in one game"),
+  beside `--headless-jobs` reference runs; each realtime process takes about
+  1.1 cores (1.6 peak), so lease `heavy` with `--headless-jobs 2`: starved
+  processes start scripts late ("helpers reported the match at frame N").
 
 - Pad cut (#233): `bun scripts/nativePadCut233.ts --pair N --clients-file FILE --helper WC3_CONTROLLER --map MAP --out DIR --app-id NAME=ID --app-id NAME=ID` uses one existing offline LAN pair, stops its own controller producer for 1 s, and checks the HUD waiting count and normal match results.
 
