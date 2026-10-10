@@ -203,23 +203,23 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Shadow Hunter | heavy | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Pit Lord | light | forward throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
 | Pit Lord | light | back throw | 0/0 | 0/0 KD | 0/0 KD | 0/0 KD |
-| Pit Lord | light | up throw | 1/1 | 1/1 KD in short hop, back air, out dash, dash attack | 1/0 KD | 1/1 |
+| Pit Lord | light | up throw | 1/1 | 1/1 KD in short hop, back air, out dash, dash attack | 1/0 KD | 1/1 in up tilt, out dash, dash attack |
 | Pit Lord | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Pit Lord | medium | forward throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
 | Pit Lord | medium | back throw | 0/0 | 0/0 KD | 0/0 KD | 0/0 KD |
-| Pit Lord | medium | up throw | 1/1 | 1/1 KD in short hop, back air, out dash, dash attack | 1/1 in up special, out forward tilt | 1/1 |
+| Pit Lord | medium | up throw | 1/1 | 1/1 KD in short hop, back air, out dash, dash attack | 1/1 in up special, out forward tilt | 1/1 in short hop, back air, out dash, dash attack |
 | Pit Lord | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Pit Lord | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
 | Pit Lord | heavy | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Pit Lord | heavy | up throw | 1/1 | 1/1 in forward tilt, out dash, dash attack | 1/1 KD | 1/1 KD in forward tilt, out down tilt |
+| Pit Lord | heavy | up throw | 1/1 | 1/1 in forward tilt, out dash, dash attack | 1/1 KD in short hop, back air, out dash, dash attack | 1/1 KD in forward tilt, out down tilt |
 | Pit Lord | heavy | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Beastmaster | light | forward throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
 | Beastmaster | light | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Beastmaster | light | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 KD | 1/1 KD in forward tilt, out dash, dash attack | 1/1 KD |
+| Beastmaster | light | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 KD | 1/1 KD in forward tilt, out dash, dash attack | 1/1 KD in forward tilt, out dash, dash attack |
 | Beastmaster | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Beastmaster | medium | forward throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
 | Beastmaster | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Beastmaster | medium | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 KD | 1/1 KD | 1/1 in dash, dash attack, out down smash |
+| Beastmaster | medium | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 KD | 1/1 KD in forward tilt, out dash, dash attack | 1/1 in forward tilt, out down smash |
 | Beastmaster | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Beastmaster | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
 | Beastmaster | heavy | back throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
@@ -279,7 +279,7 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Cairne Bloodhoof | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Cairne Bloodhoof | medium | forward throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
 | Cairne Bloodhoof | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Cairne Bloodhoof | medium | up throw | 1/1 in forward tilt, out down tilt | 1/1 in down tilt, out dash, dash attack | 1/1 KD in up special, out down tilt | 1/1 |
+| Cairne Bloodhoof | medium | up throw | 1/1 in forward tilt, out down tilt | 1/1 in down tilt, out dash, dash attack | 1/1 KD in up special, out down tilt | 1/1 in side special, out dash, dash attack |
 | Cairne Bloodhoof | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Cairne Bloodhoof | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
 | Cairne Bloodhoof | heavy | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
@@ -303,7 +303,7 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Peon | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Peon | medium | forward throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
 | Peon | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Peon | medium | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 | 1/1 in up smash, out short hop, forward air | 1/1 KD in short hop, back air, out dash, dash attack |
+| Peon | medium | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 in forward tilt, out dash, dash attack | 1/1 in up smash, out short hop, forward air | 1/1 KD in short hop, back air, out dash, dash attack |
 | Peon | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Peon | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Peon | heavy | back throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
@@ -339,7 +339,7 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Murloc | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Murloc | medium | forward throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
 | Murloc | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Murloc | medium | up throw | 1/1 | 1/1 in up smash, out dash, dash attack | 1/1 in up smash, out dash, dash attack | 1/1 in up smash, out dash, dash attack |
+| Murloc | medium | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 in up smash, out dash, dash attack | 1/1 in up smash, out dash, dash attack | 1/1 in up smash, out dash, dash attack |
 | Murloc | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Murloc | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Murloc | heavy | back throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
@@ -363,7 +363,7 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Kobold | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Kobold | medium | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Kobold | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Kobold | medium | up throw | 1/1 | 1/1 in up smash, out dash, dash attack | 1/1 in up smash, out short hop, forward air | 1/1 in up smash, out dash, dash attack |
+| Kobold | medium | up throw | 1/1 in forward tilt, out dash, dash attack | 1/1 in up smash, out dash, dash attack | 1/1 in up smash, out short hop, forward air | 1/1 in up smash, out dash, dash attack |
 | Kobold | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Kobold | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Kobold | heavy | back throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
@@ -375,7 +375,7 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Malfurion Stormrage | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Malfurion Stormrage | medium | forward throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
 | Malfurion Stormrage | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Malfurion Stormrage | medium | up throw | 1/1 in forward tilt, out side special | 1/1 in short hop, side special, out down smash | 1/1 KD in dash, dash attack, out side special | 1/1 KD in short hop, forward air, out down smash |
+| Malfurion Stormrage | medium | up throw | 1/1 in forward tilt, out side special | 1/1 in short hop, side special, out down smash | 1/1 in forward tilt, out side special | 1/1 KD in short hop, forward air, out down smash |
 | Malfurion Stormrage | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Malfurion Stormrage | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
 | Malfurion Stormrage | heavy | back throw | 0/0 | 0/0 | 0/0 | 0/0 KD |
@@ -387,7 +387,7 @@ Follow-ups that land without a read: without DI / with the escape-optimal DI. A 
 | Medivh | light | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Medivh | medium | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Medivh | medium | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
-| Medivh | medium | up throw | 1/1 in up tilt, out forward tilt | 1/1 | 1/1 | 1/1 in forward tilt, out dash, dash attack |
+| Medivh | medium | up throw | 1/1 in up tilt, out forward tilt | 1/1 in up tilt, out dash, dash attack | 1/1 | 1/1 in forward tilt, out dash, dash attack |
 | Medivh | medium | down throw | 0/0 KD | 0/0 KD | 0/0 KD | 0/0 KD |
 | Medivh | heavy | forward throw | 0/0 | 0/0 | 0/0 | 0/0 |
 | Medivh | heavy | back throw | 0/0 | 0/0 | 0/0 KD | 0/0 KD |
