@@ -30,6 +30,13 @@ interface CueModel {
   readonly model: effect;
 }
 
+export const POPCORN_VOICES = 2;
+
+interface PopcornVoices {
+  readonly models: effect[];
+  next: number;
+}
+
 interface PopcornCue {
   readonly cue: Cue;
   readonly model: effect;
@@ -55,8 +62,10 @@ export class SpecialCueEffects {
   private readonly front: number;
   private readonly scale: number;
   private readonly attack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
+  private readonly voices: { [model: string]: PopcornVoices | undefined } = {};
 
-  constructor(private readonly character: Character, private readonly origin: WorldOrigin) {
+  // Online, Warcraft handles must be born on the same turn on every client, so shared play restarts emitters made here instead of making fresh ones on confirmed frames.
+  constructor(private readonly character: Character, private readonly origin: WorldOrigin, private readonly shared = false) {
     this.missing = AddSpecialEffect(MISSING_CUE_MODEL, origin.x, origin.y);
     this.areas = new HitAreaEffects(character, origin);
     this.front = origin.y - 12.0;
@@ -64,6 +73,15 @@ export class SpecialCueEffects {
     this.definitive = definitiveCues();
     for (const cue of fighterRenderedCues(character)) {
       if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
+      else if (shared && this.voices[cue.model] === undefined) {
+        const models: effect[] = [];
+        for (let voice = 0; voice < POPCORN_VOICES; voice++) {
+          const model = AddSpecialEffect(cue.model, origin.x, origin.y);
+          this.parkPopcorn(model);
+          models.push(model);
+        }
+        this.voices[cue.model] = { models, next: 0 };
+      }
     }
     this.clear();
   }
@@ -79,7 +97,7 @@ export class SpecialCueEffects {
     this.shown = undefined;
     this.shownKey = 0;
     this.seekAgain = false;
-    for (const entry of this.popcorn) { this.parkPopcorn(entry.model); DestroyEffect(entry.model); }
+    for (const entry of this.popcorn) this.retirePopcorn(entry.model);
     this.popcorn.length = 0;
     this.confirmedCue = undefined;
     this.confirmedKey = 0;
@@ -92,14 +110,13 @@ export class SpecialCueEffects {
       : state.phase === "startup" ? state.cues.startup : state.cues.active;
     const key = fighter === undefined ? 0 : fighter.special.action * 100 + fighter.special.form;
     if (cue !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey)) {
-      const model = AddSpecialEffect(cue.model, this.origin.x, this.origin.y);
-      this.popcorn.push({ cue, model, born: now, seekStep: 0 });
+      const model = this.popcornModel(cue.model);
+      if (model !== undefined) this.popcorn.push({ cue, model, born: now, seekStep: 0 });
     }
     for (let index = this.popcorn.length - 1; index >= 0; index--) {
       const entry = this.popcorn[index];
       if (entry !== undefined && entry.cue !== cue && now - entry.born >= 1.0) {
-        this.parkPopcorn(entry.model);
-        DestroyEffect(entry.model);
+        this.retirePopcorn(entry.model);
         this.popcorn.splice(index, 1);
       }
     }
@@ -202,6 +219,23 @@ export class SpecialCueEffects {
     this.shownKey = key;
   }
 
+  private popcornModel(path: string): effect | undefined {
+    if (!this.shared) return AddSpecialEffect(path, this.origin.x, this.origin.y);
+    const voices = this.voices[path];
+    const model = voices?.models[voices.next];
+    if (voices === undefined || model === undefined) return undefined;
+    voices.next = voices.next + 1 >= voices.models.length ? 0 : voices.next + 1;
+    for (let index = this.popcorn.length - 1; index >= 0; index--) if (this.popcorn[index]?.model === model) this.popcorn.splice(index, 1);
+    BlzSpecialEffectClearSubAnimations(model);
+    BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+    return model;
+  }
+
+  private retirePopcorn(model: effect): void {
+    this.parkPopcorn(model);
+    if (!this.shared) DestroyEffect(model);
+  }
+
   private parkPopcorn(model: effect): void {
     if (this.definitive) parkOnce(model, this.origin, [], 0);
     else parkCue(model, this.origin, [], 0);
@@ -222,5 +256,6 @@ export class SpecialCueEffects {
     DestroyEffect(this.missing);
     for (const { model } of this.cues) DestroyEffect(model);
     this.cues.length = 0;
+    for (const voices of Object.values(this.voices)) for (const model of voices?.models ?? []) DestroyEffect(model);
   }
 }

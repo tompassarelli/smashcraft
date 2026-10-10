@@ -3,6 +3,7 @@
 
 
 
+import { POPCORN_VOICES } from "../src/game/render/specialCueEffects";
 import { value } from "./rematch/playableMatch";
 import { afterAll, expect, test } from "bun:test";
 import { originalClip, originalClipCount, originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
@@ -134,9 +135,11 @@ test("playable: selection creates no effect and reads no file; match start creat
 
   expect(loadingCreated).toBe(stageModels(stage).length);
 
-  expect(start.poolCreated).toBe(4 * poolEffects(Character.demonHunter));
+  // Each fighter's victory pose is its own match body, made at the synchronized match start.
+  expect(start.poolCreated).toBe(4 * (poolEffects(Character.demonHunter) + 1));
   const pooledCues = fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length;
-  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3));
+  const popcornModels = new Set(fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] === true).map(cue => cue.model)).size;
+  expect(start.created).toBe(start.poolCreated + 4 * (1 + PROJECTILE_CAPACITY + pooledCues + POPCORN_VOICES * popcornModels + HIT_AREA_EFFECT_CAPACITY + 3));
   expect(start.fileReads).toBe(0);
 
   const match: Work[] = [];

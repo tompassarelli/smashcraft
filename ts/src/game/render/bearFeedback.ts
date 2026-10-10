@@ -3,14 +3,17 @@ import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type BearFeedbackCursor, BEAR_IMPACT_MODEL, BEAR_ROAR_MODEL, advanceBearFeedback, bearState, createBearFeedbackCursor } from "../presentation/bearFeedback";
 import type { Fighter } from "../sim/fighter";
 import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
+import { SoundBank, SoundKind } from "./soundBank";
 
 interface BearFeedbackSlot { roar: effect; impact: effect; cursor: BearFeedbackCursor }
 
 export class BearFeedback {
   private readonly slots: readonly BearFeedbackSlot[];
   private readonly parked: ParkedFlags = [];
+  private readonly sounds = new SoundBank();
 
   constructor(private readonly origin: WorldOrigin) {
+    this.sounds.prepare(SoundKind.label, ["BattleRoar", "MetalHeavySliceFlesh"]);
     this.slots = PARTICIPANT_SLOTS.map(() => ({ roar: AddSpecialEffect(BEAR_ROAR_MODEL, origin.x, origin.y), impact: AddSpecialEffect(BEAR_IMPACT_MODEL, origin.x, origin.y), cursor: createBearFeedbackCursor() }));
     for (const slot of this.slots) {
       BlzSetSpecialEffectAnimation(slot.roar, "Stand");
@@ -40,11 +43,7 @@ export class BearFeedback {
     if (slot === undefined) return;
     const cues = advanceBearFeedback(slot.cursor, fighter, frame);
     const play = (label: string): void => {
-      const sound = CreateSoundFromLabel(label, false, true, true, 10, 10);
-      SetSoundPosition(sound, this.origin.x + fighter.placed.x, this.origin.y, this.origin.z + fighter.placed.z);
-      SetSoundVolume(sound, 127);
-      StartSound(sound);
-      KillSoundWhenDone(sound);
+      this.sounds.playAt(SoundKind.label, label, this.origin.x + fighter.placed.x, this.origin.y, this.origin.z + fighter.placed.z, 127);
     };
     if (cues.roar) play("BattleRoar");
     if (cues.hit) {

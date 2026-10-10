@@ -164,6 +164,12 @@ export function victoryAnimation(character: Character): string {
 }
 
 
+export function interfaceSoundPaths(characters: readonly Character[]): string[] {
+  const paths = [...CUE_SOUNDS];
+  for (const character of characters) paths.push(readyVoice(character), warcryVoice(character));
+  return paths.filter((path, index) => paths.indexOf(path) === index);
+}
+
 export function presentationSoundPaths(characters: readonly Character[], stages: readonly StageTile[]): string[] {
   const paths = [...CUE_SOUNDS, MENU_MUSIC, ...VICTORY_MUSIC];
   for (const stage of stages) paths.push(stageMusic(stage));

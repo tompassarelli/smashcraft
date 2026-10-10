@@ -18,6 +18,7 @@ test("Bear command draws a large rear-up, one roar and a bite-only impact [spec 
   if (client === undefined) throw new Error("missing client");
   client.run(() => {
     const effects = new PlacedObjectEffects({ x: 0.0, y: 0.0, z: 0.0 });
+    effects.prepareFighter(0, Character.beastmaster);
     const fighter = createFighter(Character.beastmaster, 0.0, 1);
     const bear = fighter.placed;
     bear.spec = BEAR_PLACEMENT;
@@ -48,7 +49,7 @@ test("Bear command draws a large rear-up, one roar and a bite-only impact [spec 
     effects.present(fighter, 0);
     const labels = client.log.filter(call => call.name === "SetTextTagText").map(call => call.args[1]);
     expect(labels).toEqual([]);
-    const sounds = client.log.filter(call => call.name === "CreateSoundFromLabel").map(call => call.args[0]);
+    const sounds = client.soundLog.filter(cue => cue.event === "start").map(cue => cue.label);
     expect(sounds).toEqual(["BattleRoar", "MetalHeavySliceFlesh"]);
     bear.life = 0;
     effects.present(fighter, 0);
@@ -57,13 +58,14 @@ test("Bear command draws a large rear-up, one roar and a bite-only impact [spec 
   });
 });
 
-test("predicted Beastmaster summons create no effects before their confirmed frame [repro #69] [invariant]", () => {
+test("Beastmaster summons create no effects on predicted or confirmed frames; match start made them [repro #69] [invariant]", () => {
   const clients = headless.clients({ install() {}, start() {} });
   clients.start();
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing client");
   client.run(() => {
     const effects = new PlacedObjectEffects({ x: 0.0, y: 0.0, z: 0.0 });
+    effects.prepareFighter(0, Character.beastmaster);
     const fighter = createFighter(Character.beastmaster, 0.0, 1);
     effects.presentConfirmed(0, fighter, 0);
     effects.present(fighter, 0);
@@ -78,10 +80,8 @@ test("predicted Beastmaster summons create no effects before their confirmed fra
     effects.present(fighter, 0);
     expect(count()).toBe(before);
     effects.presentConfirmed(1, fighter, 0);
-    const confirmed = count();
-    expect(confirmed).toBeGreaterThan(before);
     effects.present(fighter, 0);
-    expect(count()).toBe(confirmed);
+    expect(count()).toBe(before);
     for (const name of ["QuillBeast", "WarEagle"]) expect(client.effectPoses().some(pose => pose.model.includes(name) && pose.scale > 0)).toBe(true);
     effects.destroy();
   });
