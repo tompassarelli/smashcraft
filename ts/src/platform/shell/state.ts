@@ -246,6 +246,7 @@ interface KeyEvents {
 export interface ShellState {
   pauseCamera?: import("./pauseCamera").PauseCamera | undefined;
   pauseMenu?: { choice: number; shown: boolean; title: boolean };
+  titleAwaitRelease?: boolean;
   trainingHints?: boolean;
   pauseSelection?: MatchState;
   pauseKeysHeld?: number[];

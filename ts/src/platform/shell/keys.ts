@@ -114,6 +114,7 @@ function exitPausedMatch(s: ShellState, title: boolean): void {
   const menu = s.pauseMenu ??= { choice: 0, shown: false, title: false };
   menu.shown = false;
   menu.title = title;
+  s.titleAwaitRelease = title;
   clearCapturedInputs(s);
   setStatus(s, "", 0.0);
   makePreview(s);
@@ -144,6 +145,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   const settings = views(s).settings[slot];
   if (key < 0 || key > 255 || keyDown(keys, key)) return;
   if (s.pauseMenu?.title && (key === Key.n || key === Key.y)) {
+    if (key === Key.n && s.titleAwaitRelease) return;
     s.pauseMenu.title = false;
     return;
   }
@@ -176,10 +178,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     captureBinding(bindings, key);
     return;
   }
-  if (key === Key.f1) {
-    openSettingsScreen(s, slot);
-    return;
-  }
+  if (key === Key.f1) return;
   if (!bindings.ready) return;
   if (key === 13 && s.game.phase !== Phase.match) return;
   const { game } = s;
@@ -209,6 +208,8 @@ function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
 
+  if (key === Key.n && s.pauseMenu?.title) s.titleAwaitRelease = false;
+
   if (key === Key.y) {
     startKeyUp(s.session, slot);
     return;
@@ -218,6 +219,10 @@ function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (journalOwnsKey(s, slot, key)) return;
+  if (key === Key.f1) {
+    openSettingsScreen(s, slot);
+    return;
+  }
   if (s.trace.active) s.trace.window.keyUp[slot]++;
   traceParticipant(s, slot, `received up ${key}`);
   const participant = s.participants[slot];
