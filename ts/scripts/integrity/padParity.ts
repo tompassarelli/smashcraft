@@ -13,7 +13,7 @@
 
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { readSceneLines } from "wisp/scripts/wisp/scene";
 import { type Repro, parseRepro } from "wisp/src/runtime/repro";
 import { parseMoment, replayRepro } from "../../src/game/replay/moment";

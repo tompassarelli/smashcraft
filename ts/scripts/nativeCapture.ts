@@ -27,7 +27,7 @@ import { ChildProcess } from "effect/process";
 import { runProcess } from "./hostProcess";
 import { capture, loadClients } from "wisp/scripts/warcraft/desktop";
 import { type Frame, decodePpm, encodePpm } from "wisp/scripts/wisp/frameProbe";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { dataDirectory } from "wisp/scripts/wisp/gameFiles";
 import { parsePadScript } from "./integrity/padScript";
 import { STAMP_CELL, STAMP_CELLS, type StampCell, readStamp } from "../src/runtime/drawnStamp";

@@ -4,7 +4,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { joinReplay, parseReplayHeader, parseReplayPart } from "../../src/game/replay/matchReplay";
 import { replayPartFile } from "../../src/runtime/gameFiles";
 

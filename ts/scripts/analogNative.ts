@@ -7,7 +7,7 @@ import { ChildProcess } from "effect/process";
 import { runProcess, stopBunProcess, startInputProcess } from "./hostProcess";
 import { pollUntil } from "./hostPoll";
 import { loadClients, windowPid } from "wisp/scripts/warcraft/desktop";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { padScriptPreset } from "./integrity/padScript";
 import { platformLayer } from "wisp/scripts/platform/layer";
 

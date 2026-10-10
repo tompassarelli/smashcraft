@@ -14,7 +14,7 @@ import { MENU_SECONDS } from "wisp/scripts/wisp/lobby";
 import { QUICK_MATCH_COMMAND } from "../../../src/game/shell/devSettings";
 import { devCommandReceiptFile, MELEE_READY_FILE } from "../../../src/runtime/gameFiles";
 import { DevCommandReceipt, MeleeReady } from "../boundary";
-import type { MalformedGameFile } from "wisp/scripts/wisp/boundary";
+import type { MalformedGameFile } from "wisp/scripts/wisp/preloadRecord";
 import { type Client, Clients, type DesktopFailure, waitFor } from "wisp/scripts/wisp/clients";
 import { type Command, UsageFailure } from "wisp/scripts/wisp/command";
 import { GameFiles, dataDirectory, prepareHotFolders, readGameFile } from "wisp/scripts/wisp/gameFiles";

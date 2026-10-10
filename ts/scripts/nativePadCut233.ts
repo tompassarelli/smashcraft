@@ -9,7 +9,7 @@ import { runProcess, startInputProcess } from "./hostProcess";
 import { pollUntil } from "./hostPoll";
 import { loadClients, readClientsFile, windowPid, keys, typeText, type Client, type ClientEntry } from "wisp/scripts/warcraft/desktop";
 import { desktopSession } from "wisp/scripts/platform/linux/desktop";
-import { preloadLines } from "wisp/scripts/wisp/boundary";
+import { preloadLines } from "wisp/scripts/wisp/preloadRecord";
 import { Clients } from "wisp/scripts/wisp/clients";
 import { ClientWatch } from "wisp/scripts/wisp/watch";
 import { freshMatch } from "./wisp/commands/fresh";

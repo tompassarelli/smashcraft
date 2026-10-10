@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { renameSync, writeFileSync } from "node:fs";
 import { Effect } from "effect";
-import { linePreloadFile } from "wisp/scripts/wisp/boundary";
+import { linePreloadFile } from "wisp/scripts/wisp/preloadRecord";
 import { captureScene, renderScenes, RenderFailure, type RenderScene } from "wisp/scripts/wisp/headlessRender";
 import type { Graphics } from "wisp/scripts/wisp/graphicsProfiles";
 import { drawnFrameFile } from "../../src/runtime/gameFiles";
