@@ -6,7 +6,7 @@ const omen = (ex: boolean): AuthoredSpecial => ({
   endFrame: 40, landingLag: 18,
   projectiles: [{ spawnFrame: 12, offsetX: 40.0, offsetZ: 55.0,
     velocityX: ex ? 11.0 : 8.0, velocityZ: 0.0, life: 40, radius: ex ? 40.0 : 32.0,
-    effect: medivhHit(ex ? 12.684000015258789 : 9.512999534606934, 80, 53.130001068115234, 50.0), reflectable: true, limit: 1,
+    effect: medivhHit(ex ? 13.445039749145508 : 10.083779335021973, 80, 52.17366027832031, 50.0), reflectable: true, limit: 1,
     model: "Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl" }],
 });
 const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
@@ -16,13 +16,13 @@ const vanish = (ex: boolean, retreat: boolean): AuthoredSpecial => ({
     { ...frames(11, 38), velocityX: 0.0, velocityZ: 0.0 }],
   regions: [heroRegion(retreat ? 13 : 12, retreat ? 15 : 14,
     { x1: retreat ? -35.0 : 15.0, z1: 50.0, x2: retreat ? 35.0 : 100.0, z2: 50.0, radius: retreat ? (ex ? 40.0 : 28.0) : 14.0 },
-    medivhHit(retreat ? (ex ? 9.512999534606934 : 5.284999847412109) : (ex ? 11.626999855041504 : 7.39900016784668), 80, 43.470001220703125, 106.25))],
+    medivhHit(retreat ? (ex ? 10.083779335021973 : 5.602099895477295) : (ex ? 12.324620246887207 : 7.842940330505371), 80, 42.68754196166992, 106.25))],
 });
 const raven = (ex: boolean): AuthoredSpecial => ({
   endFrame: 36, aimFrames: 8, oncePerAirtime: true, helpless: true, landingLag: 24,
   motion: [{ ...frames(1, 8), velocityX: 0.0, velocityZ: 0.0 },
     { ...frames(9, 28), velocityX: 0.0, velocityZ: ex ? 20.0 : 15.0, aimedSpeed: ex ? 20.0 : 15.0 }],
-  regions: [heroRegion(9, 15, { x1: -25.0, z1: 45.0, x2: 25.0, z2: 65.0, radius: 20.0 }, medivhHit(ex ? 8.456000328063965 : 5.284999847412109, 70))],
+  regions: [heroRegion(9, 15, { x1: -25.0, z1: 45.0, x2: 25.0, z2: 65.0, radius: 20.0 }, medivhHit(ex ? 8.963360786437988 : 5.602099895477295, 70))],
 });
 
 export const MEDIVH_SPECIALS: FighterSpecials = {

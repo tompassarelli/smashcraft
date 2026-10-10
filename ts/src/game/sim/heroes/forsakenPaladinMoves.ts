@@ -18,15 +18,15 @@ const GRAB = SHORT;
 
 
 const CLASS_HYPOTHESES = {
-  LINK: { growth: 62.20500183105469, base: 12.0 },
-  POKE: { growth: 76.55999755859375, base: 16.0 },
-  LAUNCH: { growth: 90.91500091552734, base: 22.0 },
-  EDGE: { growth: 95.69999694824219, base: 25.0 },
-  KILL: { growth: 105.2699966430664, base: 30.0 },
-  SPIKE: { growth: 95.69999694824219, base: 24.0 },
+  LINK: { growth: 56.97978210449219, base: 12.0 },
+  POKE: { growth: 70.12895965576172, base: 16.0 },
+  LAUNCH: { growth: 83.27813720703125, base: 22.0 },
+  EDGE: { growth: 87.66119384765625, base: 25.0 },
+  KILL: { growth: 96.42731475830078, base: 30.0 },
+  SPIKE: { growth: 87.66119384765625, base: 24.0 },
 
-  JUGGLE: { growth: 52.6349983215332, base: 50.0 },
-  CHASE: { growth: 38.279998779296875, base: 75.0 },
+  JUGGLE: { growth: 48.21365737915039, base: 50.0 },
+  CHASE: { growth: 35.06447982788086, base: 75.0 },
 } as const;
 type LaunchClass = keyof typeof CLASS_HYPOTHESES;
 
@@ -55,23 +55,23 @@ export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: 
 const head = (x: number, z: number, radius: number): StrikeCapsule => capsule(x, z, x, z, radius);
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
-const JAB = hit(4.288000106811523, "POKE", 35);
-const FORWARD_TILT = hit(11.791999816894531, "EDGE", 35);
-const UP_TILT = hit(9.64799976348877, "LAUNCH", 85);
-const DOWN_TILT = hit(7.504000186920166, "LINK", 70);
-const DASH = hit(12.86400032043457, "LAUNCH", 45);
-const FORWARD_SMASH_HEAD = strongHit(hit(21.440000534057617, "KILL", 40));
-const FORWARD_SMASH_HANDLE = hit(16.079999923706055, "KILL", 40);
-const UP_SMASH = hit(18.224000930786133, "KILL", 90);
+const JAB = hit(4.888319969177246, "POKE", 35);
+const FORWARD_TILT = hit(13.442879676818848, "EDGE", 35);
+const UP_TILT = hit(10.998720169067383, "LAUNCH", 85);
+const DOWN_TILT = hit(8.554560661315918, "LINK", 70);
+const DASH = hit(14.664959907531738, "LAUNCH", 45);
+const FORWARD_SMASH_HEAD = strongHit(hit(24.441600799560547, "KILL", 40));
+const FORWARD_SMASH_HANDLE = hit(18.331199645996094, "KILL", 40);
+const UP_SMASH = hit(20.775360107421875, "KILL", 90);
 const DOWN_SMASH_FRONT = downSmashHit(hit(15.0, "EDGE", 25));
 const DOWN_SMASH_BACK = downSmashHit(hit(15.0, "EDGE", 25, true));
-const NEUTRAL_AIR_FRONT = hit(9.64799976348877, "POKE", 50);
-const NEUTRAL_AIR_BACK = hit(9.64799976348877, "POKE", 50, true);
-const FORWARD_AIR = hit(15.008000373840332, "KILL", 40);
-const BACK_AIR = hit(11.791999816894531, "EDGE", 35, true);
-const UP_AIR = hit(9.64799976348877, "LAUNCH", 85);
-const DOWN_AIR = hit(13.935999870300293, "SPIKE", 270);
-const DOWN_AIR_GROUNDED = hit(13.935999870300293, "LAUNCH", 55);
+const NEUTRAL_AIR_FRONT = hit(10.998720169067383, "POKE", 50);
+const NEUTRAL_AIR_BACK = hit(10.998720169067383, "POKE", 50, true);
+const FORWARD_AIR = hit(17.109121322631836, "KILL", 40);
+const BACK_AIR = hit(13.442879676818848, "EDGE", 35, true);
+const UP_AIR = hit(10.998720169067383, "LAUNCH", 85);
+const DOWN_AIR = hit(15.887040138244629, "SPIKE", 270);
+const DOWN_AIR_GROUNDED = hit(15.887040138244629, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 
@@ -177,9 +177,9 @@ export const FORSAKEN_PALADIN_MOVES: FighterMoves = {
   },
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 37, effect: hit(8.576000213623047, "EDGE", 40) },
-    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 44, effect: hit(9.64799976348877, "EDGE", 40, true) },
-    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 25, effect: hit(7.504000186920166, "JUGGLE", 90) },
-    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(6.432000160217285, "CHASE", 70) },
+    [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 37, effect: hit(9.776639938354492, "EDGE", 40) },
+    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 44, effect: hit(10.998720169067383, "EDGE", 40, true) },
+    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 25, effect: hit(8.554560661315918, "JUGGLE", 90) },
+    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.332479953765869, "CHASE", 70) },
   },
 };

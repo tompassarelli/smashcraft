@@ -20,7 +20,7 @@ const CARRION_SWARM: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx",
     spawnFrame: 20, offsetX: 40.0, offsetZ: 60.0, velocityX: h(f32(0.09)), velocityZ: 0.0, life: 32, radius: h(f32(0.25)),
-    effect: dreadlordHit(7.025515079498291, "POKE", 40, 1.0, HitElement.dark), reflectable: true, limit: 1,
+    effect: dreadlordHit(7.447045803070068, "POKE", 40, 1.0, HitElement.dark), reflectable: true, limit: 1,
   }],
 };
 
@@ -42,7 +42,7 @@ const SLEEP_ORB: AuthoredSpecial = {
 
 
 const POUNCE_GRAB: StrikeCapsule = { x1: 14.0, z1: 40.0, x2: f32(h(f32(0.45)) - 12.0), z2: 40.0, radius: 12.0 };
-const POUNCE_BITE = dreadlordHit(11.090278625488281, "EDGE", 40);
+const POUNCE_BITE = dreadlordHit(11.755695343017578, "EDGE", 40);
 const NIGHT_POUNCE: AuthoredSpecial = {
   endFrame: 53,
   motion: [{ ...frames(1, 16), velocityX: h(f32(0.14)), velocityZ: 0.0, stopsAtBody: true }, { ...frames(17, 17), velocityX: 0.0, velocityZ: 0.0 }],
