@@ -41,6 +41,10 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   `bun tools/animations/pain-captures.ts PRIVATE_OUTPUT [FIRST_FIGHTER_SLUG]` plays accepted hits through
   the Wisp map, checks held hitstun and recovery, validates the bound pain models,
   and renders interruption, entry, held and recovery frames for the remaining roster.
+  `bun tools/animations/pain-zoom-captures.ts PRIVATE_OUTPUT [FIGHTER_SLUG...]` plays the
+  #181 nine-category scripts at gameplay zoom, checks each contact's category and clip,
+  counts each fighter's drawn pool bodies every frame (two only inside a pose blend),
+  renders held and recovery frames in Classic and Definitive, and prints a per-fighter table.
   `bun tools/animations/stand-captures.ts PRIVATE_OUTPUT` checks each selectable
   fighter's shipped timeline against its source geosets at every Stand/move frame
   and renders both-facing Stand frames in Classic and Definitive.
