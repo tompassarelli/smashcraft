@@ -124,8 +124,11 @@ export function advanceIllidanMotion(history: IllidanMotion, fighter: Readonly<F
   } else if (history.transitionRemaining > 0) history.transitionRemaining--;
   else if (controls.down && controls.direction === 0) history.motion = IllidanLocomotion.crouch;
   else if (ground.dashFrame > 0 && ground.dashFrame <= INITIAL_DASH_FRAMES && controls.direction !== 0) history.motion = IllidanLocomotion.dash;
-  else if (moving) history.motion = controls.walking ? IllidanLocomotion.walk : IllidanLocomotion.run;
-  else history.motion = IllidanLocomotion.idle;
+  else if (moving) {
+    if (controls.direction !== 0 || history.motion !== IllidanLocomotion.stop) {
+      history.motion = controls.walking ? IllidanLocomotion.walk : IllidanLocomotion.run;
+    }
+  } else history.motion = IllidanLocomotion.idle;
   if (launch.hitstun > 0 || motion.grounded || controls.direction !== 0 || controls.jumpPressed || controls.attackRequested || special.action !== SpecialAction.none) {
     history.respawnRemaining = 0;
   }
