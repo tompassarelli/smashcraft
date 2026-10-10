@@ -512,7 +512,7 @@ warden	jab3	jab	3/4	0.15	pass	1.00	0.45	arm R	FAIL	0.02	0.03	0.08	pass	1	4	21	1.
 warden	neutral-air	aerial	1/4	4.74	FAIL	0.00	0.01	leg R	FAIL	0.01	0.01	0.00	FAIL	0	2	25	0.94	4	8	26	pass	0.26	0.67	0.74	unjudged	0							sheik nair	3	48
 warden	neutral-special	special	1/4	0.59	FAIL	0.94	0.12	leg R	FAIL	0.03	0.06	0.06	pass	12	16	35	1.00	15	15	35	FAIL	0.41	0.41	0.59	unjudged	0							sheik neutral_b	4	40
 warden	side-special	special	2/4	1.51	FAIL	0.44	0.42	arm R	pass	0.03	0.03	0.39	FAIL	3	6	38	1.00	10	13	38	pass	0.58	0.23	0.42	unjudged	0							sheik side_b	22	75
-warden	ultimate	special	1/4	5.05	FAIL	0.00	-0.01	arm R	FAIL	0.03	0.11	0.12	FAIL	0	19	38	1.00	21	21	38	pass	0.51	0.44	0.49	unjudged	0									
+warden	ultimate	special	2/4	0.33	pass	1.00	0.26	arm R	FAIL	0.04	0.04	0.03	pass	19	22	38	1.00	21	21	38	FAIL	0.44	0.25	0.56	unjudged	0									
 warden	up-air	aerial	2/4	1.34	FAIL	0.24	0.08	arm R	FAIL	0.01	0.01	0.02	pass	2	7	27	1.00	4	12	27	pass	0.39	0.53	0.61	unjudged	0							sheik uair	5	39
 warden	up-smash	smash	2/4	0.85	pass	1.00	0.14	arm L	FAIL	0.01	0.01	0.03	pass	9	14	41	0.96	12	15	42	FAIL	0.35	0.51	0.65	unjudged	0							sheik usmash	12	47
 warden	up-tilt	tilt	3/4	0.15	FAIL	0.77	0.37	arm L	pass	0.02	0.02	0.09	pass	1	5	22	1.00	3	6	22	pass	0.42	0.14	0.58	unjudged	0							sheik utilt	5	33

@@ -63,7 +63,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
   5: {
     jab3: [42, 0, 70, -40, 0, -50, 70, 12], forwardTiltDown: [48, 0, 60, -40, 0, -58, 80, 14], downTilt: [55, 0, 40, -30, 0, -75, 105, 16],
     dashAttack: [52, 0, 75, -45, 0, -70, 100, 16], forwardTiltUp: [-26, 0, 55, -30, 0, -45, 60, -10], upTilt: [-38, 0, 80, -35, 0, 35, 25, -12],
-    upSmash: [-42, 0, 110, -40, 0, 30, 20, -14], upAir: [-48, 0, 95, -40, 0, -70, 95, -20], neutralSpecial: [40, -120, 70, -45, 35, -55, 75, 14], ultimate: [40, -120, 70, -45, 35, -55, 75, 14],
+    upSmash: [-42, 0, 110, -40, 0, 30, 20, -14], upAir: [-48, 0, 95, -40, 0, -70, 95, -20], neutralSpecial: [40, -120, 70, -45, 35, -55, 75, 14], ultimate: [-30, -120, 70, -45, 35, 40, -20, -10],
     jab: [30, 0, 55, -30, 0, -40, 55, 8], jab2: [34, 0, 65, -30, 0, -45, 60, -8], forwardTilt: [45, 0, 70, -40, 0, -55, 75, 12],
     forwardSmash: [55, 0, 95, -45, 0, -70, 100, 18], sideSpecial: [55, -95, 75, -40, 25, -75, 100, 16],
   },
@@ -112,7 +112,8 @@ function blend(from: ArrayLike<number>, to: ArrayLike<number>, weight: number): 
 
 
 function strikeDirection(pose: HeroPose): number[] {
-  if (pose.endsWith("Special") || pose === "ultimate") return [1, 0];
+  if (pose === "ultimate") return [-1, 0];
+  if (pose.endsWith("Special")) return [1, 0];
   const frames = sampleAttack(5 as Character, AttackStyle[pose as keyof typeof AttackStyle], 1, pose.endsWith("Air"));
   const first = frames.find(f => f.phase === AttackPhase.active && f.strikes.length > 0), strike = first?.strikes[0]; ensure(first && strike, `${pose}: no active strike`);
   const [x1,z1,x2,z2] = [strike.x1-first.x, strike.z1-first.z-50, strike.x2-first.x, strike.z2-first.z-50], far = Math.hypot(x2,z2) >= Math.hypot(x1,z1) ? [x2,z2] : [x1,z1], length = Math.hypot(...far) || 1;
@@ -120,7 +121,7 @@ function strikeDirection(pose: HeroPose): number[] {
 }
 
 const WARDEN_LUNGE: Readonly<Record<string, readonly number[]>> = {
-  upSmash: [5, 10, 10, 1, 0], upAir: [0, 0, 0, 1, 0], jab3: [40, 50, 15, 0, 0, 1], dashAttack: [40, 50, 15, 0, 0, 1], forwardTiltUp: [80, 100, 15, 0, 0, 1], forwardSmash: [40, 50, 15, 0, 0, 1], neutralSpecial: [10, 20, 10, 0, 0, 1], ultimate: [10, 20, 10, 0, 0, 1], sideSpecial: [20, 40, 30, 1, 0],
+  upSmash: [5, 10, 10, 1, 0], upAir: [0, 0, 0, 1, 0], jab3: [40, 50, 15, 0, 0, 1], dashAttack: [40, 50, 15, 0, 0, 1], forwardTiltUp: [80, 100, 15, 0, 0, 1], forwardSmash: [40, 50, 15, 0, 0, 1], neutralSpecial: [10, 20, 10, 0, 0, 1], ultimate: [15, 35, 5, 0, 0, 1], sideSpecial: [20, 40, 30, 1, 0],
 };
 
 const wardenWeaponPose = (character: number, pose: HeroPose) => character === 5 && ["jab3", "forwardTiltDown", "downTilt", "dashAttack", "upSmash", "upAir", "upTilt", "forwardTiltUp", "jab", "jab2", "forwardTilt", "forwardSmash", "neutralSpecial", "sideSpecial", "ultimate"].includes(pose);
@@ -158,7 +159,7 @@ function aimWeaponContact(model: mdx.Model, index: number, start: number, contac
     forwardTilt: [[75,-27,100],[125,-28,101]],
     forwardSmash: [[90,-27,108],[140,-28,112]],
     neutralSpecial: [[70,-27,105],[118,-28,108]],
-    ultimate: [[70,-27,105],[118,-28,108]],
+    ultimate: [[-40,-27,105],[-88,-28,110]],
     sideSpecial: [[80,-27,92],[130,-28,88]],
   };
   const [targetHand,targetTip] = shadowLow ? [[72,-27,28],[145,-28,12]] : targets[pose]!;
@@ -344,7 +345,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
     const special=pose==="ultimate"?FIGHTER_ULTIMATES[character]:pose==="downSpecial"?heroDefinition(character)?.specials?.down.ground:pose==="neutralSpecial"?heroDefinition(character)?.specials?.neutral.ground:pose==="sideSpecial"?heroDefinition(character)?.specials?.side.ground:undefined;
     const style=special?undefined:AttackStyle[pose as keyof typeof AttackStyle];
     const moves=createFighter(character,0,1).tuning.moves;
-    const contact=special?heroCueWindows(special,1).active.first-(character===5&&pose==="neutralSpecial"?1:0):attackStartupFrames(style!,moves);
+    const contact=special?heroCueWindows(special,1).active.first-(character===5&&(pose==="neutralSpecial"||pose==="ultimate")?1:0):attackStartupFrames(style!,moves);
     const total=special?special.endFrame:attackDurationFramesForGrounding(style!,!pose.endsWith("Air"),moves);
     ensure(contact>0&&total>contact,`${f.name}/${pose}: invalid timing`);
     const start=cursor,end=start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;

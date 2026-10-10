@@ -363,6 +363,6 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\SylvanasWindrunnerWhite-2015b00647a5467d0066f36de146dd1c8057a0e09d0dfc2db803863bee5c3d66.mdx": {"geosets":3,"triangles":459,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,500.822]},"emitters":[]},
   "war3mapImported\\ThrallTimelineBody-9ddd5963f8fd882acea03d00209290328437bc0ea6089d64e09f5c78b09d539a.mdx": {"geosets":3,"triangles":557,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,633.619]},"emitters":[]},
   "war3mapImported\\ThrallWhite-f5a877456156530775275344e0253cd4dc8ec39204ba3de5f5973931fd229a8f.mdx": {"geosets":2,"triangles":545,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,633.619]},"emitters":[]},
-  "war3mapImported\\WardenTimelineBody-4fca747117dbc13c250797dc252b9c698c85ae90552028a3dd1f4e3e5d9e5f2c.mdx": {"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,442.065]},"emitters":[]},
-  "war3mapImported\\WardenWhite-b9893cb4ed364b836ca3db4ac5429ab240fa8c687bcc4431ca1e905bcb948dd1.mdx": {"geosets":4,"triangles":663,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,442.065]},"emitters":[]},
+  "war3mapImported\\WardenTimelineBody-8cb15c1dfce13754b3dc79078a176452bcb8e3f10c30b28d0b7c21c4bd452cb7.mdx": {"geosets":5,"triangles":685,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,442.065]},"emitters":[]},
+  "war3mapImported\\WardenWhite-dbc0a6e83091df77a0a7fac3948689b39e8a809e901339ee6234ac7d412caed3.mdx": {"geosets":4,"triangles":663,"lights":0,"bounds":{"min":[-300,-300,-200],"max":[300,300,442.065]},"emitters":[]},
 };

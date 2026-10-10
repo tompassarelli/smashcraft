@@ -451,7 +451,7 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/wardenwhite-b9893cb4ed364b836ca3db4ac5429ab240fa8c687bcc4431ca1e905bcb948dd1.mdx": {
+  "war3mapimported/wardenwhite-dbc0a6e83091df77a0a7fac3948689b39e8a809e901339ee6234ac7d412caed3.mdx": {
     "geosets": 4,
     "triangles": 663,
     "lights": 0,
