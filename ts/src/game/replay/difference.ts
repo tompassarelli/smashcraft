@@ -133,6 +133,7 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("hitVisualElectric", e.visuals.hitElectric, a.visuals.hitElectric);
   add("hitVisualElement", e.visuals.hitElement, a.visuals.hitElement);
   add("hitVisualStrength", e.visuals.hitStrength, a.visuals.hitStrength);
+  add("hitVisualStrong", e.visuals.hitStrong, a.visuals.hitStrong);
   add("hitVisualHeight", e.visuals.hitHeight, a.visuals.hitHeight);
   add("hitVisualPummel", e.visuals.hitPummel, a.visuals.hitPummel);
   add("shieldVisualElectric", e.visuals.shieldElectric, a.visuals.shieldElectric);

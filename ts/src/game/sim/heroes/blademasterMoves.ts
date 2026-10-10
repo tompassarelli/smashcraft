@@ -5,6 +5,7 @@ import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegi
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { BLADEMASTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
+import { strongHit } from "../strongHits";
 import { drillStrikes, linkAt, multiHit } from "./multiHit";
 
 
@@ -74,7 +75,7 @@ export function cut(firstFrame: number, tipHeights: readonly number[], reach: nu
     const rise = f32(tipHeight - 45.0);
     const heightAt = (x: number) => f32(45.0 + f32(rise * f32(x / endX)));
     if (tip !== undefined) regions.push(heroRegion(frame, frame,
-      capsule(f32(startTipX * facing), heightAt(startTipX), f32(endX * facing), tipHeight), tip));
+      capsule(f32(startTipX * facing), heightAt(startTipX), f32(endX * facing), tipHeight), strongHit(tip)));
     regions.push(heroRegion(frame, frame,
       capsule(f32(18.0 * facing), heightAt(18.0), f32(endInnerX * facing), heightAt(endInnerX)), inner));
   }

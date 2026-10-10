@@ -1000,6 +1000,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("hitVisualElectric", v.hitElectric);
   int("hitVisualElement", v.hitElement);
   int("hitVisualStrength", v.hitStrength);
+  bool("hitVisualStrong", v.hitStrong);
   int("hitVisualHeight", v.hitHeight);
   bool("hitVisualPummel", v.hitPummel);
   bool("shieldVisualElectric", v.shieldElectric);

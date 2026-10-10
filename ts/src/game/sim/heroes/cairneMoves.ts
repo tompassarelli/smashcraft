@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, strongRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart, type HurtPart } from "../hurtboxes";
 
@@ -84,7 +84,7 @@ export const CAIRNE_MOVES: FighterMoves = {
     [AttackStyle.downTilt]: heroMove(11, 3, 25, 0, [strike(11, 13, c(34.0, 25.0, 140.0, 14.0), 10.0, "launch", 70)]),
     [AttackStyle.dashAttack]: heroMove(16, 5, 33, 0, [strike(16, 20, c(20.0, 60.0, 95.0, 75.0, 32.0), 15.0, "kill", 40)], 32.0, true),
     [AttackStyle.forwardSmash]: heroMove(28, 4, 42, 0, [
-      ...[180.0, 120.0, 60.0, 10.0].map((z, i) => strike(28 + i, 28 + i, c(148.0, z, 175.0, z, 15.0), 25.0, "kill", 40)),
+      ...[180.0, 120.0, 60.0, 10.0].map((z, i) => strongRegion(strike(28 + i, 28 + i, c(148.0, z, 175.0, z, 15.0), 25.0, "kill", 40))),
       ...sweep(28, 145.0, [180.0, 120.0, 60.0, 10.0], 19.0, "kill"),
     ]),
     [AttackStyle.upSmash]: heroMove(25, 5, 39, 0, [strike(25, 29, c(0.0, 115.0, 0.0, 245.0, 20.0), 23.0, "kill", 85)]),

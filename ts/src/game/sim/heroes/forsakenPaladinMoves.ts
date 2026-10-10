@@ -5,6 +5,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { FORSAKEN_PALADIN_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
+import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 
@@ -59,7 +60,7 @@ const FORWARD_TILT = hit(11.0, "EDGE", 35);
 const UP_TILT = hit(9.0, "LAUNCH", 85);
 const DOWN_TILT = hit(7.0, "LINK", 70);
 const DASH = hit(12.0, "LAUNCH", 45);
-const FORWARD_SMASH_HEAD = hit(20.0, "KILL", 40);
+const FORWARD_SMASH_HEAD = strongHit(hit(20.0, "KILL", 40));
 const FORWARD_SMASH_HANDLE = hit(15.0, "KILL", 40);
 const UP_SMASH = hit(17.0, "KILL", 90);
 const DOWN_SMASH_FRONT = downSmashHit(hit(15.0, "EDGE", 25));

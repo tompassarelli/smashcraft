@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { LICH_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
@@ -142,9 +142,9 @@ export const LICH_MOVES: FighterMoves = {
   hurtboxes: LICH_BODY,
   normals: {
     ...LICH_GROUND.normals,
-    [AttackStyle.forwardSmash]: heroMove(18, 3, 36, 0, [
+    [AttackStyle.forwardSmash]: tipperMove(heroMove(18, 3, 36, 0, [
       heroRegion(18, 20, capsule(20.0, 45.0, f32(XL - 7.0), 45.0, 7.0), hit(18.0, "KILL", 35)),
-    ]),
+    ]), 0.25),
     [AttackStyle.upSmash]: heroMove(20, 5, 34, 0, [
       heroRegion(20, 24, capsule(0.0, 8.0, 0.0, f32(L - 10.0), 10.0), hit(17.0, "KILL", 90)),
     ]),

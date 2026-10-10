@@ -3,7 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -42,7 +42,7 @@ export const KOBOLD_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, pick(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(7.0, 90, 90.0, 22.0))]),
     [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, pick(18.0, 8.0, 60.0, 8.0), ordinary(6.0, 80, 90.0, 22.0))]),
     [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, pick(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(9.0, 55))], 48.0, true),
-    [AttackStyle.forwardSmash]: heroMove(14, 3, 36, 0, [heroRegion(14, 16, pick(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(16.0, 35, 112.0, 26.0))]),
+    [AttackStyle.forwardSmash]: tipperMove(heroMove(14, 3, 36, 0, [heroRegion(14, 16, pick(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(16.0, 35, 112.0, 26.0))]), 0.30000001192092896),
     [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, pick(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(15.0, 90, 105.0, 26.0))]),
     [AttackStyle.downSmash]: heroMove(12, 4, 34, 0, [
       heroRegion(12, 15, pick(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0)),

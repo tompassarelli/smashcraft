@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
 import { hurtPart, hurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -47,7 +47,7 @@ export const MEDIVH_MOVES: FighterMoves = {
       heroRegion(20, 23, capsule(28.0, 14.0, 101.0, 14.0, 14.0), ordinary(13.0, 25, 137.0, 28.0)),
       heroRegion(20, 23, capsule(-28.0, 14.0, -101.0, 14.0, 14.0), ordinary(13.0, 25, 137.0, 28.0, true)),
     ]),
-    [AttackStyle.neutralAir]: heroMove(8, 6, 22, 14, [heroRegion(8, 13, capsule(-40.0, 55.0, 40.0, 55.0, 25.0), ordinary(6.0, 55))]),
+    [AttackStyle.neutralAir]: cleanLateMove(heroMove(8, 6, 22, 14, [heroRegion(8, 13, capsule(-40.0, 55.0, 40.0, 55.0, 25.0), ordinary(6.0, 55))]), 2),
     [AttackStyle.forwardAir]: heroMove(8, 3, 25, 14, [heroRegion(8, 10, capsule(24.0, 60.0, 95.0, 60.0), ordinary(9.0, 40, 95.0, 24.0))]),
     [AttackStyle.backAir]: heroMove(12, 3, 24, 16, [heroRegion(12, 14, capsule(-24.0, 60.0, -111.0, 60.0), ordinary(10.0, 35, 110.0, 28.0, true))]),
     [AttackStyle.upAir]: heroMove(10, 4, 21, 14, [heroRegion(10, 13, capsule(-24.0, 126.0, 24.0, 136.0, 19.0), ordinary(8.0, 90, 95.0, 24.0))]),

@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart, hurtPose, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -43,7 +43,7 @@ export const MALFURION_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: heroMove(8, 4, 21, 0, [heroRegion(8, 11, path(-30.0, 116.0, 38.0, 124.0, 16.0), malfurionHit(7.0, 90, 75.0, 36.0))]),
     [AttackStyle.downTilt]: heroMove(7, 3, 18, 0, [heroRegion(7, 9, path(18.0, 10.0, 103.0, 8.0, 8.0), malfurionHit(6.0, 80, 65.0, 35.0))]),
     [AttackStyle.dashAttack]: heroMove(11, 4, 26, 0, [heroRegion(11, 14, path(30.0, 48.0, 102.0, 48.0, 15.0), malfurionHit(10.0, 55, 90.0, 28.0))], 55.0, true),
-    [AttackStyle.forwardSmash]: heroMove(19, 3, 34, 0, [heroRegion(19, 21, path(30.0, 55.0, 175.0, 55.0, 8.0), malfurionHit(17.0, 35, 116.0, 26.0))]),
+    [AttackStyle.forwardSmash]: tipperMove(heroMove(19, 3, 34, 0, [heroRegion(19, 21, path(30.0, 55.0, 175.0, 55.0, 8.0), malfurionHit(17.0, 35, 116.0, 26.0))]), 0.25),
     [AttackStyle.upSmash]: heroMove(18, 4, 34, 0, [heroRegion(18, 21, path(0.0, 65.0, 0.0, 170.0, 22.0), malfurionHit(16.0, 90, 112.0, 24.0))]),
     [AttackStyle.downSmash]: heroMove(17, 6, 32, 0, [
       heroRegion(17, 19, path(25.0, 12.0, 130.0, 12.0, 10.0), malfurionHit(13.0, 25, 105.0, 25.0)),
