@@ -39,15 +39,15 @@ export const FAMILIES = {
 
 const singleFile = (family: Family): string | undefined => family === "base" ? FAMILIES.base.file : family === "container" ? FAMILIES.container.file : undefined;
 
-export const ASSET_FAMILIES = FAMILY_NAMES.filter((family) => family !== "base" && family !== "container" && family !== "summon");
+const ASSET_FAMILIES = FAMILY_NAMES.filter((family) => family !== "base" && family !== "container" && family !== "summon");
 
 const Hash = Schema.String.check(Schema.isPattern(/^[0-9a-f]{64}$/));
 
-export const Manifest = Schema.Record(Schema.Literals(FAMILY_NAMES), Hash);
-export type Manifest = typeof Manifest.Type;
+const Manifest = Schema.Record(Schema.Literals(FAMILY_NAMES), Hash);
+type Manifest = typeof Manifest.Type;
 
 
-export interface BuildInputPaths { readonly base: string; readonly container: string; readonly assets: string; readonly summon: string }
+interface BuildInputPaths { readonly base: string; readonly container: string; readonly assets: string; readonly summon: string }
 
 const failure = (operation: string, path: string, cause: string) => new MapBuildFailure({ operation, path, cause });
 
@@ -67,7 +67,7 @@ function listFiles(root: string): string[] {
 }
 
 
-export async function hashTree(root: string): Promise<string> {
+async function hashTree(root: string): Promise<string> {
   const tree = new Bun.CryptoHasher("sha256");
   for (const file of listFiles(root)) {
     const content = new Bun.CryptoHasher("sha256").update(await Bun.file(join(root, file)).bytes()).digest("hex");
@@ -77,7 +77,7 @@ export async function hashTree(root: string): Promise<string> {
 }
 
 
-export function removeTree(root: string): void {
+function removeTree(root: string): void {
   if (!existsSync(root)) return;
   const unseal = (path: string) => {
 
@@ -104,7 +104,7 @@ function seal(root: string): void {
 
 
 
-export function publish(staging: string, final: string): "published" | "reused" {
+function publish(staging: string, final: string): "published" | "reused" {
   try {
     renameSync(staging, final);
     return "published";
@@ -190,7 +190,7 @@ export const regenerate = (family: Family, hash: string) =>
   `(it must hash to ${hash}, or commit the hash it writes into build-inputs.json)`;
 
 
-export const verifiedFamily = (family: Family, hash: string, store = INPUTS_STORE) => Effect.gen(function*() {
+const verifiedFamily = (family: Family, hash: string, store = INPUTS_STORE) => Effect.gen(function*() {
   const directory = join(store, family, hash);
   if (!existsSync(directory)) return yield* failure("find build input", directory, `${family} ${hash} is not in the store; ${regenerate(family, hash)}`);
   const actual = yield* Effect.tryPromise({ try: () => hashTree(directory), catch: (cause) => failure("hash build input", directory, String(cause)) });
@@ -223,7 +223,7 @@ export function assetsView(manifest: Manifest, store = INPUTS_STORE): string {
 }
 
 
-export const resolveInputs = (manifest: Manifest, store = INPUTS_STORE) => Effect.gen(function*() {
+const resolveInputs = (manifest: Manifest, store = INPUTS_STORE) => Effect.gen(function*() {
   yield* Effect.forEach(FAMILY_NAMES, (family) => verifiedFamily(family, manifest[family], store), { concurrency: 4, discard: true });
   const path = (family: Family) => join(store, family, manifest[family]);
   const assets = yield* Effect.try({ try: () => assetsView(manifest, store), catch: (cause) => failure("link assets", store, String(cause)) });

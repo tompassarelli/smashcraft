@@ -2,7 +2,7 @@ import { Glob } from "bun";
 import { readFileSync } from "node:fs";
 import { dirname, join, normalize } from "node:path";
 
-export interface LiteralCopy { readonly file: string; readonly line: number; readonly constant: string; readonly value: string; }
+interface LiteralCopy { readonly file: string; readonly line: number; readonly constant: string; readonly value: string; }
 
 const tunable = /^export const ([A-Z][A-Z0-9_]+)\s*(?::\s*number\s*)?=\s*(?:f32\()?(-?\d+(?:\.\d+)?)\)?;/gm;
 const imports = /import\s*(?:type\s*)?\{([^}]*)\}\s*from\s*"(\.[^"]+)"/g;
@@ -23,7 +23,7 @@ function constants(text: string): Map<string, number> {
   return found;
 }
 
-export function literalCopies(sources: ReadonlyMap<string, string>): LiteralCopy[] {
+function literalCopies(sources: ReadonlyMap<string, string>): LiteralCopy[] {
   const copies: LiteralCopy[] = [];
   for (const [file, text] of sources) {
     if (!isTest(file)) continue;

@@ -3,12 +3,12 @@ import { ROSTER_MANA } from "../sim/mana";
 import { SpecialAction } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 
-export const WHITE_GLOW_PERIOD = 12;
-export const HEAVY_HITLAG_FRAMES = 8;
+const WHITE_GLOW_PERIOD = 12;
+const HEAVY_HITLAG_FRAMES = 8;
 /** The ultimate's super flash: at most four frames, never a cutscene (docs/design/ultimates.md). */
-export const ULTIMATE_FLASH_FRAMES = 4;
+const ULTIMATE_FLASH_FRAMES = 4;
 
-export interface WhiteGlowState {
+interface WhiteGlowState {
   hit: number;
   remaining: number;
   total: number;

@@ -7,7 +7,7 @@
 import type { Rgba } from "./blp";
 
 export const PREVIEW_ENTRY = "war3mapMap.blp";
-export const PREVIEW_SIZE = 256;
+const PREVIEW_SIZE = 256;
 
 
 export function encodePreview(image: Rgba): Uint8Array {

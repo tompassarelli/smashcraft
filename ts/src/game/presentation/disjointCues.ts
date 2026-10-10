@@ -64,7 +64,7 @@ export const DEFINITIVE_ACCENT_REDRAWS: { readonly [model: string]: string } = {
   "Abilities\\Weapons\\DruidoftheTalonMissile\\DruidoftheTalonMissile.mdx": "Popcorn raven bolt",
 };
 
-export function isDisjointRegion(fighter: Readonly<Fighter>, region: Readonly<HitRegion>): boolean {
+function isDisjointRegion(fighter: Readonly<Fighter>, region: Readonly<HitRegion>): boolean {
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (const part of fighterHurtParts(fighter)) {
     minX = Math.min(minX, part.x1 - part.radius, part.x2 - part.radius);

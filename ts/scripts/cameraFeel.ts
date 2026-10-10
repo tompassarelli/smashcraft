@@ -27,7 +27,7 @@ import { copyControls, createRoster, fighterAt, isActive, neutralControls, type 
 import { stageBounds } from "../src/game/sim/stageBounds";
 
 
-export const CAMERA_SCENARIOS: readonly { readonly a: string; readonly b: string; readonly stage: number; readonly shift: number }[] = [
+const CAMERA_SCENARIOS: readonly { readonly a: string; readonly b: string; readonly stage: number; readonly shift: number }[] = [
   { a: "illidan", b: "blademaster", stage: 0, shift: 0.0 },
   { a: "rifleman", b: "mountain-king", stage: 0, shift: -60.0 },
   { a: "illidan", b: "forsaken-paladin", stage: 1, shift: 0.0 },
@@ -215,7 +215,7 @@ function summarize(from: Samples) {
 }
 
 
-export function measureCameraFeel() {
+function measureCameraFeel() {
   const ours = samples();
   const melee = samples();
   for (const scenario of CAMERA_SCENARIOS) playScenario(scenario, ours, melee);

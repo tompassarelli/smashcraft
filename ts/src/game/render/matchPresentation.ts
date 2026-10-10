@@ -14,8 +14,8 @@ import {
   menuFrameCues, observeForCues,
 } from "../presentation/matchCues";
 import { mainDeckZAt } from "../sim/stage";
-import { confirmedItemCues, createItemCueObservation, observeItemCues } from "../presentation/itemLook";
-import { confirmedDropCues, createDropCueObservation, observeDropCues } from "../presentation/dropLook";
+import { type ItemCueObservation, confirmedItemCues, createItemCueObservation, observeItemCues } from "../presentation/itemLook";
+import { type DropCueObservation, confirmedDropCues, createDropCueObservation, observeDropCues } from "../presentation/dropLook";
 import { meterDropPoint } from "../match/meterDrops";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
@@ -58,8 +58,8 @@ interface VictoryPose {
 
 export class MatchPresentation {
 
-  itemObservation = createItemCueObservation();
-  dropObservation = createDropCueObservation();
+  itemObservation: ItemCueObservation = createItemCueObservation();
+  dropObservation: DropCueObservation = createDropCueObservation();
   readonly observation = createCueObservation();
   readonly tally = createMatchTally();
   private readonly cues: MatchCue[] = [];

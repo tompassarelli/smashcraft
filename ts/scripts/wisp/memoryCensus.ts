@@ -48,7 +48,7 @@ export function compactEmulator(client: HeadlessClient, released: ReadonlySet<nu
 }
 
 
-export interface Reach {
+interface Reach {
   readonly tables: number;
   readonly functions: number;
   readonly entries: number;

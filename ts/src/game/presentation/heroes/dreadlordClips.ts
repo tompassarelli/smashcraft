@@ -20,7 +20,7 @@ interface StockClip {
 const clip = (index: number, name: string, seconds: number): StockClip => ({ index, name, seconds });
 
 
-export const DREADLORD_SEQUENCES = {
+const DREADLORD_SEQUENCES = {
   stand: clip(0, "Stand", 1.5),
   standReady: clip(1, "Stand Ready", 1.5),
   wingStretch: clip(2, "Stand - 2", f32(2.933)),

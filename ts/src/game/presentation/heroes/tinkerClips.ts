@@ -1,8 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { HeroClipTable } from "../../sim/heroes/hero";
 import { TINKER_AUTHORED_CLIPS } from "./tinkerClipInfo";
-
-export const TINKER_MODEL = "units\\creeps\\HeroTinker\\HeroTinker.mdl";
 export const TINKER_FALLBACK_CLIP = { index: 6, seconds: f32(0.666) };
 
 export const TINKER_CLIPS: HeroClipTable = {

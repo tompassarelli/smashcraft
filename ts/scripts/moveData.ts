@@ -58,7 +58,7 @@ const capsule = (style: AttackStyle, character: Character, frame: number, charge
   const hit = authoredHitRegion(emptyHitRegion(), character, style, frame, charge, regionIndex, authoredTuning(character).moves);
   return attackCapsule(emptyCapsule(), style, hit);
 };
-export function observeLandingLag(character: Character, style: AttackStyle): number {
+function observeLandingLag(character: Character, style: AttackStyle): number {
   if (!isAerialAttack(style)) return 0;
   const fighter = createFighter(character, 0, 1);
   fighter.motion.grounded = false;
@@ -132,13 +132,13 @@ const readJsonl = async <S extends Schema.Top>(path: string, schema: S): Promise
     return value;
   });
 const ACTION_FAMILIES: Readonly<Record<number, string>> = { 0: "jab1", 2: "usmash", 3: "dsmash", 4: "fsmash", 6: "ftilt", 7: "utilt", 8: "dtilt", 9: "ftilt", 10: "ftilt", 12: "nair", 13: "fair", 14: "bair", 15: "uair", 16: "dair" };
-export const actionFamily = (style: number): string => ACTION_FAMILIES[style] ?? "";
-export function referenceJoinScope(style: number, charge: number): string {
+const actionFamily = (style: number): string => ACTION_FAMILIES[style] ?? "";
+function referenceJoinScope(style: number, charge: number): string {
   if (charge > 0) return "family-only-charge-unknown";
   if (style === 9 || style === 10) return "family-only-angle-unknown";
   return "same-action-family";
 }
-export function firstActiveDelta(startup: number, referenceStart: number): number {
+function firstActiveDelta(startup: number, referenceStart: number): number {
   return startup + 1 - referenceStart;
 }
 const TradeoffFact = Schema.Struct({
@@ -167,7 +167,7 @@ function readinessDamageDominates(a: TradeoffFact, b: TradeoffFact): boolean {
   return aDamage >= bDamage && a.attackerReady <= b.attackerReady && a.defenderReady >= b.defenderReady
     && (aDamage > bDamage || a.attackerReady < b.attackerReady || a.defenderReady > b.defenderReady);
 }
-export function referenceTradeoffVerdict(a: TradeoffFact, b: TradeoffFact): string {
+function referenceTradeoffVerdict(a: TradeoffFact, b: TradeoffFact): string {
   if (!a.connected || !b.connected) return "contact-unavailable";
   if (a.attackerReady < 0 || b.attackerReady < 0 || a.defenderReady < 0 || b.defenderReady < 0) return "readiness-unobserved";
   if (readinessDamageDominates(a, b)) return "a-dominates-projection";

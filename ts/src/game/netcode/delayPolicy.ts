@@ -5,9 +5,8 @@ import { floorDiv } from "wisp/src/sim/intMath";
 export const DEFAULT_DELAY = 2;
 export const ROLLBACK_BUDGET = 7;
 export const MAX_FIXED_DELAY = 8;
-export const HIGH_DELAY_FRAMES = 8;
+const HIGH_DELAY_FRAMES = 8;
 export const AUTO_DELAY = -1;
-export const TIME_SYNC_INTERVAL = 60;
 
 export type DelayChoice = number;
 
@@ -30,12 +29,6 @@ export interface RttEstimate {
 
 export const rttEstimate = (): RttEstimate => ({ samples: 0, smoothed8: 0, variance4: 0 });
 
-export function resetRtt(estimate: RttEstimate): void {
-  estimate.samples = 0;
-  estimate.smoothed8 = 0;
-  estimate.variance4 = 0;
-}
-
 export function observeRtt(estimate: RttEstimate, rttMs: number): void {
   const sample = Math.max(0, Math.min(10000, Math.floor(rttMs)));
   if (estimate.samples === 0) {
@@ -53,7 +46,7 @@ export const smoothedRttMs = (estimate: Readonly<RttEstimate>): number => floorD
 
 const guardedRttMs = (estimate: Readonly<RttEstimate>): number => smoothedRttMs(estimate) + floorDiv(estimate.variance4, 2);
 
-export const oneWayFrames = (rttMs: number): number => Math.max(0, floorDiv(rttMs * 3 + 99, 100));
+const oneWayFrames = (rttMs: number): number => Math.max(0, floorDiv(rttMs * 3 + 99, 100));
 
 const clampDelay = (policy: DelayPolicy, delay: number): number => Math.min(policy.ceiling, Math.max(policy.floor, delay));
 
@@ -80,16 +73,10 @@ export function connectionPoor(policy: DelayPolicy, estimate: Readonly<RttEstima
 
 export const highDelay = (delay: number): boolean => delay >= HIGH_DELAY_FRAMES;
 
-export const isDelayChoice = (value: number): value is DelayChoice => value === AUTO_DELAY || (Math.floor(value) === value && value >= 0 && value <= MAX_FIXED_DELAY);
-
 export const requestedDelay = (choice: DelayChoice, auto: number): number => (choice === AUTO_DELAY ? auto : choice);
 
 export function agreedDelay(requests: readonly number[], fallback: number = DEFAULT_DELAY): number {
   let agreed = -1;
   for (const request of requests) agreed = Math.max(agreed, request);
   return agreed < 0 ? fallback : agreed;
-}
-
-export function timeSyncWait(localAdvantage: number, remoteAdvantage: number, framesSinceWait: number): boolean {
-  return framesSinceWait >= TIME_SYNC_INTERVAL && localAdvantage - remoteAdvantage >= 2;
 }

@@ -3,7 +3,7 @@ import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hit
 import { authoredTuning } from "./tuning";
 import { squareRoot } from "./warcraftMath";
 
-export const STRONG_HIT_STYLES: readonly AttackStyle[] = [
+const STRONG_HIT_STYLES: readonly AttackStyle[] = [
   AttackStyle.jab, AttackStyle.jab2, AttackStyle.jab3, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown,
   AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack, AttackStyle.demonHunterDashAttack,
   AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash,
@@ -13,7 +13,7 @@ export const STRONG_HIT_STYLES: readonly AttackStyle[] = [
 const BODY_CENTRE_Z = 45.0;
 const LAST_SCANNED_FRAME = 120;
 
-export interface StrongHitRow {
+interface StrongHitRow {
   readonly style: AttackStyle;
   readonly position: boolean;
   readonly strongDamage: number;

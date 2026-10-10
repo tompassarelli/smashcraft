@@ -53,7 +53,7 @@ export const DevCommandReceipt = preloadRecord(
 );
 
 
-export const StageReceipt = preloadRecord(
+const StageReceipt = preloadRecord(
   { head: ["SMASHCRAFT STAGE v=1 build={build} epoch={epoch} stage={stage} decks={decks} "] },
   Schema.Struct({ build: Schema.NonEmptyString, epoch: Count, stage: Count, decks: Count.check(Schema.isGreaterThanOrEqualTo(1)) }),
 );
@@ -92,7 +92,7 @@ export const JournalControl = preloadRecord(
 );
 
 
-export const JournalMenu = preloadRecord(
+const JournalMenu = preloadRecord(
   { head: ["SMASHCRAFT JOURNAL MENU v=1 build={build} epoch={epoch} slot={slot} phase={phase}", "connected={connected} human-fighters={humanFighters} computers={computers} fighters={fighters}"] },
   Schema.Struct({ ...Identity, phase: Schema.Literals(["CHARACTER", "STAGE", "RESULT", "BLOCKED"]), connected: Count, humanFighters: Count, computers: Count, fighters: Count }),
 );
@@ -172,7 +172,7 @@ const PhysicsReport = preloadRecord(
 );
 
 
-export function writtenGameFileKind(name: string): GameFileKind<unknown> | undefined {
+function writtenGameFileKind(name: string): GameFileKind<unknown> | undefined {
   if (name === files.MELEE_READY_FILE) return MeleeReady;
   if (name === files.INPUT_START_FILE) return InputTraceStart;
   if (name === files.INPUT_TRACE_FILE) return InputTrace;

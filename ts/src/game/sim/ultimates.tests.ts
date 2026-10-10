@@ -35,7 +35,7 @@ interface Scenario {
   readonly answerFrame?: number;
 }
 
-export const ULTIMATE_SCENARIOS: readonly Scenario[] = [
+const ULTIMATE_SCENARIOS: readonly Scenario[] = [
   { character: Character.rifleman, x: 400.0, defence: "shield" },
   { character: Character.demonHunter, x: 100.0, defence: "shield" },
   { character: Character.blademaster, x: 80.0, defence: "shield" },
@@ -121,7 +121,7 @@ function ultimateOf(character: Character): AuthoredSpecial {
 }
 
 /** The first frame an ultimate can strike: a region, a striking projectile or summon, a grab or a guard. */
-export function firstThreat(move: Readonly<AuthoredSpecial>): number {
+function firstThreat(move: Readonly<AuthoredSpecial>): number {
   let first = move.endFrame;
   for (const region of move.regions ?? []) first = Math.min(first, region.firstFrame + 1);
   for (const shot of move.projectiles ?? []) if (shot.effect.damage > 0.0 || shot.expiresInto !== undefined) first = Math.min(first, shot.spawnFrame + (shot.expiresInto !== undefined && shot.effect.damage === 0.0 ? shot.life : 0));

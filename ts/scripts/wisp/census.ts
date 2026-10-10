@@ -48,7 +48,7 @@ function special(name: string, direction: number | undefined, air: boolean, foll
 const SPECIALS: readonly (readonly [string, number | undefined])[] = [["neutral special", undefined], ["side special", KEY.right], ["up special", KEY.up], ["down special", KEY.down]];
 
 
-export const CENSUS_MOVES: readonly CensusMove[] = [
+const CENSUS_MOVES: readonly CensusMove[] = [
   { name: "jab", keys: [tap(0, KEY.attack)] },
   { name: "jab chain", keys: [tap(0, KEY.attack), tap(8, KEY.attack), tap(16, KEY.attack)] },
   { name: "forward tilt", keys: [...hold(0, 3, KEY.walk, KEY.right), tap(2, KEY.attack)] },

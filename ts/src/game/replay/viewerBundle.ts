@@ -4,6 +4,6 @@ import { sourceVersion } from "../shell/sourceVersion";
 import { joinReplay, parseReplayHeader, parseReplayPart } from "./replayFormat";
 import { VIEWER_API, openReplay } from "./viewer";
 
-export { VIEWER_API, joinReplay, openReplay, parseReplayHeader, parseReplayPart, sourceVersion };
+
 
 ({ VIEWER_API, openReplay, parseReplayHeader, parseReplayPart, joinReplay, sourceVersion }) satisfies typeof Api;

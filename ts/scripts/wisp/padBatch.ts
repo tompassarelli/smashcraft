@@ -39,7 +39,7 @@ import { onHealthyClients } from "./doctor";
 import { type PadOptions, type NativeSession, headlessScript, headlessSession, nativeChat, nativeScript, nativeSession } from "./commands/pad";
 
 
-export interface PadPair {
+interface PadPair {
   readonly name: string;
 
   readonly clients: string;
@@ -106,7 +106,7 @@ const seconds = (since: number) => (performance.now() - since) / 1000;
 
 const wispProgram = join(import.meta.dir, "../wisp.ts");
 
-export class BatchProcessFailure extends Schema.TaggedError<BatchProcessFailure>()("BatchProcessFailure", {
+class BatchProcessFailure extends Schema.TaggedError<BatchProcessFailure>()("BatchProcessFailure", {
   command: Schema.String, log: Schema.String, code: Schema.Int, problem: Schema.String,
 }) {
   override get message(): string { return `${this.command} ${this.problem}; see ${this.log}`; }
@@ -115,7 +115,7 @@ export class BatchProcessFailure extends Schema.TaggedError<BatchProcessFailure>
 class BatchRetry extends Schema.TaggedError<BatchRetry>()("BatchRetry", { script: Schema.String }) {}
 
 
-export const runBatchProcess = (command: string, args: readonly string[], log: string) => Effect.scoped(Effect.gen(function*() {
+const runBatchProcess = (command: string, args: readonly string[], log: string) => Effect.scoped(Effect.gen(function*() {
   const { handle, written } = yield* spawnLogged(ChildProcess.make(command, args, { cwd: join(import.meta.dir, "../.."), stdin: "ignore", forceKillAfter: "1 second" }), { stdout: log, stderr: `${log}.err` });
   const code = yield* handle.exitCode;
   yield* written;
@@ -162,7 +162,7 @@ const hotServices = Layer.build(MapBuild.layer(buildProject("integrity")).pipe(L
 const hotReloader = (services: Effect.Success<typeof hotServices>, data: readonly [string, string]) =>
   Layer.build(HotReload.layer(data, "smashcraft").pipe(Layer.provide(Layer.succeedContext(services)))).pipe(Effect.map((context) => Context.get(context, HotReload)));
 
-export interface BatchOptions {
+interface BatchOptions {
   readonly scripts: readonly string[];
   readonly helper: string;
   readonly build: string;
@@ -173,7 +173,7 @@ export interface BatchOptions {
   readonly retries: number;
 }
 
-export interface NativeBatchOptions extends BatchOptions {
+interface NativeBatchOptions extends BatchOptions {
   readonly pairs: readonly PadPair[];
   readonly map: string;
   readonly freshEach: boolean;

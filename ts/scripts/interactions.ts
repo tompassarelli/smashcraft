@@ -420,7 +420,7 @@ export const FIGHTERS = [
   { character: Character.rifleman, name: "Rifleman", slug: "rifleman" },
   { character: Character.demonHunter, name: "Illidan", slug: "illidan" },
 ] as const;
-export type FighterEntry = (typeof FIGHTERS)[number];
+type FighterEntry = (typeof FIGHTERS)[number];
 
 
 interface Cell {
@@ -794,21 +794,6 @@ function aerialRows(entry: FighterEntry): Row[] {
       ]),
     ];
   });
-}
-
-
-
-
-
-
-
-export function aerialOnShield(fighter: string, aerial: string, drift: string, distance: number, spacing: AerialRow["spacing"]): AerialRow | undefined {
-  const entry = fighterNamed(fighter);
-  const move = AERIALS.find((candidate) => candidate.name === aerial);
-  const path = DRIFTS.find((candidate) => candidate.name === drift);
-  if (entry === undefined || move === undefined || path === undefined) throw new Error(`no aerial ${aerial} for ${fighter} with drift ${drift}`);
-  const reach = searchApproaches(entry.character, [move], [distance]).get(move)?.[0];
-  return reach === undefined ? undefined : aerialRow(entry, move, path, spacing, pressFor(path, reach), false);
 }
 
 

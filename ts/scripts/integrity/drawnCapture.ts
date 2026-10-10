@@ -24,13 +24,13 @@ export function visualCaptureCommand(command: string, token: string, steps: read
   return text;
 }
 
-export interface Drawn {
+interface Drawn {
   readonly epoch: number;
   readonly frame: number;
 }
 
 
-export function parseDrawn(text: string): Drawn | undefined {
+function parseDrawn(text: string): Drawn | undefined {
   for (const line of preloadLines(text) ?? []) {
     const match = /^SMASHCRAFT DRAWN v=1 build=\S+ epoch=(\d+) frame=(\d+)/.exec(line);
     if (match !== null) return { epoch: Number(match[1]), frame: Number(match[2]) };
@@ -46,7 +46,7 @@ export const drawnFrom = (path: string) => (): Drawn | undefined => {
   }
 };
 
-export interface DrawnShot<A> {
+interface DrawnShot<A> {
   readonly shot: A;
 
   readonly before: number;

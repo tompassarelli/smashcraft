@@ -10,7 +10,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 
-export interface ElementLook {
+interface ElementLook {
 
   readonly victim: string | undefined;
   readonly victimScale: number;
@@ -24,7 +24,7 @@ export interface ElementLook {
   readonly tint: { readonly red: number; readonly green: number; readonly blue: number };
 }
 
-export const ELEMENT_LOOKS: { readonly [element in HitElement]: ElementLook } = {
+const ELEMENT_LOOKS: { readonly [element in HitElement]: ElementLook } = {
   [HitElement.normal]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 185, blue: 150 } },
   [HitElement.slash]: { victim: undefined, victimScale: 1.0, sound: undefined, tint: { red: 255, green: 165, blue: 180 } },
 

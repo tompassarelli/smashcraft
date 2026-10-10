@@ -19,7 +19,7 @@ const STEP = 1.0 / 60.0;
 
 const FARTHER = 0.5;
 
-export interface StrikeMoment {
+interface StrikeMoment {
   readonly character: number;
 
   readonly style: number;

@@ -261,8 +261,8 @@ const LEFT = -230;
 const RIGHT = 230;
 const BOTTOM = -140;
 const TOP = 210;
-export const PANEL_WIDTH = RIGHT - LEFT;
-export const PANEL_HEIGHT = TOP - BOTTOM;
+const PANEL_WIDTH = RIGHT - LEFT;
+const PANEL_HEIGHT = TOP - BOTTOM;
 
 type Rgb = readonly [number, number, number];
 const BACKGROUND: Rgb = [250, 250, 250];
@@ -284,13 +284,13 @@ function segmentDistance(px: number, pz: number, c: Readonly<Capsule>): number {
 }
 
 
-export interface Coverage {
+interface Coverage {
   readonly covered: number;
   readonly filled: number;
 }
 
 
-export function drawPanel(rgb: Uint8Array, frame: PoseFrame, triangles: Float32Array): Coverage {
+function drawPanel(rgb: Uint8Array, frame: PoseFrame, triangles: Float32Array): Coverage {
   const body = new Uint8Array(PANEL_WIDTH * PANEL_HEIGHT);
   for (let t = 0; t + 5 < triangles.length; t += 6) {
     const ax = (triangles[t] ?? 0) - LEFT, az = TOP - (triangles[t + 1] ?? 0);
@@ -348,7 +348,7 @@ export function drawPanel(rgb: Uint8Array, frame: PoseFrame, triangles: Float32A
 }
 
 
-export function tile(panels: readonly Uint8Array[], columns: number): { width: number; height: number; rgb: Uint8Array } {
+function tile(panels: readonly Uint8Array[], columns: number): { width: number; height: number; rgb: Uint8Array } {
   const gutter = 2;
   const rows = Math.ceil(panels.length / columns);
   const width = Math.min(columns, panels.length) * (PANEL_WIDTH + gutter);
@@ -387,7 +387,7 @@ function chunk(type: string, data: Uint8Array): Uint8Array {
 }
 
 
-export function encodePng(width: number, height: number, rgb: Uint8Array): Uint8Array {
+function encodePng(width: number, height: number, rgb: Uint8Array): Uint8Array {
   const header = new Uint8Array(13);
   const view = new DataView(header.buffer);
   view.setUint32(0, width);
@@ -406,7 +406,7 @@ export function encodePng(width: number, height: number, rgb: Uint8Array): Uint8
 }
 
 
-export interface SheetResult {
+interface SheetResult {
   readonly name: string;
   readonly png: Uint8Array;
   readonly lines: readonly string[];

@@ -17,7 +17,7 @@ export const redTitle = (branch: string) => `${branch} is red`;
 const TESTS_HEADING = "## Failing tests";
 
 
-export function failedTest(line: string): string | undefined {
+function failedTest(line: string): string | undefined {
   const text = line.replace(/\x1b\[[0-9;]*m/g, "");
   const bun = /^\(fail\) (.+?)(?: \[[\d.]+m?s\])?$/.exec(text);
   const lua = /^fail (.+?\[[^\]]+\]): /.exec(text) ?? /^fail (.+?): /.exec(text);
@@ -25,7 +25,7 @@ export function failedTest(line: string): string | undefined {
 }
 
 
-export function failingTests(log: string): string[] {
+function failingTests(log: string): string[] {
   const tests = new Set<string>();
   const steps = new Map<string, boolean>();
   for (const line of log.split("\n")) {
@@ -50,7 +50,7 @@ export function issueTests(body: string): string[] {
 
 interface Run { readonly databaseId: number; readonly conclusion: string; readonly status: string; readonly headSha: string; readonly url: string }
 
-export function redIssueBody(branch: string, tests: readonly string[], runs: readonly Run[], repository: string): string {
+function redIssueBody(branch: string, tests: readonly string[], runs: readonly Run[], repository: string): string {
   const [latest] = runs;
   const green = runs.findIndex((run) => run.conclusion === "success");
   const failed = (green === -1 ? runs : runs.slice(0, green)).filter((run) => run.conclusion === "failure");
@@ -87,7 +87,7 @@ const ThisRun = Schema.Struct({ conclusion: Schema.String, headBranch: Schema.St
 const Issues = Schema.Array(Schema.Struct({ number: Schema.Finite, title: Schema.String }));
 const Repository = Schema.Struct({ nameWithOwner: Schema.String });
 
-export const reportRun = (runId: string) => Effect.gen(function*() {
+const reportRun = (runId: string) => Effect.gen(function*() {
   const run = yield* gh("run", "view", runId, "--json", "conclusion,headBranch,workflowName,databaseId").pipe(Effect.flatMap(decode(ThisRun, "gh run view")));
   if (run.conclusion !== "success" && run.conclusion !== "failure") return yield* Console.log(`run ${runId} ${run.conclusion || "unfinished"}: nothing to report`);
   const history = yield* gh("run", "list", "--workflow", run.workflowName, "--branch", run.headBranch, "--limit", "100",

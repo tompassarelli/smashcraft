@@ -25,7 +25,7 @@ import { tsDirectory } from "./project";
 import { PAIR_MARGIN, type PairWorst, comparePairs, isPairText, pairText, parsePairs } from "./perfPairs";
 
 
-export const CENSUS_LIMIT_MS = 2;
+const CENSUS_LIMIT_MS = 2;
 
 interface FrameSample {
   readonly instructions: number;
@@ -33,7 +33,7 @@ interface FrameSample {
   readonly allocatedKb: number;
 }
 
-export interface CensusEntry {
+interface CensusEntry {
   readonly group: string;
   readonly name: string;
 
@@ -138,7 +138,7 @@ function censusEntries(output: string): CensusEntry[] {
   });
 }
 
-export function censusLines(entries: readonly CensusEntry[], limitMs: number): string[] {
+function censusLines(entries: readonly CensusEntry[], limitMs: number): string[] {
   const lines = ["group         entry                              base ms  worst ms  spike ms  at   +instructions  +natives  +KB"];
   for (const entry of entries) {
     lines.push(`${entry.group.padEnd(13)} ${entry.name.padEnd(34)} ${entry.baselineMs.toFixed(2).padStart(7)}  ${entry.worstMs.toFixed(2).padStart(8)}  ${entry.spikeMs.toFixed(2).padStart(8)}  ${String(entry.worstAt).padStart(3)}  ${String(Math.round(entry.instructions)).padStart(13)}  ${String(Math.round(entry.natives)).padStart(8)}  ${entry.allocatedKb.toFixed(0).padStart(3)}${entry.spikeMs > limitMs ? "  OVER" : ""}`);
@@ -149,7 +149,7 @@ export function censusLines(entries: readonly CensusEntry[], limitMs: number): s
 }
 
 
-export function functionNamer(bundle: string): (line: number) => string {
+function functionNamer(bundle: string): (line: number) => string {
   const lines = bundle.split("\n");
   const modules: [number, string][] = [];
   lines.forEach((text, index) => {
@@ -183,7 +183,7 @@ function profileOf(output: string, frames: ReadonlySet<number>): Map<number, [nu
 }
 
 
-export function frameProfileLines(heading: string, worstFrame: number, baseFrames: ReadonlySet<number>, output: string, name: (line: number) => string, top = 12): string[] {
+function frameProfileLines(heading: string, worstFrame: number, baseFrames: ReadonlySet<number>, output: string, name: (line: number) => string, top = 12): string[] {
   const base = profileOf(output, baseFrames);
   const worst = profileOf(output, new Set([worstFrame]));
   const rows = [...worst].map(([line, [self, inclusive]]) => {
@@ -196,7 +196,7 @@ export function frameProfileLines(heading: string, worstFrame: number, baseFrame
 }
 
 
-export function profileLines(entry: CensusEntry, output: string, name: (line: number) => string, top = 12): string[] {
+function profileLines(entry: CensusEntry, output: string, name: (line: number) => string, top = 12): string[] {
   const baseFrames = new Set<number>();
   for (let frame = entry.baseFrames[0]; frame <= entry.baseFrames[1]; frame++) baseFrames.add(frame);
   return frameProfileLines(`profile ${entry.group} ${entry.name} (frame +${entry.worstAt}, ${entry.spikeMs.toFixed(2)} ms over baseline)`, entry.worstFrame, baseFrames, output, name, top);
@@ -207,7 +207,7 @@ const compile = (config: string) => Effect.try({
   catch: (cause) => new PerfFailure({ problem: `compiling ${config}: ${describeCause(cause)}` }),
 }).pipe(Effect.flatMap((problems) => (problems === "" ? Effect.void : Effect.fail(new PerfFailure({ problem: problems })))));
 
-export interface CensusProject {
+interface CensusProject {
   readonly map: { readonly config: string; readonly bundle: string };
   readonly program: { readonly config: string; readonly bundle: string };
 }
@@ -216,7 +216,7 @@ export interface CensusProject {
 const runOf = (entry: CensusEntry) => (entry.group === "stage" ? `census-stage-${entry.name}` : `census-${entry.group}`);
 
 
-export const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[], phases = false) => stockLua.pipe(
+const runLua = (program: string, bundle: string, run: string, frames: number, profileFrames?: readonly number[], phases = false) => stockLua.pipe(
   Effect.mapError((problem) => new PerfFailure({ problem })),
 
   Effect.flatMap((lua) => Effect.scoped(Effect.gen(function*() {

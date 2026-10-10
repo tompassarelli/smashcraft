@@ -7,7 +7,7 @@ import { Character, ContactKind, DownState, HeroStatusKind, SpecialAction } from
 import { f32 } from "wisp/src/sim/f32";
 
 /** A Banished fighter takes this much more damage from Kael's spells. */
-export const BANISH_SPELL_DAMAGE = f32(1.3);
+const BANISH_SPELL_DAMAGE = f32(1.3);
 import { isDownDamageState } from "./conditions";
 import { DOWN_DAMAGE_RESET_THRESHOLD } from "./down";
 import type { Fighter } from "./fighter";

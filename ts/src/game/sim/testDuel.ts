@@ -10,7 +10,7 @@ import { takenManaGain } from "./mana";
 import { type Controls, copyControls, createRoster } from "./roster";
 import { controls } from "./testWorld";
 
-export interface Duel {
+interface Duel {
   readonly illidan: Fighter;
   readonly target: Fighter;
   readonly commands: readonly [AttackBuffer, AttackBuffer];
@@ -55,13 +55,4 @@ export function duel(gap: number, character: Character = Character.rifleman): Du
   };
   d.run(3);
   return d;
-}
-
-
-export function lift(f: Fighter, z: number): void {
-  f.motion.grounded = false;
-  f.motion.surface = undefined;
-  f.motion.z = z;
-  f.motion.vz = 0.0;
-  f.motion.vx = 0.0;
 }

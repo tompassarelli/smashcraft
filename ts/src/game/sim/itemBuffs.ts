@@ -13,13 +13,13 @@ import type { Fighter } from "./fighter";
 export const ITEM_BUFF_FRAMES = 600;
 
 
-export const SPEED_BUFF_SCALE = f32(1.3);
+const SPEED_BUFF_SCALE = f32(1.3);
 
-export const SPEED_BUFF_JUMP_SCALE = f32(1.1);
+const SPEED_BUFF_JUMP_SCALE = f32(1.1);
 
-export const HEAVY_BUFF_WEIGHT_SCALE = 1.5;
+const HEAVY_BUFF_WEIGHT_SCALE = 1.5;
 
-export const HEAVY_BUFF_FALL_SCALE = f32(1.3);
+const HEAVY_BUFF_FALL_SCALE = f32(1.3);
 
 
 const GROUNDED_JUMPS = 2;

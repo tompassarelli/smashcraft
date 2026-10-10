@@ -43,7 +43,7 @@ const NORMALS: FighterMoves["normals"] = {
 };
 
 const body = hurtCapsule(Character.sylvanas);
-export const SYLVANAS_STAND: readonly HurtPart[] = [hurtPart(body.x1, body.z1, body.x2, body.z2, body.radius)];
+const SYLVANAS_STAND: readonly HurtPart[] = [hurtPart(body.x1, body.z1, body.x2, body.z2, body.radius)];
 export const sylvanasReach = (x: number, z: number): readonly HurtPart[] => [...SYLVANAS_STAND, hurtPart(8.0, 65.0, x, z, 10.0)];
 const limbPoses: { [style: number]: readonly HurtPose[] } = {};
 for (const key in NORMALS) {

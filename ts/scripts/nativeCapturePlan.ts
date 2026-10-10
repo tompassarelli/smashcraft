@@ -31,15 +31,15 @@ const loadPlatform = async () => {
 };
 type Platform = Awaited<ReturnType<typeof loadPlatform>>;
 
-export class PlanFailure extends Schema.TaggedError<PlanFailure>()("PlanFailure", { problem: Schema.String }) {
+class PlanFailure extends Schema.TaggedError<PlanFailure>()("PlanFailure", { problem: Schema.String }) {
   override get message(): string { return this.problem; }
 }
 
 type Look = "tint" | "shake" | "recoil";
 type Check = { readonly kind: "sound"; readonly name: string } | { readonly kind: "effect"; readonly name: string } | { readonly kind: Look; readonly slot: number };
-export interface Cue { readonly from: number; readonly to: number; readonly name: string; readonly checks: readonly Check[]; readonly line: number }
+interface Cue { readonly from: number; readonly to: number; readonly name: string; readonly checks: readonly Check[]; readonly line: number }
 
-export function parseCues(script: string): Cue[] {
+function parseCues(script: string): Cue[] {
   const cues: Cue[] = [];
   script.split("\n").forEach((raw, index) => {
     const match = /^\s*#!\s*cue\s+(\d+)(?:-(\d+))?\s+([^:]+):\s*(.+?)\s*$/.exec(raw);
@@ -123,7 +123,7 @@ function play({ shell, nativeDriverCommand, entry }: Platform, fixture: CaptureF
 }
 
 
-export function judge(cues: readonly Cue[], run: ReturnType<typeof play>) {
+function judge(cues: readonly Cue[], run: ReturnType<typeof play>) {
   return cues.map(cue => {
     const inRange = (frame: number) => frame >= cue.from && frame <= cue.to;
     const stamped = run.held.filter(hold => inRange(hold.frame)).map(hold => hold.frame);

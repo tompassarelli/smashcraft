@@ -288,7 +288,7 @@ export function repeatComputerInput(world: Readonly<Roster>, runtime: BotRuntime
 }
 
 /** The delayed opponent observation decides whether a cast needs startup armor. */
-export function upgradeThreatenedSpecial(fighter: Readonly<Fighter>, target: Readonly<Fighter> | undefined, input: Controls): void {
+function upgradeThreatenedSpecial(fighter: Readonly<Fighter>, target: Readonly<Fighter> | undefined, input: Controls): void {
   if (target === undefined || !input.specialPressed || fighter.special.action !== SpecialAction.none
     || target.attack.style === undefined || Math.abs(f32(target.motion.x - fighter.motion.x)) > 140.0
     || Math.abs(f32(target.motion.z - fighter.motion.z)) > 140.0 || !exSpecialAffordable(fighter)) return;

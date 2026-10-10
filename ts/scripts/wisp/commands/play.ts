@@ -86,7 +86,7 @@ const problem = (cause: { readonly message: string }) => new PlayProblem({ probl
 const until = <A, R>(seconds: number, observe: Effect.Effect<A | undefined, PlayProblem, R>, text: string) =>
   pollUntil(observe, { every: "250 millis", within: `${seconds} seconds`, orElse: () => Effect.fail(new PlayProblem({ problem: text })) });
 
-export function playtest({ build, map, helper, computerSlot, computerOpponent, computerTier, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
+function playtest({ build, map, helper, computerSlot, computerOpponent, computerTier, menuReportPort }: Playtest): PlayDeclaration<GameFiles> {
 
   const ready = (game: PlayGame) => readGameFile(join(dataDirectory(game.documents), MELEE_READY_FILE), MeleeReady).pipe(
     Effect.catchTag("MalformedGameFile", () => Effect.void),

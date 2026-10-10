@@ -8,13 +8,13 @@ import {
   FLAME_CRASH_FORM, VENGEFUL_RETREAT_FORM,
 } from "./specials";
 
-export interface OriginalSpecial extends NamedMove {
+interface OriginalSpecial extends NamedMove {
   readonly action: SpecialAction;
 
   readonly forms?: readonly { readonly form: number; readonly name: string }[] | undefined;
 }
 
-export interface OriginalKit {
+interface OriginalKit {
 
   readonly specials: readonly [OriginalSpecial, OriginalSpecial, OriginalSpecial, OriginalSpecial];
   readonly trait?: string | undefined;

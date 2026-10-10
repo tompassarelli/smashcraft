@@ -95,7 +95,7 @@ function viewOf(label: string, f: Readonly<Fighter>, other: Readonly<Fighter>, s
   };
 }
 
-export interface TextMatch {
+interface TextMatch {
   readonly lines: readonly string[];
   readonly frames: number;
   readonly winner: "A" | "B" | "none";

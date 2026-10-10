@@ -17,6 +17,12 @@ const listed = yield* runProcess(ChildProcess.make("git", ["ls-files"], { cwd: r
 const tracked = listed.split("\n").filter((file) => file !== "");
 const projectFiles = tracked.filter((file) => file.startsWith("ts/") && !file.startsWith("ts/vendor/"));
 const sources = projectFiles.filter((file) => file.endsWith(".ts")).map((file) => join(repository, file));
+// tools/ and the git hooks import ts/ modules, so they count as importers; only ts/ exports are judged.
+// Hooks have no extension, so the compiler reads each one under a `.ts` alias.
+const hooks = new Map(tracked.filter((file) => file.startsWith(".githooks/")).map((file) => [join(repository, `${file}.ts`), join(repository, file)]));
+const consumers = [...tracked.filter((file) => file.startsWith("tools/") && file.endsWith(".ts")).map((file) => join(repository, file)), ...hooks.keys()];
+// Recorded pads, corpus runs and fixtures are test data that tests and tools open by directory.
+const fixture = (file: string): boolean => /^ts\/test\/(native\/(pads|captures)|corpus|fixtures)\//.test(file);
 
 const conventional = new Set([".gitignore", "bunfig.toml", "package.json", "bun.lock", "README.md"]);
 
@@ -27,11 +33,16 @@ for (const file of live) liveText.set(file, yield* Effect.tryPromise(() => Bun.f
 
 const options: ts.CompilerOptions = {
   target: ts.ScriptTarget.ESNext, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler,
-  strict: true, noEmit: true, skipLibCheck: true, types: ["bun", "lua-types/5.3"],
+  strict: true, declaration: true, skipLibCheck: true, types: ["bun", "lua-types/5.3"],
 };
-const program = ts.createProgram(sources, options);
+const host = ts.createCompilerHost(options);
+const hostFileExists = host.fileExists.bind(host), hostReadFile = host.readFile.bind(host);
+host.fileExists = (file) => hooks.has(file) || hostFileExists(file);
+host.readFile = (file) => hostReadFile(hooks.get(file) ?? file);
+const program = ts.createProgram([...sources, ...consumers], options, host);
 const checker = program.getTypeChecker();
 const ours = new Set(sources);
+const reading = new Set([...sources, ...consumers]);
 
 
 const bundleEntries = new Set(projectFiles.filter((file) => /(^|\/)tsconfig[^/]*\.json$/.test(file)).flatMap((file) => {
@@ -44,15 +55,27 @@ const bundleEntries = new Set(projectFiles.filter((file) => /(^|\/)tsconfig[^/]*
 const usedElsewhere = new Set<ts.Symbol>();
 const importers = new Map<string, Set<string>>();
 for (const source of program.getSourceFiles()) {
-  if (!ours.has(source.fileName)) continue;
+  if (!reading.has(source.fileName)) continue;
   const visit = (node: ts.Node): void => {
     if (ts.isStringLiteral(node) && (ts.isImportDeclaration(node.parent) || ts.isExportDeclaration(node.parent)
       || (ts.isCallExpression(node.parent) && node.parent.expression.kind === ts.SyntaxKind.ImportKeyword))) {
       const resolved = ts.resolveModuleName(node.text, source.fileName, options, ts.sys).resolvedModule?.resolvedFileName;
       if (resolved !== undefined) importers.set(resolved, (importers.get(resolved) ?? new Set()).add(source.fileName));
     }
+    // `const { name } = await import("./module")` binds a local, so take the property it reads.
+    if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
+      const key = node.propertyName ?? node.name;
+      const property = ts.isIdentifier(key) ? checker.getTypeAtLocation(node.parent).getProperty(key.text) : undefined;
+      if (property !== undefined && (property.declarations?.some((declaration) => declaration.getSourceFile() !== source) ?? false)) usedElsewhere.add(property);
+    }
     if (ts.isIdentifier(node)) {
       let symbol = checker.getSymbolAtLocation(node);
+      // A namespace import used as a value (`Object.entries(moves)`) can reach every export of its module.
+      const aliased = symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0 ? checker.getAliasedSymbol(symbol) : undefined;
+      if (aliased !== undefined && (aliased.flags & ts.SymbolFlags.ValueModule) !== 0 && !ts.isNamespaceImport(node.parent)
+        && !(ts.isPropertyAccessExpression(node.parent) && node.parent.expression === node) && !ts.isQualifiedName(node.parent)) {
+        for (const exported of checker.getExportsOfModule(aliased)) usedElsewhere.add(exported);
+      }
       for (let depth = 0; symbol !== undefined && depth < 16; depth++) {
         if (symbol.declarations?.some((declaration) => declaration.getSourceFile() !== source) ?? false) usedElsewhere.add(symbol);
         symbol = (symbol.flags & ts.SymbolFlags.Alias) !== 0 ? checker.getImmediateAliasedSymbol(symbol) : undefined;
@@ -62,6 +85,21 @@ for (const source of program.getSourceFiles()) {
   };
   visit(source);
 }
+
+// An inferred type can name another module's export (`import("./hostProcess").ProcessFailure`) without an identifier
+// in the source; declaration emit spells those names out.
+program.emit(undefined, (file, text, _bom, _error, emitted) => {
+  const from = emitted?.[0];
+  if (from === undefined || !ours.has(from.fileName)) return;
+  for (const [, specifier, name] of text.matchAll(/import\("([^"]+)"\)\.(\w+)/g)) {
+    if (specifier === undefined || name === undefined) continue;
+    const resolved: string | undefined = ts.resolveModuleName(specifier, from.fileName, options, ts.sys).resolvedModule?.resolvedFileName;
+    const target: ts.SourceFile | undefined = resolved === undefined ? undefined : program.getSourceFile(resolved);
+    const module = target === undefined ? undefined : checker.getSymbolAtLocation(target);
+    const symbol = module === undefined ? undefined : checker.getExportsOfModule(module).find((exported) => exported.name === name);
+    if (symbol !== undefined && target !== from) usedElsewhere.add(symbol);
+  }
+}, undefined, true);
 
 const exportedNames = (statement: ts.Statement): ts.Identifier[] => {
   if (ts.isExportDeclaration(statement)) {
@@ -74,9 +112,11 @@ const exportedNames = (statement: ts.Statement): ts.Identifier[] => {
     || ts.isTypeAliasDeclaration(statement) || ts.isEnumDeclaration(statement)) && statement.name !== undefined) return [statement.name];
   return [];
 };
+// A generated file's exports are its generator's interface, which the next regeneration would restore.
+const generated = (source: ts.SourceFile): boolean => /^\/\/ Generated by /m.test(source.text.slice(0, source.statements[0]?.getStart(source) ?? 0));
 const unusedExports: string[] = [];
 for (const source of program.getSourceFiles()) {
-  if (!ours.has(source.fileName) || bundleEntries.has(source.fileName)) continue;
+  if (!ours.has(source.fileName) || bundleEntries.has(source.fileName) || generated(source)) continue;
   for (const statement of source.statements) for (const name of exportedNames(statement)) {
     const symbol = checker.getSymbolAtLocation(name);
     if (symbol !== undefined && usedElsewhere.has(symbol)) continue;
@@ -105,7 +145,7 @@ const named = (file: string): boolean => {
   }
   return false;
 };
-const unreachedFiles = projectFiles.filter((file) => !conventional.has(basename(file)) && !/\.(test|tests|soak)\.ts$/.test(file)
+const unreachedFiles = projectFiles.filter((file) => !fixture(file) && !conventional.has(basename(file)) && !/\.(test|tests|soak)\.ts$/.test(file)
   && (importers.get(join(repository, file))?.size ?? 0) === 0 && !named(file));
 const unreferencedTools = tracked.filter((file) => file.startsWith("tools/") && !conventional.has(basename(file)) && !named(file));
 

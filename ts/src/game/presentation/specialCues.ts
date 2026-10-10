@@ -43,7 +43,7 @@ import { SPECIAL_SLOTS, type SpecialSlot } from "./projectileArt";
 import { RIFLEMAN_MODEL_FILE } from "./fighterAssetInfo";
 
 
-export type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel" | "breath";
+type CueAnchor = "hand" | "body" | "feet" | "ahead" | "behind" | "overhead" | "barrel" | "breath";
 
 export const MISSING_CUE_MODEL = "Objects\\InventoryItems\\QuestionMark\\QuestionMark.mdl";
 
@@ -85,7 +85,7 @@ export interface Cue {
 export const timed = (cue: Cue, sequence: string, seconds: number): Cue => ({ ...cue, sequence, seconds });
 
 
-export interface MoveCues {
+interface MoveCues {
   readonly spell: string;
   readonly startup: Cue;
   readonly active: Cue;
@@ -322,10 +322,10 @@ export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
 
 
 
-export type BranchCue = MoveCues | "slot" | "none";
+type BranchCue = MoveCues | "slot" | "none";
 
 
-export interface HeroBranchCues {
+interface HeroBranchCues {
   readonly recall?: BranchCue | undefined;
   readonly marked?: BranchCue | undefined;
   readonly followUps?: readonly BranchCue[] | undefined;
@@ -381,7 +381,7 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
 };
 
 
-export interface OriginalBranch {
+interface OriginalBranch {
   readonly cues: MoveCues;
   readonly first: number;
   readonly last: number;
@@ -391,7 +391,7 @@ export interface OriginalBranch {
 const CHAOS_STRIKE_CUES: OriginalBranch = { cues: branch("Chaos Strike", FEL_TELL, timed(cue("Abilities\\Spells\\NightElf\\MoonGlaive\\MoonGlaiveCaster.mdx", "ahead", 1.0), "stand", 0.0)), first: CHAOS_STRIKE_FIRST, last: CHAOS_STRIKE_LAST };
 
 
-export const EYE_BLAST_EYES: Cue = { model: "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", anchor: "overhead", scale: f32(0.9), sequence: "stand", seconds: 0.0 };
+const EYE_BLAST_EYES: Cue = { model: "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", anchor: "overhead", scale: f32(0.9), sequence: "stand", seconds: 0.0 };
 
 export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form: number]: OriginalBranch } } = {
   [SpecialAction.demonHunterManaBurn]: {
@@ -417,13 +417,13 @@ export const ORIGINAL_BRANCH_CUES: { readonly [action: number]: { readonly [form
 };
 
 
-export interface CueWindows {
+interface CueWindows {
   readonly startup: FrameWindow;
   readonly active: FrameWindow;
 }
 
 
-export const ACTIVE_CUE_FRAMES = 18;
+const ACTIVE_CUE_FRAMES = 18;
 
 const widen = (window: { first: number; last: number }, first: number, last: number): void => {
   window.first = Math.min(window.first, first);
@@ -474,7 +474,7 @@ function originalActiveFrame(action: number, grounded: boolean): number {
 }
 
 
-export function originalCueWindows(action: number, grounded: boolean): CueWindows {
+function originalCueWindows(action: number, grounded: boolean): CueWindows {
   const first = originalActiveFrame(action, grounded);
   const authoredLast = action === SpecialAction.demonHunterFelRush ? FEL_RUSH_LAST
     : action === SpecialAction.demonHunterImmolate ? DEMONHUNTER_IMMOLATE_STARTUP + DEMONHUNTER_IMMOLATE_ACTIVE - 1 : first;
@@ -482,7 +482,7 @@ export function originalCueWindows(action: number, grounded: boolean): CueWindow
 }
 
 
-export interface CueState {
+interface CueState {
   readonly cues: MoveCues | undefined;
   readonly phase: "none" | "startup" | "active";
 }
@@ -570,7 +570,7 @@ export function fighterOwnCues(character: Character): readonly Cue[] {
 }
 
 
-export function heroBranchCue(branches: Readonly<HeroBranchCues> | undefined, form: number): BranchCue | undefined {
+function heroBranchCue(branches: Readonly<HeroBranchCues> | undefined, form: number): BranchCue | undefined {
   if (form >= FOLLOW_UP_FORM) return branches?.followUps?.[idiv(form, FOLLOW_UP_FORM) - 1];
   if (form === SpecialForm.recall) return branches?.recall;
   if (form === SpecialForm.marked) return branches?.marked;

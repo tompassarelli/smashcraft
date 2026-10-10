@@ -5,7 +5,7 @@
 
 
 
-export const DEVELOPMENT_SOURCE = "development";
+const DEVELOPMENT_SOURCE = "development";
 
 
 const SOURCE_STAMP = "%%SOURCE%%%%";

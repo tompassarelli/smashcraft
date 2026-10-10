@@ -27,28 +27,28 @@ import { type Character, ItemKind, itemBit } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, fighterName } from "../sim/heroes/registry";
 
 export const SLOTS_COMMAND = "-dev slots ";
-export const FIGHTER_COMMAND = "-dev fighter ";
+const FIGHTER_COMMAND = "-dev fighter ";
 export const STOCKS_COMMAND = "-dev stocks ";
-export const TIME_COMMAND = "-dev time ";
-export const AUTO_REMATCH_COMMAND = "-dev auto-rematch ";
-export const STAGE_COMMAND = "-dev stage ";
-export const HAZARDS_COMMAND = "-dev hazards ";
-export const TRAINING_COMMAND = "-dev training ";
-export const HIT_AREAS_COMMAND = "-dev hit-areas ";
-export const PARTNER_COMMAND = "-dev partner ";
-export const SPEED_COMMAND = "-dev speed ";
-export const ITEMS_COMMAND = "-dev items ";
-export const ULTIMATES_COMMAND = "-dev ultimates ";
-export const DROPS_COMMAND = "-dev drops ";
-export const ITEM_COMMAND = "-dev item ";
-export const ITEM_DROP_COMMAND = "-dev item drop ";
+const TIME_COMMAND = "-dev time ";
+const AUTO_REMATCH_COMMAND = "-dev auto-rematch ";
+const STAGE_COMMAND = "-dev stage ";
+const HAZARDS_COMMAND = "-dev hazards ";
+const TRAINING_COMMAND = "-dev training ";
+const HIT_AREAS_COMMAND = "-dev hit-areas ";
+const PARTNER_COMMAND = "-dev partner ";
+const SPEED_COMMAND = "-dev speed ";
+const ITEMS_COMMAND = "-dev items ";
+const ULTIMATES_COMMAND = "-dev ultimates ";
+const DROPS_COMMAND = "-dev drops ";
+const ITEM_COMMAND = "-dev item ";
+const ITEM_DROP_COMMAND = "-dev item drop ";
 
 const itemCommandKind = (name: string | undefined): ItemKind | undefined =>
   name === "speed" ? ItemKind.speed : name === "heavy" ? ItemKind.heavy : undefined;
 
-export const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
-export const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
-export const PARTNER_TECH_NAMES = ["none", "place", "toward", "away", "random"];
+const PARTNER_BEHAVIOUR_NAMES = ["stand", "shield", "crouch", "jump", "attack", "fight"];
+const PARTNER_DRIFT_NAMES = ["none", "toward", "away", "random"];
+const PARTNER_TECH_NAMES = ["none", "place", "toward", "away", "random"];
 
 
 function integer(text: string): number | undefined {

@@ -12,7 +12,7 @@ import { pollUntil } from "../hostPoll";
 import { MeleeReady } from "./boundary";
 import { type JoinCode, newJoinCode } from "./joinCode";
 
-export interface OnlineTimes {
+interface OnlineTimes {
 
   readonly opponentSeconds: number;
 
@@ -23,17 +23,17 @@ export interface OnlineTimes {
   readonly loadSeconds: number;
 }
 
-export const ONLINE_TIMES: OnlineTimes = { opponentSeconds: 30 * 60, startSeconds: 5 * 60, hostStartSeconds: 30 * 60, loadSeconds: 5 * 60 };
+const ONLINE_TIMES: OnlineTimes = { opponentSeconds: 30 * 60, startSeconds: 5 * 60, hostStartSeconds: 30 * 60, loadSeconds: 5 * 60 };
 
 
-export type Say = (line: string) => Effect.Effect<void>;
+type Say = (line: string) => Effect.Effect<void>;
 
 const record = (value: unknown): Readonly<Record<string, unknown>> => (typeof value === "object" && value !== null ? Object.fromEntries(Object.entries(value)) : {});
 const screen = (event: MenuEvent) => (event.messageType === "SetGlueScreen" ? record(event.payload)["screen"] : undefined);
 const CREATE_TRIES = 3;
 
 
-export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode, password?: string) =>
+const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; readonly file: string }, makeCode: () => JoinCode = newJoinCode, password?: string) =>
   Effect.suspend(() => {
     const generated = makeCode();
     const code = password === undefined ? generated : { ...generated, password };
@@ -44,7 +44,7 @@ export const hostWithCode = (menus: MenuSocket, map: { readonly folder: string; 
 
 
 
-export const hostLoading = (event: MenuEvent): Outcome<"loading"> => {
+const hostLoading = (event: MenuEvent): Outcome<"loading"> => {
   if (screen(event) === "LOADING_SCREEN") return { done: "loading" };
   if (event.messageType === "MultiplayerGameLeave") return { failed: "the lobby closed" };
   return undefined;
@@ -54,7 +54,7 @@ export const hostLoading = (event: MenuEvent): Outcome<"loading"> => {
 
 
 
-export const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) =>
+const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) =>
   Effect.suspend(() => {
     let refusals = 0;
 
@@ -68,7 +68,7 @@ export const startWhenReady = (menus: MenuSocket, seconds: number, say: Say) =>
   });
 
 
-export const reachMatch = (documents: string, since: number, seconds: number) => {
+const reachMatch = (documents: string, since: number, seconds: number) => {
   const path = join(dataDirectory(documents), MELEE_READY_FILE);
   return pollUntil(
     readGameFile(path, MeleeReady).pipe(

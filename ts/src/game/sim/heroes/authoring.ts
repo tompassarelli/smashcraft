@@ -38,8 +38,8 @@ export const ANGLES = {
 } as const;
 export type Angle = keyof typeof ANGLES;
 
-export interface LaunchStrength { readonly growth: number; readonly base: number }
-export type HitMaker<Kind extends string> = (damage: number, kind: Kind, angle: Angle, facing?: number, element?: HitElement) => Readonly<HitEffect>;
+interface LaunchStrength { readonly growth: number; readonly base: number }
+type HitMaker<Kind extends string> = (damage: number, kind: Kind, angle: Angle, facing?: number, element?: HitElement) => Readonly<HitEffect>;
 
 /** A hero's hit builder over its own launch classes; `facing` mirrors the launch. */
 export function makeHit<Kind extends string>(classes: { readonly [kind in Kind]: LaunchStrength }, defaultElement: HitElement): HitMaker<Kind> {
@@ -50,7 +50,7 @@ export function makeHit<Kind extends string>(classes: { readonly [kind in Kind]:
   };
 }
 
-export type CapsuleMaker = (x1: number, z1: number, x2: number, z2: number, radius?: number) => StrikeCapsule;
+type CapsuleMaker = (x1: number, z1: number, x2: number, z2: number, radius?: number) => StrikeCapsule;
 
 export function capsuleOf(defaultRadius: number): CapsuleMaker {
   return (x1, z1, x2, z2, radius = defaultRadius) => ({ x1, z1, x2, z2, radius });
@@ -61,7 +61,7 @@ export function path(first: number, strikes: readonly StrikeCapsule[], effect: R
   return strikes.map((strike, index) => heroRegion(first + index, first + index, strike, effect, groundedEffect));
 }
 
-export type LimbMaker = (x1: number, z1: number, x2: number, z2: number, radius?: number) => readonly HurtPart[];
+type LimbMaker = (x1: number, z1: number, x2: number, z2: number, radius?: number) => readonly HurtPart[];
 
 /** The body plus one reaching limb capsule. */
 export function limbOf(body: HurtPart, defaultRadius: number): LimbMaker {

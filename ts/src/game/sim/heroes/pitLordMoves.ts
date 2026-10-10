@@ -6,14 +6,9 @@ import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, hurtPart } from "../hurtboxes";
 import { capsuleOf, limbOf, makeHit, path, reaching } from "./authoring";
-
-
-
-
-export const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
-export const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
-export const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
-export const XL = f32(HERO_REFERENCE_HEIGHT * f32(1.40));
+const M = f32(HERO_REFERENCE_HEIGHT * f32(0.80));
+const L = f32(HERO_REFERENCE_HEIGHT * f32(1.10));
+const XL = f32(HERO_REFERENCE_HEIGHT * f32(1.40));
 const BLADE_RADIUS = 10.0;
 
 

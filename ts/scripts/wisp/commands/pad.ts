@@ -69,7 +69,7 @@ import type { Platform } from "wisp/scripts/platform/services";
 type DevReceipt = Effect.Success<ReturnType<typeof DevCommandReceipt.decode>>;
 
 
-export function requestedSetup(command: string, receipt: DevReceipt): boolean {
+function requestedSetup(command: string, receipt: DevReceipt): boolean {
   const original = command.split(" |capture ")[0] ?? command;
   if (original === "-dev reset") return receipt.phase === Phase.characterMenu;
   const hero = quickMatchHero(original) ?? quickRecoveryHero(original) ?? quickOffstageHero(original) ?? quickPainHero(original)?.character;
@@ -124,7 +124,7 @@ const matchEpochs = (logs: () => [string, string], startedNs: number, out: strin
     return starts.every((start) => start !== undefined && start.epochNs > startedNs) ? [starts[0]?.frameOneNs ?? 0, starts[1]?.frameOneNs ?? 0] as const : undefined;
   }), { every: "20 millis", within: "60 seconds", orElse: () => Effect.fail(new IntegrityFailure({ operation: "wait for match start", path: out, cause: "a helper reported no match start within 60 s" })) });
 
-export class PadReplayFailure extends Schema.TaggedError<PadReplayFailure>()("PadReplayFailure", {
+class PadReplayFailure extends Schema.TaggedError<PadReplayFailure>()("PadReplayFailure", {
   operation: Schema.String,
   path: Schema.String,
   cause: Schema.String,
@@ -246,7 +246,7 @@ export type NativeSession = Effect.Success<ReturnType<typeof nativeSession>>;
 const ChatReceipt = Schema.Struct({ epoch: Schema.FiniteFromString, revision: Schema.FiniteFromString, chat: Schema.FiniteFromString, chatState: Schema.FiniteFromString });
 
 
-export function nativeChatReceipt(text: string) {
+function nativeChatReceipt(text: string) {
   const line = preloadLines(text)?.find((line) => line.startsWith("SMASHCRAFT TEXT ACK v=1 "));
   if (line === undefined) return undefined;
   return Option.getOrUndefined(Schema.decodeUnknownOption(ChatReceipt)(Object.fromEntries(line.split(" ").map((field) => field.split("=")))));
@@ -376,7 +376,7 @@ export const nativeScript = (session: NativeSession, options: PadOptions) => Eff
 }));
 
 
-export const native = (options: PadOptions, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.scoped(Effect.gen(function*() {
+const native = (options: PadOptions, appIds: ReadonlyMap<string, string>, clientsFile: string = clientState) => Effect.scoped(Effect.gen(function*() {
   const session = yield* nativeSession(join(options.out, "session"), options.helper, options.build, appIds, clientsFile);
   return yield* nativeScript(session, options);
 }));
@@ -401,7 +401,7 @@ function invalidRun(names: readonly string[], documents: readonly string[], data
 }
 
 
-export const freshGame = (map: string, clientsFile: string) => Effect.scoped(Effect.gen(function*() {
+const freshGame = (map: string, clientsFile: string) => Effect.scoped(Effect.gen(function*() {
   console.log(`starting a new game of ${map} for the rerun`);
   const child = yield* ChildProcess.make("bun", [join(import.meta.dir, "../../wisp.ts"), "fresh", map, "--no-quick", "--clients-file", clientsFile], { stdout: "inherit", stderr: "inherit", forceKillAfter: "1 second" });
   const code = yield* child.exitCode;
@@ -472,7 +472,7 @@ export const headlessSession = (dir: string, helper: string, build: string, afte
   return { dir, build, data, pads, worker, clients, state, startPressesMs, logs: (): [string, string] => [log(SLOTS[0]), log(SLOTS[1])] };
 });
 
-export type HeadlessSession = Effect.Success<ReturnType<typeof headlessSession>>;
+type HeadlessSession = Effect.Success<ReturnType<typeof headlessSession>>;
 
 
 export const headlessScript = (session: HeadlessSession, options: PadOptions) => Effect.gen(function*() {

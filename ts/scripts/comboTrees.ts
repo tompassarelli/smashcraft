@@ -28,7 +28,7 @@ const DIRECTIONS = [
 ] as const;
 const RESPONSES = ["hold", "SDI", "tech in place", "tech left", "tech right", "missed tech", "jump", "air dodge", "mash"] as const;
 export const VICTIM_CHOICES = DIRECTIONS.flatMap((di) => RESPONSES.map((response) => ({ name: `DI ${di.name}; ${response}`, di, response })));
-export type VictimChoice = (typeof VICTIM_CHOICES)[number];
+type VictimChoice = (typeof VICTIM_CHOICES)[number];
 
 export interface Move {
   readonly name: string;
@@ -94,7 +94,7 @@ function matchesMove(move: Move, self: Fighter): boolean {
 }
 
 
-export function moveOption(move: Move, opening: boolean): Option {
+function moveOption(move: Move, opening: boolean): Option {
   return {
     name: move.name, kind: "none",
     input: (i, self, other) => {
@@ -131,8 +131,8 @@ function victimButtons(choice: VictimChoice, n: number, self: Fighter): Held {
   }
 }
 
-export interface Checkpoint { readonly state: ReplayState; readonly previous: readonly number[] }
-export interface Link {
+interface Checkpoint { readonly state: ReplayState; readonly previous: readonly number[] }
+interface Link {
   readonly move: string;
   readonly frame: number;
   readonly damage: number;
@@ -194,7 +194,7 @@ export function openingState(entry: FighterEntry, move: Move, percent: number, t
 }
 
 
-export function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Link[] {
+function links(entry: FighterEntry, start: Checkpoint, choice: VictimChoice): Link[] {
   const line = new Timeline(situation(entry, start, choice), HORIZON, "first");
   const old = fighterAt(start.state.world, 1);
   const oldAttacker = fighterAt(start.state.world, 0);
@@ -285,7 +285,7 @@ function guaranteedString(entry: FighterEntry, opening: Move, percent: number, i
 
 interface SearchNode { readonly at: Checkpoint; readonly path: Path }
 
-export function comboExtension(outcomes: readonly ({ readonly trueLink: boolean } | undefined)[]): "guaranteed" | "read" | "unclassified" | "miss" {
+function comboExtension(outcomes: readonly ({ readonly trueLink: boolean } | undefined)[]): "guaranteed" | "read" | "unclassified" | "miss" {
   if (outcomes.length === 0 || outcomes.every((outcome) => outcome === undefined)) return "miss";
   if (outcomes.every((outcome) => outcome?.trueLink === true)) return "guaranteed";
   return outcomes.some((outcome) => outcome === undefined) ? "read" : "unclassified";

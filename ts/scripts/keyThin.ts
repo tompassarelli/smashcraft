@@ -8,7 +8,7 @@ import { ModelRenderer, model as mdx } from 'war3-model';
 
 
 export const KEY_BOUND = { position: 0.5, rotationDegrees: 0.5 } as const;
-export type KeyBound = { readonly position: number, readonly rotationDegrees: number };
+type KeyBound = { readonly position: number, readonly rotationDegrees: number };
 
 export interface KeyThinReport {
     readonly keysBefore: number;
@@ -221,7 +221,7 @@ function rotationAngle(a: Float32Array, b: Float32Array): number | undefined {
 }
 
 
-export function poseError(source: mdx.Model, candidate: mdx.Model): { maxPosition: number, maxRotationDegrees: number, samples: number, worst: string } {
+function poseError(source: mdx.Model, candidate: mdx.Model): { maxPosition: number, maxRotationDegrees: number, samples: number, worst: string } {
     const before = new ModelRenderer(source), after = new ModelRenderer(candidate);
     const frames = new Set<number>();
     transforms(source, track => { for (const key of track.Keys) frames.add(key.Frame); });

@@ -104,7 +104,7 @@ export const smashcraftDoctor = (clientsFile = clientState): DoctorDeclaration =
 export const smashcraftWatch = ClientWatch.layer({ filePrefix: "smashcraft" });
 
 
-export const checkClients = (print: (line: string) => void = console.log, clientsFile = clientState) =>
+const checkClients = (print: (line: string) => void = console.log, clientsFile = clientState) =>
   Effect.try({ try: () => smashcraftDoctor(clientsFile), catch: (cause) => new DoctorStop({ problem: `can't read the clients from ${clientsFile}: ${String(cause)}` }) }).pipe(
     Effect.flatMap((declaration) => clientsDoctor(declaration, [], print)),
     Effect.provide(smashcraftWatch),

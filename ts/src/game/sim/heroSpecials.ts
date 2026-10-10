@@ -88,7 +88,7 @@ export interface SpecialMotion extends FrameWindow {
 
 
 
-export interface CommandGrab extends FrameWindow {
+interface CommandGrab extends FrameWindow {
   readonly strike: StrikeCapsule;
   readonly holdFrames: number;
   readonly effect: Readonly<HitEffect>;
@@ -162,7 +162,7 @@ export interface SpecialProjectile {
   readonly burstInto?: SpecialProjectile | undefined;
 }
 
-export interface SpecialArmor extends FrameWindow {
+interface SpecialArmor extends FrameWindow {
 
   readonly maxDamage: number;
 

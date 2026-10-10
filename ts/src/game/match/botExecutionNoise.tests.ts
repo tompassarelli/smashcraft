@@ -60,7 +60,7 @@ test("SDI follow-ups use the previous hitlag end even when no SDI was attempted 
 });
 
 
-export function spacingPunishCase(seed: number, noise: boolean) {
+function spacingPunishCase(seed: number, noise: boolean) {
   const game = createMatchState();
   game.phase = Phase.match;
   const attacker = createFighter(Character.rifleman, -85.0, 1);

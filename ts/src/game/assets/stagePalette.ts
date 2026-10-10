@@ -6,7 +6,7 @@ import { CANNON_TEST_STAGE, CARRIED_TEST_STAGE, DRIFTING_DECK_STAGE, FROZEN_THRO
 
 type Rgb = readonly [red: number, green: number, blue: number];
 
-export interface StageMaterial {
+interface StageMaterial {
   readonly texture: string;
   readonly tint?: Rgb;
   readonly crop?: readonly [u0: number, v0: number, u1: number, v1: number];
@@ -21,7 +21,7 @@ export interface PlatformMaterialSet {
   readonly tint?: Rgb;
 }
 
-export interface StageMaterialSet {
+interface StageMaterialSet {
   readonly top: StageMaterial;
   readonly lip: StageMaterial;
   readonly body: StageMaterial;

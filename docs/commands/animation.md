@@ -138,6 +138,13 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   authors white body-only copies with the original meshes and keys for selectable gameplay poses, removing unused sequences, repeated constant keys, glow cards and team-glow ground planes for charge and heavy-hit flashes (the pre-push stored-model check fails a white copy that keeps a ground plane, #346); store PRIVATE_OUTPUT as `impact-assets`. Each fighter whose Definitive body ships (`DEFINITIVE_FIGHTERS`, #366) also gets a light white copy of that body under the same path in `_de.w3mod`, so Definitive flashes the drawn body (#378): level of detail 0 only, hidden geosets dropped, meshes halved with meshoptimizer, keys kept only on nodes that move drawn vertices, near-linear keys pruned, and vertices, normals, tangents, texture coordinates and key values rounded to 10 mantissa bits so they compress (the engine still shades the copy, so flattening those attributes darkens it). The flash draws 8 units toward the camera and shrinks to keep the body's on-screen silhouette without z-fighting; `--definitive` rebuilds only those, and a map build fails when a shipped Definitive body has none or a fighter drawing Classic in Definitive has one.
   `--character` refreshes one fighter in an existing PRIVATE_OUTPUT family and its model tables.
 
+- Appended strikes (from the repository root):
+  `bun tools/animations/append-strikes.ts EXPORTED.mdl PUBLISHED.mdx OUTPUT.mdx CLIP_NAME...`
+  appends the named clips from an exported MDL to a published model, after its
+  last sequence, and refuses unless every published clip is unchanged and the
+  appended ones match the export within 0.01 units; OUTPUT stays outside the
+  repository.
+
 - Sylvanas animation authoring (from the repository root):
   `bun tools/animations/sylvanas-clips.ts STOCK_SYLVANAS.mdx PRIVATE_OUTPUT`
   appends bow attacks, casts, recovery, paired grabs and nine damage reactions

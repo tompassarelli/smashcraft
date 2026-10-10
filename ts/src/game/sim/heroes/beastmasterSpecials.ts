@@ -15,12 +15,12 @@ const axe = (spawnFrame: number, height: number): SpecialProjectile => ({
   returns: { age: 24, speed: h(f32(0.15)) }, reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 });
-export const WILD_AXES = [axe(16, f32(0.35)), axe(20, f32(0.65))];
+const WILD_AXES = [axe(16, f32(0.35)), axe(20, f32(0.65))];
 const wildAxes = (air: boolean): AuthoredSpecial => ({
   endFrame: 35, projectiles: WILD_AXES,
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });
-export const BEAR: SpecialCompanion = {
+const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
   lungeStartup: 10, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
@@ -37,10 +37,10 @@ const stampede = (spawnFrame: number): SpecialProjectile => ({
   effect: hit(3.171599864959717, "POKE", 25, 1.0, HitElement.normal), reflectable: false, limit: 1,
   model: "Abilities\\Spells\\Other\\Stampede\\StampedeMissile.mdx",
 });
-export const STAMPEDE = [stampede(12), stampede(20)];
+const STAMPEDE = [stampede(12), stampede(20)];
 const SUMMON_BEAR: AuthoredSpecial = { endFrame: 44, groundOnly: true, placement: BEAR_PLACEMENT };
 const BEAR_COMMAND: AuthoredSpecial = { name: "Stampede", endFrame: 32, command: { frame: 4, order: CompanionOrder.lunge }, projectiles: STAMPEDE };
-export const QUILL: SpecialProjectile = {
+const QUILL: SpecialProjectile = {
   spawnFrame: 0, offsetX: h(f32(0.25)), offsetZ: h(f32(0.3)),
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.09)),
   effect: hit(2.378699779510498, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
@@ -50,19 +50,19 @@ const QUILBEAST: SpecialCompanion = {
   ...BEAR, behavior: "sentry", followSpeed: 0.0, lungeStartup: 10, lungeActive: 17, lungeRecovery: 21, lungeTravel: 0.0,
   volleyFrames: [11, 19, 27],
 };
-export const QUILBEAST_PLACEMENT: SpecialPlacement = {
+const QUILBEAST_PLACEMENT: SpecialPlacement = {
   slot: 1, frame: 18, offsetX: h(f32(0.65)), radius: h(f32(0.2)), height: h(f32(0.5)),
   durability: 18.0, life: 600, fireAges: [18, 108, 198, 288, 378, 468, 558], shot: QUILL, companion: QUILBEAST,
   model: { path: "units\\creeps\\QuillBeast\\QuillBeast.mdl", height: 120.0, alpha: 255 },
 };
 const SUMMON_QUILBEAST: AuthoredSpecial = { endFrame: 32, groundOnly: true, placement: QUILBEAST_PLACEMENT };
 const QUILL_VOLLEY: AuthoredSpecial = { name: "Quill Volley", endFrame: 24, facesStick: true, command: { frame: 3, order: CompanionOrder.lunge, slot: 1 } };
-export const HAWK: SpecialCompanion = {
+const HAWK: SpecialCompanion = {
   ...BEAR, behavior: "flying", followSpeed: h(f32(0.07)), followBehind: -h(f32(0.6)), followHeight: h(f32(1.2)),
   lungeStartup: 8, lungeActive: 8, lungeRecovery: 28, lungeTravel: h(f32(1.5)), lungeDrop: h(f32(1.6)),
   bite: capsule(-12.0, 10.0, 18.0, 25.0, 20.0), biteEffect: hit(4.757399559020996, "LAUNCH", 80, 1.0, HitElement.normal),
 };
-export const HAWK_PLACEMENT: SpecialPlacement = {
+const HAWK_PLACEMENT: SpecialPlacement = {
   slot: 2, frame: 12, offsetX: h(f32(0.6)), offsetZ: h(f32(1.2)), radius: 18.0, height: 45.0,
   durability: 12.0, life: 600, fireAges: [], companion: HAWK, keepExisting: true,
   model: { path: "units\\creeps\\WarEagle\\WarEagle.mdl", height: 80.0, alpha: 255 },

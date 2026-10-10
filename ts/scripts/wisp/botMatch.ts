@@ -76,7 +76,7 @@ const KEY_JUMP = 0x49;
 const KEY_SPECIAL = 0x55;
 const KEY_SHIELD = 0x51;
 const KEY_LEFT = 0x57;
-export const KEY_RIGHT = 0x52;
+const KEY_RIGHT = 0x52;
 const TAP_KEYS = [KEY_ATTACK, KEY_JUMP, KEY_SPECIAL];
 
 

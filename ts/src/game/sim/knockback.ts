@@ -23,7 +23,6 @@ const RADIANS_TO_DEGREES = 57.295780181884766;
 
 export const ORDINARY_HIT_GROWTH_PERCENT: number = 100.0;
 export const ORDINARY_HIT_BASE_KNOCKBACK: number = 20.0;
-export const ORDINARY_HIT_CONTEXT_SCALE = 1.0;
 export const DIAGONAL_UNIT = 0.7071067690849304;
 /** NTSC 1.02 common +0x4F0; upward knockback, not ordinary jump velocity. */
 export const TOP_KO_MINIMUM_UPWARD_KNOCKBACK = melee(2.4000000953674316);

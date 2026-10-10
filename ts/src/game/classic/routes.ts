@@ -5,7 +5,7 @@ import { Character } from "../sim/codes";
 import type { StageTile } from "../menu/stageCatalog";
 import { BossKind } from "./runState";
 
-export interface ClassicRivalFight {
+interface ClassicRivalFight {
 
   readonly rivals: readonly Character[];
   readonly stage: StageTile;

@@ -10,17 +10,17 @@ import { PerfFailure } from "wisp/scripts/wisp/commands/perf";
 import { parsePerfSamples } from "wisp/scripts/wisp/nativeFit";
 import { WARCRAFT_COST, nativeFrameCost } from "wisp/src/headless/nativeCost";
 
-export const BUDGET_P99_MS = 10;
-export const BUDGET_TOP_MS = 14;
+const BUDGET_P99_MS = 10;
+const BUDGET_TOP_MS = 14;
 /** The worst frames a budget averages instead of one worst frame, whose identity moves with any bot choice (#394). */
-export const TOP_SHARE = 0.01;
+const TOP_SHARE = 0.01;
 
 
 function rank(sorted: readonly number[], share: number): number {
   return sorted[Math.max(0, Math.min(sorted.length - 1, Math.ceil(share * sorted.length) - 1))] ?? 0;
 }
 
-export interface ClientBudget {
+interface ClientBudget {
   readonly slot: number;
   readonly frames: number;
   readonly p50: number;
@@ -31,7 +31,7 @@ export interface ClientBudget {
 }
 
 
-export function clientBudgets(samples: string): ClientBudget[] {
+function clientBudgets(samples: string): ClientBudget[] {
   return [...parsePerfSamples(samples)].map(([slot, frames]) => {
     const ms = frames.map((frame) => nativeFrameCost(WARCRAFT_COST, { ...frame, typedCharacters: 0 }).callbacksUs / 1000).sort((a, b) => a - b);
     const worstFrames = ms.slice(ms.length - Math.max(1, Math.ceil(TOP_SHARE * ms.length)));

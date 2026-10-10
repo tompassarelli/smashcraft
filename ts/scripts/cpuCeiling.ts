@@ -34,7 +34,7 @@ const add = (data: Data, records: readonly { readonly fighters: readonly string[
   }
 };
 const rate = (data: Data, key: string) => {const c=data.counts[key];return c===undefined||c.wins+c.losses===0?NaN:c.wins/(c.wins+c.losses);};
-export function ceilingRows(data: Data): CeilingRow[] {
+function ceilingRows(data: Data): CeilingRow[] {
   const plans = readCeilingPlans();
   const slugs=SELECTABLE_CHARACTERS.map(fighterSlug);
   return slugs.map(fighter => {

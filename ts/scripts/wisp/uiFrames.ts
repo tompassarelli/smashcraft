@@ -24,7 +24,7 @@ const row = (name: string, caption: string, y: number): FrameNode[] => [
 ];
 
 
-export const OPPONENT_SETTINGS: FrameDefinition = {
+const OPPONENT_SETTINGS: FrameDefinition = {
   name: "OpponentSettings",
   type: "FRAME",
   width: PANEL.width,
@@ -48,7 +48,7 @@ export const UI_FRAMES: readonly { readonly definition: FrameDefinition; readonl
 ];
 
 
-export const UI_FRAMES_IMPORTS = "../tools/selection/art";
+const UI_FRAMES_IMPORTS = "../tools/selection/art";
 
 if (import.meta.main) {
   const ts = join(import.meta.dir, "../..");

@@ -4,7 +4,7 @@ import { cosineTurns, sineTurns } from "../sim/mathTables";
 import { PATTERNED_DECKS_STAGE } from "../sim/stage";
 import type { SceneryPiece, StageScenery } from "./stageScenery";
 
-export const FOG_START_MINIMUM = 5000;
+const FOG_START_MINIMUM = 5000;
 
 export function fogProblems(name: string, { fog, heightFog }: Pick<StageScenery, "fog" | "heightFog">): readonly string[] {
   const problems: string[] = [];
@@ -61,12 +61,12 @@ export function intensityProblems(theme: string, stage: number, light: StageLigh
   return intensity > 0 && intensity <= limit ? [] : [`${theme}: intensity ${intensity} is outside (0, ${limit}]`];
 }
 
-export interface ModelBox { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] }
-export type BoundsOf = (model: string) => ModelBox | undefined;
+interface ModelBox { readonly min: readonly [number, number, number]; readonly max: readonly [number, number, number] }
+type BoundsOf = (model: string) => ModelBox | undefined;
 interface Placed { readonly left: number; readonly right: number; readonly front: number; readonly back: number; readonly bottom: number; readonly top: number }
 
 // Lowest of the classic and Definitive mesh tops: a structure resting on one of these rocks touches it in both looks.
-export const SUPPORT_TOPS: Readonly<Record<string, number>> = {
+const SUPPORT_TOPS: Readonly<Record<string, number>> = {
   "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0.mdx": 38,
   "Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks2.mdx": 79,
   "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx": 380,
@@ -74,7 +74,7 @@ export const SUPPORT_TOPS: Readonly<Record<string, number>> = {
   "Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0.mdx": 77,
 };
 
-export const isStructure = (model: string): boolean => model.toLowerCase().startsWith("buildings\\") || model.toLowerCase().includes("\\structures\\");
+const isStructure = (model: string): boolean => model.toLowerCase().startsWith("buildings\\") || model.toLowerCase().includes("\\structures\\");
 const isEffect = (model: string): boolean => model.toLowerCase().startsWith("abilities\\");
 
 function placed(piece: SceneryPiece, box: ModelBox): Placed {

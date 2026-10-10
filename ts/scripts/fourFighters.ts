@@ -14,7 +14,7 @@ const modesMatch = (modes: readonly SlotMode[], expected: readonly (readonly [nu
   modes.length === expected.length && modes.every((mode, index) => mode.humanFighters === expected[index]?.[0] && mode.computers === expected[index]?.[1]);
 
 
-export function fourFighterResult(evidence: CaptureEvidence) {
+function fourFighterResult(evidence: CaptureEvidence) {
   const { metadata } = evidence;
   const pair = capturePair(metadata);
   const failures: string[] = [];

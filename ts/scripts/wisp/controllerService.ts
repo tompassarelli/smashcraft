@@ -14,17 +14,17 @@ import { ChildProcess } from "effect/process";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 import { pollUntil } from "../hostPoll";
 
-export const CONTROLLER_LAUNCHER = join(homedir(), ".local/share/smashcraft-build-inputs/controller/wc3-journal");
+const CONTROLLER_LAUNCHER = join(homedir(), ".local/share/smashcraft-build-inputs/controller/wc3-journal");
 export const SERVICE_LAUNCHER = join(homedir(), ".local/share/wc3-controller/bin/wc3-controller");
 export const SERVICE_ARGS = ["--service", "--plugin", CONTROLLER_LAUNCHER];
 export const CONTROLLER_UNIT = "wc3-controller.service";
 export const CONTROLLER_STATUS = join(homedir(), ".local/state/wc3-controller/service.txt");
-export const CONTROLLER_LOG = join(homedir(), ".local/state/wc3-controller/service.log");
+const CONTROLLER_LOG = join(homedir(), ".local/state/wc3-controller/service.log");
 
 
-export type ServiceStatus = Readonly<Record<string, string>>;
+type ServiceStatus = Readonly<Record<string, string>>;
 
-export function parseStatus(text: string): ServiceStatus {
+function parseStatus(text: string): ServiceStatus {
   return Object.fromEntries(text.split("\n").flatMap((line) => {
     const at = line.indexOf("=");
     return at <= 0 ? [] : [[line.slice(0, at), line.slice(at + 1)]];
@@ -32,11 +32,11 @@ export function parseStatus(text: string): ServiceStatus {
 }
 
 
-export function servesGame(status: ServiceStatus, pid: number, build: string): boolean {
+function servesGame(status: ServiceStatus, pid: number, build: string): boolean {
   return status.state === "serving" && status.game_pid === String(pid) && (status.session ?? "").startsWith(`${build}/`);
 }
 
-export function readStatus(path = CONTROLLER_STATUS): ServiceStatus {
+function readStatus(path = CONTROLLER_STATUS): ServiceStatus {
   try {
     return parseStatus(readFileSync(path, "utf8"));
   } catch {
@@ -45,7 +45,7 @@ export function readStatus(path = CONTROLLER_STATUS): ServiceStatus {
 }
 
 
-export function pointLauncher(helper: string, launcher = CONTROLLER_LAUNCHER): boolean {
+function pointLauncher(helper: string, launcher = CONTROLLER_LAUNCHER): boolean {
   try {
     if (readlinkSync(launcher) === helper) return false;
   } catch {
@@ -122,10 +122,10 @@ export const ensureService = (helper: string) => Effect.gen(function*() {
 });
 
 
-export const SERVE_SECONDS = 15;
+const SERVE_SECONDS = 15;
 
 
-export const awaitService = (pid: number, build: string, runs: string, statusFile = CONTROLLER_STATUS) =>
+const awaitService = (pid: number, build: string, runs: string, statusFile = CONTROLLER_STATUS) =>
   pollUntil(
     Effect.gen(function*() {
       const status = readStatus(statusFile);

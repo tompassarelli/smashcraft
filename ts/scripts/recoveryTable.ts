@@ -17,7 +17,7 @@ function routeControl(character: Character): string {
   return "guided";
 }
 
-export function recoveryTableMarkdown(): string {
+function recoveryTableMarkdown(): string {
   const lines = [
     "| Fighter | Up special | Startup | Intangible | Top speed | Rise / reach | Route control | Opening | Beaten by | Mixed returns |",
     "|---|---|---:|---:|---:|---:|---|---:|---|---:|",

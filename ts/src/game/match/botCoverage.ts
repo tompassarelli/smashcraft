@@ -18,7 +18,7 @@ import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameI
 import { createPacingAndPresentation } from "./pacingAndPresentation";
 import { Phase, createMatchState } from "./rules";
 
-export interface BotCoverage {
+interface BotCoverage {
   readonly fighter: string;
   matches: number;
   movement: number;

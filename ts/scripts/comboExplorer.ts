@@ -259,7 +259,7 @@ interface Node {
   readonly steered?: boolean;
 }
 
-export type Situation = "none" | "tech chase" | "ledge";
+type Situation = "none" | "tech chase" | "ledge";
 
 export interface Ending {
 
@@ -355,7 +355,7 @@ const AIR_MODES: readonly Mode[] = [STAND, DRIFT, DOUBLE_JUMP];
 
 
 interface Counter { frames: number }
-export const cost: Counter = { frames: 0 };
+const cost: Counter = { frames: 0 };
 
 interface Started { readonly attack: number; readonly grab: number; readonly special: number; readonly specialFrame: number }
 const startedOf = (a: Readonly<Fighter>): Started => ({ attack: a.attack.serial, grab: a.grab.serial, special: a.special.action, specialFrame: a.special.frame });
@@ -745,7 +745,7 @@ function landingSetup(attacker: Character, defender: Character, opener: Opener, 
 
 
 
-export interface Cell {
+interface Cell {
   readonly opener: string;
   readonly opponent: string;
   readonly position: Position;
@@ -786,7 +786,7 @@ export function measureCell(attacker: Character, defender: Character, opener: Op
 
 
 
-export interface Conversion {
+interface Conversion {
   readonly percent: number;
   readonly moves: readonly string[];
   readonly damage: number;
@@ -795,7 +795,7 @@ export interface Conversion {
   readonly ko: boolean;
 }
 
-export interface CellSummary {
+interface CellSummary {
   readonly opener: string;
   readonly percent: number;
   readonly damage: number;
@@ -946,21 +946,7 @@ export function summarize(fighter: string, units: readonly UnitReport[]): Fighte
   };
 }
 
-
-
-
-
-
-export function exploreFrom(setup: ComboSetup, state: ReplayState): Ending {
-  const sim = new Sim(setup, state);
-  const saved = sim.save();
-  const root: Node = { saved, inputs: { attacker: [], defender: [] }, moves: ["real hit"], reads: 0, damage: sim.b.status.damage, hits: sim.b.visuals.hit };
-  const { best } = new Explorer(sim).search(root, { name: "none", di: "none" }, sim.b.status.damage);
-  free(saved);
-  return best;
-}
-
-export { Explorer, Sim, openerRoot, expand, settled, defenderMask, landingSetup, better };
+export { Explorer, Sim, openerRoot, expand, defenderMask, landingSetup };
 export type { Defender, Opener };
 export const fighterNamed = (name: string): Character | undefined =>
   SELECTABLE_CHARACTERS.find((character) => fighterName(character).toLowerCase() === name.toLowerCase() || fighterName(character).split(" ")[0]?.toLowerCase() === name.toLowerCase());

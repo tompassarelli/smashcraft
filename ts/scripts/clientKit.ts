@@ -8,12 +8,12 @@ import { TAPE_REPLAY_SERIAL, recordTapeReplay } from "../src/game/replay/tapeRep
 import { SOURCE_STAMP_TEXT, sourceVersion } from "./sourceVersion";
 import { buildViewerLua } from "./viewerLua";
 
-export const CLIENT_KIT = 1;
+const CLIENT_KIT = 1;
 
 class KitFailure extends Schema.TaggedError<KitFailure>()("KitFailure", { problem: Schema.String }) {}
 const ts = resolve(import.meta.dir, "..");
 
-export const writeClientKit = Effect.fn("writeClientKit")(function*(out: string) {
+const writeClientKit = Effect.fn("writeClientKit")(function*(out: string) {
   rmSync(out, { recursive: true, force: true });
   mkdirSync(join(out, "fixtures"), { recursive: true });
   const sim = yield* Effect.tryPromise(() => Bun.build({

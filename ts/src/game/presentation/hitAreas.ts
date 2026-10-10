@@ -11,7 +11,7 @@ import { HurtState, fighterHurtParts } from "../sim/hurtboxes";
 export const HitAreaKind = { body: 0, protected: 1, strike: 2 } as const;
 export type HitAreaKind = (typeof HitAreaKind)[keyof typeof HitAreaKind];
 
-export interface HitArea {
+interface HitArea {
   readonly capsule: Capsule;
   kind: HitAreaKind;
 }

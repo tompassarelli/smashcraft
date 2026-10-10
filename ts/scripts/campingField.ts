@@ -12,11 +12,11 @@ import { isCpuTier, type CpuTier } from "../src/game/match/cpuProfiles";
 // the shipped drops and each field variant, on the same matches. Shards run
 // as child processes (--workers, 4 by default) over interleaved fighter pairs.
 
-export const CAMPING_RULES = ["off", ...DROP_VARIANTS] as const;
-export type CampingRule = (typeof CAMPING_RULES)[number];
+const CAMPING_RULES = ["off", ...DROP_VARIANTS] as const;
+type CampingRule = (typeof CAMPING_RULES)[number];
 const isCampingRule = (value: string): value is CampingRule => value === "off" || isDropVariant(value);
 
-export interface CampingMatch {
+interface CampingMatch {
   readonly key: string;
   readonly fighters: readonly [string, string];
   readonly winner: number | null;
@@ -40,7 +40,7 @@ const compact = (record: MatchRecord): CampingMatch => ({
 const ruleOptions = (rule: CampingRule): Pick<FieldOptions, "drops" | "dropVariant"> =>
   rule === "off" ? { drops: false } : rule === "shipped" ? { drops: true } : { drops: true, dropVariant: rule };
 
-export interface CampingSummary {
+interface CampingSummary {
   readonly matches: number;
   readonly apartShare: number;
   readonly campShare: number;
@@ -69,7 +69,7 @@ function winRates(matches: readonly CampingMatch[]): Record<string, number> {
 }
 
 /** The win spread is the standard deviation of the per-fighter win rates. */
-export function summarizeCamping(matches: readonly CampingMatch[]): CampingSummary {
+function summarizeCamping(matches: readonly CampingMatch[]): CampingSummary {
   let apart = 0, both = 0, camp = 0, drops = 0;
   for (const match of matches) {
     apart += match.apartFrames;
@@ -86,7 +86,7 @@ export function summarizeCamping(matches: readonly CampingMatch[]): CampingSumma
 }
 
 /** A seeded 95% bootstrap interval for (rule - off) of the apart share and the win spread, resampling the paired matches. */
-export function pairedIntervals(off: readonly CampingMatch[], rule: readonly CampingMatch[], resamples = 1000): { apart: readonly [number, number]; spread: readonly [number, number] } {
+function pairedIntervals(off: readonly CampingMatch[], rule: readonly CampingMatch[], resamples = 1000): { apart: readonly [number, number]; spread: readonly [number, number] } {
   const byKey = new Map(rule.map(match => [match.key, match]));
   const pairs = off.flatMap(match => { const other = byKey.get(match.key); return other === undefined ? [] : [[match, other] as const]; });
   let state = 385;

@@ -17,7 +17,7 @@ import { produceComputerInput } from "./botPlay";
 import { clearBotMemory } from "./botPerception";
 import type { CpuTier } from "./cpuProfiles";
 
-export interface DashCalibration {
+interface DashCalibration {
   readonly tier: CpuTier;
   readonly intervals: readonly number[];
   readonly frames: number;

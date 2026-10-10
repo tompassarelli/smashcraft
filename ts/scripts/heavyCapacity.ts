@@ -12,7 +12,7 @@ import { Effect, Schema } from "effect";
 export const capacityHelper = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
 
 
-export function insideCapacityScope(): boolean {
+function insideCapacityScope(): boolean {
   try {
     return /\/agent-capacity-[0-9a-z]+\.scope(\/|$)/m.test(readFileSync("/proc/self/cgroup", "utf8"));
   } catch {

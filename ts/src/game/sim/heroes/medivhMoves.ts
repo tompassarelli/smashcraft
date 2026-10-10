@@ -2,7 +2,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
-import { hurtPart, hurtPose } from "../hurtboxes";
+import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
 export const medivhHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 77.27999877929688, base = 20.0, behind = false) =>
@@ -13,7 +13,6 @@ const capsule = (x1: number, z1: number, x2: number, z2: number, radius = 12.0):
 const body = hurtCapsule(Character.medivh);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
 const arm = (x: number, z: number) => hurtPart(8.0, f32(body.z2 - 12.0), x, z, 9.0);
-export const medivhCastBody = (first: number, last: number, x: number, z: number) => [hurtPose(first, last, [torso, arm(x, z)])];
 const reach = (first: number, last: number, x: number, z: number) => [heroHurtPose(first, last, [torso, arm(x, z)])];
 const tilt = (height: number, angle: 25 | 35 | 55) => heroMove(9, 3, 20, 0, [heroRegion(9, 11, capsule(28.0, 58.0, 96.0, height), ordinary(7.39900016784668, angle))]);
 const throwMove = (contactFrame: number, recovery: number, effect: ReturnType<typeof ordinary>) => ({ contactFrame, totalFrames: contactFrame + recovery, effect });

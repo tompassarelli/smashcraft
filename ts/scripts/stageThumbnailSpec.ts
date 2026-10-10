@@ -11,7 +11,7 @@ import { surfaceCount, surfaceLeft, surfacePass, surfaceRight, surfaceZ } from "
 import { hasCannon } from "../src/game/sim/stageHazards";
 
 
-export interface HeroCamera {
+interface HeroCamera {
 
   readonly rotation: number;
 
@@ -52,14 +52,14 @@ export const CARD = {
 } as const;
 
 
-export const SILHOUETTE_PIECES = 6;
+const SILHOUETTE_PIECES = 6;
 
 
 
 
 
 
-export function stageSilhouette(stage: StageTile): (readonly [number, number, number, number])[] {
+function stageSilhouette(stage: StageTile): (readonly [number, number, number, number])[] {
   const surfaces = Array.from({ length: surfaceCount(stage) }, (_, index) => ({ left: surfaceLeft(stage, index, 0), right: surfaceRight(stage, index, 0), z: surfaceZ(stage, index, 0), main: index === 0 }));
   if (surfaces.length > SILHOUETTE_PIECES) throw new Error(`stage ${stage} has ${surfaces.length} surfaces; raise SILHOUETTE_PIECES`);
   const left = Math.min(...surfaces.map((surface) => surface.left)), right = Math.max(...surfaces.map((surface) => surface.right));
@@ -76,7 +76,7 @@ export function stageSilhouette(stage: StageTile): (readonly [number, number, nu
 }
 
 
-export function silhouetteEntry(stage: StageTile): string {
+function silhouetteEntry(stage: StageTile): string {
   const info = STAGE_CATALOG.find((entry) => entry.id === stage);
   return `  // ${info?.name ?? stage}\n  ${stage}: [${stageSilhouette(stage).map((piece) => `[${piece.join(", ")}]`).join(", ")}],`;
 }
@@ -117,7 +117,7 @@ export function thumbnailFile(stage: StageTile): string {
 
 
 
-export function stageArtInputs(stage: StageTile) {
+function stageArtInputs(stage: StageTile) {
   const surfaces = Array.from({ length: surfaceCount(stage) }, (_, index) => ({
     model: deckModel(stage, index), left: surfaceLeft(stage, index, 0), right: surfaceRight(stage, index, 0), z: surfaceZ(stage, index, 0), pass: surfacePass(stage, index),
   }));

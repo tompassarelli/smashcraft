@@ -2,7 +2,7 @@ import { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { CompanionMode } from "../sim/heroSpecials";
 
-export type BearState = "FOLLOWING" | "CHARGING" | "ATTACKING" | "RESTING";
+type BearState = "FOLLOWING" | "CHARGING" | "ATTACKING" | "RESTING";
 
 export function bearState(fighter: Readonly<Fighter> | undefined): BearState | undefined {
   if (fighter === undefined || fighter.character !== Character.beastmaster || fighter.status.out || fighter.placed.life <= 0) return undefined;
