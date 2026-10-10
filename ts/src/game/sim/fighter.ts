@@ -530,7 +530,7 @@ export interface Fighter {
   readonly hits: HitRegistry;
   readonly visuals: VisualSerials;
   readonly special: Special;
-  readonly projectiles: Readonly<Projectile>[];
+  readonly projectiles: Projectile[];
   readonly bear: Bear;
   readonly freezeTrap: FreezeTrap;
   readonly dodge: Dodge;

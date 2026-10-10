@@ -8,10 +8,10 @@ import { Action, bit } from "../input/actions";
 import { type ImpactEvents } from "../presentation/impactEvents";
 import { type Controls, createRoster, fighterAt, neutralControls } from "../sim/roster";
 import { firstPoseDifference, firstStateDifference } from "./difference";
-import { stateChecksum } from "./canonical";
+import { stateChecksum, stateHash } from "./canonical";
 import { ReplayCorrections, ReplayHistory } from "./history";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
-import { copyReplayState, createReplaySnapshot } from "./snapshot";
+import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, captureTape, createTapeWorld, executeTapeRow, runRecordedTape } from "./tapeWorld";
 import { ALL_ITEMS_MASK, Character } from "../sim/codes";
 import { type InputRow, copyInput, emptyInput, inputRow, predictInto } from "../input/inputRow";
@@ -27,6 +27,16 @@ function frameControls(first: Controls, second: Controls, firstCommands: AttackB
 
 function execute(tape: TapeWorld, row: MatchFrameInput): void {
   assertTrue(executeTapeRow(tape, row));
+}
+
+/**
+ * How a confirmed state differs from the straight run's. The #168 sync tests
+ * compare the per-frame full-state hash, as clients would (#400), and name
+ * the first differing field only when the hashes disagree.
+ */
+function syncDifference(expected: Readonly<ReplayState>, actual: Readonly<ReplayState>): string | undefined {
+  if (stateHash(expected) === stateHash(actual)) return undefined;
+  return firstStateDifference(expected, actual) ?? "full-state hash";
 }
 
 /** The first difference between two tapes' live states. */
@@ -643,7 +653,7 @@ function confirmedAgainstStraight(seed: number, frames: number): string | undefi
       resetMatchFrameInput(row);
       assertTrue(captureNetworkFrame(row, next, actualAt(next), straight.live.world, 3));
       execute(straight, row);
-      const difference = firstStateDifference(captureTape(straight), confirmed);
+      const difference = syncDifference(captureTape(straight), confirmed);
       if (difference !== undefined) return `seed ${seed}: confirmed frame ${next} differs: ${difference}`;
     }
   }
@@ -827,7 +837,7 @@ function pausedAgainstStraight(match: PausedMatch): { ontoRepair: number; rewind
   for (let frame = 1; frame <= match.frames; frame++) {
     if (difference === undefined && frame >= history.firstRetainedFrame()) {
       assertTrue(history.restore(1, frame, got));
-      const found = firstStateDifference(captureTape(straight), got);
+      const found = syncDifference(captureTape(straight), got);
       if (found !== undefined) difference = `snapshot ${frame}: ${found}`;
     }
     resetMatchFrameInput(row);

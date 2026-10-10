@@ -525,6 +525,27 @@ export function canonicalChecksum(text: string): string {
 
 type Emit = (fragment: string) => void;
 
+/** Where writeState sends each field: canonical text, or the per-frame state hash. */
+interface StateSink {
+  int(prefix: string, name: string, value: number): void;
+  bool(prefix: string, name: string, value: boolean): void;
+  real(prefix: string, name: string, value: number): void;
+  text(fragment: string): void;
+  observation(name: string, sample: Readonly<BotObservationFrame>): void;
+}
+
+const fieldName = (prefix: string, name: string) => (prefix === "" ? name : `${prefix}.${name}`);
+
+function textSink(emit: Emit): StateSink {
+  return {
+    int: (prefix, name, value) => emit(canonicalInt(fieldName(prefix, name), value)),
+    bool: (prefix, name, value) => emit(canonicalBoolean(fieldName(prefix, name), value)),
+    real: (prefix, name, value) => emit(canonicalRealField(fieldName(prefix, name), value)),
+    text: fragment => emit(fragment),
+    observation: (name, sample) => emit(`|${name}=${botObservationCanonical(sample)}`),
+  };
+}
+
 
 
 
@@ -705,10 +726,10 @@ export function botObservationCanonical(sample: Readonly<BotObservationFrame>): 
   return parts.join("");
 }
 
-function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
-  const int = (name: string, value: number) => emit(canonicalInt(`${prefix}.${name}`, value));
-  const bool = (name: string, value: boolean) => emit(canonicalBoolean(`${prefix}.${name}`, value));
-  const real = (name: string, value: number) => emit(canonicalRealField(`${prefix}.${name}`, value));
+function writeFighter(sink: StateSink, prefix: string, fighter: Readonly<Fighter>, participantMask: number): void {
+  const int = (name: string, value: number) => sink.int(prefix, name, value);
+  const bool = (name: string, value: boolean) => sink.bool(prefix, name, value);
+  const real = (name: string, value: number) => sink.real(prefix, name, value);
   const reference = (name: string, slot: number | undefined) => int(name, canonicalSlot(slot, participantMask));
   const t = fighter.tuning;
   const m = fighter.motion;
@@ -747,7 +768,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   int("character", fighter.character);
-  emit(kitDigestField(`${prefix}.moves`, t.moves, MOVES_DIGESTS, fighterMovesCanonical));
+  sink.text(kitDigestField(`${prefix}.moves`, t.moves, MOVES_DIGESTS, fighterMovesCanonical));
 
   real("physics.weight", t.physics.weight);
   real("physics.gravity", t.physics.gravity);
@@ -1025,7 +1046,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   real("surfacePhysics.passiveCeilingSpeed", t.surface.passiveCeilingSpeed);
   real("surfacePhysics.wallJumpMinimumApproach", t.surface.wallJumpMinimumApproach);
   bool("surfacePhysics.canWallJump", t.surface.canWallJump);
-  emit(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
+  sink.text(kitDigestField(`${prefix}.specials`, t.specials, SPECIALS_DIGESTS, fighterSpecialsCanonical));
   int("manaPoints", fighter.mana.points);
   int("manaDeniedSerial", v.manaDenied);
 
@@ -1058,7 +1079,7 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
         int(`${animalName}Bitten`, placed.bitten);
         int(`${animalName}Surface`, placed.surface ?? -1);
       }
-      emit(kitDigestField(`${prefix}.${animalName}Spec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
+      sink.text(kitDigestField(`${prefix}.${animalName}Spec`, placed.spec, PLACEMENT_DIGESTS, placedSpecCanonical));
     }
     int("specialGuarded", sp.guarded ? 1 : 0);
     if (st.divineFrames !== 0) int("divineFrames", st.divineFrames);
@@ -1083,19 +1104,20 @@ function writeFighter(emit: Emit, prefix: string, fighter: Readonly<Fighter>, pa
   }
   for (let i = 0; i < PROJECTILE_CAPACITY; i++) {
     const spec = at(fighter.projectiles, i).spec;
-    if (spec !== undefined) emit(specialProjectileCanonical(spec, `${prefix}.projectileSpec[${i}]`));
+    if (spec !== undefined) sink.text(specialProjectileCanonical(spec, `${prefix}.projectileSpec[${i}]`));
   }
 }
 
-function writeState(emit: Emit, state: Readonly<ReplayState>): void {
+function writeState(sink: StateSink, state: Readonly<ReplayState>): void {
   const { world, match, controls, runtime } = state;
-  const int = (name: string, value: number) => emit(canonicalInt(name, value));
-  const bool = (name: string, value: boolean) => emit(canonicalBoolean(name, value));
-  emit("SmashcraftReplay2");
+  const int = (name: string, value: number) => sink.int("", name, value);
+  const bool = (name: string, value: boolean) => sink.bool("", name, value);
+  const real = (name: string, value: number) => sink.real("", name, value);
+  sink.text("SmashcraftReplay2");
   int("participantMask", world.mask);
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
-    writeFighter(emit, `fighter[${slot}]`, fighterAt(world, slot), world.mask);
+    writeFighter(sink, `fighter[${slot}]`, fighterAt(world, slot), world.mask);
     const command = attackBufferCanonicalState(controls.commands[slot]);
     int(`commands[${slot}].windowFrames`, command.graceFrames);
     int(`commands[${slot}].style`, command.style);
@@ -1107,8 +1129,8 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
   }
   int("match.phase", match.phase);
   bool("match.camera.initialized", match.camera.initialized);
-  for (const key of ["x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.${key}`, match.camera[key]));
-  for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) emit(canonicalRealField(`match.camera.box${slot}.${key}`, match.camera.boxes[slot][key]));
+  for (const key of ["x", "z", "distance", "tangent", "left", "right", "bottom", "top"] as const) real(`match.camera.${key}`, match.camera[key]);
+  for (const slot of PARTICIPANT_SLOTS) for (const key of ["left", "right", "bottom", "top"] as const) real(`match.camera.box${slot}.${key}`, match.camera.boxes[slot][key]);
   int("match.stageChoice", match.stageChoice);
   bool("match.stageResolved", match.stageResolved);
   bool("match.stagePool.only", match.stagePool.only);
@@ -1150,7 +1172,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
 
   if (match.training) {
     bool("match.training", true);
-    writeTrainingState(match.trainer, int, bool, (name, value) => emit(canonicalRealField(name, value)));
+    writeTrainingState(match.trainer, int, bool, real);
   }
 
   if (match.classic) {
@@ -1161,9 +1183,9 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     bool("match.lore", true);
     int("match.loreBattle", match.loreBattle);
   }
-  if (match.run.active) writeConfiguredRun(match.run, int, bool, (name, value) => emit(canonicalRealField(name, value)), (name, value) => emit(`|${name}=${value}`));
+  if (match.run.active) writeConfiguredRun(match.run, int, bool, real, (name, value) => sink.text(`|${name}=${value}`));
   int("runtime.simulationFrame", runtime.simulationFrame);
-  for (const slot of PARTICIPANT_SLOTS) emit(canonicalRealField(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]));
+  for (const slot of PARTICIPANT_SLOTS) real(`runtime.botAttackDelays[${slot}]`, runtime.botAttackDelays[slot]);
   const memory = runtime.botMemory;
   for (const slot of PARTICIPANT_SLOTS) {
     const strategy = runtime.botStrategies[slot];
@@ -1176,7 +1198,7 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
     for (let index = 0; index < memory.history.length; index++) {
       const observation = at(memory.history, index);
       int(`runtime.botMemory.history[${index}].frame`, observation.frame);
-      emit(`|runtime.botMemory.history[${index}].values=${botObservationCanonical(observation)}`);
+      sink.observation(`runtime.botMemory.history[${index}].values`, observation);
     }
     for (const slot of PARTICIPANT_SLOTS) {
       int(`runtime.botMemory.directions[${slot}]`, memory.directions[slot]);
@@ -1188,15 +1210,91 @@ function writeState(emit: Emit, state: Readonly<ReplayState>): void {
 
 export function canonicalState(state: Readonly<ReplayState>): string {
   const parts: string[] = [];
-  writeState(fragment => { parts.push(fragment); }, state);
+  writeState(textSink(fragment => { parts.push(fragment); }), state);
   return parts.join("");
 }
 
 
 export function stateChecksum(state: Readonly<ReplayState>): string {
   const lanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
-  writeState(fragment => foldChecksum(lanes, fragment), state);
+  writeState(textSink(fragment => foldChecksum(lanes, fragment)), state);
   return checksumText(lanes);
+}
+
+
+const hashLanes: ChecksumLanes = { valid: true, first: 0, second: 0 };
+
+function foldHash(value: number): void {
+  const code = value >= 0 && value < REPLAY_CHECKSUM_MODULUS ? value : floorMod(value, REPLAY_CHECKSUM_MODULUS);
+  hashLanes.first = floorMod(hashLanes.first * 257 + code + 1, REPLAY_CHECKSUM_MODULUS);
+  hashLanes.second = floorMod(hashLanes.second * 263 + code + 1, REPLAY_CHECKSUM_MODULUS);
+}
+
+// A value as canonical text has it, with no text built: an integral value as its
+// integer, any other real as its sign, then splitFiniteReal's exponent and mantissa halves.
+function foldHashValue(value: number): void {
+  const whole = Math.floor(value);
+  if (whole === value && whole >= -2147483648 && whole <= 2147483647) {
+    foldHash(whole);
+    return;
+  }
+  if (value !== value || !splitFiniteReal(value < 0 ? -value : value)) {
+    foldHash(value !== value ? -1 : value < 0 ? -2 : -3);
+    return;
+  }
+  foldHash(value < 0 ? -4 : -5);
+  foldHash(realParts.exponent);
+  foldHash(realParts.high);
+  foldHash(realParts.low);
+}
+
+// Text a state holds (kit digests, kit observations) recurs, so each one's own lanes are folded in, computed once.
+const TEXT_LANES = new Map<string, ChecksumLanes>();
+const TEXT_LANES_CAPACITY = 4096;
+
+function foldHashText(text: string): void {
+  let lanes = TEXT_LANES.get(text);
+  if (lanes === undefined) {
+    lanes = { valid: true, first: 0, second: 0 };
+    foldChecksumRange(lanes, text, 0, text.length);
+    if (TEXT_LANES.size < TEXT_LANES_CAPACITY) TEXT_LANES.set(text, lanes);
+  }
+  foldHash(text.length);
+  foldHash(lanes.valid ? lanes.first : -1);
+  foldHash(lanes.second);
+}
+
+// An observation's layout is fixed by the values before each field, so its numbers fold untagged.
+const HASH_OBSERVATIONS: ObservationWriter = {
+  byte: code => foldHash(code),
+  number: value => foldHashValue(value),
+  text: (text, repetitions) => {
+    foldHash(repetitions);
+    foldHashText(text);
+  },
+};
+
+// Fields fold untagged too, except where a conditional field could take another's place: each kind folds a marker first.
+const HASH_SINK: StateSink = {
+  int: (_prefix, _name, value) => { foldHash(-6); foldHashValue(value); },
+  bool: (_prefix, _name, value) => foldHash(value ? -7 : -8),
+  real: (_prefix, _name, value) => { foldHash(-9); foldHashValue(value); },
+  text: fragment => foldHashText(fragment),
+  observation: (_name, sample) => writeObservations(HASH_OBSERVATIONS, sample.opponents),
+};
+
+/**
+ * The per-frame full-state hash (#400): every field the canonical state
+ * holds, in its order, folded as numbers rather than text, so it costs a
+ * fraction of stateChecksum. Equal states hash equal in one runtime; it is
+ * not the replay tape's checksum.
+ */
+export function stateHash(state: Readonly<ReplayState>): string {
+  hashLanes.valid = true;
+  hashLanes.first = 0;
+  hashLanes.second = 0;
+  writeState(HASH_SINK, state);
+  return checksumText(hashLanes);
 }
 
 

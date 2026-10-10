@@ -2,7 +2,7 @@ import { createPlacedObject, placedObject } from "../sim/fighter";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
-import { shareFighterProjectiles } from "../sim/fighterProjectiles";
+import { copyFighterProjectiles, sameFighterProjectiles } from "../sim/fighterProjectiles";
 
 
 const retained = (activeMask: number, slot: number | undefined) =>
@@ -214,7 +214,7 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   special.grabFrame = sourceSpecial.grabFrame;
   special.guarded = sourceSpecial.guarded;
 
-  shareFighterProjectiles(target, source);
+  copyFighterProjectiles(target, source);
 
   const bear = target.bear;
   const sourceBear = source.bear;
@@ -391,31 +391,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
     placed.surface = sourcePlaced.surface;
   }
 }
-
-
-const RECORD_DEPTH = 6;
-
-
-function sameRecord<T extends object>(a: Readonly<T>, b: Readonly<T>, depth: number): boolean {
-  if (depth > RECORD_DEPTH) return false;
-  let fields = 0;
-  for (const key in a) {
-    const x = a[key];
-    if (x === undefined) continue;
-    fields++;
-    const y = b[key];
-    if (x === y) {
-      if (x === 0 && typeof x === "number" && typeof y === "number" && 1 / x !== 1 / y) return false;
-      continue;
-    }
-    if (typeof x !== "object" || typeof y !== "object" || x === null || y === null || !sameRecord(x, y, depth + 1)) return false;
-  }
-  for (const key in b) if (b[key] !== undefined) fields--;
-  return fields === 0;
-}
-
-
-
 
 
 export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fighter>): boolean {
@@ -620,12 +595,7 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (special.grabFrame !== sourceSpecial.grabFrame || (special.grabFrame === 0 && 1 / special.grabFrame !== 1 / sourceSpecial.grabFrame)) return false;
   if (special.guarded !== sourceSpecial.guarded) return false;
 
-  if (target.projectiles.length !== source.projectiles.length) return false;
-  for (let i = 0; i < target.projectiles.length; i++) {
-    const mine = target.projectiles[i];
-    const theirs = source.projectiles[i];
-    if (mine !== theirs && (mine === undefined || theirs === undefined || !sameRecord(mine, theirs, 0))) return false;
-  }
+  if (!sameFighterProjectiles(target, source)) return false;
 
   const bear = target.bear;
   const sourceBear = source.bear;

@@ -1,16 +1,16 @@
 frames 1800 step 100 problems 0
-collector us=29858996 kb=1617342
-p0 instructions start=87886400 total=422794496 median=209100 p95=415200 mean=234886 max=542500 top=503189
-p0 lua-us start=1433887 total=15185296 median=7517 p95=14374 mean=8436 max=47356 top=32976
-p0 natives start=76 total=398461 median=210 p95=310 mean=221 max=411 top=352
-p0 alloc-kb start=57749 total=136341 median=33 p95=259 mean=76 max=539 top=396
+collector us=29307168 kb=1981562
+p0 instructions start=91581400 total=449594496 median=214800 p95=431600 mean=249775 max=560700 top=513411
+p0 lua-us start=980598 total=9699940 median=4621 p95=9270 mean=5389 max=36094 top=27098
+p0 natives start=76 total=406580 median=213 p95=318 mean=226 max=414 top=365
+p0 alloc-kb start=58935 total=136266 median=33 p95=260 mean=76 max=565 top=399
 p0 typed start=0 total=0 median=0 p95=0 mean=0 max=0 top=0
-p0 native-us start=1987103 total=10072580 median=5046 p95=9640 mean=5596 max=12833 top=11774
+p0 native-us start=2068156 total=10659358 median=5219 p95=10050 mean=5922 max=13023 top=12012
 p0 typing-us start=0 total=0 median=0 p95=0 mean=0 max=0 top=0
-p1 instructions start=87886400 total=430388800 median=213850 p95=391800 mean=239105 max=549700 top=479439
-p1 lua-us start=1535627 total=15499298 median=7801 p95=14120 mean=8611 max=49946 top=33307
-p1 natives start=76 total=398436 median=210 p95=309 mean=221 max=411 top=354
-p1 alloc-kb start=57446 total=136247 median=33 p95=260 mean=76 max=537 top=395
+p1 instructions start=91581400 total=435902304 median=211850 p95=412500 mean=242168 max=553500 top=501050
+p1 lua-us start=1078014 total=9784932 median=4632 p95=9155 mean=5436 max=35938 top=29578
+p1 natives start=76 total=406743 median=213 p95=317 mean=226 max=414 top=367
+p1 alloc-kb start=58632 total=135675 median=32 p95=261 mean=75 max=564 top=400
 p1 typed start=0 total=0 median=0 p95=0 mean=0 max=0 top=0
-p1 native-us start=1986497 total=10234078 median=5175 p95=9140 mean=5686 max=12766 top=11144
+p1 native-us start=2067551 total=10366944 median=5123 p95=9613 mean=5759 max=13279 top=11676
 p1 typing-us start=0 total=0 median=0 p95=0 mean=0 max=0 top=0
