@@ -4,7 +4,7 @@
 import { hasPendingAttack, clearAttackBuffer } from "../../game/input/attackBuffer";
 import { adaptInput } from "../../game/input/adapter";
 import { commitEdges } from "../../game/input/keyboardCapture";
-import { PARTICIPANT_SLOTS, type ParticipantSlot, participantActive } from "../../game/input/participants";
+import { PARTICIPANT_SLOTS, type ParticipantSlot, isParticipantSlot, participantActive } from "../../game/input/participants";
 import { borrowMatchFrame, captureFrame, executeMatchFrame, hasNetworkRows } from "../../game/match/frameInput";
 import { ownConfirmedState } from "./confirmedState";
 import { beginMomentFrame, keepMomentEnd, momentFrameRan, recordMomentRow } from "../../game/replay/moment";
@@ -153,7 +153,9 @@ export function applyFrame(s: ShellState, recorded = false): void {
       ui.special.presentConfirmedAnimated(runtime.simulationFrame, fighter, slot);
     }
   }
-  const cues = ui.match.presentConfirmed(s.game, world);
+  const cues = ui.match.presentConfirmed(s.game, world, slot => {
+    if (isParticipantSlot(slot)) ui.manaBars[slot].hud.pickup(fighterAt(world, slot).mana.points);
+  });
   if (s.game.phase !== Phase.result) return;
   clearMatchEffects(s);
 

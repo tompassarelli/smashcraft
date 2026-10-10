@@ -26,10 +26,15 @@ export function confirmedDropCues(before: Readonly<DropCueObservation>, drops: R
 
 export const DROP_MARKER_SCALE_START = f32(0.2);
 export const DROP_MARKER_SCALE_END = f32(0.45);
-export const DROP_ORB_SCALE = f32(0.8);
+export const DROP_ORB_SCALE = f32(2.0);
 export const DEFINITIVE_DROP_MARKER_SCALE = f32(2.5);
-export const DEFINITIVE_DROP_ORB_SCALE = f32(2.0);
 export const DROP_PULSE_FRAMES = 30;
+
+export function dropOrbScale(frame: number): number {
+  const phase = floorMod(frame, DROP_PULSE_FRAMES);
+  const pulse = f32(Math.abs(phase - DROP_PULSE_FRAMES / 2) / (DROP_PULSE_FRAMES / 2));
+  return f32(DROP_ORB_SCALE * f32(f32(0.85) + f32(f32(0.15) * pulse)));
+}
 
 export function dropMarkerScale(left: number, definitive = false): number {
   const progress = f32(f32(DROP_TELEGRAPH_FRAMES - left) / DROP_TELEGRAPH_FRAMES);

@@ -1,6 +1,8 @@
 import { type MatchState, Phase } from "../match/rules";
 import { DROP_HEIGHT, dropTelegraphFrames, meterDropPoint } from "../match/meterDrops";
-import { DEFINITIVE_DROP_ORB_SCALE, DROP_ORB_SCALE, dropMarkerAlpha, dropMarkerScale } from "../presentation/dropLook";
+import { floorDiv } from "wisp/src/sim/intMath";
+import { dropOrbScale, dropMarkerAlpha, dropMarkerScale } from "../presentation/dropLook";
+import { MANA_BAR_COLOR } from "../ui/manaBar";
 import { definitiveCues } from "./specialCueEffects";
 import { hideEffect, STOCK_MODELS, type WorldOrigin } from "./effects";
 
@@ -14,7 +16,11 @@ export class MeterDropPresentation {
 
   constructor(private readonly origin: Readonly<WorldOrigin>) {
     this.marker = AddSpecialEffect(this.definitive ? STOCK_MODELS.definitiveDropMarker : STOCK_MODELS.massTeleportTarget, origin.x, origin.y);
-    this.orb = AddSpecialEffect(this.definitive ? STOCK_MODELS.definitiveDropOrb : STOCK_MODELS.frostWyrmMissile, origin.x, origin.y);
+    this.orb = AddSpecialEffect(STOCK_MODELS.meterDropOrb, origin.x, origin.y);
+    for (const model of [this.marker, this.orb]) {
+      BlzSetSpecialEffectColor(model, floorDiv(MANA_BAR_COLOR, 65536) & 255, floorDiv(MANA_BAR_COLOR, 256) & 255, MANA_BAR_COLOR & 255);
+      BlzSetSpecialEffectColorByPlayer(model, Player(1));
+    }
     hideEffect(this.marker, origin);
     hideEffect(this.orb, origin);
   }
@@ -37,8 +43,8 @@ export class MeterDropPresentation {
     if (live >= 0 && (live !== this.orbPoint || game.stageChoice !== this.orbStage)) {
       const point = meterDropPoint(game.stageChoice, live);
       BlzSetSpecialEffectPosition(this.orb, this.origin.x + point.x, this.origin.y, this.origin.z + point.z + DROP_HEIGHT);
-      BlzSetSpecialEffectScale(this.orb, this.definitive ? DEFINITIVE_DROP_ORB_SCALE : DROP_ORB_SCALE);
     } else if (live < 0 && this.orbPoint >= 0) hideEffect(this.orb, this.origin);
+    if (live >= 0) BlzSetSpecialEffectScale(this.orb, dropOrbScale(game.matchFrame));
     this.orbPoint = live;
     this.orbStage = game.stageChoice;
   }

@@ -175,7 +175,7 @@ export class MatchPresentation {
   }
 
 
-  presentConfirmed(game: Readonly<MatchState>, world: Readonly<Roster>): readonly MatchCue[] {
+  presentConfirmed(game: Readonly<MatchState>, world: Readonly<Roster>, dropPickedUp?: (slot: number) => void): readonly MatchCue[] {
     confirmedFrameCues(this.observation, game, world, this.tally, this.cues);
     const itemCues = confirmedItemCues(this.itemObservation, game.items, game.matchFrame);
     for (let index = 0; index < this.itemSounds.length; index++) {
@@ -186,6 +186,7 @@ export class MatchPresentation {
       StartSound(sound);
     }
     const dropCues = confirmedDropCues(this.dropObservation, game.drops, game.matchFrame);
+    if ((dropCues & 4) !== 0) dropPickedUp?.(game.drops.lastTaker);
     for (let index = 0; index < this.dropSounds.length; index++) {
       if ((dropCues & (1 << index)) === 0) continue;
       const sound = at(this.dropSounds, index);

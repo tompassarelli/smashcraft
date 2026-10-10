@@ -5,13 +5,15 @@
 
 import { f32 } from "wisp/src/sim/f32";
 import {
-  MANA_BAR_SEGMENTS, type ManaFeedback, advanceManaFeedback, manaFeedback, manaFill, manaDrainLit, manaFlashLit, manaGlowLit,
+  MANA_BAR_SEGMENTS, MANA_GLOW_UPDATES, type ManaFeedback, advanceManaFeedback, manaFeedback, manaFill, manaDrainLit, manaFlashLit, manaGlowLit,
 } from "../presentation/manaBar";
 import { createBackdrop } from "./frames";
 import { PANEL_TEXTURE } from "./hudLayout";
+import { slotColor } from "./slotColors";
 
 const LINE_WIDTH = f32(0.0006);
-const FILL = "ReplaceableTextures\\TeamColor\\TeamColor01.blp";
+export const MANA_BAR_COLOR = slotColor(1).rgb;
+const FILL = slotColor(1).texture;
 const FLASH = "ReplaceableTextures\\TeamColor\\TeamColor00.blp";
 const GLOW = "ReplaceableTextures\\TeamColor\\TeamColor04.blp";
 
@@ -33,6 +35,7 @@ export class ManaBar {
   private glowShown = false;
   private drainShown = false;
   private shownFill = -1.0;
+  private pickupLeft = 0;
 
 
   constructor(name: string, slot: number, parent: framehandle, context: number, private readonly height: number, private readonly border: number) {
@@ -95,6 +98,7 @@ export class ManaBar {
 
   update(shown: boolean, points: number, denials: number, drains: number): void {
     advanceManaFeedback(this.feedback, points, denials, drains);
+    if (this.pickupLeft > 0 && --this.pickupLeft === 0) BlzFrameSetAlpha(this.glow, 150);
     if (shown !== this.visible) {
       this.visible = shown;
       for (const frame of [this.back, this.fill, ...this.lines]) BlzFrameSetVisible(frame, shown);
@@ -109,7 +113,7 @@ export class ManaBar {
       this.drainShown = drain;
       BlzFrameSetVisible(this.drain, drain);
     }
-    const glow = shown && manaGlowLit(this.feedback);
+    const glow = shown && (this.pickupLeft > 0 || manaGlowLit(this.feedback));
     if (glow !== this.glowShown) {
       this.glowShown = glow;
       BlzFrameSetVisible(this.glow, glow);
@@ -119,6 +123,16 @@ export class ManaBar {
     if (fill === this.shownFill) return;
     this.shownFill = fill;
     BlzFrameSetSize(this.fill, Math.max(LINE_WIDTH, this.width * fill), this.height);
+  }
+
+  pickup(points: number): void {
+    this.pickupLeft = MANA_GLOW_UPDATES;
+    if (!this.visible) return;
+    this.shownFill = manaFill(points);
+    BlzFrameSetSize(this.fill, Math.max(LINE_WIDTH, this.width * this.shownFill), this.height);
+    this.glowShown = true;
+    BlzFrameSetAlpha(this.glow, 255);
+    BlzFrameSetVisible(this.glow, true);
   }
 
   destroy(): void {
