@@ -21,7 +21,7 @@ const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   4: ["jab", "jab2", "upTilt", "upSmash", "neutralAir", "upAir", "backAir", "dashAttack", "forwardAir"],
   5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir", "upTilt", "forwardTiltUp", "neutralSpecial", "jab", "jab2", "forwardTilt", "forwardSmash", "sideSpecial", "ultimate"],
   6: ["forwardTiltDown", "downTilt", "backAir", "downSpecial", "forwardTilt", "forwardTiltUp", "upTilt", "forwardSmash", "upSmash", "downSmash", "dashAttack", "forwardAir", "upAir"],
-  8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir", "neutralSpecial", "downSpecial", "ultimate"],
+  8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir", "neutralSpecial", "downSpecial", "ultimate", "forwardTilt", "forwardTiltUp", "forwardTiltDown"],
   9: ["jab3", "forwardTilt", "forwardTiltUp", "upTilt", "dashAttack", "forwardAir", "upSmash", "upAir", "forwardSmash", "downTilt"],
   10: ["forwardTilt", "forwardAir", "upAir", "neutralAir"],
   11: ["jab2", "jab3", "forwardTilt", "forwardTiltDown", "downTilt", "dashAttack", "backAir", "upSmash", "neutralAir", "upAir", "forwardAir", "downSpecial"],
@@ -65,6 +65,9 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
     neutralSpecial: [48, -72, -45, -25, 30, -45, 65, 20],
     downSpecial: [42, -65, -40, -28, 25, -40, 60, 18],
     ultimate: [55, -78, -55, -30, 35, -55, 80, 22],
+    forwardTilt: [45, -70, -40, -25, 25, -45, 65, 18],
+    forwardTiltUp: [-22, -110, -75, -18, 30, -35, 55, -12],
+    forwardTiltDown: [52, -50, -35, -20, -25, -60, 85, 20],
   },
   9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [48, -75, 65, -22, 50, -65, 100, -5], downTilt: [22, 35, 45, -15, -60, -40, 55, 0] },
   10: { forwardTilt: [32, -95, 35, -48, -22, -18, 22, 20] },
@@ -85,7 +88,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
 const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
   4: { jab: 0.5, upTilt: 1 }, 8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
 };
-const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt", "jab2", "downTilt", "forwardAir", "backAir", "forwardSmash", "neutralSpecial", "downSpecial", "ultimate"]);
+const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt", "jab2", "downTilt", "forwardAir", "backAir", "forwardSmash", "neutralSpecial", "downSpecial", "ultimate", "forwardTilt", "forwardTiltUp", "forwardTiltDown"]);
 const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
 
 const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
@@ -359,7 +362,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
     const special=pose==="ultimate"?FIGHTER_ULTIMATES[character]:pose==="downSpecial"?heroDefinition(character)?.specials?.down.ground:pose==="neutralSpecial"?heroDefinition(character)?.specials?.neutral.ground:pose==="sideSpecial"?heroDefinition(character)?.specials?.side.ground:undefined;
     const style=special?undefined:AttackStyle[pose as keyof typeof AttackStyle];
     const moves=createFighter(character,0,1).tuning.moves;
-    const contact=special?heroCueWindows(special,1).active.first-(character===5&&(pose==="neutralSpecial"||pose==="ultimate")?1:0):attackStartupFrames(style!,moves);
+    const contact=special?(character===8&&pose==="ultimate"?special.regions?.[0]?.firstFrame??heroCueWindows(special,1).active.first:heroCueWindows(special,1).active.first)-(character===5&&(pose==="neutralSpecial"||pose==="ultimate")?1:0):attackStartupFrames(style!,moves);
     const total=special?special.endFrame:attackDurationFramesForGrounding(style!,!pose.endsWith("Air"),moves);
     ensure(contact>0&&total>contact,`${f.name}/${pose}: invalid timing`);
     const start=cursor,end=start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
@@ -375,7 +378,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
       for(let frame=0;frame<=total;frame++) {
         const body=driven&&/^(Bone_Chest|Bone_Pelvis|Bone_Leg[12]_[LR])$/.test(node?.Name??"");
         const anticipation=Math.max(1,contact-2),peak=body?Math.max(anticipation+1,contact-1):contact;
-        const follow=driven&&!body&&(pose==="upAir"||pose==="upTilt")?0.5:driven?1.35:1.18;
+        const follow=driven&&!body&&(pose==="upAir"||pose==="upTilt"||pose==="forwardTiltUp")?0.5:driven?1.35:1.18;
         const amountAt=frame<anticipation?-back*Math.sin(frame/anticipation*Math.PI/2):frame<=peak?-back+(1+back)*(peak>anticipation?(frame-anticipation)/(peak-anticipation):1):frame<contact+3?1+(follow-1)*(frame-peak)/(contact+3-peak):follow*Math.max(0,1-(frame-contact-3)/(total-contact-3));
         const Vector=amount?rotate(key.Vector,amount*amountAt):key.Vector.slice();
         track.Keys.push({...key,Frame:start+Math.round(frame*1000/60),Vector,...key.InTan?{InTan:Vector.slice(),OutTan:Vector.slice()}: {}});
