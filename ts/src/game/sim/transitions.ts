@@ -3,6 +3,7 @@
 
 import { clearTechInput } from "../physics/techInput";
 import { at } from "wisp/src/runtime/lookup";
+import { floorDiv } from "wisp/src/sim/intMath";
 import { mutableProjectile } from "./fighterProjectiles";
 import { max } from "../../runtime/numbers";
 import { AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, LedgeState, PlatformMove, ProjectileKind, SpecialAction, SurfaceContact } from "./codes";
@@ -20,6 +21,11 @@ export const LEDGE_REGRAB_FRAMES = 30;
 const FREEZE_IMMUNITY_FRAMES = 20;
 
 export const FREEZE_MINIMUM_FRAMES = 45;
+const FREEZE_FLOOR_FRAMES = 15;
+
+export function freezeMinimumFrames(damage: number): number {
+  return max(FREEZE_FLOOR_FRAMES, FREEZE_MINIMUM_FRAMES - floorDiv(damage, 3));
+}
 
 
 export function thawFighter(f: Fighter): void {
