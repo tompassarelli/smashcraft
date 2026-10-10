@@ -127,6 +127,51 @@ const WARDEN_LUNGE: Readonly<Record<string, readonly number[]>> = {
 const wardenWeaponPose = (character: number, pose: HeroPose) => character === 5 && ["jab3", "forwardTiltDown", "downTilt", "dashAttack", "upSmash", "upAir", "upTilt", "forwardTiltUp", "jab", "jab2", "forwardTilt", "forwardSmash", "neutralSpecial", "sideSpecial", "ultimate"].includes(pose);
 
 function aimWeaponContact(model: mdx.Model, index: number, start: number, contact: number, total: number, pose: HeroPose, shadowLow = false) {
+  if (pose === "neutralAir") {
+    const nodes = [...model.Bones, ...model.Helpers, ...model.Attachments];
+    const named = (name: string) => { const node = nodes.find(n => n.Name === name); ensure(node, name); return node; };
+    const root = named("Attack Gesture"), body = named("Bone_Root"), hand = named("Bone_Hand_R"), weapon = named("Object08");
+    const arm = [named("Bone_Arm2_R"), named("Bone_Arm1_R")];
+    const tipPoint = new Float32Array([-11.125900268554688, -48.87200164794922, 6.704820156097412]);
+    const renderer = new ModelRenderer(model); renderer.setSequence(index);
+    const data = Reflect.get(renderer, "rendererData") as { frame: number; nodes: { matrix: Float32Array }[] };
+    const position = (node: mdx.Node, p = model.PivotPoints[node.ObjectId]!) => {
+      const m = data.nodes[node.ObjectId]!.matrix;
+      return [0, 1, 2].map(i => m[i]!*p[0]!+m[4+i]!*p[1]!+m[8+i]!*p[2]!+m[12+i]!);
+    };
+    const at = start + Math.round(contact*1000/60); data.frame = at; renderer.update(0);
+    const aim = (node: mdx.Node, target: number[], effector: mdx.Node, point?: Float32Array) => {
+      const origin = position(node), a = position(effector, point).map((v,i) => v-origin[i]!), b = target.map((v,i) => v-origin[i]!);
+      const an = Math.hypot(...a), bn = Math.hypot(...b), av = a.map(v => v/an), bv = b.map(v => v/bn);
+      const cross = [av[1]!*bv[2]!-av[2]!*bv[1]!, av[2]!*bv[0]!-av[0]!*bv[2]!, av[0]!*bv[1]!-av[1]!*bv[0]!], length = Math.hypot(...cross);
+      if (length < 0.00001) return;
+      const parent = data.nodes[node.Parent!]!.matrix, axis = cross.map(v => v/length);
+      const local = [0,1,2].map(i => (axis[0]!*parent[i*4]!+axis[1]!*parent[i*4+1]!+axis[2]!*parent[i*4+2]!)/Math.hypot(parent[i*4]!,parent[i*4+1]!,parent[i*4+2]!));
+      const angle = Math.acos(Math.max(-1,Math.min(1,av.reduce((s,v,i) => s+v*bv[i]!,0))))/2, s = Math.sin(angle), d = Math.cos(angle);
+      const key = node.Rotation!.Keys.find(k => k.Frame === at)!, [u,v,w,t] = key.Vector, [x,y,z] = local.map(v => v*s);
+      key.Vector = new Float32Array([d*u!+x!*t!+y!*w!-z!*v!, d*v!-x!*w!+y!*t!+z!*u!, d*w!+x!*v!-y!*u!+z!*t!, d*t!-x!*u!-y!*v!-z!*w!]);
+      const norm = Math.hypot(...key.Vector); key.Vector = key.Vector.map(v => v/norm);
+      if (key.InTan) { key.InTan = key.Vector.slice(); key.OutTan = key.Vector.slice(); }
+      renderer.update(0);
+    };
+    for (let iteration = 0; iteration < 20; iteration++) for (const node of arm) aim(node, [48,-24,90], hand);
+    aim(hand, [108,-24,90], weapon, tipPoint);
+    const h = position(body), tip = position(weapon, tipPoint), yaw = -Math.atan2(tip[1]!-h[1]!,tip[0]!-h[0]!)*180/Math.PI;
+    const held = new Map<mdx.AnimVector, Float32Array>();
+    tracks(model, track => { if (!onGlobalClock(track) && track !== root.Rotation) { const key = track.Keys.find(k => k.Frame === at); if (key) held.set(track, key.Vector.slice()); } });
+    for (let frame = 0; frame <= total; frame++) {
+      const time = start + Math.round(frame*1000/60), weight = frame < contact ? frame/contact : frame <= contact+4 ? 1 : Math.max(0,1-(frame-contact-4)/(total-contact-4));
+      for (const [track, vector] of held) {
+        const key = track.Keys.find(k => k.Frame === time); if (!key) continue;
+        key.Vector = vector.length === 4 ? blend(key.Vector, vector, weight) : key.Vector.map((v,i) => v*(1-weight)+vector[i]!*weight);
+        if (key.InTan) { key.InTan = track.LineType === 2 && vector.length !== 4 ? new Float32Array(vector.length) : key.Vector.slice(); key.OutTan = key.InTan.slice(); }
+      }
+      const angle = frame < contact ? yaw*weight-30*Math.sin(frame/contact*Math.PI) : frame <= contact+4 ? yaw+90*(frame-contact) : 360+yaw*weight+25*Math.sin((frame-contact-4)/(total-contact-4)*Math.PI);
+      const key = root.Rotation!.Keys.find(k => k.Frame === time)!;
+      key.Vector = rotate(new Float32Array([0,0,0,1]),angle,2);
+    }
+    return;
+  }
   const nodes = [...model.Bones, ...model.Helpers, ...model.Attachments];
   const named = (name: string) => { const node = nodes.find(n => n.Name === name); ensure(node, name); return node; };
   const arm = [named("Bone_Arm1_R"), named("Bone_Arm2_R")], hand = named("Bone_Hand_R"), tip = named("Weapon Ref");
@@ -371,13 +416,13 @@ for(const [id,poses]of Object.entries(PLAN)) {
     }
     if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const shadowLow = character === 9 && pose === "downTilt";
-    if (wardenWeaponPose(character,pose) || shadowLow) aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
-    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow?", aligned: true":""} }`;
+    if (wardenWeaponPose(character,pose) || shadowLow || character === 5 && pose === "neutralAir") aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
+    const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow || character === 5 && pose === "neutralAir"?", aligned: true":""} }`;
     bindings.push(`    ${pose}: ${binding},`);
     if(special&&pose!=="ultimate")for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
     const moments=[Math.max(1,contact-3),contact,Math.min(total-1,contact+5)];
     for(const facing of [1,-1])for(const frame of moments)drawnFrames.push({frame,facing,clip:index,seconds:frame/60,phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]});
-    records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:wardenWeaponPose(character,pose) || shadowLow});
+    records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:wardenWeaponPose(character,pose) || shadowLow || character === 5 && pose === "neutralAir"});
   }
   bindings.push("  },");
   const bytes=encodeVerified(parseSource(generateMDX(model))),after=new DrawnModel(bytes,1);
