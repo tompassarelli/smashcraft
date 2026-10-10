@@ -97,6 +97,8 @@ async function stockLightCheck(args: readonly string[]): Promise<number> {
   const { placedPieces } = await import("../../ts/src/game/presentation/stageScenery");
   const { STAGE_CATALOG } = await import("../../ts/src/game/menu/stageCatalog");
   const stages = named.length > 0 ? named : STAGE_CATALOG.map(({ id }) => id);
+  const unknown = stages.filter(stage => !STAGE_CATALOG.some(({ id }) => id === stage));
+  if (unknown.length > 0) throw new Error(`not a stage id: ${unknown.join(" ")}; stages are ${STAGE_CATALOG.map(({ id }) => id).join(" ")}`);
   const normalize = (path: string) => path.replaceAll("\\", "/").toLowerCase();
   const key = (model: string, color: readonly number[] | undefined) => `${normalize(model)}|${(color ?? []).slice(0, 3).join(",")}`;
   console.log("stage\tmode\tclient\tview\tfighter L* stock light>stage\t|dL| stock>stage\tdE00 stock>stage\tcontrast\tempty% stock>stage\tL*");
