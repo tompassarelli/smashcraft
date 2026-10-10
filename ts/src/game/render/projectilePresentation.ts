@@ -34,6 +34,7 @@ export class ProjectilePresentation {
   private readonly serials: number[] = [];
   private readonly specs: (Fighter["projectiles"][number]["spec"])[] = [];
   private parked: ParkedFlags | undefined;
+  private readonly definitive: boolean;
 
   constructor(
     character: Character,
@@ -41,7 +42,8 @@ export class ProjectilePresentation {
   ) {
     const hero = heroDefinition(character) !== undefined;
     const paths = fighterProjectileModels(character);
-    const swaps = definitiveCues() ? DEFINITIVE_ULTIMATE_MODELS[character] : undefined;
+    this.definitive = definitiveCues();
+    const swaps = this.definitive ? DEFINITIVE_ULTIMATE_MODELS[character] : undefined;
     const ultimateOnly = paths.filter((path, index) => index > 0 && !hero && ultimateProjectiles(character).some((spec) => spec.model === path));
     paths.forEach((path, index) => {
 
@@ -128,7 +130,12 @@ export class ProjectilePresentation {
       parked[slot] = false;
       const projectile = fighter?.projectiles[index];
       const draw = pool === undefined ? undefined : PROJECTILE_DRAW_OFFSETS[pool.drawn];
-      if (projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot])) {
+      const lichKing = fighter?.character === Character.lichKing;
+      const risen = lichKing && pool?.path.includes("ImpaleHitTarget") === true;
+      const tell = lichKing && pool?.path.includes("AnimateDeadTarget") === true;
+      const defile = lichKing && projectile?.spec?.pool !== undefined;
+      const born = projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot]);
+      if (born && projectile !== undefined && !risen && !tell && !defile) {
         const birth = pool?.path.includes("FreezingBreathMissile") === true || pool?.path.includes("WaterElementalMissile") === true || pool?.path.includes("FrostWyrmMissile") === true;
         if (draw?.seconds === undefined) BlzSetSpecialEffectAnimation(model, draw?.sequence ?? pose.animationSequence ?? (birth ? "birth" : "stand"));
         BlzSetSpecialEffectTime(model, draw?.seconds ?? 0.0);
@@ -146,7 +153,30 @@ export class ProjectilePresentation {
         BlzSetSpecialEffectTime(model, draw.seconds);
         BlzSetSpecialEffectTimeScale(model, 0.0);
       }
-      if (pose.animationSeconds !== undefined) {
+      if (risen) {
+        const width = this.definitive ? f32(87.606247) : f32(37.988001);
+        const height = this.definitive ? f32(353.993782) : f32(636.061981);
+        const centerX = this.definitive ? f32(0.337811) : f32(-0.3387);
+        const centerZ = this.definitive
+          ? born ? paused ? f32(-198.454501) : f32(-146.291377) : f32(133.889278)
+          : born ? f32(-389.412987) : f32(29.882828);
+        const scaleX = f32(f32(2.0 * pose.dangerRadius) / width);
+        const scaleZ = f32(f32(2.0 * pose.dangerRadius) / height);
+        BlzResetSpecialEffectMatrix(model);
+        BlzSetSpecialEffectMatrixScale(model, scaleX, 1.0, scaleZ);
+        BlzSetSpecialEffectPosition(model, this.origin.x + f32(pose.x - f32(centerX * scaleX)), this.origin.y, this.origin.z + f32(pose.z - f32(centerZ * scaleZ)));
+      }
+      if (born && projectile !== undefined && (risen || tell || defile)) {
+        BlzSetSpecialEffectAnimation(model, "birth");
+        this.serials[slot] = projectile.serial;
+        this.specs[slot] = projectile.spec;
+      }
+      if (risen || defile) {
+        BlzSetSpecialEffectTime(model, f32(0.3));
+        BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : this.definitive ? 1.0 : 0.0);
+      } else if (tell && projectile?.spec !== undefined) {
+        BlzSetSpecialEffectTime(model, f32((projectile.spec.life - projectile.life) / 60));
+      } else if (pose.animationSeconds !== undefined) {
         if (!this.visible[slot] && pose.animationSequence !== undefined) BlzSetSpecialEffectAnimation(model, pose.animationSequence);
         BlzSetSpecialEffectTime(model, pose.animationSeconds);
         BlzSetSpecialEffectTimeScale(model, 0.0);
@@ -162,6 +192,11 @@ export class ProjectilePresentation {
         parked[boundarySlot] = false;
         BlzSetSpecialEffectPosition(boundary, this.origin.x + pose.x, this.origin.y - 8.0, this.origin.z + pose.z);
         BlzSetSpecialEffectScale(boundary, pose.dangerRadius);
+        if (defile) {
+          BlzResetSpecialEffectMatrix(boundary);
+          BlzSetSpecialEffectMatrixScale(boundary, 1.0, f32(5.0 / 3.0), 1.0);
+          BlzSetSpecialEffectRoll(boundary, f32(Math.PI * 0.5));
+        }
         const frost = fighter?.character === Character.lich;
         BlzSetSpecialEffectColor(boundary, frost ? 155 : pose.armed ? 170 + 85 * pose.poolPulse : 70, frost ? 210 : pose.armed ? 75 + 180 * pose.poolPulse : 65, frost ? 255 : pose.armed ? 255 : 100);
         BlzSetSpecialEffectAlpha(boundary, pose.armed ? 255 : 160);
