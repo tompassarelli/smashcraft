@@ -11,6 +11,7 @@ export interface StageMaterial {
   readonly tint?: Rgb;
   readonly crop?: readonly [u0: number, v0: number, u1: number, v1: number];
   readonly fitHeight?: boolean;
+  readonly fitFace?: boolean;
 }
 
 export interface PlatformMaterialSet {
@@ -159,8 +160,8 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
     top: { texture: "TerrainArt\\Ruins\\Ruins_RoundTiles.blp" },
     lip: { texture: "TerrainArt\\Ruins\\Ruins_SmallBricks.blp" },
 
-    body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25] },
-    underside: { texture: "Textures\\RuinsVines.blp", crop: [0.40625, 0, 0.59375, 1] },
+    body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25], fitFace: true },
+    underside: { texture: "Textures\\RuinsVines.blp", crop: [0.40625, 0, 0.59375, 1], fitFace: true },
     platform: {
 
       top: { texture: "TerrainArt\\Ruins\\Ruins_LargeBricks.blp", crop: [0, 0, 0.125, 0.25] },
