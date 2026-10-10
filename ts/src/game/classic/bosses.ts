@@ -19,7 +19,7 @@ import { capsuleCircleIntersects } from "../sim/shield";
 import { BossKind, type BossState } from "./runState";
 
 
-export interface BossZone {
+interface BossZone {
   readonly x: number;
   readonly halfWidth: number;
   readonly bottom: number;
@@ -73,9 +73,9 @@ const LICH_KING_DRAWN = { min: [-35.0, -45.0, 0.0], max: [143.0, 45.0, 161.0] } 
 
 
 export const BOSS_OPENING_FRAMES = 90;
-export const BOSS_HEALTH_PER_TIER = 30;
+const BOSS_HEALTH_PER_TIER = 30;
 
-export const BOSS_PROJECTILE_DAMAGE = 6;
+const BOSS_PROJECTILE_DAMAGE = 6;
 
 const DECK_HALF = 600.0;
 const effect = (damage: number, base: number, growth: number, launchX: number, launchZ: number, element: HitElement): HitEffect =>
@@ -195,7 +195,7 @@ export const zoneCenter = (strike: Readonly<BossStrike>, zone: Readonly<BossZone
 const FIGHTER_HEIGHT = 120.0;
 
 
-export function inZone(strike: Readonly<BossStrike>, zone: Readonly<BossZone>, aimX: number, x: number, z: number): boolean {
+function inZone(strike: Readonly<BossStrike>, zone: Readonly<BossZone>, aimX: number, x: number, z: number): boolean {
   const center = zoneCenter(strike, zone, aimX);
   return Math.abs(f32(x - center)) <= zone.halfWidth && z <= zone.top && f32(z + FIGHTER_HEIGHT) >= zone.bottom;
 }

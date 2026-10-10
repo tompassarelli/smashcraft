@@ -55,10 +55,6 @@ export function startDrawingBetweenFrames(): boolean {
 }
 
 
-export function drawnFramesPerTick(): number {
-  return state().drawsPerTick;
-}
-
 
 export function beginPresentedFrame(moving: boolean): void {
   const frames = state();

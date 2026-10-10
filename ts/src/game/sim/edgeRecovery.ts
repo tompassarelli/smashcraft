@@ -20,7 +20,7 @@ export const TELEPORT_LIP_DEPTH = f32(HERO_REFERENCE_HEIGHT * f32(0.5));
 export const TELEPORT_LEDGE_INSET = f32(HERO_REFERENCE_HEIGHT * f32(0.5));
 
 
-export function teleportsThisFrame(f: Readonly<Fighter>): boolean {
+function teleportsThisFrame(f: Readonly<Fighter>): boolean {
   const move = runningTableSpecial(f) >= 0 ? undefined : runningHeroSpecial(f);
   if (move === undefined) return false;
   for (const segment of move.motion ?? []) {

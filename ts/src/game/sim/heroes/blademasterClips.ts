@@ -18,7 +18,7 @@ import { JUMP_CLIPS } from "../../presentation/jumpClipInfo";
 import type { HeroClip, HeroFollowUpPose, HeroPose } from "./hero";
 
 
-export const BLADEMASTER_SEQUENCES = [
+const BLADEMASTER_SEQUENCES = [
   ["Stand - 2", 3534],
   ["Stand cinematic", 5467],
   ["Attack", 1167],

@@ -10,12 +10,12 @@
 
 
 
-export const SNAP_DISTANCE = 512.0;
+const SNAP_DISTANCE = 512.0;
 const SNAP_SQUARED = SNAP_DISTANCE * SNAP_DISTANCE;
 
 const TRACKED_BOUND = 4096;
 
-export type PositionSetter<Handle> = (handle: Handle, x: number, y: number, z: number) => void;
+type PositionSetter<Handle> = (handle: Handle, x: number, y: number, z: number) => void;
 
 export class EffectMotion<Handle> {
   private readonly handles: Handle[] = [];

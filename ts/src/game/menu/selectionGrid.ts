@@ -31,7 +31,7 @@ export interface RosterGrid {
   readonly top: number;
 }
 
-export interface CellRect {
+interface CellRect {
   readonly left: number;
   readonly top: number;
   readonly right: number;

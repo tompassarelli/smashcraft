@@ -84,17 +84,6 @@ export function copyNetworkRow(row: Readonly<MatchFrameInput>, slot: number, tar
   return true;
 }
 
-export function networkRowsMatch(row: Readonly<MatchFrameInput>, source: ParticipantInputs): boolean {
-  if (row.source !== "network") return false;
-  return PARTICIPANT_SLOTS.every(slot => !participantActive(row.networkMask, slot) || sameInput(row.network[slot], source[slot]));
-}
-
-export function replaceNetworkRows(row: MatchFrameInput, source: ParticipantInputs): boolean {
-  if (row.source !== "network") return false;
-  for (const slot of PARTICIPANT_SLOTS) if (participantActive(row.networkMask, slot)) copyInput(row.network[slot], source[slot]);
-  return true;
-}
-
 
 export function copyMatchFrameInput(target: MatchFrameInput, source: Readonly<MatchFrameInput>): void {
   target.frame = source.frame;

@@ -36,7 +36,7 @@ const ABOVE = 110.0;
 const EDGE_INSET = 160.0;
 
 
-export type Choice = (first: number, second: number, count: number) => number;
+type Choice = (first: number, second: number, count: number) => number;
 
 
 export function gameplanPlan(plan: Readonly<FighterGameplan>, f: Readonly<Fighter>, slot: number, frame: number, choice: Choice): number {

@@ -14,8 +14,8 @@ import { leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { melee } from "./tuning";
 
 
-export const SDI_PULSE_TRAVEL = 6;
-export const ASDI_TRAVEL = 3;
+const SDI_PULSE_TRAVEL = 6;
+const ASDI_TRAVEL = 3;
 export const SDI_STEP_TRAVEL = 3;
 
 export const SDI_HIT_TRAVEL = 9;

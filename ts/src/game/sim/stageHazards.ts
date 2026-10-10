@@ -96,14 +96,14 @@ export function windPush(stage: number, frame: number, x: number, z: number): nu
 
 
 
-export const TidePhase = { flood: 0, slackToEbb: 1, ebb: 2, slackToFlood: 3 } as const;
-export type TidePhase = (typeof TidePhase)[keyof typeof TidePhase];
+const TidePhase = { flood: 0, slackToEbb: 1, ebb: 2, slackToFlood: 3 } as const;
+type TidePhase = (typeof TidePhase)[keyof typeof TidePhase];
 
 
 export const TIDE_FLOW_FRAMES = 540;
 export const TIDE_SLACK_FRAMES = 60;
 
-export const TIDE_CYCLE_FRAMES = 2 * (TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES);
+const TIDE_CYCLE_FRAMES = 2 * (TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES);
 
 export const TIDE_SPEED = melee(0.800000011920929);
 
@@ -114,7 +114,7 @@ export const hasTide = (stage: number): boolean => stage === TOMB_OF_SARGERAS_ST
 const tideCycle = (frame: number) => floorMod(frame - 1, TIDE_CYCLE_FRAMES);
 
 
-export function tidePhase(frame: number): TidePhase {
+function tidePhase(frame: number): TidePhase {
   const cycle = tideCycle(frame);
   if (cycle < TIDE_FLOW_FRAMES) return TidePhase.flood;
   if (cycle < TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES) return TidePhase.slackToEbb;

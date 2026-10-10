@@ -1,6 +1,6 @@
 import { parseDecimal } from "../netcode/journal/decimal";
 
-export interface VisualCapture {
+interface VisualCapture {
   readonly token: string;
   readonly frames: readonly number[];
   next: number;

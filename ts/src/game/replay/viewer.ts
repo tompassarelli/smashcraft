@@ -29,7 +29,7 @@ export const VIEWER_API = 1;
 
 const KEYFRAME_FRAMES = 300;
 
-export interface SceneCapsule {
+interface SceneCapsule {
   readonly x1: number;
   readonly z1: number;
   readonly x2: number;
@@ -37,7 +37,7 @@ export interface SceneCapsule {
   readonly radius: number;
 }
 
-export interface ScenePart extends SceneCapsule {
+interface ScenePart extends SceneCapsule {
 
   readonly state: number;
 }
@@ -109,7 +109,7 @@ function sceneFighter(slot: number, f: Readonly<Fighter>): SceneFighter {
 }
 
 
-export function replayScene(state: Readonly<ReplayState>, frame: number): ReplayScene {
+function replayScene(state: Readonly<ReplayState>, frame: number): ReplayScene {
   const stage = state.match.stageChoice;
   const surfaces: { left: number; right: number; z: number }[] = [];
   for (let index = 0; index < surfaceCount(stage); index++) {

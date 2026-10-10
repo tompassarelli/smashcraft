@@ -14,7 +14,7 @@ import { BossKind, type ConfiguredMatch, type ConfiguredOpponent, RunOutcome, Wi
 
 export const CLASSIC_FIGHTS = 6;
 
-export const CLASSIC_TIER_RAMP: readonly number[] = [0, 0, 1, 1, 2, 2];
+const CLASSIC_TIER_RAMP: readonly number[] = [0, 0, 1, 1, 2, 2];
 
 const IDENTITIES: readonly CpuOpponentId[] = ["vale", "ember", "flint", "kite", "rook"];
 
@@ -22,10 +22,10 @@ const PLAYER_STOCKS: readonly number[] = [1, 1, 1, 2, 2, 2];
 const RIVAL_STOCKS: readonly number[] = [1, 1, 1, 1, 2];
 const FIGHT_MINUTES: readonly number[] = [3, 3, 3, 3, 4, 5];
 
-export const fightTier = (tier: number, fight: number): number => Math.min(CPU_TIERS.length - 1, tier + (CLASSIC_TIER_RAMP[fight] ?? 0));
+const fightTier = (tier: number, fight: number): number => Math.min(CPU_TIERS.length - 1, tier + (CLASSIC_TIER_RAMP[fight] ?? 0));
 
 
-export function classicEntry(route: Readonly<ClassicRoute>, fight: number, tier: number): ConfiguredMatch {
+function classicEntry(route: Readonly<ClassicRoute>, fight: number, tier: number): ConfiguredMatch {
   const level = fightTier(tier, fight);
   const last = fight === CLASSIC_FIGHTS - 1;
   const id = `classic.${route.fighter}.${fight}.${level}`;
@@ -49,7 +49,7 @@ export function classicEntry(route: Readonly<ClassicRoute>, fight: number, tier:
 }
 
 
-export const runRoute = (game: Readonly<MatchState>): ClassicRoute | undefined => (game.run.active ? classicRoute(game.run.fighter) : undefined);
+const runRoute = (game: Readonly<MatchState>): ClassicRoute | undefined => (game.run.active ? classicRoute(game.run.fighter) : undefined);
 
 
 export function startClassic(game: MatchState, slot: number): boolean {

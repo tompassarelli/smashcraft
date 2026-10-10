@@ -4,7 +4,7 @@ import { at } from "wisp/src/runtime/lookup";
 
 
 
-export interface PlayerColor {
+interface PlayerColor {
 
   readonly name: string;
 

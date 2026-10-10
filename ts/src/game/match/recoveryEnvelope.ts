@@ -31,7 +31,7 @@ const RESOLUTION = 8.0;
 const FRAME_LIMIT = 420;
 
 
-export interface RecoveryPlan {
+interface RecoveryPlan {
 
   readonly sideFirst: boolean;
 
@@ -184,7 +184,7 @@ function search(limit: number, ok: (value: number) => boolean): number {
   return Math.round(good);
 }
 
-export interface RecoveryEnvelope {
+interface RecoveryEnvelope {
 
   readonly height: number;
 
@@ -201,7 +201,7 @@ export function recoveryEnvelope(character: Character, mana: number): RecoveryEn
 }
 
 
-export interface UpSpecialRoute {
+interface UpSpecialRoute {
   readonly rise: number;
   readonly reach: number;
 }
@@ -246,11 +246,11 @@ export function upSpecialRoute(character: Character, mana: number): UpSpecialRou
 
 
 
-export const RecoveryArchetype = { long: 0, vertical: 1, drifter: 2, heavy: 3 } as const;
-export type RecoveryArchetype = (typeof RecoveryArchetype)[keyof typeof RecoveryArchetype];
+const RecoveryArchetype = { long: 0, vertical: 1, drifter: 2, heavy: 3 } as const;
+type RecoveryArchetype = (typeof RecoveryArchetype)[keyof typeof RecoveryArchetype];
 
 
-export interface RecoveryBand {
+interface RecoveryBand {
   readonly name: string;
   readonly riseMin: number;
   readonly riseMax: number;
@@ -267,9 +267,6 @@ export const RECOVERY_BANDS: readonly RecoveryBand[] = [
   { name: "heavy", riseMin: 320.0, riseMax: 440.0, reachMin: 320.0, reachMax: 480.0, heightMin: 620.0, envelopeReachMin: 740.0 },
 ];
 
-export const FREE_ROUTE_MIN = 240.0;
-export const FREE_HEIGHT_MIN = 500.0;
-export const FREE_REACH_MIN = 640.0;
 
 
 export function recoveryArchetype(character: Character): RecoveryArchetype {

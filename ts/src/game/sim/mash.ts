@@ -7,7 +7,7 @@ import type { Controls } from "./roster";
 const MASH_FRAMES = 8;
 
 
-export interface MashMemory {
+interface MashMemory {
   mashX: number;
   mashZ: number;
   heldFrames: number;
@@ -18,7 +18,7 @@ export interface MashMemory {
 
 
 
-export function mashInputs(memory: MashMemory, input: Readonly<Controls>): number {
+function mashInputs(memory: MashMemory, input: Readonly<Controls>): number {
   let inputs = input.grabMashPressed ? 1 : 0;
   const x = input.direction === 0 ? memory.mashX : input.direction;
   const z = input.verticalDirection === 0 ? memory.mashZ : input.verticalDirection;

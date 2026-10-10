@@ -34,5 +34,5 @@ export const botChance = (first: number, second: number, numerator: number, deno
 
 
 /** Seeds remain exact whole numbers in every game runtime. */
-export const MATCH_SEED_RANGE = 1 << 20;
+const MATCH_SEED_RANGE = 1 << 20;
 export const nextMatchSeed = (seed: number): number => floorMod(seed + 1, MATCH_SEED_RANGE);

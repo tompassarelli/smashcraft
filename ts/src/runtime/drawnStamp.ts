@@ -8,12 +8,12 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 
 
 export const STAMP_CELL = 0.0078125;
-export const STAMP_SCRIPT_BITS = 6;
-export const STAMP_FRAME_BITS = 15;
+const STAMP_SCRIPT_BITS = 6;
+const STAMP_FRAME_BITS = 15;
 
 export const STAMP_CELLS = STAMP_SCRIPT_BITS + STAMP_FRAME_BITS + 3;
-export const STAMP_FRAMES = 32768;
-export const STAMP_SCRIPTS = 64;
+const STAMP_FRAMES = 32768;
+const STAMP_SCRIPTS = 64;
 
 export type StampCell = "guard" | "one" | "zero";
 

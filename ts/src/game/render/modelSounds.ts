@@ -54,7 +54,7 @@ interface SoundSelection {
 }
 
 
-export function modelSoundCrossed(fromSeconds: number, throughSeconds: number, cueSeconds: number, duration: number, looping: boolean, loopIndex: number): boolean {
+function modelSoundCrossed(fromSeconds: number, throughSeconds: number, cueSeconds: number, duration: number, looping: boolean, loopIndex: number): boolean {
   if (loopIndex < 0 || cueSeconds < 0.0 || cueSeconds > duration || throughSeconds < fromSeconds) return false;
   if (loopIndex > 0 && (!looping || duration <= 0.0)) return false;
   const eventSeconds = f32(cueSeconds + f32(loopIndex * duration));
@@ -66,7 +66,7 @@ export function modelSoundCrossed(fromSeconds: number, throughSeconds: number, c
 
 
 
-export function emitModelSoundInterval(catalog: ModelSoundCatalog, sink: ModelSoundSink, selection: Readonly<SoundSelection>, fromSeconds: number, throughSeconds: number, x: number, z: number): void {
+function emitModelSoundInterval(catalog: ModelSoundCatalog, sink: ModelSoundSink, selection: Readonly<SoundSelection>, fromSeconds: number, throughSeconds: number, x: number, z: number): void {
   const { character, clipIndex } = selection;
   const clip = clipIndex === undefined ? undefined : catalog.clip(character, clipIndex);
   if (clip === undefined || throughSeconds < fromSeconds) return;

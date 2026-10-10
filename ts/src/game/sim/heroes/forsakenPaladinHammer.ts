@@ -4,7 +4,7 @@ import { f32 } from "wisp/src/sim/f32";
 
 export const FORSAKEN_PALADIN_DAMAGE_MULTIPLIER = f32(0.8);
 
-export function forsakenPaladinHammerAttack(character: Character, style: AttackStyle | undefined): boolean {
+function forsakenPaladinHammerAttack(character: Character, style: AttackStyle | undefined): boolean {
   return character === Character.forsakenPaladin && style !== undefined
     && style !== AttackStyle.jab && style !== AttackStyle.jab2 && style !== AttackStyle.jab3
     && style !== AttackStyle.backAir && style !== AttackStyle.grab;

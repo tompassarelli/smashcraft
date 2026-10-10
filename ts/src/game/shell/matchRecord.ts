@@ -16,10 +16,10 @@ import { fighterName } from "../sim/heroes/registry";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 
 export const MATCH_RECORD_HEADER = "smashcraft-match";
-export const MATCH_RECORD_VERSION = 1;
+const MATCH_RECORD_VERSION = 1;
 
 
-export interface MatchRecordSource {
+interface MatchRecordSource {
   readonly build: string;
   readonly serial: number;
 

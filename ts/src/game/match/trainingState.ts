@@ -46,7 +46,7 @@ export const LATCH_FIELDS = [
   "mask", "specialX", "specialZ", "dodgeX", "dodgeZ", "groundDodgeDirection", "getupDirection", "sdiX", "sdiZ", "cStickSideFlick", "ledgeVerticalPressed",
 ] as const;
 
-export function emptyLatchedPresses(): LatchedPresses {
+function emptyLatchedPresses(): LatchedPresses {
   return { mask: 0, specialX: 0, specialZ: 0, dodgeX: 0, dodgeZ: 0, groundDodgeDirection: 0, getupDirection: 0, sdiX: 0, sdiZ: 0, cStickSideFlick: 0, ledgeVerticalPressed: 0 };
 }
 

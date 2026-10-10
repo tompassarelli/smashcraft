@@ -23,7 +23,7 @@ const reversalDeciles: readonly (readonly number[])[] = [
 ];
 
 /** The same committed turn draws the same deadline throughout a replay. */
-export function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, tier: CpuTier, executionPercent: number): number {
+function botReversalFrames(chosenFrame: number, slot: ParticipantSlot, tier: CpuTier, executionPercent: number): number {
   const index = CPU_TIERS.indexOf(tier);
   const intended = at(at(reversalDeciles, index), botChoice(chosenFrame, slot * 37 + 811, 10));
   const missed = 100 - executionPercent;

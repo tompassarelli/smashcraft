@@ -86,7 +86,7 @@ export function copyPacingAndPresentation(target: PacingAndPresentation, source:
   }
 }
 
-export function copyBotDecision(target: BotDecision, source: Readonly<BotDecision>): void {
+function copyBotDecision(target: BotDecision, source: Readonly<BotDecision>): void {
   copyControls(target.input, source.input);
   copyAttackBuffer(target.commands, source.commands);
 }

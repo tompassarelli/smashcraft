@@ -68,7 +68,7 @@ const blink = (distance: number): AuthoredSpecial => ({
 const BLINK = blink(f32(H * f32(3.5)));
 
 
-export const WARDEN_FAN_REACH = f32(H * f32(1.30));
+const WARDEN_FAN_REACH = f32(H * f32(1.30));
 const FAN = f32(WARDEN_FAN_REACH - KNIFE_RADIUS);
 const FAN_DIAGONAL = f32(FAN * f32(0.707106781));
 const FAN_CENTER = 48.0;

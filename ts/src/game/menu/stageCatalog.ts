@@ -5,7 +5,7 @@ export const RANDOM_STAGE = 15;
 export type StageTile = 0 | 2 | 3 | 4 | 6 | 7 | 10 | 11 | 12 | 13 | 14;
 export type StageChoice = StageTile | typeof RANDOM_STAGE;
 
-export interface StageInfo<Choice extends StageChoice = StageTile> {
+interface StageInfo<Choice extends StageChoice = StageTile> {
   readonly id: Choice;
   readonly name: string;
 

@@ -14,7 +14,7 @@ import { BossKind, type ConfiguredMatch, RunOutcome, WinCondition, resetBossStat
 
 
 
-export function opponentSlot(player: number, humans: number, index: number): ParticipantSlot | undefined {
+function opponentSlot(player: number, humans: number, index: number): ParticipantSlot | undefined {
   let seen = 0;
   for (const watching of [false, true]) {
     for (const slot of PARTICIPANT_SLOTS) {
@@ -107,7 +107,7 @@ export function applyConfiguredStart(game: Readonly<MatchState>, world: Roster):
 }
 
 
-export function configuredOutcome(game: Readonly<MatchState>, world: Readonly<Roster>): RunOutcome {
+function configuredOutcome(game: Readonly<MatchState>, world: Readonly<Roster>): RunOutcome {
   const { run } = game;
   const entry = run.current;
   if (entry === undefined || game.interrupted) return RunOutcome.lost;

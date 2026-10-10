@@ -28,7 +28,7 @@ function scriptedRow(slot: number, frame: number): InputRow {
   return row;
 }
 
-export interface TapeReplay {
+interface TapeReplay {
 
   readonly parts: readonly (readonly string[])[];
   readonly manifest: readonly string[];

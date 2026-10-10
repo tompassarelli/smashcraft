@@ -12,9 +12,9 @@ import { parseDecimal } from "../game/netcode/journal/decimal";
 import { shellState } from "./shell/state";
 
 
-export const PERF_COMMAND = "-dev perf";
+const PERF_COMMAND = "-dev perf";
 
-export const CAPTURE_COMMAND = "-dev capture ";
+const CAPTURE_COMMAND = "-dev capture ";
 const CAPTURE_HANDLER = "frameMeter.capture";
 
 function captureCommand(): void {

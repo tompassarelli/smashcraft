@@ -43,7 +43,7 @@ export function comboScene(setup: ComboSetup): Scene {
   return match;
 }
 
-export interface RouteResult {
+interface RouteResult {
 
   readonly damage: number;
 

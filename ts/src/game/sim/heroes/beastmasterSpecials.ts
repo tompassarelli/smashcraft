@@ -46,7 +46,7 @@ export const QUILL: SpecialProjectile = {
   effect: hit(2.6999998092651367, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
   model: "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx",
 };
-export const QUILBEAST: SpecialCompanion = {
+const QUILBEAST: SpecialCompanion = {
   ...BEAR, behavior: "sentry", followSpeed: 0.0, lungeStartup: 10, lungeActive: 17, lungeRecovery: 21, lungeTravel: 0.0,
   volleyFrames: [11, 19, 27],
 };

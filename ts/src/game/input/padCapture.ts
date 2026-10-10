@@ -9,7 +9,7 @@ export const PAD_KEYS = [0x7c, 0x7d, 0x7e, 0x7f, 0x80, 0x81, 0x82, 0x83, 0x84, 0
 export const PAD_ACTIVE_KEY = 0x23;
 export const PAD_PRESENT_KEY = 0x24;
 
-export interface PadValues {
+interface PadValues {
   readonly axisX: number;
   readonly axisZ: number;
   readonly triggerLeft: number;
@@ -36,12 +36,12 @@ export function padKeyPacket(pressed: (key: number) => boolean): number | undefi
   return packed;
 }
 
-export function padCursorPacket(x: number, y: number): number | undefined {
+function padCursorPacket(x: number, y: number): number | undefined {
   if (x < 0 || x > 127 || y < 0 || y > 127 || x !== Math.floor(x) || y !== Math.floor(y)) return undefined;
   return x | y << 7;
 }
 
-export function copyPad(row: InputRow, pad: PadValues): void {
+function copyPad(row: InputRow, pad: PadValues): void {
   row.axisX = pad.axisX;
   row.axisZ = pad.axisZ;
   row.triggerLeft = pad.triggerLeft;

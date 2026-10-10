@@ -23,7 +23,7 @@ export type LavaPhase = (typeof LavaPhase)[keyof typeof LavaPhase];
 
 export const LAVA_CALM_FRAMES = 300;
 export const LAVA_WARNING_FRAMES = 300;
-export const LAVA_ERUPTION_FRAMES = 600;
+const LAVA_ERUPTION_FRAMES = 600;
 export const LAVA_SIDE_FRAMES = LAVA_CALM_FRAMES + LAVA_WARNING_FRAMES + LAVA_ERUPTION_FRAMES;
 
 export const LAVA_CYCLE_FRAMES = 2 * LAVA_SIDE_FRAMES;

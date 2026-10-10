@@ -110,7 +110,7 @@ export function moveMeleeZ(f: Fighter, originalDisplacement: number): void {
 }
 
 
-export interface PhysicsTerms {
+interface PhysicsTerms {
   readonly gravity: number;
   readonly terminalSpeed: number;
 

@@ -25,13 +25,13 @@ export const HYDRA_TRIGGER_FRAMES = 150;
 export const HYDRA_TELL_FRAMES = 45;
 export const HYDRA_STRIKE_FRAME = HYDRA_TELL_FRAMES + 1;
 
-export const HYDRA_RADIUS = melee(15.0);
+const HYDRA_RADIUS = melee(15.0);
 export const HYDRA_REACH = 150.0;
 
 export const HYDRA_HIT: Readonly<HitEffect> = { damage: 15.0, growth: 0.0, base: 120.0, launchX: 0.0, launchZ: -1.0, electric: false };
 
 
-export const WATER_BUOYANCY = melee(0.10000000149011612);
+const WATER_BUOYANCY = melee(0.10000000149011612);
 const WATER_RISE_CAP = melee(3.0);
 
 export const SWIM_SPEED = melee(0.6000000238418579);

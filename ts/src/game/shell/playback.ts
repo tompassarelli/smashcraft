@@ -82,7 +82,7 @@ export const CATCH_UP_FRAMES = 6;
 
 
 
-export const REPAIR_FRAMES = 4;
+const REPAIR_FRAMES = 4;
 
 // Bound repair to two whole frames per callback: each costs about 2.5 ms in Lua32 (#168).
 
@@ -90,7 +90,7 @@ export const REPAIR_FRAMES = 4;
 
 
 
-export const REPAIR_COST = 4;
+const REPAIR_COST = 4;
 
 
 

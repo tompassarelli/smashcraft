@@ -1,7 +1,7 @@
 import type { Fighter } from "./fighter";
 
 
-export interface InfluenceOperands {
+interface InfluenceOperands {
   x: number;
   z: number;
   stickX: number;

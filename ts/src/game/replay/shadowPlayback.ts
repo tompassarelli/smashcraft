@@ -23,10 +23,6 @@ const NEUTRAL: Readonly<InputRow> = emptyInput();
  * new frame, and running further would skip later capture targets; replayed
  * journals already hold their rows.
  */
-export function shadowSpeculativeStepBudget(originalFramesRetained: boolean): number {
-  return originalFramesRetained ? 6 : 1;
-}
-
 /** Observes each speculative frame after it runs; the native response probe implements it. */
 interface SpeculativeFrameObserver {
   speculativeFrameRan(epoch: number, localPlayer: number, frame: number, local: Readonly<InputRow>, frontier: number): void;

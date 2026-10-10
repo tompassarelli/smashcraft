@@ -13,7 +13,7 @@ import { runTime } from "./classicText";
 import { applyConfiguredMatch, beginConfiguredRun } from "./configuredMatch";
 import { BossKind, type ConfiguredMatch, RunOutcome, WinCondition } from "./runState";
 
-export interface LoreBattle extends ConfiguredMatch {
+interface LoreBattle extends ConfiguredMatch {
   readonly title: string;
   readonly player: Character;
 }
@@ -198,7 +198,7 @@ export function continueLore(game: MatchState, slot: number): LoreStep {
   return LoreStep.retry;
 }
 
-export function goalText(entry: Readonly<ConfiguredMatch>): string {
+function goalText(entry: Readonly<ConfiguredMatch>): string {
   const clock = runTime(entry.timeMinutes * 60 * 60);
   switch (entry.win) {
     case WinCondition.survive: return `Survive ${clock}`;

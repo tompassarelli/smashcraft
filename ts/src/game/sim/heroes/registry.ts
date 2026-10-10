@@ -66,7 +66,7 @@ export function heroDefinition(character: number): HeroDefinition | undefined {
 }
 
 
-export function selectableCharactersOf(roster: readonly HeroDefinition[]): readonly Character[] {
+function selectableCharactersOf(roster: readonly HeroDefinition[]): readonly Character[] {
   const choices: Character[] = [ Character.rifleman, Character.demonHunter];
   for (const hero of roster) if (hero.complete) choices.push(hero.character);
   return choices;
@@ -130,7 +130,7 @@ export function fighterPortrait(character: number, kind: PortraitKind, slot?: nu
 const ORIGINAL_ICONS: Readonly<Record<number, string>> = { [Character.rifleman]: "BTNRifleman", [Character.demonHunter]: "BTNHeroDemonHunter" };
 
 
-export function fighterIcon(character: number): string {
+function fighterIcon(character: number): string {
   return heroDefinition(character)?.presentation.portrait ?? `ReplaceableTextures\\CommandButtons\\${ORIGINAL_ICONS[character] ?? "BTNRifleman"}.blp`;
 }
 

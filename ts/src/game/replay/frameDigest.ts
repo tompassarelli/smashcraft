@@ -20,7 +20,7 @@ import {
 } from "./replayFold";
 
 
-export const DIGEST_FIELDS: readonly (readonly [string, string])[] = [
+const DIGEST_FIELDS: readonly (readonly [string, string])[] = [
   ["", "facing"],
   ["motion", "x"], ["motion", "z"], ["motion", "vx"], ["motion", "vz"], ["motion", "grounded"],
   ["ground", "action"], ["ground", "actionFrame"],
@@ -93,7 +93,7 @@ export function frameDigest(world: Readonly<Roster>, frame: number): string {
 }
 
 
-export function digestLanesOf(token: string): Lanes | undefined {
+function digestLanesOf(token: string): Lanes | undefined {
   if (token.length !== 6) return undefined;
   const first = laneValue(token.substring(0, 3));
   const second = laneValue(token.substring(3, 6));
@@ -103,7 +103,7 @@ export function digestLanesOf(token: string): Lanes | undefined {
 
 
 
-export interface FieldDifference {
+interface FieldDifference {
 
   readonly field: string;
   readonly replayed: number | boolean;
@@ -113,7 +113,7 @@ export interface FieldDifference {
 }
 
 
-export interface DigestDifference {
+interface DigestDifference {
 
   readonly fields: readonly FieldDifference[];
 }

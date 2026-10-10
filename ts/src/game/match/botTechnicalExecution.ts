@@ -7,7 +7,7 @@ import type { CpuDecisionPolicy } from "./cpuDecisionPolicy";
 
 export type TechnicalOutcome = "none" | "executed" | "dropped" | "wrongOption";
 
-export const FRAME_TIGHT_EXTRA_MISS = 9;
+const FRAME_TIGHT_EXTRA_MISS = 9;
 export function isFrameTight(input: Readonly<Controls>): boolean {
   return input.airDodgePressed;
 }

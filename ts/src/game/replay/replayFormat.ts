@@ -17,7 +17,7 @@ function wholeNumber(text: string | undefined): number | undefined {
 }
 
 
-export interface ReplayManifest {
+interface ReplayManifest {
   readonly build: string;
   readonly version: string;
   readonly serial: number;
@@ -45,7 +45,7 @@ export function parseReplayPart(lines: readonly string[], serial: number, part: 
 }
 
 
-export interface ReplayHeader {
+interface ReplayHeader {
   readonly repro: Repro;
   readonly serial: number;
   readonly version: string;
