@@ -155,6 +155,7 @@ src/game/sim/ledge.tests.ts	8	1005000	8491
 src/game/sim/mana.tests.ts	2	682000	7132
 src/game/sim/mathTables.tests.ts	2	16133000	2
 src/game/sim/meleeContact.tests.ts	1	19000	59
+src/game/sim/motionPhases.tests.ts	4	664000	1029
 src/game/sim/normals.tests.ts	2	3842000	19406
 src/game/sim/physics.tests.ts	28	6066000	6138
 src/game/sim/physicsPrecisionMotion.tests.ts	4	791000	2863
