@@ -53,8 +53,11 @@ run's own status is red whenever a suite shard fails; its `land` job and
 summary say what landed. To test a refused branch again without a new
 commit: `gh workflow run autoland.yml -f branch=claude/NAME`.
 
-Everything runs on GitHub's hosted runners from source: no private build
-inputs, no `.w3x` build. A change to `.github/workflows/` lands through
+Everything runs from source: no private build inputs, no `.w3x` build.
+The farm test's Bun and Lua32 shards and Balance's shard and probe jobs run
+on the runner label in the repository variable `FARM_RUNNER` (`farm-big`, a
+self-hosted box) and on hosted runners when it is unset or for a pull
+request; delete the variable when the box is gone, or those jobs queue. A change to `.github/workflows/` lands through
 `safe-push`'s direct path, which it takes by itself for such a lane.
 
 ## Sheriff

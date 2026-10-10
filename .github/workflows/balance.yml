@@ -106,7 +106,7 @@ jobs:
 
   shard:
     needs: plan
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: ${{ fromJSON(needs.plan.outputs.shard-timeout) }}
     strategy:
       fail-fast: true
@@ -195,7 +195,7 @@ jobs:
   probe:
     needs: [plan, merge]
     if: ${{ inputs.matchups == '' && inputs.probe != '0' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: ${{ fromJSON(needs.plan.outputs.probe-timeout) }}
     strategy:
       fail-fast: true

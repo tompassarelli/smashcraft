@@ -84,7 +84,7 @@ jobs:
 
   bun:
     needs: plan
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -93,6 +93,7 @@ jobs:
     name: bun ${{ matrix.shard }}
     steps:
       - name: Install stock texture converter
+        if: runner.environment == 'github-hosted'
         run: sudo apt-get update -q && sudo apt-get install -y -q imagemagick
       - uses: actions/checkout@v4
         with:
@@ -139,7 +140,7 @@ jobs:
 
   lua:
     needs: plan
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
