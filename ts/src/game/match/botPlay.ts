@@ -25,7 +25,7 @@ import { FAST_BOT_HISTORY_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, observeOpp
 import { chooseDefense } from "./botDefense";
 import { burnedMove, keepClearOfBurn } from "./botBurn";
 import { choosePunish } from "./botPunish";
-import { TRAP_ATTACK, TRAP_NONE, chooseLedgeTrap } from "./botLedgeTrap";
+import { chooseLedgeTrap } from "./botLedgeTrap";
 import { chooseRecoveryInput } from "./botRecovery";
 import { guardOffstage, waitAtLip } from "./botEdgeGuard";
 import { escapeCorner, pokeGoal, pressCorner, pressEdgeCancel, steerEdgeCancel } from "./botCorner";
@@ -346,11 +346,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
   }
-  const trap = skill.tier === "expert" && skill.basicMoves === undefined ? chooseLedgeTrap(fighter, target, stage, frame, input, commands, delay <= 0) : TRAP_NONE;
-  if (trap !== TRAP_NONE) {
-    if (trap === TRAP_ATTACK) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
-    return;
-  }
+  if (skill.cornerPlay && skill.basicMoves === undefined && chooseLedgeTrap(fighter, target, stage, observationAge, input)) return;
   if (skill.basicMoves === undefined && pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
   if (skill.basicMoves === undefined && keepClearOfBurn(runtime.botStrategies[slot], burned, fighter, target, stage, frame, observationAge, stageFrame, input)) return;
   if (escapeCorner(fighter, target, stage, skill, slot, frame, input) || pressEdgeCancel(fighter, target, stage, skill, slot, frame, input, commands)) return;

@@ -17,7 +17,8 @@ import { DOWN_BOUND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../si
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { heroSpecialEndFrame, runningHeroSpecial } from "../sim/heroSpecialRules";
-import { attackLandingLag, attackStartupFrames, characterAttackActiveFrames, landsIntoAttack } from "../sim/moves";
+import { LEDGE_CLIMB_FRAMES } from "../sim/ledge";
+import { LEDGE_ATTACK_FRAMES, attackLandingLag, attackStartupFrames, characterAttackActiveFrames, landsIntoAttack } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import type { FighterGameplan } from "../sim/gameplan";
@@ -28,7 +29,7 @@ import { botChance } from "./botRandom";
 import type { CpuSkill } from "./cpuSkill";
 
 
-export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6, status: 7, knockdown: 8 } as const;
+export const PunishKind = { none: 0, endLag: 1, grab: 2, special: 3, landing: 4, shieldDrop: 5, dodge: 6, status: 7, knockdown: 8, ledge: 9 } as const;
 export type PunishKind = (typeof PunishKind)[keyof typeof PunishKind];
 
 
@@ -73,6 +74,20 @@ function knockdownWindow(t: Readonly<Fighter>, frame: number, age: number, windo
 
 
 
+
+/** A ledge climb or ledge attack opens once its ledge intangibility and its swing are spent. */
+function ledgeWindow(t: Readonly<Fighter>, age: number, window: PunishWindow): boolean {
+  const { ledge } = t;
+  const attack = ledge.state === LedgeState.attack;
+  const at = ledge.frame + age;
+  const swing = attack ? attackStartupFrames(AttackStyle.ledgeAttack, t.tuning.moves) + characterAttackActiveFrames(t.character, AttackStyle.ledgeAttack, t.tuning.moves) : 0;
+  window.kind = PunishKind.ledge;
+  window.elapsed = at;
+  window.frames = (attack ? LEDGE_ATTACK_FRAMES : LEDGE_CLIMB_FRAMES) - at;
+  window.earliest = Math.max(0, ledge.intangible - age, swing - at);
+  window.key = ledge.serial * 16 + PunishKind.ledge;
+  return window.frames > window.earliest;
+}
 
 function specialSpent(t: Readonly<Fighter>, window: PunishWindow, observationAge: number): number {
   const move = runningHeroSpecial(t);
@@ -125,6 +140,7 @@ export function punishWindow(t: Readonly<Fighter>, frame: number, window: Punish
   if (!t.status.out && t.status.frozenFrames <= 0 && t.grab.owner === undefined && t.down.state !== DownState.none) {
     return knockdownWindow(t, frame, Math.max(0, observationAge - Math.max(0, t.launch.hitlag - 1)), window);
   }
+  if (!t.status.out && t.launch.hitlag <= 0 && t.status.frozenFrames <= 0 && (t.ledge.state === LedgeState.climb || t.ledge.state === LedgeState.attack)) return ledgeWindow(t, observationAge, window);
   if (t.status.out || t.launch.hitlag > observationAge || t.launch.hitstun > 0 || t.status.frozenFrames > 0
     || t.down.state !== DownState.none || t.grab.owner !== undefined || t.grab.target !== undefined || t.grab.action !== GrabAction.none
     || t.ledge.state !== LedgeState.none || t.shield.raised || t.shield.stun > 0) return false;

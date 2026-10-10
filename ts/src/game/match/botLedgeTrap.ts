@@ -1,31 +1,40 @@
 import { f32 } from "wisp/src/sim/f32";
-import { type AttackBuffer, queueAttack } from "../input/attackBuffer";
 import { AttackStyle, LedgeState } from "../sim/codes";
-import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
+import { attackStartupFrames, characterAttackActiveFrames } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../sim/stage";
 import { steerOnGround } from "./botFooting";
 
 export const LEDGE_TRAP_GAP = 60.0;
 const ARRIVED = 30.0;
-export const TRAP_NONE = 0;
-export const TRAP_HOLD = 1;
-export const TRAP_ATTACK = 2;
 
-export function chooseLedgeTrap(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, frame: number, input: Controls, commands: AttackBuffer, ready: boolean): number {
+/** Whether a ledge attack from `target` is still to swing, observed this many frames ago. */
+function getupAttackAhead(target: Readonly<Fighter>, age: number): boolean {
+  const { ledge } = target;
+  if (ledge.state === LedgeState.hang) return true;
+  if (ledge.state !== LedgeState.attack) return false;
+  return ledge.frame + age < attackStartupFrames(AttackStyle.ledgeAttack, target.tuning.moves) + characterAttackActiveFrames(target.character, AttackStyle.ledgeAttack, target.tuning.moves);
+}
+
+/**
+ * Holds the spot just inside a hanging opponent's ledge, shielding while its
+ * ledge attack is still to come; it throws nothing into ledge intangibility,
+ * and botPunish.ts's ledge window answers the get-up once it can be hit.
+ */
+export function chooseLedgeTrap(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, observationAge: number, input: Controls): boolean {
   const state = target.ledge.state;
-  if (state === LedgeState.none || state === LedgeState.roll || !f.motion.grounded || f.motion.surface !== 0) return TRAP_NONE;
+  if (state === LedgeState.none || state === LedgeState.roll || !f.motion.grounded || f.motion.surface !== 0) return false;
   const side = target.ledge.side;
   const edge = side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
   const spot = f32(edge - side * LEDGE_TRAP_GAP);
-  steerOnGround(f, stage, spot, input);
   const arrived = Math.abs(f32(f.motion.x - spot)) <= ARRIVED;
-  if (arrived && f.facing !== side) {
-    input.direction = side;
-    input.walking = true;
+  if (!arrived) {
+    steerOnGround(f, stage, spot, input);
+    return true;
   }
-  if (state === LedgeState.hang || !arrived || !canAttack(f) || !ready) return TRAP_HOLD;
-  queueAttack(commands, { style: AttackStyle.forwardTilt, facing: side < 0 ? -1 : 1, frame, mayCharge: false });
-  return TRAP_ATTACK;
+  input.direction = f.facing !== side ? side : 0;
+  input.walking = true;
+  input.shield = getupAttackAhead(target, observationAge);
+  return true;
 }
