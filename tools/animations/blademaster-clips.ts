@@ -1,5 +1,6 @@
 
 import { mkdirSync } from "node:fs";
+import { mat4, quat, vec3 } from "../../ts/node_modules/gl-matrix";
 import { join, relative, resolve } from "node:path";
 import { generateMDX, ModelRenderer, model as mdx } from "war3-model";
 import { DrawnModel, sheet } from "../../ts/scripts/wisp/hurtboxView";
@@ -21,6 +22,27 @@ const grip = new Float32Array([94.21669006347656, -66.13787841796875, 72.9908142
 sword.PivotPoint = grip; source.PivotPoints[sword.ObjectId] = grip;
 const gripOffset = Float32Array.from(grip, (value, axis) => rightHand.PivotPoint[axis]! - value);
 sword.Translation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: source.Sequences.flatMap(s => [s.Interval[0], s.Interval[1]].map(Frame => ({ Frame, Vector: gripOffset.slice() }))) };
+const lateralBladeClips = ["Attack Slam", "Stand - 4"];
+for (const name of lateralBladeClips) {
+  const index = source.Sequences.findIndex(s => s.Name === name), sequence = source.Sequences[index];
+  ensure(sequence && sword.Rotation, `missing ${name} sword motion`);
+  const renderer = new ModelRenderer(source), data = Reflect.get(renderer, "rendererData") as { frame: number; nodes: { matrix: Float32Array }[] };
+  const keys: mdx.AnimVector["Keys"] = [];
+  for (let frame = sequence.Interval[0];; frame = Math.min(sequence.Interval[1], frame + 1000 / 60)) {
+    renderer.setSequence(index); data.frame = frame; renderer.update(0);
+    const world = data.nodes[sword.ObjectId]!.matrix, parent = data.nodes[rightHand.ObjectId]!.matrix;
+    const hand = vec3.transformMat4(vec3.create(), grip, world);
+    const tip = vec3.transformMat4(vec3.create(), [90.45929718017578, 63.46139907836914, 82.50170135498047], world);
+    const direction = vec3.sub(vec3.create(), tip, hand), outward = vec3.clone(direction);
+    outward[1] = (hand[1] < 0 ? -1 : 1) * (Math.abs(direction[1]) + 50);
+    const turn = quat.rotationTo(quat.create(), vec3.normalize(vec3.create(), direction), vec3.normalize(vec3.create(), outward));
+    const aimed = quat.multiply(quat.create(), turn, mat4.getRotation(quat.create(), world));
+    const Vector = new Float32Array(quat.normalize(quat.create(), quat.multiply(quat.create(), quat.invert(quat.create(), mat4.getRotation(quat.create(), parent)), aimed)));
+    keys.push({ Frame: Math.round(frame), Vector, InTan: Vector.slice(), OutTan: Vector.slice() });
+    if (frame === sequence.Interval[1]) break;
+  }
+  sword.Rotation.Keys = sword.Rotation.Keys.filter(k => k.Frame < sequence.Interval[0] || k.Frame > sequence.Interval[1]).concat(keys).sort((a, b) => a.Frame - b.Frame);
+}
 const model = structuredClone(source), hero = heroDefinition(Character.blademaster); ensure(hero, "missing moves");
 const stand = source.Sequences.find(s => s.Name === "Stand Ready"); ensure(stand, "missing guard");
 type V = readonly [number, number, number];
@@ -142,4 +164,4 @@ for(let i=0;i<contacts.length;i++)for(let j=0;j<i;j++){
   ensure(delta>2,`${records[i]!.pose}/${records[j]!.pose}: repeated contact silhouette`);
 }
 console.log(`BLADEMASTER_CONTACT_PASS ${records.length} distinct hit poses; minimum mean vertex difference ${closest.toFixed(3)}`);
-console.log(`BLADEMASTER_CLIPS_PASS ${gestures.length} authored gestures; ${source.Sequences.length*3} shipped poses preserved`);
+console.log(`BLADEMASTER_CLIPS_PASS ${gestures.length} authored gestures; ${source.Sequences.length*3} base poses retained after grip repair`);
