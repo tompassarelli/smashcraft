@@ -8,7 +8,7 @@ import { AttackPhase, AttackStyle, type Character } from "../../ts/src/game/sim/
 import { createFighter } from "../../ts/src/game/sim/fighter";
 import { heroDefinition } from "../../ts/src/game/sim/heroes/registry";
 import type { HeroPose } from "../../ts/src/game/sim/heroes/hero";
-import { attackStartupFrames, attackDurationFramesForGrounding } from "../../ts/src/game/sim/moves";
+import { attackStartupFrames, attackDurationFramesForGrounding, characterAttackActiveFrames } from "../../ts/src/game/sim/moves";
 import { FIGHTER_ULTIMATES } from "../../ts/src/game/sim/ultimates";
 import { heroCueWindows } from "../../ts/src/game/presentation/specialCues";
 import { ROSTER_ATTACK_CLIPS } from "../../ts/src/game/presentation/rosterAttackClipInfo";
@@ -22,7 +22,7 @@ const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir", "upTilt", "forwardTiltUp", "neutralSpecial", "jab", "jab2", "forwardTilt", "forwardSmash", "sideSpecial", "ultimate"],
   6: ["forwardTiltDown", "downTilt", "backAir", "downSpecial", "forwardTilt", "forwardTiltUp", "upTilt", "forwardSmash", "upSmash", "downSmash", "dashAttack", "forwardAir", "upAir"],
   8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir"],
-  9: ["jab3", "forwardTilt", "forwardTiltUp", "upTilt", "dashAttack", "forwardAir", "upSmash", "upAir", "forwardSmash", "downTilt"],
+  9: ["jab3", "forwardTilt", "forwardTiltUp", "upTilt", "dashAttack", "forwardAir", "upSmash", "upAir", "forwardSmash", "downTilt", "jab", "neutralSpecial"],
   10: ["forwardTilt", "forwardAir", "upAir", "neutralAir"],
   11: ["jab2", "jab3", "forwardTilt", "forwardTiltDown", "downTilt", "dashAttack", "backAir", "upSmash", "neutralAir", "upAir", "forwardAir", "downSpecial"],
   12: ["forwardTiltDown"],
@@ -53,7 +53,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
   4: { jab: [-7, 1, 78, -1, -90, 15, 10, 1], jab2: [70, -2, -91, -18, -90, -13, 5, -25], upTilt: [34, -145, -103, 15, 35, -5, -1, 0], dashAttack: [30, 10, -60, -40, 0, 15, 20, 12] },
   6: { forwardTilt: [-10, -45, 5, -2, -1, 0, 0, 10], forwardTiltDown: [25, -70, 10, 0, 0, 0, 0, 12], downTilt: [20, -68, 15, -10, -10, 0, 0, 25], dashAttack: [28, -84, -5, 1, 2, 0, 0, 10] },
   8: { jab2: [-12, -48, -42, 38, -20, 18, -8, 10], jab3: [3, -75, 80, -52, 25, 6, 35, 5], downTilt: [15, 35, 50, -15, -60, -83, 95, 10] },
-  9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [48, -75, 65, -22, 50, -65, 100, -5], downTilt: [22, 35, 45, -15, -60, -40, 55, 0] },
+  9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [-48, -75, 65, -22, 50, -65, 100, 0], downTilt: [22, 35, 45, -15, -60, -40, 55, 0], jab: [8, -35, 30, -20, 10, 0, 0, 0], neutralSpecial: [-8, -75, 20, -32, 20, 0, 0, 0] },
   10: { forwardTilt: [32, -95, 35, -48, -22, -18, 22, 20] },
   11: {
     jab2: [-57, -48, -42, 38, -20, 18, -8, 0], jab3: [-17, -75, 45, -42, 25, -24, 35, 0], forwardTilt: [32, -55, 35, 12, 18, -18, 22, 0],
@@ -367,14 +367,15 @@ for(const [id,poses]of Object.entries(PLAN)) {
     ensure(articulated>=4,`${f.name}/${pose}: only ${articulated} moving joints`);
     for(let frame=0;frame<=total;frame++) {
       const arc=frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
-      helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),contactProfile(pose,character)![7]!*arc)});
+      const spin = character === 9 && pose === "dashAttack";
+      helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),spin ? 360*Math.min(1,Math.max(0,(frame-contact)/(characterAttackActiveFrames(character,AttackStyle.dashAttack,moves)-1))) : contactProfile(pose,character)![7]!*arc,spin ? 2 : 1)});
     }
     if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const shadowLow = character === 9 && pose === "downTilt";
     if (wardenWeaponPose(character,pose) || shadowLow) aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
     const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow?", aligned: true":""} }`;
     bindings.push(`    ${pose}: ${binding},`);
-    if(special&&pose!=="ultimate")for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
+    if(special&&pose!=="ultimate"&&!(character===9&&pose==="neutralSpecial"))for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
     const moments=[Math.max(1,contact-3),contact,Math.min(total-1,contact+5)];
     for(const facing of [1,-1])for(const frame of moments)drawnFrames.push({frame,facing,clip:index,seconds:frame/60,phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]});
     records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:wardenWeaponPose(character,pose) || shadowLow});
