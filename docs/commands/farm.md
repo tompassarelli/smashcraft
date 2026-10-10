@@ -3,8 +3,8 @@
 - Compute farm: `bun wisp farm test [--ref REF] [--wait]` runs the full Bun
   and 32-bit Lua suites, sharded by measured time
   (smashcraft:.github/workflows/farm-test.yml). It refuses a commit already
-  on main (main's CI runs these suites) or queued in Autoland (the train runs
-  them).
+  on main (main's CI runs these suites) or pending in Autoland (queued,
+  testing alone, passed alone or in a train: Autoland runs them).
   Balance, Playtest and memory soaks run only on a commit on main or on a lane
   tip named with `--lane NAME` (pushed to `claude/NAME`), never on a scratch
   branch; perf, pads and difficulty runs may also use a `farm/` scratch branch.

@@ -48,11 +48,13 @@ export function liveness(facts: Facts): Verdict {
   return { live: false, why: lane === undefined ? `${short} isn't on main` : `${short} isn't on main or on ${lane}` };
 }
 
-export function admit(facts: Facts & { readonly autoland: string | undefined }): Admission {
+export interface AutolandStatus { readonly state: string; readonly description: string }
+
+export function admit(facts: Facts & { readonly autoland: AutolandStatus | undefined }): Admission {
   const short = facts.sha.slice(0, 12);
   if (facts.workflow === "test") {
     if (facts.onMain) return { kind: "refuse", why: `${short} is on main, whose CI runs these suites: gh run list --workflow ci.yml --commit ${facts.sha}` };
-    if (facts.autoland === "queued" || facts.autoland === "bisect") return { kind: "refuse", why: `${short} is ${facts.autoland} in Autoland, which runs these suites on it` };
+    if (facts.autoland?.state === "pending") return { kind: "refuse", why: `${short} is ${facts.autoland.description} in Autoland, which runs these suites on it` };
     return { kind: "scratch" };
   }
   const verdict = liveness(facts);

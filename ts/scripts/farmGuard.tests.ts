@@ -24,9 +24,11 @@ test("the farm's recorded runs of 2026-10-10: the orphaned Balance on a reverted
 test("farm test refuses a commit main's CI or Autoland already tests [spec docs/commands/farm.md]", () => {
   const unpushed: Facts = { workflow: "test", sha: "b67e02f60c2097de6f78addb8fbe796f4f4bfad3", onMain: false, revertedBy: undefined, lane: undefined, onLane: false };
   expect(admit({ ...unpushed, onMain: true, autoland: undefined }).kind).toBe("refuse");
-  expect(admit({ ...unpushed, autoland: "queued" }).kind).toBe("refuse");
-  expect(admit({ ...unpushed, autoland: "bisect" }).kind).toBe("refuse");
-  expect(admit({ ...unpushed, autoland: "landed as 1234567" })).toEqual({ kind: "scratch" });
+  for (const description of ["queued", "bisect", "waiting to test alone", "testing alone on 1a2b3c4d", `passed alone on ${"a".repeat(40)} as tree ${"b".repeat(40)}`]) {
+    expect(admit({ ...unpushed, autoland: { state: "pending", description } }).kind).toBe("refuse");
+  }
+  expect(admit({ ...unpushed, autoland: { state: "success", description: "landed as 1234567" } })).toEqual({ kind: "scratch" });
+  expect(admit({ ...unpushed, autoland: { state: "failure", description: "failed alone on 1234567" } })).toEqual({ kind: "scratch" });
   expect(admit({ ...unpushed, autoland: undefined })).toEqual({ kind: "scratch" });
 });
 
@@ -36,7 +38,7 @@ test("admission and the in-run guard agree: a dispatched run is live at its firs
     for (const lane of lanes) {
       for (const bits of [0, 1, 2, 3, 4, 5, 6, 7]) {
         const facts: Facts = { workflow, sha: "9ff8890763640c0ddf50c14226b7060a9a7d0435", onMain: (bits & 1) !== 0, revertedBy: (bits & 2) !== 0 ? "50cdde8af763" : undefined, lane, onLane: (bits & 4) !== 0 };
-        for (const autoland of [undefined, "queued"]) {
+        for (const autoland of [undefined, { state: "pending", description: "queued" }]) {
           const admission = admit({ ...facts, autoland });
           if (admission.kind === "dispatch") expect(liveness({ ...facts, lane: admission.lane === "" ? undefined : admission.lane }).live).toBe(true);
           if (MAIN_ONLY.has(workflow)) expect(admission.kind).not.toBe("scratch");

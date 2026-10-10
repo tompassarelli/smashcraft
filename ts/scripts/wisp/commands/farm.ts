@@ -43,9 +43,9 @@ const admission = (workflow: FarmWorkflow, given: string | undefined, named: str
   const after = log.split("\x1e").map((entry) => entry.trim()).filter(Boolean).map((entry) => ({ sha: entry.split("\x1f")[0] ?? "", message: entry.split("\x1f")[1] ?? "" }));
   const onLane = laneTip !== undefined && (yield* isAncestor(sha, laneTip));
   const autoland = workflow === "test" && !onMain
-    ? yield* run(["gh", "api", `repos/${repo}/commits/${sha}/statuses`, "--jq", "[.[] | select(.context == \"autoland\")][0].description // \"\""]).pipe(Effect.orElseSucceed(() => ""))
+    ? yield* run(["gh", "api", `repos/${repo}/commits/${sha}/statuses`, "--jq", "[.[] | select(.context == \"autoland\")][0] | if . == null then \"\" else \"\\(.state)\\t\\(.description)\" end"]).pipe(Effect.orElseSucceed(() => ""))
     : "";
-  return { sha, verdict: admit({ workflow, sha, onMain, revertedBy: revertedBy(sha, after), lane, onLane, autoland: autoland === "" ? undefined : autoland }) };
+  return { sha, verdict: admit({ workflow, sha, onMain, revertedBy: revertedBy(sha, after), lane, onLane, autoland: autoland === "" ? undefined : { state: autoland.split("\t")[0] ?? "", description: autoland.split("\t").slice(1).join("\t") } }) };
 });
 
 
