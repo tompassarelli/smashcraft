@@ -67,7 +67,7 @@ export function arenaFraming(left: number, right: number, bottom: number, top: n
 export const RESULTS_CAMERA_FRAMES = 30;
 
 export function resultFighterPlacement(stage: number, index: number, count: number): { readonly x: number; readonly z: number } {
-  const centre = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0;
+  const centre = (mainDeckLeft(stage) + mainDeckRight(stage)) / 2.0 - (count <= 2 ? 240.0 : 0.0);
   const spacing = Math.min(240.0, (mainDeckRight(stage) - mainDeckLeft(stage)) / (count + 1));
   const x = centre + (index - (count - 1) / 2.0) * spacing;
   return { x, z: mainDeckZAt(stage, x) };
