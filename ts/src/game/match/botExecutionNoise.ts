@@ -30,7 +30,7 @@ export function chooseHitlagInput(f: Readonly<Fighter>, slot: number, frame: num
   const { launch } = f;
   if (!launch.diPending) return;
   const rates = defenceSlipRates(skill.decision.executionPercent, skill.tier);
-  const outward = sign(launch.knockbackX) || (f.motion.x < 0 ? -1 : 1);
+  const outward = launch.knockbackX !== 0.0 ? sign(launch.knockbackX) : f.motion.x < 0 ? -1 : 1;
   const upward = Math.abs(launch.knockbackZ) > Math.abs(launch.knockbackX);
   const survival = f.status.damage >= 80 || launch.diLaunchSpeed >= 20.0;
 
