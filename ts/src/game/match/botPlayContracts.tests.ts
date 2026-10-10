@@ -262,9 +262,14 @@ test("a computer repeats a decision only from the same state: any change to its 
   before.match.matchFrame++;
   assertFalse(same());
   before.match.matchFrame--;
-  // The perceived sample: a memory with one more observation sees a newer one.
-  const seen = frame + cpuReactionFloor(fighterAt(game.world, 1), cpuSkill("wren", "expert"));
-  assertTrue(sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen));
+  // The perceived sample: a memory with one more observation sees a newer one once the delay reaches it,
+  // never before the reaction floor and always within the slowest 39-frame reaction.
+  const sameAt = (seen: number) => sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen);
+  const floor = cpuReactionFloor(fighterAt(game.world, 1), cpuSkill("wren", "expert"));
+  for (let age = 1; age <= 39; age++) assertTrue(sameAt(frame + age));
   observeOpponents(before.runtime.botMemory, before.world, frame);
-  assertFalse(sameComputerInputs(game.match, game.world, game.runtime, before.match, before.world, before.runtime, 1, seen));
+  let refused = 0;
+  while (refused <= 39 && sameAt(frame + refused)) refused++;
+  assertGreaterThan(refused, floor - 1);
+  assertFalse(sameAt(frame + 39));
 });

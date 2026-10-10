@@ -20,6 +20,7 @@ import { SPACE_PLAN, avoids, gameplanGoal, gameplanOf, gameplanPlan, gameplanThr
 import { steerInAir, steerOnGround } from "./botFooting";
 import { chooseAttack, lastChoicePassedForVariety, smashChargeGoal } from "./botMoves";
 import { botChance, botChoice, useMatchSeed } from "./botRandom";
+import type { CpuTier } from "./cpuProfiles";
 import { type CpuSkill, cpuSkill, cpuReactionFloor, cpuReactionFrames, perceivedCpuSkill } from "./cpuSkill";
 import { FAST_BOT_HISTORY_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
 import { chooseDefense } from "./botDefense";
@@ -175,21 +176,22 @@ export function approachPoint(f: Readonly<Fighter>, stage: number, x: number, z:
   }
 }
 
-function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>, fighter: Fighter, slot: ParticipantSlot, frame: number, skill: CpuSkill): number {
-  const floor = cpuReactionFloor(fighter, skill);
+function reactionDelay(game: Readonly<MatchState>, runtime: Readonly<BotRuntime>, fighter: Readonly<Fighter>, slot: ParticipantSlot, frame: number, skill: CpuSkill, floor = cpuReactionFloor(fighter, skill)): number {
   const cue = perceivedOpponent(runtime.botMemory, fighter, slot, frame, floor);
   // Only information old enough for this kind of answer may affect its seeded delay.
   const key = cue === undefined ? 0 : cue.attack.serial * 31 + cue.special.action * 17
     + (cue.motion.x < fighter.motion.x ? 1 : 2) + (cue.shield.raised ? 4 : 0)
     + (cue.motion.grounded ? 8 : 0) + cue.ledge.state * 64 + cue.down.state * 256;
-  return cpuReactionFrames(fighter, skill, game.matchSeed, slot, key);
+  return cpuReactionFrames(fighter, skill, game.matchSeed, slot, key, floor);
 }
 
+const slowTier = (tier: CpuTier | undefined): boolean => tier === "rookie" || tier === "beginner";
+
 function observationFrames(game: Readonly<MatchState>, skill: CpuSkill): number {
-  if (skill.tier === "rookie" || skill.tier === "beginner") return BOT_HISTORY_FRAMES;
-  for (const slot of PARTICIPANT_SLOTS) {
-    if (computerActive(game, slot) && (game.cpuTiers[slot] === "rookie" || game.cpuTiers[slot] === "beginner")) return BOT_HISTORY_FRAMES;
-  }
+  if (slowTier(skill.tier)) return BOT_HISTORY_FRAMES;
+  const tiers = game.cpuTiers;
+  if (!slowTier(tiers[0]) && !slowTier(tiers[1]) && !slowTier(tiers[2]) && !slowTier(tiers[3])) return FAST_BOT_HISTORY_FRAMES;
+  for (const slot of PARTICIPANT_SLOTS) if (computerActive(game, slot) && slowTier(tiers[slot])) return BOT_HISTORY_FRAMES;
   return FAST_BOT_HISTORY_FRAMES;
 }
 
@@ -251,19 +253,20 @@ export function sameComputerInputs(game: Readonly<MatchState>, world: Readonly<R
   const contest = dropContest(game, fighter, slot, skill) === dropContest(before, fighterAt(beforeWorld, slot), slot, skill);
   useMatchSeed(0);
   if (!contest) return false;
-  if (observationFrames(game, skill) !== observationFrames(before, skill)) return false;
-  const delay = reactionDelay(game, runtime, fighter, slot, frame, skill);
-  // With no delay the computer sees this frame's observation, which a rollback rewrites.
-  if (delay < 1) return false;
   const attackDelay = runtime.botAttackDelays[slot];
   const beforeDelay = beforeRuntime.botAttackDelays[slot];
   if (attackDelay !== beforeDelay || negativeZero(attackDelay) !== negativeZero(beforeDelay)) return false;
   if (!sameBotStrategy(runtime.botStrategies[slot], beforeRuntime.botStrategies[slot])) return false;
-  if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, cpuReactionFloor(fighter, cpuSkill(opponent, tier)))) return false;
-  if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, delay)) return false;
-  if (fighterSame) return true;
+  if (observationFrames(game, skill) !== observationFrames(before, skill)) return false;
+  const floor = cpuReactionFloor(fighter, skill);
+  const delay = reactionDelay(game, runtime, fighter, slot, frame, skill, floor);
+  // With no delay the computer sees this frame's observation, which a rollback rewrites.
+  if (delay < 1) return false;
   const earlier = fighterAt(beforeWorld, slot);
-  return sameFighterState(fighter, earlier);
+  // The newer cue only seeds the delay: a rewritten cue that yields the same delay decides the same.
+  if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, floor) && reactionDelay(before, beforeRuntime, earlier, slot, frame, skill) !== delay) return false;
+  if (!samePerception(runtime.botMemory, beforeRuntime.botMemory, slot, frame, delay)) return false;
+  return fighterSame || sameFighterState(fighter, earlier);
 }
 
 /**

@@ -97,7 +97,7 @@ export function perceivedCpuSkill(opponent: CpuOpponentId, tier: CpuTier): CpuSk
 export const FULL_SKILL: CpuSkill = cpuSkill("wren", "expert");
 
 /** A guard, tech or ledge answer is already prepared; neutral needs a fresh choice. */
-export function cpuReactionFloor(fighter: Fighter, skill: CpuSkill): number {
+export function cpuReactionFloor(fighter: Readonly<Fighter>, skill: CpuSkill): number {
   if (fighter.shield.raised || fighter.down.state !== DownState.none || fighter.ledge.state !== LedgeState.none) return Math.max(14, skill.reactionFrames);
   // Retreat is available; each additional legal shield, jump or attack adds a frame.
   const options = 1 + (fighter.motion.grounded ? 1 : 0) + (fighter.jump.remaining > 0 ? 1 : 0) + (canAttack(fighter) ? 1 : 0);
@@ -108,21 +108,32 @@ export function cpuReactionFloor(fighter: Fighter, skill: CpuSkill): number {
 // The p75 and endpoint interpolate the measured 22.7 mean and 6.1-frame deviation.
 const REACTION_PERCENTILES = [0, 14, 5, 15, 10, 16, 25, 19, 50, 21, 75, 26, 90, 33, 100, 39] as const;
 
-/** Measured high-tier reaction curves, clipped to the kind of answer's human floor. */
-export function cpuReactionFrames(fighter: Fighter, skill: CpuSkill, seed: number, slot: number, cue: number): number {
-  useMatchSeed(seed);
-  const percentile = botChoice(cue, slot * 17 + fighter.character, 100);
-  useMatchSeed(0);
-  let reaction = 38;
+const reactionCurve: number[] = [];
+for (let percentile = 0; percentile < 100; percentile++) {
   for (let index = 2; index < REACTION_PERCENTILES.length; index += 2) {
     const end = at(REACTION_PERCENTILES, index);
     if (percentile >= end) continue;
     const start = at(REACTION_PERCENTILES, index - 2), low = at(REACTION_PERCENTILES, index - 1), high = at(REACTION_PERCENTILES, index + 1);
-    reaction = low + floorDiv(2 * (percentile - start) * (high - low) + end - start, 2 * (end - start));
+    reactionCurve.push(low + floorDiv(2 * (percentile - start) * (high - low) + end - start, 2 * (end - start)));
     break;
   }
+}
+
+const reactionDraws = [0, 1, 2, 3].map(() => ({ seed: -1, character: -1, cue: -1, reaction: 0 }));
+
+/** Measured high-tier reaction curves, clipped to the kind of answer's human floor. */
+export function cpuReactionFrames(fighter: Readonly<Fighter>, skill: CpuSkill, seed: number, slot: number, cue: number, floor = cpuReactionFloor(fighter, skill)): number {
+  const draw = at(reactionDraws, slot);
+  if (draw.seed !== seed || draw.character !== fighter.character || draw.cue !== cue) {
+    useMatchSeed(seed);
+    draw.reaction = at(reactionCurve, botChoice(cue, slot * 17 + fighter.character, 100));
+    draw.seed = seed;
+    draw.character = fighter.character;
+    draw.cue = cue;
+  }
+  useMatchSeed(0);
+  const reaction = draw.reaction;
   const tier = skill.tier;
   const offset = tier === "intermediate" ? 2 : tier === "advanced" ? 1 : 0;
-  const floor = cpuReactionFloor(fighter, skill);
   return tier === "beginner" || tier === "rookie" ? floor + reaction - 14 : Math.max(floor, reaction + offset);
 }
