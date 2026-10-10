@@ -1,7 +1,7 @@
 
 
 import { f32 } from "wisp/src/sim/f32";
-import { STAGE_WATER_MODEL, STAGE_LAVA_MODEL, STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
+import { STAGE_TOMB_WATER_MODEL, STAGE_TOMB_SEA_MODEL, STAGE_LAVA_MODEL, STAGE_SEA_MODEL } from "../assets/terrainAssetInfo";
 import { LAVA_CENTER_X, LAVA_HALF_WIDTH } from "../sim/lava";
 import { SEA_SURFACE_Z } from "../sim/stageHazards";
 import { STAGE_POINT_LIGHT_MODELS, STAGE_SNOW_MODEL } from "../assets/stageAssetInfo";
@@ -115,9 +115,9 @@ export function stageScenery(stage: number): StageScenery {
 
 export function terrainPieces(stage: number): readonly SceneryPiece[] {
   if (stage === TOMB_OF_SARGERAS_STAGE) return [
-    { model: STAGE_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 },
+    { model: STAGE_TOMB_WATER_MODEL, x: 0.0, y: 0.0, z: 1.0, scale: 1.0, matrixScale: [12.0, 1.0, 1.0], yaw: 0.0 },
     // The sea extends beneath the camera so it reads as a surface, rather than a narrow tile.
-    { model: STAGE_SEA_MODEL, x: 0.0, y: 2200.0, z: SEA_SURFACE_Z, scale: 1.0,
+    { model: STAGE_TOMB_SEA_MODEL, x: 0.0, y: 2200.0, z: SEA_SURFACE_Z, scale: 1.0,
       matrixScale: [240.0, 140.0, 1.0], color: [176, 160, 144], yaw: 0.0 },
   ];
   const floor = stageScenery(stage).floor;
