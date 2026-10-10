@@ -21,7 +21,7 @@ import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
 import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
 import { MENU_FONT, PANEL_TEXTURE } from "../ui/hudLayout";
-import type { WorldOrigin } from "./effects";
+import { hideEffect, type WorldOrigin } from "./effects";
 import { SoundBank, SoundKind } from "./soundBank";
 import { resultFighterPlacement } from "../presentation/arenaCamera";
 import { type FighterOriginalClip, originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
@@ -53,8 +53,7 @@ const createDropSounds = (): sound[] => [MatchCue.itemSpawn, MatchCue.meterReady
 
 interface VictoryPose {
   readonly character: Character;
-  readonly model: effect;
-  readonly idle: effect;
+  model: effect | undefined;
   readonly winnerClip: FighterOriginalClip;
   readonly idleClip: FighterOriginalClip;
 }
@@ -260,16 +259,7 @@ export class MatchPresentation {
       const winnerClip = winnerIndex === undefined ? undefined : originalClip(character, winnerIndex);
       const idleClip = idleIndex === undefined ? undefined : originalClip(character, idleIndex);
       if (winnerClip === undefined || idleClip === undefined) continue;
-      const model = AddSpecialEffect(winnerClip.modelPath, this.origin.x, this.origin.y);
-      const idle = AddSpecialEffect(idleClip.modelPath, this.origin.x, this.origin.y);
-      for (const effect of [model, idle]) {
-        BlzSetSpecialEffectScale(effect, 0.0);
-        BlzSetSpecialEffectColorByPlayer(effect, Player(slot));
-        BlzSetSpecialEffectAnimationBlendTime(effect, 0.0);
-        BlzSetSpecialEffectAnimation(effect, "Stand");
-        BlzSetSpecialEffectTimeScale(effect, 0.0);
-      }
-      this.poses[slot] = { character, model, idle, winnerClip, idleClip };
+      this.poses[slot] = { character, model: undefined, winnerClip, idleClip };
     }
   }
 
@@ -280,8 +270,16 @@ export class MatchPresentation {
       const pose = this.poses[row.slot];
       if (pose === undefined) continue;
       const winning = row.slot === view.winnerSlot;
-      const model = winning ? pose.model : pose.idle;
       const clip = winning ? pose.winnerClip : pose.idleClip;
+      if (pose.model === undefined) {
+        pose.model = AddSpecialEffect(clip.modelPath, this.origin.x, this.origin.y);
+        hideEffect(pose.model, this.origin);
+        BlzSetSpecialEffectColorByPlayer(pose.model, Player(row.slot));
+        BlzSetSpecialEffectAnimationBlendTime(pose.model, 0.0);
+        BlzSetSpecialEffectAnimation(pose.model, "Stand");
+        BlzSetSpecialEffectTimeScale(pose.model, 0.0);
+      }
+      const model = pose.model;
       const placement = resultFighterPlacement(this.resultStage, index, view.rows.length);
       BlzSetSpecialEffectPosition(model, this.origin.x + placement.x, this.origin.y, this.origin.z + placement.z);
       BlzSetSpecialEffectYaw(model, FACING_CAMERA);
@@ -300,11 +298,7 @@ export class MatchPresentation {
     this.resultFrames = 0;
     this.posing = undefined;
     BlzFrameSetVisible(this.panel, false);
-    for (const pose of this.poses) {
-      if (pose === undefined) continue;
-      BlzSetSpecialEffectScale(pose.model, 0.0);
-      BlzSetSpecialEffectScale(pose.idle, 0.0);
-    }
+    this.releasePoses();
   }
 
 
@@ -348,9 +342,8 @@ export class MatchPresentation {
   private releasePoses(): void {
     for (const slot of PARTICIPANT_SLOTS) {
       const pose = this.poses[slot];
-      if (pose !== undefined) {
+      if (pose?.model !== undefined) {
         DestroyEffect(pose.model);
-        DestroyEffect(pose.idle);
       }
       this.poses[slot] = undefined;
     }
@@ -358,7 +351,6 @@ export class MatchPresentation {
 
   enterMenus(): void {
     this.hideResults();
-    this.releasePoses();
     this.playMusic(MENU_MUSIC);
   }
 }
