@@ -11,7 +11,7 @@ import { advanceHeroConditions, cleansePoisonAndSlow } from "./heroStatus";
 import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { mutableProjectile } from "./fighterProjectiles";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
-import { type Fighter, placedObject } from "./fighter";
+import { type Fighter, type Projectile, placedObject } from "./fighter";
 import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrder, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
@@ -23,7 +23,7 @@ import { shieldCenterX, shieldCenterZ } from "./shieldTilt";
 import { attackCapsule, emptyCapsule, placeCapsule, segmentBoxesOverlap } from "../physics/contactGeometry";
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
-import { solidSurfaceAt, solidSurfaceCount } from "./stage";
+import { mainDeckLeft, mainDeckRight, mainDeckZAt, solidSurfaceAt, solidSurfaceCount } from "./stage";
 
 
 const DIAGONAL = 0.7071067690849304;
@@ -277,8 +277,9 @@ function nearestFoe(world: Roster | undefined, owner: Readonly<Fighter>): Fighte
 
 function spawnHeroProjectile(owner: Fighter, spec: Readonly<SpecialProjectile>, serial: number, stage: number, world?: Roster): void {
   const foe = spec.atFoe === true ? nearestFoe(world, owner) : undefined;
-  const x = foe !== undefined ? foe.motion.x : f32(owner.motion.x + f32(owner.facing * spec.offsetX));
-  const z = foe !== undefined ? f32(foe.motion.z + spec.offsetZ) : f32(owner.motion.z + spec.offsetZ);
+  const centreX = f32(f32(mainDeckLeft(stage) + mainDeckRight(stage)) * 0.5);
+  const x = spec.atStageCentre === true ? centreX : foe !== undefined ? foe.motion.x : f32(owner.motion.x + f32(owner.facing * spec.offsetX));
+  const z = spec.atStageCentre === true ? f32(mainDeckZAt(stage, x) + spec.offsetZ) : foe !== undefined ? f32(foe.motion.z + spec.offsetZ) : f32(owner.motion.z + spec.offsetZ);
   if (spec.needsLineOfSight === true && !clearLine(stage, owner.motion.x, z, x, z)) return;
   const up = owner.special.aimZ > 0 && spec.upVelocityX !== undefined;
   spawnHeroProjectileAt(owner, spec, x, z, owner.facing, up, serial);
@@ -476,11 +477,22 @@ export function landHeroSpecial(f: Fighter): boolean {
 
 const strike = emptyCapsule();
 
+function projectileAnchor(owner: Readonly<Fighter>, spec: Readonly<SpecialProjectile> | undefined): Readonly<Projectile> | undefined {
+  if (spec === undefined) return undefined;
+  for (const projectile of owner.projectiles) if (projectile.life > 0 && projectile.spec === spec) return projectile;
+  return undefined;
+}
+
+export function heroRegionOrigin(owner: Readonly<Fighter>): { readonly x: number; readonly z: number } {
+  return projectileAnchor(owner, runningHeroSpecial(owner)?.regionOrigin) ?? owner.motion;
+}
+
 
 export function heroStrikeMeetsShield(owner: Readonly<Fighter>, target: Readonly<Fighter>, region: Readonly<HitRegion>): boolean {
   const path = region.strike;
   if (!target.shield.raised || path === undefined) return false;
-  placeCapsule(strike, path, owner.motion.x, owner.motion.z, owner.facing);
+  const origin = heroRegionOrigin(owner);
+  placeCapsule(strike, path, origin.x, origin.z, owner.facing);
   const geometry = target.tuning.shield;
   return capsuleCircleIntersects(strike.x1, strike.z1, strike.x2, strike.z2, strike.radius,
     shieldCenterX(target), shieldCenterZ(target), geometry.radius,
@@ -496,11 +508,14 @@ export function heroSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fi
   const move = runningHeroSpecial(owner);
   if (move === undefined || alreadyHit || owner.launch.hitlag > 0 || target.status.out || isIntangible(target)) return NO_HIT_REGION;
   const regions = move.regions ?? [];
+  const anchor = projectileAnchor(owner, move.regionOrigin);
+  if (move.regionOrigin !== undefined && anchor === undefined) return NO_HIT_REGION;
+  const origin = anchor ?? owner.motion;
   const frame = owner.special.frame - 1;
   for (let index = 0; index < regions.length; index++) {
     const region = at(regions, index);
     if (frame < region.firstFrame || frame > region.lastFrame || region.hit.strike === undefined) continue;
-    placeCapsule(strike, region.hit.strike, owner.motion.x, owner.motion.z, owner.facing);
+    placeCapsule(strike, region.hit.strike, origin.x, origin.z, owner.facing);
     const contact = strikeHurtContact(strike, target);
     if (contact === HurtContact.hit || heroStrikeMeetsShield(owner, target, region.hit)) return region.hit;
     if (contact === HurtContact.invincible) return NO_HIT_REGION;
@@ -530,10 +545,11 @@ function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
   }
 
   const special = runningHeroSpecial(attacker);
+  const origin = heroRegionOrigin(attacker);
   for (const region of special?.regions ?? []) {
     const strike = region.hit.strike;
     if (strike === undefined || attacker.special.frame < region.firstFrame || attacker.special.frame > region.lastFrame || region.hit.effect.damage <= 0) continue;
-    placeCapsule(guardStrike, strike, attacker.motion.x, attacker.motion.z, attacker.facing);
+    placeCapsule(guardStrike, strike, origin.x, origin.z, attacker.facing);
     if (strikeHurtContact(guardStrike, target) !== HurtContact.none) return true;
   }
   for (const projectile of attacker.projectiles) {
@@ -632,8 +648,13 @@ export function relocateHeroSpecial(world: Roster, slot: number): void {
   const move = runningHeroSpecial(f);
   if (move?.motion === undefined) return;
   for (const segment of move.motion) {
-    if (segment.relocate === undefined || f.special.frame !== segment.first) continue;
-    if (segment.relocate === Relocation.placed) {
+    if ((segment.relocate === undefined && segment.relocateProjectile === undefined) || f.special.frame !== segment.first) continue;
+    if (segment.relocateProjectile !== undefined) {
+      const anchor = projectileAnchor(f, segment.relocateProjectile);
+      if (anchor === undefined) return;
+      f.motion.x = anchor.x;
+      f.motion.z = anchor.z;
+    } else if (segment.relocate === Relocation.placed) {
       const { placed } = f;
       if (placed.life <= 0) return;
       f.motion.x = placed.x;

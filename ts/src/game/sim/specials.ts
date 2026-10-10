@@ -28,7 +28,7 @@ import { advanceCompanion } from "./companions";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, recordSpecialHit, specialAlreadyHit, canStartFreezeTrap, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
-import { advanceHeroSpecial, chargedAimX, enterUltimate, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chargedAimX, enterUltimate, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroRegionOrigin, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 16;
@@ -854,7 +854,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
       const target = fighterAt(world, targetSlot);
       recordSpecialHit(owner, targetSlot);
       const strike = contact.strike;
-      const contactZ = f32(owner.motion.z + f32(f32((strike?.z1 ?? contact.minZ) + (strike?.z2 ?? contact.maxZ)) * 0.5));
+      const contactZ = f32(heroRegionOrigin(owner).z + f32(f32((strike?.z1 ?? contact.minZ) + (strike?.z2 ?? contact.maxZ)) * 0.5));
       applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, at(facings, ownerSlot), heroContactEffect(contact, target), true,
         contact.strike === undefined ? meleeHitIntersectsShield(owner, target, contact) : heroStrikeMeetsShield(owner, target, contact), runningHeroSpecial(owner)?.strikeStatus, contactZ);
     }

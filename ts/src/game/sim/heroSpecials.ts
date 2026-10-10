@@ -75,6 +75,8 @@ export interface SpecialMotion extends FrameWindow {
 
   readonly relocate?: Relocation | undefined;
 
+  readonly relocateProjectile?: SpecialProjectile | undefined;
+
   readonly relocateReach?: number | undefined;
 
   readonly throughEdge?: boolean | undefined;
@@ -152,6 +154,8 @@ export interface SpecialProjectile {
 
   /** Spawns under the nearest opponent instead of at the owner's offset. */
   readonly atFoe?: boolean | undefined;
+
+  readonly atStageCentre?: boolean | undefined;
 
   /** What this becomes where it ends when its life runs out or it strikes. */
   readonly expiresInto?: SpecialProjectile | undefined;
@@ -283,6 +287,7 @@ export interface AuthoredSpecial {
   readonly cooldownFrames?: number | undefined;
 
   readonly regions?: readonly MoveRegion[] | undefined;
+  readonly regionOrigin?: SpecialProjectile | undefined;
   readonly motion?: readonly SpecialMotion[] | undefined;
   readonly projectiles?: readonly SpecialProjectile[] | undefined;
   readonly intangible?: FrameWindow | undefined;

@@ -45,8 +45,6 @@ function shot(spawnFrame: number, offsetX: number, offsetZ: number, velocityX: n
   return { model, spawnFrame, offsetX, offsetZ, velocityX, velocityZ, life, radius, effect, reflectable: false, limit: 4 };
 }
 
-const NO_FOLLOW_UP = frames(999, 999);
-
 const RIFLEMAN: AuthoredSpecial = {
   name: "Aimed Shot", endFrame: 70, groundOnly: true,
   projectiles: [
@@ -186,17 +184,21 @@ const SYLVANAS: AuthoredSpecial = {
   projectiles: [{ ...shot(21, 40.0, 60.0, 10.0, 0.0, 90, 34.0, hit(8.0, 45, 40.0, 30.0, HitElement.dark), "Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx"), reflectable: true, status: CHARM }],
 };
 
-const ANCESTRAL_PILLAR: AuthoredSpecial = {
-  name: "Ancestral Pillar", endFrame: 40, intangible: frames(1, 12),
-  projectiles: [mark("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", 1, 18, 0.0)],
-  regions: [heroRegion(4, 7, capsule(-140.0, 40.0, 140.0, 40.0, 100.0), hit(18.0, 70, 85.0, 45.0, HitElement.holy))],
+const CAIRNE_ANKH: SpecialProjectile = {
+  ...mark("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", 1, 36, 0.0), atStageCentre: true, cancelOnInterrupt: true,
 };
 const CAIRNE: AuthoredSpecial = {
-  name: "Reincarnation", endFrame: 75, groundOnly: true,
-  projectiles: [mark("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", 1, 49, 0.0)],
-  intangible: frames(7, 50),
-  guard: { ...frames(7, 50), heal: 0.0, counter: true },
-  followUps: [{ window: NO_FOLLOW_UP, special: ANCESTRAL_PILLAR }],
+  name: "Reincarnation", endFrame: 50, groundOnly: true,
+  projectiles: [
+    CAIRNE_ANKH,
+    { ...mark("Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx", 25, 10, 0.0), atStageCentre: true, cancelOnInterrupt: true },
+    { ...mark("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx", 25, 10, 0.0), atStageCentre: true, cancelOnInterrupt: true },
+  ],
+  regionOrigin: CAIRNE_ANKH,
+  regions: [heroRegion(25, 25, capsule(0.0, 40.0, 0.0, 40.0, 90.0), hit(12.0, 70, 80.0, 40.0, HitElement.holy))],
+  motion: [{ ...frames(26, 26), velocityX: 0.0, velocityZ: 0.0, relocateProjectile: CAIRNE_ANKH }],
+  // The engine primes intangibility one frame ahead, so arrival protection starts at teleport frame 26.
+  intangible: frames(27, 31),
 };
 
 const SPIRIT = "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl";
@@ -352,7 +354,7 @@ const ULTIMATE_DESCRIPTIONS: { readonly [character: number]: string | undefined 
   [Character.thrall]: "Tremors run along the ground both ways. Jump them or stand on a platform.",
   [Character.jaina]: "A ray of frost sweeps down from high ahead of her to the floor. Get behind her or shield.",
   [Character.sylvanas]: "A slow banshee spirit; a foe it reaches has left and right swapped for 3 seconds.",
-  [Character.cairne]: "He waits with the ancestors: a strike that would hit him raises a spirit pillar instead. Don't strike; grab or wait.",
+  [Character.cairne]: "An ankh appears at centre stage. After 24 frames it bursts, then he teleports there with 6 frames of intangibility. Shield or leave the ankh; punish his arrival recovery.",
   [Character.chen]: "He splits into Earth, Storm and Fire, which strike around him one after another.",
   [Character.peon]: "He chops at a big tree until it falls forward across the stage. Stand behind him or hit him while he chops.",
   [Character.tinker]: "His Robo-Goblin waddles ahead and explodes. Walk away or shield the blast.",
