@@ -10,6 +10,14 @@
   match (every fighter and stage, rematches included) in 32-bit Lua and
   fails when the Lua heap, live Warcraft handles or what the map's globals
   reach grow after a 10-minute warm-up (#168); run it with `farm memory`.
+  Growth is a slope test, at fighter selection and after every match (x the
+  match number): the Lua heap must grow under 1 MB per 10 minutes and 1 KB
+  per match, and each count (live effects are the `effect` handle kind) is
+  flat unless its fitted line rises a whole handle across the window with a
+  slope over three standard errors. What is alive varies with the lineup just
+  played, since each fighter pools its own effects, so a single higher sample
+  is not a leak; a failure names the kind that grows. 30 game minutes take
+  about 33 minutes on one core.
   Its saved samples include each menu's reachable table field shapes and
   representative reference paths: compare the full shape union between a
   warm-up high and a later rise to identify the retaining lifecycle.
