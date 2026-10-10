@@ -21,7 +21,7 @@ const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   4: ["jab", "jab2", "upTilt", "upSmash", "neutralAir", "upAir", "backAir", "dashAttack", "forwardAir"],
   5: ["jab3", "forwardTiltDown", "downTilt", "neutralAir", "backAir", "downSmash", "dashAttack", "forwardAir", "upSmash", "upAir", "upTilt", "forwardTiltUp", "neutralSpecial", "jab", "jab2", "forwardTilt", "forwardSmash", "sideSpecial", "ultimate"],
   6: ["forwardTiltDown", "downTilt", "backAir", "downSpecial", "forwardTilt", "forwardTiltUp", "upTilt", "forwardSmash", "upSmash", "downSmash", "dashAttack", "forwardAir", "upAir"],
-  8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir"],
+  8: ["jab2", "jab3", "downTilt", "forwardSmash", "forwardAir", "backAir", "upAir", "upTilt", "neutralAir", "neutralSpecial", "downSpecial", "ultimate"],
   9: ["jab3", "forwardTilt", "forwardTiltUp", "upTilt", "dashAttack", "forwardAir", "upSmash", "upAir", "forwardSmash", "downTilt"],
   10: ["forwardTilt", "forwardAir", "upAir", "neutralAir"],
   11: ["jab2", "jab3", "forwardTilt", "forwardTiltDown", "downTilt", "dashAttack", "backAir", "upSmash", "neutralAir", "upAir", "forwardAir", "downSpecial"],
@@ -61,6 +61,10 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
     neutralAir: [35, -75, -100, -25, 25, -55, 80, 20],
     upAir: [-44, -145, -100, -25, 40, -55, 80, -22],
     upTilt: [-38, -135, -90, -20, 30, -35, 55, -18],
+    forwardSmash: [58, -85, -55, -35, 45, -65, 90, 24],
+    neutralSpecial: [48, -72, -45, -25, 30, -45, 65, 20],
+    downSpecial: [42, -65, -40, -28, 25, -40, 60, 18],
+    ultimate: [55, -78, -55, -30, 35, -55, 80, 22],
   },
   9: { jab3: [23, -75, 45, -2, 25, -24, 35, 5], forwardTilt: [50, -75, 35, -15, 65, -18, 22, -20], dashAttack: [48, -75, 65, -22, 50, -65, 100, -5], downTilt: [22, 35, 45, -15, -60, -40, 55, 0] },
   10: { forwardTilt: [32, -95, 35, -48, -22, -18, 22, 20] },
@@ -81,7 +85,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
 const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
   4: { jab: 0.5, upTilt: 1 }, 8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
 };
-const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt", "jab2", "downTilt", "forwardAir", "backAir"]);
+const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt", "jab2", "downTilt", "forwardAir", "backAir", "forwardSmash", "neutralSpecial", "downSpecial", "ultimate"]);
 const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
 
 const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
