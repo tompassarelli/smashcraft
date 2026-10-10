@@ -100,9 +100,11 @@ const records: ClipRecord[]=[],bindings:string[]=[],names:string[]=[];
 for(const g of gestures){
   const move=g.style===undefined?undefined:hero.moves.normals[g.style];
   const thrown=hero.moves.throws[GrabAction.throwBack];ensure(move||thrown,"missing timing");
-  const first=move?.startupFrames??thrown!.contactFrame,total=move?.totalFrames??thrown!.totalFrames;
+  const existing = shipped.Sequences.find(s => s.Name === `Sword Gesture ${g.name}`);
+  const first=move?.startupFrames??thrown!.contactFrame,total=existing ? Math.round((existing.Interval[1]-existing.Interval[0])*60/1000) : move?.totalFrames??thrown!.totalFrames;
   const last=first+(move?.activeFrames??1)-1;
-  const start=cursor,end=start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
+  const start=existing?.Interval[0]??cursor,end=existing?.Interval[1]??start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
+  ensure(existing === undefined || shipped.Sequences.indexOf(existing) === index, "gesture index changed");
   model.Sequences.push({...stand,Name:`Sword Gesture ${g.name}`,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400});
   const controlFrames=g.style===AttackStyle.upTilt ? [0,first-3,first,first+1,first+2,first+3,last,last+2,total-4,total] : [0,Math.max(1,first-3),first,("second" in g?g.second:last+2),total];
   const poses=g.style===AttackStyle.upTilt ? [guard,pose([40,-50,120],[165,-50,120],8,-15),pose([40,-50,120],[165,-50,120],8,-10),pose([28,-50,140],[108,-50,242],-6,-4),pose([0,-50,150],[-22,-50,275],-10,0),pose([-28,-50,140],[-131,-50,212],-6,4),pose([-40,-50,120],[-165,-50,120],4,10),pose([0,-50,145],[0,-50,270],-6,14),pose([30,-50,115],[-15,-50,235],0,4),guard] : [guard,g.prep,g.hit,g.exit,guard];
