@@ -1,7 +1,7 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroMoves, heroRegion, type MoveRegion } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, hurtPart } from "../hurtboxes";
@@ -84,9 +84,8 @@ const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric
 
 const FROSTMOURNE_SWEEP = heroMove(11, 4, 24, 0, sweep(11, [150.0, 106.0, 60.0, 16.0], XL, hit(12.0, "EDGE", 35)));
 
-export const LICH_KING_MOVES: FighterMoves = {
+export const LICH_KING_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
   smashMaxDamageMultiplier: f32(1.3),
   maxPummels: 2,
   hurtboxes: LICH_KING_BODY,
@@ -207,4 +206,4 @@ export const LICH_KING_MOVES: FighterMoves = {
 
     [GrabAction.throwDown]: { inspiredBy: "Harvest Soul (Icecrown Citadel)", contactFrame: 24, totalFrames: 50, effect: hit(6.0, "CHASE", 70, 1.0, HitElement.dark) },
   },
-};
+});

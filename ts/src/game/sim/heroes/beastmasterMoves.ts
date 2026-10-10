@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, tipperMove } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroMoves, heroRegion, type MoveRegion, tipperMove } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, hurtPart } from "../hurtboxes";
 import { capsuleOf, limbOf, makeHit, path, reaching } from "./authoring";
@@ -85,10 +85,8 @@ const BEASTMASTER_BODY: FighterHurtboxes = {
 
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-export const BEASTMASTER_MOVES: FighterMoves = {
+export const BEASTMASTER_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   hurtboxes: BEASTMASTER_BODY,
   normals: {
@@ -204,4 +202,4 @@ export const BEASTMASTER_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: hit(5.883317470550537, "JUGGLE", 85, 1.0, HitElement.normal) },
     [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(5.042843341827393, "CHASE", 70, 1.0, HitElement.normal) },
   },
-};
+});

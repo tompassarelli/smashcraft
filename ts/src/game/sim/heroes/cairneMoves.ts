@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
-import { heroHurtPose, heroMove, heroRegion, jabStep, strongRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, strongRegion, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart, type HurtPart } from "../hurtboxes";
 
@@ -46,8 +46,8 @@ const arm = (x: number, z: number) => hurtPart(20.0, 90.0, x, z, 18.0);
 const FORWARD_TILT = heroMove(14, 4, 29, 0, sweep(14, 170.0, [170.0, 115.0, 60.0, 12.0], 12.64900016784668, "edge"));
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-export const CAIRNE_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const CAIRNE_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [BODY],
     attacks: {
@@ -110,4 +110,4 @@ export const CAIRNE_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 21, totalFrames: 32, effect: cairneHit(9.729999542236328, "juggle", 85) },
     [GrabAction.throwDown]: { contactFrame: 24, totalFrames: 51, effect: cairneHit(8.756999969482422, "chase", 80) },
   },
-};
+});

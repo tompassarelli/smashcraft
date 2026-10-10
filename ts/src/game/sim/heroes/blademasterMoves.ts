@@ -1,7 +1,7 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
+import { type AuthoredMove, type AuthoredThrow, type MoveRegion, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroMoves, heroRegion } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { BLADEMASTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
@@ -133,7 +133,7 @@ const BODY: FighterHurtboxes = {
   },
 };
 
-export const BLADEMASTER_MOVES: FighterMoves = {
+export const BLADEMASTER_MOVES = heroMoves({
   normals: {
     ...BLADEMASTER_GROUND.normals,
     [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(13.307926177978516, "KILL", 40), hit(16.856704711914062, "KILL", 40))),
@@ -180,8 +180,6 @@ export const BLADEMASTER_MOVES: FighterMoves = {
     [GrabAction.throwDown]: authoredThrow(16, 20, 4.435975074768066, "CHASE", 25),
   },
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   hurtboxes: BODY,
-};
+});

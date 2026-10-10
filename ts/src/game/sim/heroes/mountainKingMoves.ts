@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroMoves, heroRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { MOUNTAIN_KING_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
@@ -106,11 +106,9 @@ const MOUNTAIN_KING_BODIES: FighterHurtboxes = {
   },
 };
 
-export const MOUNTAIN_KING_MOVES: FighterMoves = {
+export const MOUNTAIN_KING_MOVES = heroMoves({
   hurtboxes: MOUNTAIN_KING_BODIES,
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   normals: {
     ...MOUNTAIN_KING_GROUND.normals,
@@ -171,4 +169,4 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.645519256591797, "JUGGLE", 90) },
     [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.5648298263549805, "CHASE", 70) },
   },
-};
+});

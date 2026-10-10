@@ -1,5 +1,5 @@
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { heroHurtPose } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
@@ -9,8 +9,8 @@ const claw = (x1: number, z1: number, x2: number, z2: number, radius = 15.0): St
 const shell = hurtPart(-24.0, 32.0, 18.0, 88.0, 35.0);
 const tilt = (z: number, angle: 25 | 40 | 55) => heroMove(10, 4, 24, 0, [heroRegion(10, 13, claw(32.0, 60.0, 124.0, z), anubarakHit(12.276000022888184, angle))]);
 
-export const ANUBARAK_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const ANUBARAK_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [shell, hurtPart(20.0, 76.0, 52.0, 100.0, 20.0)],
     crouch: [hurtPart(-28.0, 24.0, 22.0, 55.0, 35.0)],
@@ -48,4 +48,4 @@ export const ANUBARAK_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 36, effect: anubarakHit(8.928000450134277, 80, 102.30000305175781, 65.0, true) },
     [GrabAction.throwDown]: { contactFrame: 21, totalFrames: 48, effect: anubarakHit(7.811999797821045, 70, 37.20000076293945, 75.0) },
   },
-};
+});

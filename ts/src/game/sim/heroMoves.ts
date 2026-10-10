@@ -93,6 +93,16 @@ export interface FighterMoves {
 }
 
 
+/** What most heroes charge and pummel; a hero's moves state these only where it differs. */
+const HERO_MOVE_DEFAULTS = { smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1 } as const;
+type HeroMoveDefault = keyof typeof HERO_MOVE_DEFAULTS;
+type HeroMoves = Omit<FighterMoves, HeroMoveDefault> & { readonly [Field in HeroMoveDefault]?: FighterMoves[Field] };
+
+export function heroMoves(moves: HeroMoves): FighterMoves {
+  return { ...HERO_MOVE_DEFAULTS, ...moves };
+}
+
+
 export function heroMove(firstActive: number, active: number, recovery: number, landingLag: number, regions: readonly MoveRegion[], startupTravelX?: number, startupStopsAtBody?: boolean): AuthoredMove {
   return { startupFrames: firstActive - 1, activeFrames: active, totalFrames: firstActive - 1 + active + recovery, landingLag, regions, startupTravelX, startupStopsAtBody };
 }

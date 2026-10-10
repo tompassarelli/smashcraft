@@ -1,7 +1,7 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroMoves, heroRegion, type AuthoredMove, type MoveRegion } from "../heroMoves";
 import { SHADOW_HUNTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, hurtPart } from "../hurtboxes";
@@ -97,10 +97,8 @@ const SHADOW_HUNTER_BODY: FighterHurtboxes = {
   },
 };
 
-export const SHADOW_HUNTER_MOVES: FighterMoves = {
+export const SHADOW_HUNTER_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   hurtboxes: SHADOW_HUNTER_BODY,
   normals: {
@@ -158,4 +156,4 @@ export const SHADOW_HUNTER_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 22, effect: hit(5.705999851226807, "JUGGLE", 85, 1.0, HitElement.normal) },
     [GrabAction.throwDown]: { contactFrame: 17, totalFrames: 40, effect: hit(4.755000114440918, "CHASE", 70, 1.0, HitElement.normal) },
   },
-};
+});
