@@ -769,6 +769,9 @@ function writeFighter(sink: StateSink, prefix: string, fighter: Readonly<Fighter
   bool("groundTurnRunFacingCommandLatched", g.turnRunFacingCommandLatched);
   bool("groundTurnRunPausePending", g.turnRunPausePending);
   bool("groundPivotEligible", g.pivotEligible);
+  int("groundPivotGraceFrames", g.pivotGraceFrames);
+  int("groundPivotDashFrame", g.pivotDashFrame);
+  int("groundPivotDashActionFrame", g.pivotDashActionFrame);
   int("character", fighter.character);
   sink.text(kitDigestField(`${prefix}.moves`, t.moves, MOVES_DIGESTS, fighterMovesCanonical));
 

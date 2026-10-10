@@ -1,4 +1,5 @@
 unit	tests	instructions	alloc_kb
+scripts/wisp/memoryCensus.tests.ts	4	3389000	3404
 src/game/assets/stageLighting.tests.ts	8	4000	39
 src/game/assets/stagePalette.tests.ts	3	26000	98
 src/game/classic/classic.tests.ts	8	262987000	20438
@@ -68,7 +69,7 @@ src/game/presentation/damagePose.tests.ts	1	31000	175
 src/game/presentation/disjointCues.tests.ts	5	29739000	4401
 src/game/presentation/fighterAgency.tests.ts	2	80155000	2692
 src/game/presentation/fighterPlacement.tests.ts	2	29446000	1512
-src/game/presentation/fighterPose.tests.ts	11	55446000	189096
+src/game/presentation/fighterPose.tests.ts	4	57140000	187999
 src/game/presentation/heroStrikeMoments.tests.ts	2	263000	56
 src/game/presentation/illidanCues.tests.ts	3	4000	50
 src/game/presentation/impactState.tests.ts	10	9186000	38809
@@ -98,7 +99,7 @@ src/game/replay/matchReplay.tests.ts	2	116673000	35499
 src/game/replay/moment.tests.ts	4	208188000	68381
 src/game/replay/shadowPlayback.tests.ts	8	133925000	403691
 src/game/replay/snapshot.tests.ts	4	131769000	45411
-src/game/replay/state.tests.ts	12	45583000	11822
+src/game/replay/state.tests.ts	7	16779000	6310
 src/game/shell/localInput.tests.ts	1	4105000	19500
 src/game/shell/pauseBarrier.tests.ts	4	20000	24
 src/game/shell/rollbackPlayback.tests.ts	3	5688000	55933
@@ -108,7 +109,7 @@ src/game/sim/actionLocks.tests.ts	4	7467000	6317
 src/game/sim/aerialDrift.tests.ts	26	126618000	47303
 src/game/sim/analogAirDrift.tests.ts	2	41714000	35598
 src/game/sim/analogShield.tests.ts	1	75000	67
-src/game/sim/dashDance.tests.ts	2	53093000	90365
+src/game/sim/dashDance.tests.ts	2	53524000	92301
 src/game/sim/demonHunterContracts.tests.ts	3	1205000	1558
 src/game/sim/directionalInfluence.tests.ts	7	124000	230
 src/game/sim/dodgesAndStocks.tests.ts	7	5151000	2846
@@ -122,7 +123,7 @@ src/game/sim/floorFriction.tests.ts	1	824000	176
 src/game/sim/fourPlayerContracts.tests.ts	2	55000	251
 src/game/sim/freezeTrapContracts.tests.ts	3	13317000	8787
 src/game/sim/grabs.tests.ts	3	40909000	292401
-src/game/sim/groundMovement.tests.ts	5	1002000	624
+src/game/sim/groundMovement.tests.ts	7	399079000	471677
 src/game/sim/heroSpecials.tests.ts	2	1761000	1349
 src/game/sim/heroStatus.tests.ts	2	3261000	928
 src/game/sim/heroes/beastmasterSpecials.tests.ts	2	34105000	5575
@@ -186,4 +187,3 @@ src/game/ui/plateLayout.tests.ts	3	0	0
 src/game/ui/portraitFrames.tests.ts	4	89000	226
 src/game/ui/slotColors.tests.ts	2	0	1
 src/sim/meleeScalarMath.tests.ts	2	88000	4
-scripts/wisp/memoryCensus.tests.ts	4	3389000	3404

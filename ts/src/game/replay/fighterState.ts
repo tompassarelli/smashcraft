@@ -66,6 +66,9 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   ground.turnRunFacingCommandLatched = sourceGround.turnRunFacingCommandLatched;
   ground.turnRunPausePending = sourceGround.turnRunPausePending;
   ground.pivotEligible = sourceGround.pivotEligible;
+  ground.pivotGraceFrames = sourceGround.pivotGraceFrames;
+  ground.pivotDashFrame = sourceGround.pivotDashFrame;
+  ground.pivotDashActionFrame = sourceGround.pivotDashActionFrame;
   ground.dashGrabWindow = sourceGround.dashGrabWindow;
 
   const jump = target.jump;
@@ -448,6 +451,9 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (ground.turnRunFacingCommandLatched !== sourceGround.turnRunFacingCommandLatched) return false;
   if (ground.turnRunPausePending !== sourceGround.turnRunPausePending) return false;
   if (ground.pivotEligible !== sourceGround.pivotEligible) return false;
+  if (ground.pivotGraceFrames !== sourceGround.pivotGraceFrames) return false;
+  if (ground.pivotDashFrame !== sourceGround.pivotDashFrame) return false;
+  if (ground.pivotDashActionFrame !== sourceGround.pivotDashActionFrame) return false;
   if (ground.dashGrabWindow !== sourceGround.dashGrabWindow || (ground.dashGrabWindow === 0 && 1 / ground.dashGrabWindow !== 1 / sourceGround.dashGrabWindow)) return false;
 
   const jump = target.jump;

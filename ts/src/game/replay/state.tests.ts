@@ -126,6 +126,9 @@ test("capture and restore include combat references, projectiles and queued inpu
   first.ground.turnRunFacingCommandLatched = true;
   first.ground.turnRunPausePending = true;
   first.ground.pivotEligible = true;
+  first.ground.pivotGraceFrames = 3;
+  first.ground.pivotDashFrame = 2;
+  first.ground.pivotDashActionFrame = 2;
   first.launch.hitlag = 3;
   first.shield.breakState = ShieldBreak.dizzy;
   first.shield.breakRemaining = 389.75;
@@ -180,6 +183,9 @@ test("capture and restore include combat references, projectiles and queued inpu
   first.ground.turnRunFacingCommandLatched = false;
   first.ground.turnRunPausePending = false;
   first.ground.pivotEligible = false;
+  first.ground.pivotGraceFrames = 0;
+  first.ground.pivotDashFrame = 0;
+  first.ground.pivotDashActionFrame = 0;
   first.shield.breakState = ShieldBreak.none;
   first.shield.breakRemaining = 0.0;
   first.tuning.shieldBreak = AUTHORED_SHIELD_BREAK_TIMING;
@@ -241,6 +247,9 @@ test("capture and restore include combat references, projectiles and queued inpu
   assertTrue(first.ground.turnRunFacingCommandLatched);
   assertTrue(first.ground.turnRunPausePending);
   assertTrue(first.ground.pivotEligible);
+  assertEquals(first.ground.pivotGraceFrames, 3);
+  assertEquals(first.ground.pivotDashFrame, 2);
+  assertEquals(first.ground.pivotDashActionFrame, 2);
   assertEquals(first.shield.breakState, ShieldBreak.dizzy);
   assertEquals(first.shield.breakRemaining, 389.75);
   assertEquals(first.tuning.shieldBreak.landFrames, 26);

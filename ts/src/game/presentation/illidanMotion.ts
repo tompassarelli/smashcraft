@@ -114,7 +114,7 @@ export function advanceIllidanMotion(history: IllidanMotion, fighter: Readonly<F
     history.transitionRemaining = 0;
     history.motion = motion.fastFalling ? IllidanLocomotion.fastFall : IllidanLocomotion.fall;
   } else if (controls.direction === 0 && ground.action === GroundAction.none && history.motion === IllidanLocomotion.turn
-    && f32(motion.vx * fighter.facing) < 0) {
+    && (ground.pivotGraceFrames > 0 || f32(motion.vx * fighter.facing) < 0)) {
     history.motion = IllidanLocomotion.idle;
     history.transitionRemaining = 0;
   } else if (controls.direction !== 0 && history.previousFacing !== 0

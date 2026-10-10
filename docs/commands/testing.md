@@ -80,6 +80,12 @@ From ts/, `bun test test/game.test.ts -t NAME` runs focused game tests;
 `bun wisp map build ...` to build a map. See smashcraft:docs/development-loop.md
 for the local toolchain and base-map setup.
 
+`bun scripts/dashDanceReference.ts CURRENT_MAIN_WORKTREE OUTPUT.ts` records
+the 9,984 dash-dance cases' facing, dash direction and horizontal position
+from an unchanged main simulation. It exposes that checkout's existing
+timeline helpers in the loader without changing its files and records its
+exact SHA in the generated `src/game/sim/dashDanceReference.ts` fixture.
+
 Pure simulation tests establish logical rules, not Warcraft callback timing,
 physical-controller latency, UI focus or online fairness. For those claims,
 use the native map and retain exact candidate, input path and measured evidence.

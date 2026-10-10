@@ -52,6 +52,9 @@ export function clearDash(f: Fighter): void {
   ground.turnRunFacingCommandLatched = false;
   ground.turnRunPausePending = false;
   ground.pivotEligible = false;
+  ground.pivotGraceFrames = 0;
+  ground.pivotDashFrame = 0;
+  ground.pivotDashActionFrame = 0;
 }
 
 function actionClockLimit(f: Fighter): number {
@@ -163,6 +166,27 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   const { ground, motion } = f;
   const physics = f.tuning.physics;
   const traction = floorTraction(physics.traction, friction);
+  if (ground.pivotGraceFrames > 0) {
+    if (direction !== 0) {
+      ground.action = ground.pivotDashFrame > 0 ? GroundAction.dash : GroundAction.none;
+      ground.dashFrame = ground.pivotDashFrame;
+      ground.actionFrame = ground.pivotDashActionFrame;
+      ground.pivotGraceFrames = 0;
+      ground.pivotDashFrame = 0;
+      ground.pivotDashActionFrame = 0;
+    } else {
+      ground.pivotGraceFrames--;
+      if (ground.pivotDashFrame > 0) {
+        ground.pivotDashFrame = min(INITIAL_DASH_FRAMES + 1, ground.pivotDashFrame + 1);
+        ground.pivotDashActionFrame = min(actionClockLimit(f), ground.pivotDashActionFrame + 1);
+      }
+      if (ground.pivotGraceFrames === 0) {
+        motion.vx = f32(ground.turnRunEntryFacing * min(Math.abs(motion.vx), f32(traction * 2.0)));
+        clearDash(f);
+      }
+      return false;
+    }
+  }
   const changingDirection = direction !== 0 && direction !== ground.dashDirection;
 
 
@@ -178,9 +202,17 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   if (!pivotWindow) ground.pivotEligible = false;
   if (Math.abs(horizontalStick) < STICK_DEADZONE && direction === 0 && pivotWindow && ground.pivotEligible) {
     const entryFacing = ground.turnRunEntryFacing;
+    const dashFrame = ground.action === GroundAction.dash ? min(INITIAL_DASH_FRAMES + 1, ground.dashFrame + 1) : 0;
+    const dashActionFrame = dashFrame > 0 ? min(actionClockLimit(f), ground.actionFrame + 1) : 0;
+    const dashDirection = dashFrame > 0 ? ground.dashDirection : 0;
     f.facing = -entryFacing;
-    motion.vx = f32(entryFacing * min(Math.abs(motion.vx), f32(traction * 2.0)));
+    if (dashFrame === 0) motion.vx = f32(entryFacing * min(Math.abs(motion.vx), f32(traction * 2.0)));
     clearDash(f);
+    ground.turnRunEntryFacing = entryFacing;
+    ground.dashDirection = dashDirection;
+    ground.pivotGraceFrames = 3;
+    ground.pivotDashFrame = dashFrame;
+    ground.pivotDashActionFrame = dashActionFrame;
     return false;
   }
 

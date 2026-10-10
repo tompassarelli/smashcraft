@@ -105,6 +105,9 @@ export function firstFighterDifference(expected: Readonly<Fighter>, actual: Read
   add("groundTurnRunFacingCommandLatched", e.ground.turnRunFacingCommandLatched, a.ground.turnRunFacingCommandLatched);
   add("groundTurnRunPausePending", e.ground.turnRunPausePending, a.ground.turnRunPausePending);
   add("groundPivotEligible", e.ground.pivotEligible, a.ground.pivotEligible);
+  add("groundPivotGraceFrames", e.ground.pivotGraceFrames, a.ground.pivotGraceFrames);
+  add("groundPivotDashFrame", e.ground.pivotDashFrame, a.ground.pivotDashFrame);
+  add("groundPivotDashActionFrame", e.ground.pivotDashActionFrame, a.ground.pivotDashActionFrame);
   add("x", e.motion.x, a.motion.x);
   add("z", e.motion.z, a.motion.z);
   add("positionDeltaX", e.motion.deltaX, a.motion.deltaX);
