@@ -62,7 +62,7 @@ export const SHADOW_HUNTER_HERO: HeroDefinition = {
 
 
 
-      jab: jabSlice(ATTACK, f32(0.5)), jab2: jabSlice(ATTACK, f32(0.5)), jab3: jabSlice(ATTACK, f32(0.51)), grab: ATTACK, forwardTilt: ground(ATTACK, f32(0.52), AttackStyle.forwardTilt),
+      jab: jabSlice(ATTACK, f32(0.5)), jab2: { index: ATTACK.index, seconds: f32(0.2), aligned: true }, jab3: jabSlice(ATTACK, f32(0.51)), grab: ATTACK, forwardTilt: ground(ATTACK, f32(0.52), AttackStyle.forwardTilt),
       forwardTiltUp: ground(ATTACK, f32(0.50), AttackStyle.forwardTiltUp), forwardTiltDown: ground(SPELL, f32(1.30), AttackStyle.forwardTiltDown),
       upTilt: ground(ATTACK, f32(0.50), AttackStyle.upTilt, 9), downTilt: ground(SPELL_THROW, f32(1.06), AttackStyle.downTilt),
       dashAttack: ground(ATTACK, f32(0.52), AttackStyle.dashAttack),
