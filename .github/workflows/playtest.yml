@@ -71,7 +71,7 @@ jobs:
           MINUTES: ${{ inputs.target-minutes || '2' }}
         run: |
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "shards=$(bun scripts/playtest.ts --plan "$MATCHES" --ms-per-match "$MS" --target-minutes "$MINUTES" --cores 4)" >> "$GITHUB_OUTPUT"
+          echo "shards=$(bun scripts/playtest.ts --plan "$MATCHES" --ms-per-match "$MS" --target-minutes "$MINUTES" --cores 4 --max-shards 8)" >> "$GITHUB_OUTPUT"
 
   shard:
     needs: plan
@@ -158,19 +158,18 @@ jobs:
         working-directory: ts
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        # planIssueActions decides (smashcraft:ts/scripts/playtestCore.ts); this only applies it.
         run: |
-          for kind in never-ends zero-to-death win-rate-band move-share stage-no-kos desync; do
-            title="Playtester: $kind"
-            number=$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&labels=playtester&per_page=100" --jq "[.[] | select(.title == \"$title\")][0].number // empty")
-            count=$(jq "[.[] | select(.kind == \"$kind\")] | length" playtest/findings.json)
-            if [ "$count" = "0" ]; then
-              if [ -n "$number" ]; then
-                gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$number/comments" -F body=@playtest/$kind.md > /dev/null
-              fi
-            elif [ -n "$number" ]; then
-              gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$number" -F body=@playtest/$kind.md > /dev/null
-              echo "updated #$number for $kind"
-            else
-              gh api -X POST "repos/$GITHUB_REPOSITORY/issues" -f title="$title" -f "labels[]=playtester" -F body=@playtest/$kind.md --jq '"opened #" + (.number | tostring)'
-            fi
-          done
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues?state=open&labels=playtester&per_page=100" --jq '[.[] | {number, title}]' | jq -s add > playtest/open.json
+          bun scripts/playtest.ts --issues playtest/findings.json --open-issues playtest/open.json --header "Commit ${SHA:0:10}, run $RUN_URL" > playtest/actions.jsonl
+          while IFS= read -r -u 3 line; do
+            action=$(jq -r .action <<< "$line")
+            jq -r .body <<< "$line" > playtest/body.md
+            case "$action" in
+              create) gh api -X POST "repos/$GITHUB_REPOSITORY/issues" -f title="$(jq -r .title <<< "$line")" -f "labels[]=playtester" -F body=@playtest/body.md --jq '"opened #" + (.number | tostring)' ;;
+              update) gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/$(jq -r .number <<< "$line")" -F body=@playtest/body.md --jq '"updated #" + (.number | tostring)' ;;
+              comment) gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$(jq -r .number <<< "$line")/comments" -F body=@playtest/body.md > /dev/null ;;
+            esac
+          done 3< playtest/actions.jsonl

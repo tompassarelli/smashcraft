@@ -276,3 +276,49 @@ export function renderReport(runs: readonly Run[], findings: readonly Finding[],
   }
   return lines.join("\n");
 }
+
+// One open issue a finding kind, found by its stable title. The workflow lists
+// the open `playtester` issues and applies these actions with gh.
+export const ISSUE_TITLES: Record<FindingKind, string> = {
+  "never-ends": "Playtester: matches that never end",
+  "zero-to-death": "Playtester: zero-to-death strings",
+  "win-rate-band": "Playtester: fighters outside the win-rate band",
+  "move-share": "Playtester: moves that take most of a fighter's KOs",
+  "stage-no-kos": "Playtester: stages with no KOs",
+  desync: "Playtester: desyncs and nondeterminism",
+};
+
+export const ISSUE_LABEL = "playtester";
+
+export interface OpenIssue {
+  readonly number: number;
+  readonly title: string;
+}
+
+export type IssueAction =
+  | { readonly action: "create"; readonly kind: FindingKind; readonly title: string; readonly body: string }
+  | { readonly action: "update"; readonly kind: FindingKind; readonly number: number; readonly body: string }
+  | { readonly action: "comment"; readonly kind: FindingKind; readonly number: number; readonly body: string };
+
+// A kind with findings updates its open issue's body or opens one; a kind
+// without findings comments "none in this run" on its open issue (a person
+// closes it) and opens nothing.
+export function planIssueActions(findings: readonly Finding[], open: readonly OpenIssue[], header: string): IssueAction[] {
+  const actions: IssueAction[] = [];
+  for (const kind of FINDING_KINDS) {
+    const title = ISSUE_TITLES[kind];
+    const issue = open.filter((candidate) => candidate.title === title).sort((x, y) => x.number - y.number)[0];
+    const body = issueBody(kind, findings, header);
+    const found = findings.some((finding) => finding.kind === kind);
+    if (found && issue !== undefined) actions.push({ action: "update", kind, number: issue.number, body });
+    else if (found) actions.push({ action: "create", kind, title, body });
+    else if (issue !== undefined) actions.push({ action: "comment", kind, number: issue.number, body });
+  }
+  return actions;
+}
+
+export function describeIssueAction(action: IssueAction): string {
+  const firstLine = action.body.split("\n")[2] ?? "";
+  if (action.action === "create") return `create "${action.title}": ${firstLine}`;
+  return `${action.action} #${action.number} (${action.kind}): ${firstLine}`;
+}

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { DEFAULT_CONFIG, FINDING_KINDS, classify, firstDivergence, issueBody, planMatches, runPlaytest, shardRanges, shardsFor, wilson, type Observation, type Play, type Run } from "./playtestCore";
+import { DEFAULT_CONFIG, FINDING_KINDS, ISSUE_TITLES, classify, firstDivergence, issueBody, planIssueActions, planMatches, runPlaytest, shardRanges, shardsFor, wilson, type Observation, type Play, type Run } from "./playtestCore";
 
 const roster = {
   fighters: Array.from({ length: 26 }, (_, i) => `f${i}`),
@@ -150,6 +150,20 @@ test("each finding kind has one issue body that carries the reproducing seed, an
   expect(issueBody("never-ends", findings, "head")).toContain("seed 9, frame 14700");
   expect(issueBody("desync", findings, "head")).toContain("No desync finding");
   expect(new Set(FINDING_KINDS).size).toBe(FINDING_KINDS.length);
+});
+
+test("findings update their kind's open issue or open one with the seed, an empty kind only comments on an open issue, and no kind ever gets two [spec #403]", () => {
+  const findings = classify([runOf(9, { ...clean, ended: false, frames: 14700 })]);
+  const neverEnds = ISSUE_TITLES["never-ends"];
+  const desync = ISSUE_TITLES.desync;
+  expect(planIssueActions(findings, [], "head")).toEqual([{ action: "create", kind: "never-ends", title: neverEnds, body: issueBody("never-ends", findings, "head") }]);
+  const open = [{ number: 12, title: neverEnds }, { number: 7, title: neverEnds }, { number: 30, title: desync }, { number: 31, title: "Playtester: something else" }];
+  const actions = planIssueActions(findings, open, "head");
+  expect(actions.map((action) => [action.action, action.kind, "number" in action ? action.number : undefined])).toEqual([["update", "never-ends", 7], ["comment", "desync", 30]]);
+  expect(actions[0]?.body).toContain("seed 9, frame 14700");
+  expect(actions[1]?.body).toContain("No desync finding");
+  expect(planIssueActions([], [], "head")).toEqual([]);
+  expect(new Set(Object.values(ISSUE_TITLES)).size).toBe(FINDING_KINDS.length);
 });
 
 test("the Wilson interval brackets the rate and narrows with more trials [invariant]", () => {

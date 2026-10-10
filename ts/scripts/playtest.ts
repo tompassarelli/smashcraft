@@ -5,10 +5,16 @@ import { Schema } from "effect";
 import { CPU_TIERS, isCpuTier } from "../src/game/match/cpuProfiles";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 import { FIELD_STAGES, moveName, playCpuMatch } from "./cpuField";
-import { DEFAULT_CONFIG, FINDING_KINDS, classify, issueBody, planMatches, renderReport, runPlaytest, shardRanges, shardsFor, type Config, type MatchSpec, type Observation, type Play, type Run } from "./playtestCore";
+import { DEFAULT_CONFIG, FINDING_KINDS, classify, describeIssueAction, issueBody, planIssueActions, planMatches, renderReport, runPlaytest, shardRanges, shardsFor, type Config, type Finding, type MatchSpec, type Observation, type Play, type Run } from "./playtestCore";
 
 const CHECKSUM_EVERY = 600;
 
+const SpecSchema = Schema.Struct({ index: Schema.Finite, seed: Schema.Finite, a: Schema.String, b: Schema.String, stage: Schema.String, tier: Schema.String });
+const FindingsSchema = Schema.Array(Schema.Struct({
+  kind: Schema.Literals(FINDING_KINDS), subject: Schema.String, detail: Schema.String, spec: Schema.optional(SpecSchema), frame: Schema.optional(Schema.Finite),
+}));
+const OpenIssuesSchema = Schema.Array(Schema.Struct({ number: Schema.Finite, title: Schema.String }));
+const readJson = (file: string): unknown => JSON.parse(readFileSync(file, "utf8"));
 const ObservationSchema = Schema.Struct({
   frames: Schema.Finite, ended: Schema.Boolean, winner: Schema.NullOr(Schema.Finite), timedOut: Schema.Boolean, stockLosses: Schema.Finite,
   strings: Schema.Array(Schema.Struct({ victim: Schema.Finite, frame: Schema.Finite, hits: Schema.Finite, damage: Schema.Finite })),
@@ -16,7 +22,7 @@ const ObservationSchema = Schema.Struct({
   kos: Schema.Array(Schema.Struct({ fighter: Schema.String, move: Schema.String, count: Schema.Finite })),
 });
 const RunsSchema = Schema.Array(Schema.Struct({
-  spec: Schema.Struct({ index: Schema.Finite, seed: Schema.Finite, a: Schema.String, b: Schema.String, stage: Schema.String, tier: Schema.String }),
+  spec: SpecSchema,
   first: ObservationSchema, second: Schema.optional(ObservationSchema), wallMs: Schema.Finite,
 }));
 const readRuns = (file: string): Run[] => Schema.decodeUnknownSync(RunsSchema)(JSON.parse(readFileSync(file, "utf8"))).map((run) => ({ ...run, second: run.second }));
@@ -58,7 +64,8 @@ if (import.meta.main) {
     args: process.argv.slice(2),
     options: {
       first: { type: "string" }, count: { type: "string" }, out: { type: "string" }, repro: { type: "string" }, "no-repeat": { type: "boolean" },
-      merge: { type: "string" }, "report-dir": { type: "string" }, header: { type: "string" }, plan: { type: "string" }, "target-minutes": { type: "string" }, cores: { type: "string" }, "ms-per-match": { type: "string" },
+      merge: { type: "string" }, "report-dir": { type: "string" }, header: { type: "string" }, plan: { type: "string" }, "target-minutes": { type: "string" }, cores: { type: "string" }, "ms-per-match": { type: "string" }, "max-shards": { type: "string" },
+      issues: { type: "string" }, "open-issues": { type: "string" }, "dry-run": { type: "boolean" },
       cap: { type: "string" }, "min-string-hits": { type: "string" }, "win-low": { type: "string" }, "win-high": { type: "string" }, "min-decisive": { type: "string" },
       "move-share": { type: "string" }, "min-move-kos": { type: "string" }, "min-stage-matches": { type: "string" },
     },
@@ -67,8 +74,16 @@ if (import.meta.main) {
   const config = configFrom(values);
   if (values.plan !== undefined) {
     const total = Number(values.plan);
-    const shards = shardsFor(total, Number(values["ms-per-match"] ?? 0), Number(values.cores ?? 4), Number(values["target-minutes"] ?? 20));
+    // The account runs 20 jobs at once across every repository (docs/ci.md).
+    const shards = Math.min(Number(values["max-shards"] ?? 8), shardsFor(total, Number(values["ms-per-match"] ?? 0), Number(values.cores ?? 4), Number(values["target-minutes"] ?? 20)));
     console.log(JSON.stringify(shardRanges(total, shards)));
+  } else if (values.issues !== undefined) {
+    const findings = Schema.decodeUnknownSync(FindingsSchema)(readJson(values.issues)).map(({ spec, frame, ...rest }): Finding => ({
+      ...rest, ...(spec === undefined ? {} : { spec }), ...(frame === undefined ? {} : { frame }),
+    }));
+    const open = values["open-issues"] === undefined ? [] : Schema.decodeUnknownSync(OpenIssuesSchema)(readJson(values["open-issues"]));
+    const actions = planIssueActions(findings, open, values.header ?? "");
+    for (const action of actions) console.log(values["dry-run"] === true ? describeIssueAction(action) : JSON.stringify(action));
   } else if (values.merge !== undefined) {
     const runs: Run[] = values.merge.split(",").filter(Boolean).flatMap(readRuns);
     const findings = classify(runs, config);
