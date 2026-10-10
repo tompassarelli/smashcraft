@@ -28,6 +28,12 @@ const PLAN: Readonly<Record<number, readonly HeroPose[]>> = {
   12: ["forwardTiltDown"],
 };
 
+const SPIN_POSES: Readonly<Record<number, readonly HeroPose[]>> = {
+  9: ["dashAttack"],
+};
+const NO_FORM_BINDINGS: Readonly<Record<number, readonly HeroPose[]>> = {
+  9: ["neutralSpecial"],
+};
 
 const CONTACT: Readonly<Record<string, readonly number[]>> = {
   jab: [12, -22, 38, -15, 0, -10, 18, 0], jab2: [-12, -48, -12, 38, -20, 18, -8, 0], jab3: [28, -75, 45, -42, 25, -24, 35, 0],
@@ -367,7 +373,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
     ensure(articulated>=4,`${f.name}/${pose}: only ${articulated} moving joints`);
     for(let frame=0;frame<=total;frame++) {
       const arc=frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
-      const spin = character === 9 && pose === "dashAttack";
+      const spin = SPIN_POSES[character]?.includes(pose) ?? false;
       helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),spin ? 360*Math.min(1,Math.max(0,(frame-contact)/(characterAttackActiveFrames(character,AttackStyle.dashAttack,moves)-1))) : contactProfile(pose,character)![7]!*arc,spin ? 2 : 1)});
     }
     if(hop)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
@@ -375,7 +381,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
     if (wardenWeaponPose(character,pose) || shadowLow) aimWeaponContact(model,index,start,contact,total,pose,shadowLow);
     const binding=`{ index: ${index}, seconds: ${seconds((end-start)/1000)}${wardenWeaponPose(character,pose) || shadowLow?", aligned: true":""} }`;
     bindings.push(`    ${pose}: ${binding},`);
-    if(special&&pose!=="ultimate"&&!(character===9&&pose==="neutralSpecial"))for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
+    if(special&&pose!=="ultimate"&&!NO_FORM_BINDINGS[character]?.includes(pose))for(const suffix of ["Air","FollowUp","FollowUpAir"])bindings.push(`    ${pose}${suffix}: ${binding},`);
     const moments=[Math.max(1,contact-3),contact,Math.min(total-1,contact+5)];
     for(const facing of [1,-1])for(const frame of moments)drawnFrames.push({frame,facing,clip:index,seconds:frame/60,phase:AttackPhase.active,x:0,z:0,parts:[],strikes:[]});
     records.push({character,pose,index,contact,total,articulated,source:f.source,contactSeconds:contact/60,aligned:wardenWeaponPose(character,pose) || shadowLow});
