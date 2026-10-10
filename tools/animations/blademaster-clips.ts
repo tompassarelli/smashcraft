@@ -6,13 +6,21 @@ import { DrawnModel, sheet } from "../../ts/scripts/wisp/hurtboxView";
 import { AttackPhase, AttackStyle, Character, GrabAction } from "../../ts/src/game/sim/codes";
 import { heroDefinition } from "../../ts/src/game/sim/heroes/registry";
 import { seconds } from "./asset-info";
+import { swordGestureBaseModel } from "./recovery-model";
 import { encodeVerified, ensure, fighters, onGlobalClock, parseSource, tracks } from "./original-clips";
 
 const [input, output] = process.argv.slice(2).map(p => resolve(p));
 const project = resolve(import.meta.dir, "../..");
 ensure(input && output && relative(project, output).startsWith(".."), "usage: bun tools/animations/blademaster-clips.ts PRIVATE_ASSETS PRIVATE_OUTPUT");
 const fighter = fighters.get(Character.blademaster)!; ensure(fighter, "missing Blademaster");
-const source = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
+const shipped = parseSource(await Bun.file(join(input, fighter.source)).arrayBuffer());
+const source = swordGestureBaseModel(shipped) ?? shipped;
+const sword = source.Nodes.find(n => n?.Name === "Sword"), rightHand = source.Nodes.find(n => n?.Name === "Bone_Hand_R");
+ensure(sword && rightHand, "missing sword grip");
+const grip = new Float32Array([94.21669006347656, -66.13787841796875, 72.99081420898438]);
+sword.PivotPoint = grip; source.PivotPoints[sword.ObjectId] = grip;
+const gripOffset = Float32Array.from(grip, (value, axis) => rightHand.PivotPoint[axis]! - value);
+sword.Translation = { LineType: mdx.LineType.Linear, GlobalSeqId: null, Keys: source.Sequences.flatMap(s => [s.Interval[0], s.Interval[1]].map(Frame => ({ Frame, Vector: gripOffset.slice() }))) };
 const model = structuredClone(source), hero = heroDefinition(Character.blademaster); ensure(hero, "missing moves");
 const stand = source.Sequences.find(s => s.Name === "Stand Ready"); ensure(stand, "missing guard");
 type V = readonly [number, number, number];
@@ -46,18 +54,6 @@ function writeBindings(bindings: readonly string[], names: readonly string[]) {
 
 const authoredGround = (style: AttackStyle | undefined) => style !== undefined && [AttackStyle.jab, AttackStyle.jab2, AttackStyle.forwardTilt, AttackStyle.forwardTiltUp, AttackStyle.forwardTiltDown, AttackStyle.upTilt, AttackStyle.downTilt, AttackStyle.dashAttack].includes(style);
 
-if (source.Sequences.some(s => s.Name.startsWith("Sword Gesture "))) {
-  const bindings: string[] = [], names: string[] = [];
-  for (const g of gestures) {
-    const name = `Sword Gesture ${g.name}`, index = source.Sequences.findIndex(s => s.Name === name);
-    const sequence = source.Sequences[index]; ensure(sequence, `missing ${name}`);
-    bindings.push(`  ${g.key}: { index: ${index}, seconds: ${seconds((sequence.Interval[1]-sequence.Interval[0])/1000)}${authoredGround(g.style) ? ", aligned: true" : ""} },`);
-    names.push(`  ${g.key}: ${JSON.stringify(name)},`);
-  }
-  await writeBindings(bindings, names);
-  console.log("BLADEMASTER_BINDINGS_PASS: existing authored timelines retained");
-  process.exit(0);
-}
 
 function multiply(a: ArrayLike<number>, b: ArrayLike<number>): Float32Array {
   const [x,y,z,w]=Array.from(a),[u,v,t,s]=Array.from(b);
