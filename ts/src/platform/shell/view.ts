@@ -14,7 +14,7 @@ import type { FrameControls } from "../../game/match/controls";
 import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
 import { type MatchState, Phase, remainingSeconds, stageClock, timedMatch } from "../../game/match/rules";
 import { fighterOffscreen, fitFighterFrames } from "../../game/presentation/fighterFraming";
-import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera } from "../../game/presentation/arenaCamera";
+import { ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, cameraPoint, extremeCamera, localCamera, resultCamera } from "../../game/presentation/arenaCamera";
 
 import { beginPauseCamera, advancePauseCamera, pauseCameraAngle, pauseHudHidden } from "./pauseCamera";
 import { type MatchCamera, copyMatchCamera } from "../../game/sim/matchCamera";
@@ -444,8 +444,12 @@ export function renderPersistentPresentation(s: ShellState): void {
   for (const slot of PARTICIPANT_SLOTS) {
     const fighter = isActive(world, slot) ? fighterAt(world, slot) : undefined;
     const renderers = ui.fighters[slot];
+    if (game.phase === Phase.result) {
+      const body = s.participants[slot].body;
+      if (body !== undefined) ShowUnit(body.unit, false);
+    }
     if (renderers?.pool !== undefined) {
-      if (fighter !== undefined && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage, runtime.simulationFrame);
+      if (fighter !== undefined && game.phase !== Phase.result && ui.match.posing !== slot) renderers.pool.present(fighter, runtime.poses[slot], stage, runtime.simulationFrame);
       else renderers.pool.hide();
     }
     const live = playing ? fighter : undefined;
@@ -495,13 +499,14 @@ export function lockArenaCamera(s: ShellState): void {
   if (resumePresentationHeld(s)) return;
   const { world, game } = presentedMatch(s);
 
-  if (!game.camera.initialized) advanceMatchCamera(s.camera, world, game.stageChoice);
+  if (game.phase !== Phase.result && !game.camera.initialized) advanceMatchCamera(s.camera, world, game.stageChoice);
   const height = BlzGetLocalClientHeight();
   const aspect = height > 0 ? I2R(BlzGetLocalClientWidth()) / I2R(height) : 16.0 / 9.0;
-  if (s.session.paused && s.pauseCamera !== undefined) advancePauseCamera(s, aspect);
+  if (game.phase === Phase.result) resultCamera(s.camera, game.stageChoice, aspect, views(s).match.resultFrames);
+  else if (s.session.paused && s.pauseCamera !== undefined) advancePauseCamera(s, aspect);
   else localCamera(s.camera, game.camera.initialized ? game.camera : s.camera, game.stageChoice, aspect);
-  if (s.viewExtreme !== undefined) extremeCamera(s.camera, game.stageChoice, aspect, s.viewExtreme);
-  if (!s.session.paused || s.pauseCamera === undefined) fitFighterFrames(s.camera, world, game.stageChoice, aspect);
+  if (game.phase !== Phase.result && s.viewExtreme !== undefined) extremeCamera(s.camera, game.stageChoice, aspect, s.viewExtreme);
+  if (game.phase !== Phase.result && (!s.session.paused || s.pauseCamera === undefined)) fitFighterFrames(s.camera, world, game.stageChoice, aspect);
   const { x: centerX, y: centerY } = s.origin;
   const framing = s.camera;
   if (game.phase === Phase.match && game.run.active && game.run.boss.kind !== 0 && !s.session.paused) {
