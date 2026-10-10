@@ -8,6 +8,8 @@
     "node_modules/wisp/src/natives/warcraft.d.ts",
     "scripts/wisp/memoryLua.ts",
     "scripts/wisp/memoryCensus.ts",
+    "scripts/wisp/handleBaseline.ts",
+    "scripts/wisp/handleCensus.ts",
     "scripts/wisp/botMatch.ts"
   ],
   "exclude": [],

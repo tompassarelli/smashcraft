@@ -44,6 +44,7 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
   if (!Number.isInteger(minutes) || minutes < MEMORY_LIMITS.warmupMinutes + 3 || minutes > MAX_MINUTES) {
     return yield* new UsageFailure({ problem: `soak memory --minutes takes ${MEMORY_LIMITS.warmupMinutes + 3} to ${MAX_MINUTES} game minutes: ${MEMORY_LIMITS.warmupMinutes} of warm-up, then the check` });
   }
+  const handles = args.includes("--handles");
   const playable = buildProject("playable");
   if (givenBundle === undefined) yield* compile(playable.configPath).pipe(step("compile the playable build"));
   yield* compile(join(tsDirectory, "tsconfig.memory.json")).pipe(step("compile the memory soak"));
@@ -51,7 +52,7 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
   const declarations = join(tsDirectory, "node_modules/wisp/src/natives/warcraft.d.ts");
 
   const text = yield* Effect.scoped(Effect.gen(function*() {
-    const child = yield* ChildProcess.make(lua, [join(tsDirectory, "build/memory.lua"), givenBundle ?? playable.bundlePath, declarations, String(minutes), ...(matches === undefined ? [] : [String(matches), String(first)])], { stdin: "ignore" });
+    const child = yield* ChildProcess.make(lua, [join(tsDirectory, "build/memory.lua"), givenBundle ?? playable.bundlePath, declarations, handles ? "handles" : String(minutes), ...(matches === undefined || handles ? [] : [String(matches), String(first)])], { stdin: "ignore" });
     const [output, stderr, code] = yield* Effect.all([
       child.stdout.pipe(
         Stream.decodeText,
@@ -64,12 +65,12 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
       Stream.mkString(Stream.decodeText(child.stderr)),
       child.exitCode,
     ], { concurrency: "unbounded" });
-    if (code !== 0 && !output.includes("\ndone ")) return yield* new MemorySoakFailure({ problem: `the memory soak in ${lua}: ${lua} exited ${code}: ${stderr.trim()}` });
+    if (code !== 0 && !output.includes("\ndone ") && !output.includes("handles done ")) return yield* new MemorySoakFailure({ problem: `the memory soak in ${lua}: ${lua} exited ${code}: ${stderr.trim()}` });
     return output;
   })).pipe(
     Effect.catchTag("PlatformError", (cause) => Effect.fail(new MemorySoakFailure({ problem: `the memory soak in ${lua}: ${cause.message}` }))),
     Effect.provide(BunServices.layer),
-    step(matches === undefined ? `${minutes} game minutes in 32-bit Lua` : `${matches} computer matches in 32-bit Lua`),
+    step(handles ? "a match and its rematch in 32-bit Lua, counting live handles" : matches === undefined ? `${minutes} game minutes in 32-bit Lua` : `${matches} computer matches in 32-bit Lua`),
   );
   yield* Effect.tryPromise({
     try: async () => {
@@ -78,6 +79,11 @@ export const soakMemory: Command = (args) => Effect.gen(function*() {
     },
     catch: (cause) => new MemorySoakFailure({ problem: `writing ${out}: ${describeCause(cause)}` }),
   });
+  if (handles) {
+    yield* Console.log(text.trimEnd());
+    if (!text.includes("handles done problems=0")) return yield* new MemorySoakFailure({ problem: `live handles left their menu baseline; samples: ${out}` });
+    return;
+  }
   if (matches !== undefined) {
     const passed = text.includes(`release matches=${matches} crashes=0 desyncs=0`) && text.includes(`matches=${matches} problems=0`);
     yield* Console.log(text.trimEnd());

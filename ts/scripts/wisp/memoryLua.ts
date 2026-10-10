@@ -21,16 +21,27 @@ import { Key } from "../../src/platform/shell/keyEvents";
 import { botBeatKeys, gameOf } from "./botMatch";
 import { PREDICTED_LOCAL_NATIVES } from "./localNatives";
 import { HandleCensus, compactEmulator, reach } from "./memoryCensus";
+import { handleBaselineLines, measureHandleBaseline } from "./handleBaseline";
 
 declare const arg: Readonly<Record<number, string | undefined>>;
 
 const [bundlePath, declarationsPath, minutesText = "30", matchesText, firstText = "0"] = [arg[1], arg[2], arg[3], arg[4], arg[5]];
-if (bundlePath === undefined || declarationsPath === undefined) throw new Error("usage: lua memory.lua MAP_LUA WARCRAFT_D_TS [MINUTES]");
+if (bundlePath === undefined || declarationsPath === undefined) throw new Error("usage: lua memory.lua MAP_LUA WARCRAFT_D_TS [MINUTES|handles]");
 const FRAMES_PER_MINUTE = 3600;
 const totalFrames = Number(minutesText) * FRAMES_PER_MINUTE;
 const releaseMatches = matchesText === undefined ? undefined : Number(matchesText);
 const declarationsText = readFile(declarationsPath);
 const { functions } = parseNativeDeclarations(declarationsText);
+if (minutesText === "handles") {
+  const lockstep = luaLockstep({ filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES, intentionalNoops: SMASHCRAFT_NOOPS, natives: smashcraftNativeBehavior }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
+  const result = measureHandleBaseline(lockstep, functions, gameOf);
+  const problems = [...result.problems];
+  for (const client of lockstep.clients) for (const error of client.errors) problems.push(`p${client.slot}: ${error}`);
+  for (const line of handleBaselineLines(result)) print(`handles ${line}`);
+  for (const problem of problems) print(`problem ${problem}`);
+  print(`handles done problems=${problems.length}`);
+  os.exit(problems.length === 0 ? 0 : 1);
+}
 const clients = luaLockstep({ filePrefix: "smashcraft", localNatives: PREDICTED_LOCAL_NATIVES, intentionalNoops: SMASHCRAFT_NOOPS, natives: smashcraftNativeBehavior }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
 const host = clients.client(0);
 const censuses = clients.clients.map((client) => new HandleCensus(client, functions));

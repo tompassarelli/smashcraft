@@ -15,3 +15,8 @@
   warm-up high and a later rise to identify the retaining lifecycle.
   Native handles are checked separately: their emulator-owned record identities
   are excluded from map tables because Warcraft exposes them as opaque handles.
+  `bun wisp soak memory --handles` plays four computers through one match, then
+  a match and its automatic rematch, in 32-bit Lua, and fails unless every live
+  Warcraft handle kind (HandleCensus, smashcraft:ts/scripts/wisp/handleCensus.ts)
+  is back at its fighter-selection count (#409); the sweep in
+  smashcraft:ts/test/handle-baseline.test.ts plays the same in Bun.

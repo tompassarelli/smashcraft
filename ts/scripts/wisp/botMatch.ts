@@ -12,6 +12,7 @@ import { floorDiv, floorMod } from "wisp/src/sim/intMath";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { Phase } from "../../src/game/match/rules";
+import type { StagePool } from "../../src/game/menu/stagePool";
 import type { MapBuild } from "../../src/game/shell/build";
 import { INTEGRITY_BUILD } from "../../src/game/shell/currentBuild";
 import { Character } from "../../src/game/sim/codes";
@@ -98,6 +99,7 @@ export interface Game {
   automaticRematch: boolean;
   readonly characterChoices: number[];
   readonly characterReadiness: boolean[];
+  readonly stagePool: StagePool;
 }
 
 

@@ -49,6 +49,7 @@
     "scripts/wisp/memoryLua.ts",
     "scripts/wisp/memoryCensus.ts",
     "scripts/wisp/botMatch.ts",
+    "scripts/wisp/handleBaseline.ts",
     "scripts/wisp/censusProfile.ts"
   ]
 }
