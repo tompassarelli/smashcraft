@@ -37,7 +37,6 @@ import { ItemPresentation } from "../../game/render/itemPresentation";
 import { MeterDropPresentation } from "../../game/render/meterDropPresentation";
 import { BodyFlash } from "../../game/render/bodyFlash";
 import { ClassicPresentation } from "../../game/render/classicPresentation";
-import { selectPauseMenu } from "./keys";
 import { PauseMenu } from "../../game/ui/pauseMenu";
 
 
@@ -111,11 +110,11 @@ function menuControls(s: Readonly<ShellState>): MenuControls {
 }
 
 // Create shared panels, HUD plates and effect pools in the same order on every client.
-export function createUi(s: ShellState, actions: PanelActions): UiObjects {
+export function createUi(s: ShellState, actions: PanelActions, selectPause: (choice: number, clicker: player) => void): UiObjects {
   const controls = menuControls(s);
   let combat: CombatEffects;
   const ui: UiObjects = {
-    pause: new PauseMenu((choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice)),
+    pause: new PauseMenu(selectPause),
     items: new ItemPresentation(s.origin),
     drops: new MeterDropPresentation(s.origin),
     clock: new MatchClock(),
@@ -193,13 +192,13 @@ export function layoutHuds(s: ShellState): void {
 }
 
 
-export function recreateUi(s: ShellState, actions: PanelActions): void {
+export function recreateUi(s: ShellState, actions: PanelActions, selectPause: (choice: number, clicker: player) => void): void {
   const ui = s.ui;
   if (ui === undefined) return;
-  if (ui.pause === undefined) ui.pause = new PauseMenu((choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice));
+  if (ui.pause === undefined) ui.pause = new PauseMenu(selectPause);
   else {
     bindPrototype(ui.pause, PauseMenu.prototype);
-    ui.pause.bindActions((choice, clicker) => selectPauseMenu(s, GetPlayerId(clicker), choice));
+    ui.pause.bindActions(selectPause);
   }
   const retainedItems: { readonly items?: ItemPresentation } = ui;
   if (retainedItems.items === undefined) ui.items = new ItemPresentation(s.origin);
