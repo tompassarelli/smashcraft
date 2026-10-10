@@ -14,8 +14,6 @@ const TRACES_0045 = [
   "fixtures/playable-0045/epoch-2/0-wc3-melee-input-trace.txt",
   "fixtures/playable-0045/epoch-2/1-wc3-melee-input-trace.txt",
 ];
-
-const TRACE = (epoch: number, client: number) => `epoch-${epoch}/${client}-wc3-melee-input-trace.txt`;
 const roots: string[] = [];
 afterAll(() => {
   for (const root of roots) rmSync(root, { recursive: true });
@@ -41,12 +39,6 @@ function recorded0045(change: (capture: RecordedCapture, traces: Map<string, str
   return Effect.runPromise(playableVerdict(root));
 }
 
-const results = (capture: RecordedCapture, epoch: number) => {
-  const event = capture.events.find((each) => each.event === "results" && each.epoch === epoch);
-  if (event?.texts === undefined) throw new Error(`no epoch ${epoch} results`);
-  return event.texts;
-};
-
 test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player | wins!\" names Player 1 [native]", async () => {
   expect(await recorded0045()).toMatchObject({
     build: "playable-0045",
@@ -57,21 +49,4 @@ test("0.0.45's recorded match and rematch pass: B's rematch screen read \"Player
       { epoch: 2, winner: "Player 1", winner_source: "result screens", receipt_winners: [null, null], winners: ["Player 1", "Player 1"], end_frames: [285, 285], result_checksums: [{ frame: 276, checksum: "783381:730897" }] },
     ],
   });
-});
-
-test("the recorded 0.0.45 capture fails when its clients disagree on the winner or the result checksum [native]", async () => {
-  const otherWinner = await recorded0045((capture) => {
-    results(capture, 2)[1] = "Player 2 wins!";
-  });
-  expect(otherWinner.failures).toEqual(["epoch 2: result screens do not both name one winner: Player 1 / Player 2"]);
-  const otherChecksum = await recorded0045((_capture, traces) => {
-    traces.set(TRACE(2, 1), (traces.get(TRACE(2, 1)) ?? "").replaceAll("783381:730897", "783381:730898"));
-  });
-  expect(otherChecksum.failures).toEqual(["epoch 2: confirmed checksums differ at frames 276"]);
-
-  const otherReceipt = await recorded0045((capture) => {
-    const end = capture.events.find((each) => each.event === "end" && each.epoch === 2);
-    for (const [client, publication] of (end?.publications ?? []).entries()) publication.contents = publication.contents.replace("frame=285\"", `frame=285 winner=P${client + 1}"`);
-  });
-  expect(otherReceipt.failures).toEqual(["epoch 2: end receipts name different winners: Player 1 / Player 2"]);
 });

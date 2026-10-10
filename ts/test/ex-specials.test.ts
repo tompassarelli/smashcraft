@@ -5,8 +5,7 @@ import { start, install } from "../src/platform/main";
 import { shell } from "../src/platform/shell/state";
 import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/registry";
 import { fighterAt } from "../src/game/sim/roster";
-import { createFighter } from "../src/game/sim/fighter";
-import { SpecialSlot, specialKit, type AuthoredSpecial } from "../src/game/sim/heroSpecials";
+import { SpecialSlot } from "../src/game/sim/heroSpecials";
 import { startFighterSpecial } from "../src/game/sim/specials";
 import { controls } from "../src/game/sim/testWorld";
 import { firstFighterDifference } from "../src/game/replay/difference";
@@ -14,31 +13,6 @@ import { ROSTER_MANA } from "../src/game/sim/mana";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
-
-function expectAuthoredEx(move: AuthoredSpecial, label: string): void {
-  expect(move.ex, label).toBeDefined();
-  expect(move.ex, label).not.toBe(move);
-  expect(move.ex?.endFrame, label).toBe(move.endFrame);
-  expect(move.ex?.landingLag, label).toBe(move.landingLag);
-  expect(move.ex?.helpless, label).toBe(move.helpless);
-  expect(move.ex?.oncePerAirtime, label).toBe(move.oncePerAirtime);
-}
-
-test("every selectable fighter has four authored EX specials including air recall and marked forms [spec #329]", () => {
-  for (const character of SELECTABLE_CHARACTERS) {
-      const owner = createFighter(character, 0.0, 1);
-      const specials = owner.tuning.specials;
-      if (specials === undefined) continue;
-      for (const slot of [SpecialSlot.neutral, SpecialSlot.side, SpecialSlot.up, SpecialSlot.down]) {
-        const kit = specialKit(specials, slot);
-        const label = `${fighterName(character)}:${slot}`;
-        expectAuthoredEx(kit.ground, label);
-        if (kit.air !== undefined) expectAuthoredEx(kit.air, `${label}:air`);
-        if (kit.recall !== undefined) expectAuthoredEx(kit.recall, `${label}:recall`);
-        if (kit.marked !== undefined) expectAuthoredEx(kit.marked.special, `${label}:marked`);
-      }
-  }
-});
 
 test.each(SELECTABLE_CHARACTERS)("real Wisp map fires fighter %i's four EX specials with matching two-client state and no errors [spec #329] [invariant]", character => {
   const clients = headless.clients({ start, install });

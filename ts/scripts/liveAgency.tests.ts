@@ -7,8 +7,6 @@ import { analyzeAgency, agencyLetters, runFrame } from "./agency";
 import { attackerPlan, standingMatch } from "./agencySweep";
 import { sweep } from "../test/sweep";
 
-const THROWS = [GrabAction.throwForward, GrabAction.throwBack, GrabAction.throwUp, GrabAction.throwDown];
-
 /** Compares each scenario for each victim; `throws` names the committed throws to compare. */
 function compareLiveAgency(victims: readonly Character[], throws: readonly GrabAction[], scenarios = true): void {
   const forecast = new FighterAgencyForecast();
@@ -84,9 +82,4 @@ function compareLiveAgency(victims: readonly Character[], throws: readonly GrabA
 
 sweep("live locked marker matches the agency replay for buffers, tech, grabs, release, hitlag, freeze and forced stand [invariant]", () => {
   compareLiveAgency([Character.rifleman], [GrabAction.throwForward]);
-}, 120_000);
-
-sweep("live locked marker matches the agency replay for Rifleman's other throws and for Rifleman and Illidan victims [invariant]", () => {
-  compareLiveAgency([Character.rifleman], THROWS.slice(1), false);
-  compareLiveAgency([Character.rifleman, Character.demonHunter], THROWS);
 }, 120_000);

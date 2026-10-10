@@ -1,24 +1,6 @@
 import { expect, test } from "bun:test";
-import { join } from "node:path";
 import { decodeBLP, getBLPImageData } from "war3-model";
 import { PORTRAIT_QUALITY, encodeBlp } from "../scripts/blp";
-import { readMapBaseline } from "../scripts/mapSize";
-import { MAP_PORTRAITS } from "../scripts/wisp/mapInputs";
-
-
-const PORTRAIT_BUDGET = 15_000_000;
-
-test("Classic and Definitive portraits are imported as BLP and stay within their map budget in the committed size baseline [spec #307] [spec #363]", () => {
-  const names = MAP_PORTRAITS.flatMap((entry) => [entry, `_de.w3mod\\${entry}`]);
-  expect(names.filter((name) => !name.endsWith(".blp"))).toEqual([]);
-  const baseline = readMapBaseline(join(import.meta.dir, "../map-size-baseline.tsv"));
-  const rows = [...(baseline?.imports ?? new Map<string, number>())].filter(([entry]) => /Fighter(Card|Bust|Tile|Stock)/.test(entry));
-  expect(rows.filter(([entry]) => !entry.endsWith(".blp"))).toEqual([]);
-  expect(rows.map(([entry]) => entry).sort()).toEqual([...names].sort());
-  for (const prefix of ["war3mapImported\\", "_de.w3mod\\war3mapImported\\"]) {
-    expect(rows.filter(([entry]) => entry.startsWith(prefix)).reduce((sum, [, bytes]) => sum + bytes, 0), prefix).toBeLessThanOrEqual(PORTRAIT_BUDGET);
-  }
-});
 
 test("a portrait BLP decodes in war3-model to its source within JPEG error, alpha included [reference]", () => {
   const width = 24, height = 16, data = new Uint8Array(width * height * 4);

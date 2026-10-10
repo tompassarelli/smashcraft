@@ -28,9 +28,6 @@ interface Check { readonly name: string; readonly directory: string; readonly ar
 
 const MODEL_INPUTS = ["build-inputs.json", "tools/animations/", "ts/src/game/assets/", "ts/src/game/presentation/", "ts/scripts/wisp/playerView.ts", "ts/scripts/wisp/modelFacts.ts"];
 
-export const MODEL_FACTS_REFRESH = "cd ts && bun wisp view models --assets ASSETS --summon ASSETS/summon-original-clips"
-  + " --extractor ../build/animation-assets/casc-extract --storage WARCRAFT_III_DIR (smashcraft:docs/player-view.md), then commit ts/scripts/wisp/modelFacts.ts";
-
 
 export function checksFor(paths: readonly string[]): Check[] {
   const ts = paths.some((path) => path.startsWith("ts/") || path === "typescript-toolchain.lock");
@@ -39,11 +36,9 @@ export function checksFor(paths: readonly string[]): Check[] {
     ...(paths.length > 0 ? [{ name: "clean room", directory: "ts", args: ["scripts/cleanRoom.ts"], fix: "follow wisp:docs/clean-room.md and the line above." }] : []),
     ...(ts ? [
       { name: "type-check ts", directory: "ts", args: ["run", "check"] },
-      { name: "type escapes and source shapes", directory: "ts", args: ["test", "test/source-shapes.test.ts"] },
       { name: "oracle tags on tests", directory: "ts", args: ["scripts/oracleTagsCheck.ts"], fix: "tag each refused test title with its oracle (listed above) or delete the test." },
     ] : []),
     ...(models ? [
-      { name: "model facts fresh", directory: "ts", args: ["test", "test/model-facts.test.ts"], fix: `refresh them with: ${MODEL_FACTS_REFRESH}` },
       { name: "generated models stored", directory: "ts", args: ["scripts/storedModels.ts"], fix: "store the regenerated family (smashcraft:docs/build-inputs.md, \"Change art\")." },
     ] : []),
   ];

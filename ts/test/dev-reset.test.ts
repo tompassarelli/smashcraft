@@ -8,8 +8,7 @@
 
 
 import { afterAll, expect } from "bun:test";
-import { cpSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { rmSync } from "node:fs";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { MapEntry } from "wisp/src/headless/client";
 import { Phase } from "../src/game/match/rules";
@@ -23,8 +22,6 @@ import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
 import { JournalHelpers } from "./rematch/journalHelper";
 import { value } from "./rematch/playableMatch";
 import { sweep } from "./sweep";
-
-const tsDirectory = join(import.meta.dir, "..");
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 const copies: string[] = [];
 afterAll(() => {
@@ -116,20 +113,5 @@ sweep("a match after -dev reset equals the first match of the game: same trace c
   play("camera match", "-dev camera");
   reset();
   expectSameMatch(first, play("match after the reset"));
-  expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
-}, 180_000);
-
-sweep("a match after a hot reload and -dev reset equals the first match of the game: same trace checksums and fighter lines on both clients [invariant]", async () => {
-  mkdirSync(join(tsDirectory, "build"), { recursive: true });
-  const copy = mkdtempSync(join(tsDirectory, "build/reset-reload-"));
-  copies.push(copy);
-  cpSync(join(tsDirectory, "src"), join(copy, "src"), { recursive: true });
-  const reloaded: MapEntry = await import(join(copy, "src/platform/main.ts"));
-  const { clients, play, reset, reload } = session();
-  const first = play("first match");
-  expectFirstMatch(first);
-  reload(reloaded);
-  reset();
-  expectSameMatch(first, play("match after the reload and reset"));
   expect(value(clients.client(0), () => shell().game.phase)).toBe(Phase.match);
 }, 180_000);

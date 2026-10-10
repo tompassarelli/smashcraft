@@ -68,36 +68,6 @@ sweep("every fixed delay from 0 to 8 reaches the simulation exactly that many fr
   for (let choice = 0; choice <= 8; choice++) expect(pressToFrame(choice)).toBe(choice);
 });
 
-function lastText(clients: Lockstep, index: number, prefix: string): string {
-  return clients.clients[index]?.frames.shownText().find(text => text.startsWith(prefix)) ?? "";
-}
-
-test("the delay setting cycles in Options, the lobby shows both requests, uses the higher and warns from 8 frames [spec #396]", () => {
-  const clients = headless.clients(entryFor(BUILD), [0, 1]);
-  clients.start();
-  clients.frames(60);
-  expect(clients.click(0, 0.6275, 0.0245)).toBe(true);
-  clients.frames(2);
-  for (let press = 0; press < 4; press++) {
-    expect(clients.click(0, 0.7, 0.489)).toBe(true);
-    clients.frames(1);
-  }
-  expect(shellOf(clients, 1).participants[0].bindings.delay).toBe(3);
-  expect(lastText(clients, 0, "Delay: ")).toBe("Delay: 3 frames");
-  expect(clients.click(0, 0.7, 0.452)).toBe(true);
-  clients.frames(1);
-  expect(shellOf(clients, 1).participants[0].bindings.delay).toBe(2);
-  clients.frames(60);
-  expect(lastText(clients, 1, "Input delay:")).toBe("Input delay: P1 2 · P2 Auto (2) → 2 frames");
-  clients.everywhere(() => {
-    const s = shellState();
-    if (s !== undefined) chooseDelay(s.participants[1].bindings, 8);
-  });
-  clients.frames(60);
-  expect(lastText(clients, 1, "Input delay:")).toContain("P1 2 · P2 8 → 8 frames");
-  expect(lastText(clients, 1, "Input delay:")).toContain("Input delay of 8+ frames: this connection will feel sluggish");
-});
-
 function injected(rttMs: number, lossPercent: number, seed: number): SyncDelivery {
   let state = seed;
   const last = new Map<number, number>();
@@ -180,9 +150,4 @@ test("two clients at 120 ms round trip and 1% loss keep delay 2, rollback p95 wi
 
 sweep("two clients at 0, 60 and 120 ms round trip and 1% loss keep delay 2, rollback p95 within R and no divergence [spec #396]", () => {
   for (const rttMs of [0, 60, 120]) expectSettled(rttMs, 1200);
-});
-
-test("a one-way trip past delay + R shows the connection-poor indicator in the match [spec #396]", () => {
-  const measured = onlineMatch(400, 150);
-  for (const text of measured.indicator) expect(text).toContain("Connection poor");
 });

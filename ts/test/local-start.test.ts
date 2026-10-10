@@ -8,7 +8,7 @@
 
 
 
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect } from "bun:test";
 import { installHeadless, readNativeDeclarations } from "wisp/scripts/wisp/headless";
 import { type SyncLatency, syncDelivery } from "wisp/src/headless/syncChannel";
 import type { HeadlessClient, SyncMessage } from "wisp/src/headless/client";

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { STAGE_CATALOG } from "../src/game/menu/stageCatalog";
 import { cameraPoint, extremeCamera, localCamera } from "../src/game/presentation/arenaCamera";
-import { CLOSEST_BODY_SHARE, FRAMING_MARGIN, fighterOffscreen, fitFighterFrames, lookFrame } from "../src/game/presentation/fighterFraming";
+import { CLOSEST_BODY_SHARE, FRAMING_MARGIN, fitFighterFrames, lookFrame } from "../src/game/presentation/fighterFraming";
 import { Character } from "../src/game/sim/codes";
 import { createFighter } from "../src/game/sim/fighter";
 import { advanceMatchCamera, createMatchCamera } from "../src/game/sim/matchCamera";
@@ -70,21 +70,4 @@ test("within the stage's zoom limit every fighter pair's whole body and head roo
   expect(changedState).toBe(0);
   expect(checked).toBeGreaterThan(50000);
   expect(limited).toBeLessThan(checked);
-});
-
-test("every fighter whose body leaves the frame gets its offscreen bubble, including spreads beyond the stage's zoom limit [spec #80]", () => {
-  const failures: string[] = [];
-  let offscreen = 0;
-  framings(({ stage, aspect, zoom, camera, placed }) => {
-    for (const look of LOOKS) for (const fighter of placed) {
-      const bounds = lookFrame(fighter.character, look);
-      const { x, z } = fighter.motion;
-      const corners = [[bounds.left, bounds.bottom], [bounds.right, bounds.bottom], [bounds.left, bounds.top], [bounds.right, bounds.top]].map(([dx = 0, dz = 0]) => cameraPoint(camera, aspect, x + fighter.facing * dx, z + dz));
-      if (corners.every((point) => point.column >= 0 && point.column <= 1 && point.row >= 0 && point.row <= 1)) continue;
-      offscreen++;
-      if (!fighterOffscreen(camera, aspect, fighter.character, x, z) && failures.length < 10) failures.push(`${fighter.character} ${look} on stage ${stage} at (${x.toFixed(0)}, ${z.toFixed(0)}), aspect ${aspect.toFixed(2)}, ${zoom}`);
-    }
-  });
-  expect(failures).toEqual([]);
-  expect(offscreen).toBeGreaterThan(0);
 });

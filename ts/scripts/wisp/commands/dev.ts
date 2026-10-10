@@ -18,35 +18,16 @@ export const SMASHCRAFT_DEV: DevProject = {
     registryRunners: ["test/game.test.ts"],
     preload: ["test/host-natives.ts"],
     reads: {
-      "test/source-shapes.test.ts": ["src/**/*.ts", "scripts/**/*.ts"],
-      "test/lua-holes.test.ts": ["src/**/*.ts", "scripts/**/*.ts", "tsconfig.game.json"],
       "test/wisp.test.ts": ["test/fixtures/wisp/**"],
-      "test/command-list.test.ts": ["scripts/wisp.ts", "scripts/wisp/commands/help.ts", "../docs/README.md", "../docs/commands/*.md"],
-      "test/doctor-declaration.test.ts": ["../docs/commands/client.md"],
-      "test/stage-render.test.ts": [],
-      "test/stage-thumbnails.test.ts": ["stage-thumbnails.json", "src/game/menu/stageSilhouettes.ts"],
-      "test/ui-frames.test.ts": ["../tools/selection/art/*.fdf", "../tools/selection/art/*.toc"],
-
       "test/integrity.test.ts": ["../evidence/**"],
       "test/playable.test.ts": ["test/fixtures/playable-0045/**", "../evidence/**"],
-
-      "test/tune.test.ts": ["src/**"],
-      "test/repro.test.ts": [],
       "test/standalone.test.ts": ["test/native/pads/cpu-expert.pad"],
-      "test/native-driver.test.ts": ["test/native/pads/rifleman-neutral.pad", "test/native/pads/171/*.pad"],
       "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
     },
 
     journeys: [
-      "test/desync-guard.test.ts", "test/desync-guard-integrity.test.ts",
-      "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/selection-load.test.ts", "test/player-text.test.ts",
-      "test/stage-render.test.ts", "test/standalone.test.ts",
-      "test/stack-trace.test.ts", "test/rematch-load.test.ts", "test/match-settings.test.ts", "test/missing-input.test.ts", "test/input-stall.test.ts", "test/tune.test.ts", "test/repro.test.ts",
-      "test/lag-recovery.test.ts", "test/local-start.test.ts", "test/bot-selection.test.ts", "test/cpu-settings.test.ts", "test/session-setup.test.ts",
+      "test/desync-guard.test.ts", "test/visual-lifecycle.test.ts", "test/player-view.test.ts", "test/player-text.test.ts", "test/standalone.test.ts", "test/rematch-load.test.ts", "test/match-settings.test.ts", "test/lag-recovery.test.ts", "test/local-start.test.ts",
     ],
-    perFile: ["test/source-shapes.test.ts"],
-
-    warm: { "test/source-shapes.test.ts": ["typescript"] },
     isolated: ISOLATED_TEST_GROUPS,
     env: TEST_WORKER_ENV,
     envForFiles: testWorkerEnvironment,

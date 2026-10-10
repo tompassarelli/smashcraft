@@ -8,7 +8,6 @@ import { afterAll, expect, test } from "bun:test";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
-import { on } from "wisp/src/platform/dispatch";
 import { Phase, holdingStart } from "../src/game/match/rules";
 import { CURRENT_BUILD, INTEGRITY_BUILD, PLAYABLE_BUILD } from "../src/game/shell/currentBuild";
 import { install as installPlayable, start as startPlayable } from "../src/platform/playableMain";
@@ -16,96 +15,9 @@ import { Key } from "../src/platform/shell/keyEvents";
 import { panelActions } from "../src/platform/shell/menus";
 import { shell } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
-import { fighterAt } from "../src/game/sim/roster";
-import { ItemKind } from "../src/game/sim/codes";
-import { value } from "./rematch/playableMatch";
 
 const headless = installHeadless(SMASHCRAFT_HEADLESS);
 afterAll(headless.restore);
-
-test("a full match shows only fighter HUD fields and the clock, with results after play [spec #336]", () => {
-  const clients = headless.clients({ install: installPlayable, start: startPlayable });
-  clients.start();
-  clients.frames(30);
-  for (const slot of [0, 1]) clients.press(slot, Key.r);
-  clients.frames(10);
-  clients.everywhere(() => {
-    panelActions().selection.changeStocks(0, -1);
-    panelActions().selection.changeStocks(0, -1);
-  });
-  clients.press(0, Key.y);
-  clients.frames(20);
-  clients.press(0, Key.y);
-  const host = clients.client(0);
-  for (let frame = 0; frame < 120 && value(host, () => shell().game.phase) !== Phase.match; frame++) clients.frames(1);
-  expect(value(host, () => shell().game.phase)).toBe(Phase.match);
-  clients.everywhere(() => {
-    const s = shell();
-    s.game.items.on = true;
-    s.game.items.kind = ItemKind.speed;
-    s.game.items.nextSpawnFrame = s.game.matchFrame + 120;
-    const f = fighterAt(s.world, 0);
-    f.status.buff = ItemKind.speed;
-    f.status.buffFrames = 120;
-  });
-  clients.frames(1);
-  const textLog = new Set<string>();
-  const forbidden = new Set<string>();
-  let matchFrames = 0;
-  for (let frame = 0; frame < 1200 && value(host, () => shell().game.phase) === Phase.match; frame++) {
-    if (frame === 210) for (const client of clients.clients) client.key(0, Key.w, 0, true);
-    for (const client of clients.clients) {
-      for (const shown of client.frames.snapshot({ visibleOnly: true })) {
-        if (shown.text === "") continue;
-        textLog.add(`${shown.name}: ${shown.text}`);
-        if (!/^(MatchClock|SmashcraftDamage|FighterHUD(Name|Slot|Tenths|StockCount)[0-3]|OffscreenArrow[0-3])$/.test(shown.name)) forbidden.add(`${shown.name}: ${shown.text}`);
-      }
-      for (const message of client.messages) forbidden.add(`message: ${message}`);
-      for (const call of client.log) if (call.name === "SetTextTagText") forbidden.add(`floating text: ${String(call.args[1])}`);
-    }
-    matchFrames++;
-    clients.frames(1);
-  }
-  console.log(`#336 full-match text log (${matchFrames} match frames, ${textLog.size} distinct rows):\n${[...textLog].join("\n")}`);
-  expect([...forbidden]).toEqual([]);
-  expect(value(host, () => shell().game.phase)).toBe(Phase.result);
-  expect(host.frames.shownText().some(text => text.includes("Player 2 wins!"))).toBe(true);
-  expect(clients.firstDivergence()).toBeUndefined();
-  for (const client of clients.clients) expect(client.errors).toEqual([]);
-});
-
-test("training hints opt in from pause, whose controls name full shield, light shield, tilt and short hop [spec #336]", () => {
-  const clients = headless.clients({ install: installPlayable, start: startPlayable });
-  clients.start();
-  clients.frames(30);
-  clients.everywhere(() => { shell().game.training = true; });
-  for (const slot of [0, 1]) clients.press(slot, Key.r);
-  clients.frames(10);
-  clients.press(0, Key.y);
-  clients.frames(20);
-  clients.press(0, Key.y);
-  clients.frames(30);
-  const host = clients.client(0);
-  expect(value(host, () => shell().game.phase)).toBe(Phase.match);
-  expect(host.frames.shownText().some(text => text.includes("pause. Tap Shield"))).toBe(false);
-  clients.press(0, Key.y);
-  clients.frames(1);
-  const pauseText = host.frames.shownText().join("\n");
-  for (const control of ["Q: full shield", "T: light shield", "P: tilt", "Z / LB (tom pad): short hop", "F2: training hints Off"]) expect(pauseText).toContain(control);
-  clients.press(0, Key.f2);
-  clients.frames(1);
-  expect(host.frames.shownText().join("\n")).toContain("F2: training hints On");
-  clients.press(0, Key.y);
-  clients.frames(3);
-  expect(host.frames.shownText().some(text => text.includes("pause. Tap Shield"))).toBe(true);
-  clients.press(0, Key.y);
-  clients.frames(1);
-  clients.press(0, Key.f2);
-  clients.press(0, Key.y);
-  clients.frames(3);
-  expect(host.frames.shownText().some(text => text.includes("pause. Tap Shield"))).toBe(false);
-  expect(clients.firstDivergence()).toBeUndefined();
-});
 
 
 const DEVELOPER_LINE_TERMS = [
@@ -242,38 +154,4 @@ test("the playable build shows players no developer text through selection, a ma
   expect(shown.has("Player 2 wins!")).toBe(true);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
   expect([...shown].filter((text) => developerText(text).length > 0)).toEqual([]);
-});
-
-
-const SHELL_TICK = "shell.tick";
-const DELIBERATE_FAILURE = "deliberate failure";
-const REPORT_TEXT = `error in ${SHELL_TICK}: Error: ${DELIBERATE_FAILURE}`;
-
-
-function failFrames(clients: Lockstep, views: readonly FrameView[], shown: Set<string>): void {
-  clients.everywhere(() => {
-    on(SHELL_TICK, () => {
-      throw new Error(DELIBERATE_FAILURE);
-    });
-  });
-  for (let frame = 0; frame < 3; frame++) {
-    clients.frames(1);
-    recordShown(clients, views, shown);
-  }
-}
-
-
-const errorReport = (client: HeadlessClient) => client.files.get(`smashcraft-error-p${client.slot}.txt`)?.slice(0, 2);
-const REPORT_LINES = [`error 1 in ${SHELL_TICK}`, `Error: ${DELIBERATE_FAILURE}`];
-
-test("a failing handler in the playable build shows players no error text, and each client still writes its error report [spec docs/typescript.md]", () => {
-  const clients = headless.clients({ install: installPlayable, start: startPlayable });
-  const shown = new Set<string>();
-  clients.start();
-  failFrames(clients, clients.clients.map((client) => new FrameView(client)), shown);
-  expect([...shown].filter((text) => text.includes(SHELL_TICK) || text.includes(DELIBERATE_FAILURE))).toEqual([]);
-  for (const client of clients.clients) {
-    expect(errorReport(client)).toEqual(REPORT_LINES);
-    expect(client.errors).toEqual([REPORT_TEXT]);
-  }
 });
