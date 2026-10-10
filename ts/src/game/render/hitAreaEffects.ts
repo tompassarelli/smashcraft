@@ -3,7 +3,7 @@ import { Character, SpecialAction } from "../sim/codes";
 import { createFighter, type Fighter } from "../sim/fighter";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "../sim/hitRegions";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
-import { DISJOINT_MODELS, disjointNormals, fanKnifePose, hitAreaPose, specialAreaRegion, type FanKnifePose, type HitAreaPose } from "../presentation/disjointCues";
+import { DISJOINT_CUES, disjointNormals, fanKnifePose, hitAreaPose, specialAreaRegion, type FanKnifePose, type HitAreaPose } from "../presentation/disjointCues";
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkCue } from "./effects";
 
 
@@ -21,7 +21,7 @@ export class HitAreaEffects {
 
   constructor(character: Character, private readonly origin: WorldOrigin) {
     this.styles = disjointNormals(createFighter(character, 0.0, 1));
-    for (let index = 0; index < HIT_AREA_EFFECT_CAPACITY; index++) this.models.push(AddSpecialEffect(DISJOINT_MODELS[character] ?? "", origin.x, origin.y));
+    for (let index = 0; index < HIT_AREA_EFFECT_CAPACITY; index++) this.models.push(AddSpecialEffect(DISJOINT_CUES[character]?.model ?? "", origin.x, origin.y));
     this.clear();
   }
 
@@ -63,17 +63,22 @@ export class HitAreaEffects {
         if (!pose.visible) continue;
         const model = this.models[shown];
         if (model === undefined) break;
+        const cue = DISJOINT_CUES[fighter.character];
+        const starts = this.parked[shown] === true;
         this.parked[shown++] = false;
         BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y - 14.0, this.origin.z + pose.z);
         BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
         BlzSetSpecialEffectPitch(model, 0.0);
-        const size = fighter.character === Character.lich ? f32(0.2) : 0.5;
-        BlzSetSpecialEffectScale(model, f32(pose.scale * size));
+        BlzSetSpecialEffectScale(model, f32(pose.scale * (cue?.scale ?? 0.5)));
         BlzSetSpecialEffectAlpha(model, 255);
-        BlzSetSpecialEffectAnimation(model, "stand");
-
-        BlzSetSpecialEffectTime(model, f32(0.3));
-        BlzSetSpecialEffectTimeScale(model, 0.0);
+        if (cue?.birth === undefined) BlzSetSpecialEffectAnimation(model, cue?.sequence ?? "stand");
+        else if (starts || (cue.birth.eachFrame && fighter.special.frame !== this.frame)) {
+          BlzSpecialEffectClearSubAnimations(model);
+          if (cue.sequence === "birth") BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+          else BlzSetSpecialEffectAnimation(model, cue.sequence ?? "stand");
+        }
+        BlzSetSpecialEffectTime(model, cue?.seconds ?? f32(0.3));
+        BlzSetSpecialEffectTimeScale(model, cue?.timeScale ?? 0.0);
       }
     }
     for (let index = shown; index < this.models.length; index++) {

@@ -12,7 +12,7 @@ import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegi
 import { attackStartupFrames } from "../sim/moves";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { type Cue, fighterOwnCues, timed } from "./specialCues";
-import { DISJOINT_MODELS } from "./disjointCues";
+import { DISJOINT_CUES } from "./disjointCues";
 
 const cue = (model: string, scale: number): Cue => ({ model, anchor: "body", scale });
 
@@ -124,7 +124,7 @@ export function fighterAttackCues(character: Character): readonly Cue[] {
 
 export function allAttackCueModels(): readonly string[] {
   const models: string[] = [];
-  for (const model of Object.values(DISJOINT_MODELS)) if (!models.includes(model)) models.push(model);
+  for (const { model } of Object.values(DISJOINT_CUES)) if (!models.includes(model)) models.push(model);
   for (const character of [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)]) {
     for (const { model, definitive } of fighterAttackCues(character)) {
       if (!models.includes(model)) models.push(model);
