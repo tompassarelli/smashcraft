@@ -11,7 +11,7 @@ export interface StageMaterial {
   readonly tint?: Rgb;
   readonly crop?: readonly [u0: number, v0: number, u1: number, v1: number];
   readonly fitHeight?: boolean;
-  readonly fitFace?: boolean;
+  readonly tileSize?: number;
 }
 
 export interface PlatformMaterialSet {
@@ -156,12 +156,12 @@ export const STAGE_DECK_PALETTES: readonly { readonly stage: number; readonly th
     },
   } },
 
-  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", palette: { top: [144, 224, 208], lip: [224, 152, 104], body: [44, 136, 255], underside: [48, 144, 224] }, materials: {
+  { stage: TOMB_OF_SARGERAS_STAGE, theme: "Sargeras", palette: { top: [144, 224, 208], lip: [224, 152, 104], body: [124, 128, 120], underside: [96, 104, 100] }, materials: {
     top: { texture: "TerrainArt\\Ruins\\Ruins_RoundTiles.blp" },
     lip: { texture: "TerrainArt\\Ruins\\Ruins_SmallBricks.blp" },
 
-    body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25], fitFace: true },
-    underside: { texture: "Textures\\RuinsVines.blp", crop: [0.40625, 0, 0.59375, 1], fitFace: true },
+    body: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25], tileSize: 512 },
+    underside: { texture: "Textures\\RuinsNatural.blp", crop: [0, 0, 0.25, 0.25], tileSize: 512 },
     platform: {
 
       top: { texture: "TerrainArt\\Ruins\\Ruins_LargeBricks.blp", crop: [0, 0, 0.125, 0.25] },

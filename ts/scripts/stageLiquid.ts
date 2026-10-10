@@ -35,11 +35,12 @@ export function lavaGlowTexel(x: number, y: number): Rgba {
 export function tombWaterTexel(x: number, y: number): Rgba {
   const u = x * 2 * Math.PI / TOMB_LIQUID_TEXTURE_SIZE;
   const v = y * 2 * Math.PI / TOMB_LIQUID_TEXTURE_SIZE;
-  const broad = Math.sin(2 * u + 0.8 * Math.sin(v) + 0.35 * Math.sin(3 * v));
-  const crossed = Math.sin(3 * u + v + 1.1 * Math.sin(2 * v + 0.7));
-  const crest = Math.sin(5 * u + 2 * v + 0.6 * Math.sin(u - v + 1.3));
-  const r = 0.5 + (broad + 0.55 * crossed + 0.25 * crest) / 3.6;
-  return [Math.round(90 + 45 * r), Math.round(161 + 40 * r), Math.round(172 + 42 * r), 110];
+  const warp = 1.8 * Math.sin(3 * u + 2 * v) + 1.2 * Math.sin(7 * u - 3 * v);
+  const broad = Math.sin(11 * u + 5 * v + warp);
+  const crossed = Math.sin(19 * u - 8 * v + 1.6 * Math.sin(5 * v + u));
+  const crest = Math.sin(37 * u + 13 * v + 2.4 * Math.sin(7 * u - 5 * v));
+  const r = 0.5 + (broad + 0.65 * crossed + 0.4 * crest) / 4.1;
+  return [Math.round(66 + 76 * r), Math.round(137 + 70 * r), Math.round(151 + 72 * r), 110];
 }
 
 

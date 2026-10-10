@@ -5,15 +5,13 @@ const parts = ["top", "lip", "body", "underside"] as const;
 const vec = (values: readonly number[]) => `{ ${values.join(", ")} }`;
 
 
-function tileFace(face: DeckFace, fitFace = false): { corners: number[][]; uv: number[][] }[] {
+function tileFace(face: DeckFace, tileSize = 128): { corners: number[][]; uv: number[][] }[] {
   const axes = Math.abs(face.normal[2]) > 0.5 ? [0, 1] : Math.abs(face.normal[1]) > 0.5 ? [0, 2] : [1, 2];
   const a = axes[0] ?? 0, b = axes[1] ?? 2;
-  const lowA = Math.floor(Math.min(...face.corners.map(p => p[a] ?? 0)) / 128);
-  const highA = Math.ceil(Math.max(...face.corners.map(p => p[a] ?? 0)) / 128);
-  const lowB = Math.floor(Math.min(...face.corners.map(p => p[b] ?? 0)) / 128);
-  const highB = Math.ceil(Math.max(...face.corners.map(p => p[b] ?? 0)) / 128);
-  const minA = Math.min(...face.corners.map(p => p[a] ?? 0)), maxA = Math.max(...face.corners.map(p => p[a] ?? 0));
-  const minB = Math.min(...face.corners.map(p => p[b] ?? 0)), maxB = Math.max(...face.corners.map(p => p[b] ?? 0));
+  const lowA = Math.floor(Math.min(...face.corners.map(p => p[a] ?? 0)) / tileSize);
+  const highA = Math.ceil(Math.max(...face.corners.map(p => p[a] ?? 0)) / tileSize);
+  const lowB = Math.floor(Math.min(...face.corners.map(p => p[b] ?? 0)) / tileSize);
+  const highB = Math.ceil(Math.max(...face.corners.map(p => p[b] ?? 0)) / tileSize);
   const clip = (polygon: number[][], axis: number, limit: number, above: boolean): number[][] => {
     const result: number[][] = [];
     for (let i = 0; i < polygon.length; i++) {
@@ -33,11 +31,9 @@ function tileFace(face: DeckFace, fitFace = false): { corners: number[][]; uv: n
   const cells: { corners: number[][]; uv: number[][] }[] = [];
   for (let x = lowA; x < highA; x++) for (let y = lowB; y < highB; y++) {
     let corners = face.corners.map(p => [...p]);
-    for (const [axis, limit, above] of [[a,x*128,true],[a,(x+1)*128,false],[b,y*128,true],[b,(y+1)*128,false]] as const) corners = clip(corners,axis,limit,above);
+    for (const [axis, limit, above] of [[a,x*tileSize,true],[a,(x+1)*tileSize,false],[b,y*tileSize,true],[b,(y+1)*tileSize,false]] as const) corners = clip(corners,axis,limit,above);
     if (corners.length < 3) continue;
-    cells.push({ corners, uv: corners.map(p => fitFace
-      ? [((p[a] ?? 0)-minA)/(maxA-minA),((p[b] ?? 0)-minB)/(maxB-minB)]
-      : [((p[a] ?? 0)-x*128)/128,((p[b] ?? 0)-y*128)/128]) });
+    cells.push({ corners, uv: corners.map(p => [((p[a] ?? 0)-x*tileSize)/tileSize,((p[b] ?? 0)-y*tileSize)/tileSize]) });
   }
   return cells;
 }
@@ -55,7 +51,7 @@ export function texturedDeckMdl(faces: readonly DeckFace[], materials: PlatformM
     if (source === undefined) throw new Error(`missing ${part} texture`);
     const [u0,v0,u1,v1] = source.crop ?? (source.texture.startsWith("TerrainArt\\") ? [0,0,0.25,0.25] : [0,0,1,1]);
     const vertices: number[][] = [], normals: number[][] = [], uv: number[][] = [], triangles: number[] = [];
-    for (const face of faces.filter(f=>f.material===material)) for (const cell of tileFace(face, source.fitFace)) {
+    for (const face of faces.filter(f=>f.material===material)) for (const cell of tileFace(face, source.tileSize)) {
       const offset=vertices.length;
       vertices.push(...cell.corners); normals.push(...cell.corners.map(()=>[...face.normal]));
       const bottom = Math.min(...face.corners.map(p => p[2] ?? 0));

@@ -255,8 +255,10 @@ supported looks.
 | Fog and HD materials | `SetTerrainFogEx` and 3.0 height fog; stock paths' PBR copies | all / HD | Tint the sea's far edge toward the sky; keep fighter contrast (visual-quality rule) |
 
 Cause (#277): the shared 64×64 ripple repeats across the sea, and each 128-unit deck cell restarts the same rock/vine crop.
-Tomb alone uses authored 512×512 TombWater/TombSea fields, one texture per plane, with a 240,000 ms global UV loop in MDX 800; sea alpha is 255 and the deck overlay remains 110.
-Tomb's main body and underside fit each existing crop across its complete face while preserving the clipped mesh and platform brick mapping.
+Tomb alone uses authored 512×512 TombWater/TombSea fields with a 240,000 ms global UV loop in MDX 800; sea alpha is 255 and the deck overlay remains 110.
+The sea spans 10×7 texture tiles, about 4.7 world units per texel, with irregular ripples and a second highlight layer moving across it at a different UV scale and direction.
+The highlight strength varies on the same global loop; the deck overlay keeps the sea's texel density.
+Tomb's main body and underside use the stock natural-rock crop at 512 world units per tile with stone tints, preserving the clipped mesh and platform brick mapping.
 The final local Tomb camera raises its target as needed to keep the eye at least 80 units above the walking plane after fighter fitting; the synchronized match camera retains its existing behavior.
 Terrain stays hidden, swimming stays at z −360, and the terrain-water controls do not affect these authored surfaces.
 
