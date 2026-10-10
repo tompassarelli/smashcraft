@@ -1,7 +1,8 @@
 # Lan
 
-The offline pool is Classic only. Use signed-in clones b, c or d for Definitive
-checks; never touch Tom’s install or account a.
+The offline pool is Classic only. Use the signed-in pairs clone-c+clone-b and
+clone-a+clone-d for Definitive checks; never touch Tom’s install, and run
+clone-a only through its launch.sh.
 
 - Offline LAN pool, the default for native testing (see "Native testing and
   UI"), on live build 3.0.0.24268 only (the private LAN plugin refuses other

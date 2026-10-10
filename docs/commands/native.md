@@ -26,9 +26,10 @@ Keep ordinary combat completion intact; do not force a win to shorten a test.
 
 Frame acceptance follows the root AGENTS.md budget.
 
-Never touch Tom’s install or account a. Pick clients by the required look:
-the offline LAN pool is Classic only; Definitive checks use signed-in clones
-b, c or d. The offline pool remains the default for Classic pad parity,
+Never touch Tom’s install; run account a only as clone-a through its
+launch.sh, which yields to Tom’s game. Pick clients by the required look: the
+offline LAN pool is Classic only; Definitive checks use the signed-in pairs
+clone-c+clone-b and clone-a+clone-d (wisp:docs/lan.md). The offline pool remains the default for Classic pad parity,
 captures, `accept` checks and desync hunts.
 
 Wisp gives every verdict that is a number from the map's code (wisp#75 M1,
