@@ -5,6 +5,7 @@ export const DEFINITIVE_CUE_EMITTERS: { readonly [model: string]: boolean | unde
   "Abilities\\Spells\\Items\\VampiricPotion\\VampPotionCaster.mdx": false,
   "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx": true,
   "Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedTarget.mdx": true,
+  "Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx": true,
   "Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx": true,
   "Abilities\\Spells\\Undead\\DeathAndDecay\\DeathAndDecayTarget.mdx": true,
   "Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdx": true,

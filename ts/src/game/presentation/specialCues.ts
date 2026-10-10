@@ -78,6 +78,7 @@ export interface Cue {
   readonly alpha?: number | undefined;
 
   readonly replacesBody?: boolean | undefined;
+  readonly definitive?: Cue | undefined;
 }
 
 

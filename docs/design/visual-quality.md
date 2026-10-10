@@ -824,10 +824,14 @@ alone in Wisp, counts pixels differing from an empty frame, adds parked
 particle tails from the classic model's emitter lifespans, and fails any move
 over budget. Definitive pixels undercount: Wisp cannot draw Popcorn emitters,
 which 110 of 112 moves use there, so the Definitive rows rely on the particle
-tails and the Classic coverage. The nine cue models Definitive draws only as
+tails and the Classic coverage. The ten cue models Definitive draws only as
 Popcorn (`DEFINITIVE_CUE_EMITTERS`) run without clock controls and are born
 per cast and destroyed a second later; they now park when their window ends,
-and their Popcorn particle lives stay unmeasured.
+and their Popcorn particle lives stay unmeasured. A Popcorn emitter draws
+nothing on its birth frame, so an attack cue may start earlier in Definitive
+(`definitiveFromActive`): Flames of Azzinoth is FireLordDeathExplode born on
+active frame 1 instead of 3, and on clone-c it drew 6,883 / 4,945 / 3,781 new
+fire pixels at frames 72 / 74 / 76 against Classic's 2,724 / 4,415 / 4,846.
 
 The check also plays Blademaster's forward smash strong and weak hit through
 the real impact renderer (rows `blademaster:forwardSmash-strong-spark` and

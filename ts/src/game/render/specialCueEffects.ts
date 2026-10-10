@@ -62,6 +62,7 @@ export class SpecialCueEffects {
   private readonly front: number;
   private readonly scale: number;
   private readonly attack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
+  private readonly confirmedAttack: AttackCueState = { cue: undefined, x: 0.0, z: 0.0, key: 0 };
   private readonly voices: { [model: string]: PopcornVoices | undefined } = {};
 
   // Online, Warcraft handles must be born on the same turn on every client, so shared play restarts emitters made here instead of making fresh ones on confirmed frames.
@@ -71,7 +72,8 @@ export class SpecialCueEffects {
     this.front = origin.y - 12.0;
     this.scale = characterModelScale(character);
     this.definitive = definitiveCues();
-    for (const cue of fighterRenderedCues(character)) {
+    for (const shown of fighterRenderedCues(character)) {
+      const cue = this.look(shown);
       if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
       else if (shared && this.voices[cue.model] === undefined) {
         const models: effect[] = [];
@@ -106,9 +108,16 @@ export class SpecialCueEffects {
 
   confirm(fighter: Readonly<Fighter> | undefined, playing: boolean, now: number): void {
     const state = fighter === undefined || !playing ? undefined : specialCueState(fighter);
-    const cue = state?.cues === undefined || state.phase === "none" ? undefined
-      : state.phase === "startup" ? state.cues.startup : state.cues.active;
-    const key = fighter === undefined ? 0 : fighter.special.action * 100 + fighter.special.form;
+    let cue = state?.cues === undefined || state.phase === "none" ? undefined
+      : this.look(state.phase === "startup" ? state.cues.startup : state.cues.active);
+    let key = fighter === undefined ? 0 : fighter.special.action * 100 + fighter.special.form;
+    if (fighter !== undefined && state !== undefined && cue === undefined) {
+      const attack = attackCueState(fighter, this.confirmedAttack, this.definitive);
+      if (attack.cue !== undefined) {
+        cue = this.look(attack.cue);
+        key = 100 + attack.key;
+      }
+    }
     if (cue !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey)) {
       const model = this.popcornModel(cue.model);
       if (model !== undefined) this.popcorn.push({ cue, model, born: now, seekStep: 0 });
@@ -141,7 +150,7 @@ export class SpecialCueEffects {
         z = anchor.z * this.scale;
         key = fighter.special.action * 100 + fighter.special.form;
       } else {
-        const attack = attackCueState(fighter, this.attack);
+        const attack = attackCueState(fighter, this.attack, this.definitive);
         cue = attack.cue;
         for (const entries of Object.values(ATTACK_CUES[this.character] ?? {})) for (const entry of entries ?? []) if (entry.cue === cue) cueName = entry.name;
         if (cue !== undefined && cue.anchor === "overhead") {
@@ -154,6 +163,7 @@ export class SpecialCueEffects {
         key = 100 + attack.key;
       }
     }
+    if (cue !== undefined) cue = this.look(cue);
     const parked = (this.parked ??= []);
     const failed = cue !== undefined && modelFailed(cue.model);
     if (failed && fighter !== undefined && cue !== undefined) {
@@ -203,8 +213,7 @@ export class SpecialCueEffects {
           this.parkPopcorn(entry.model);
           continue;
         }
-        const anchor = CUE_ANCHORS[entry.cue.anchor];
-        placeEffect(entry.model, this.origin.x + fighter.motion.x + fighter.facing * anchor.x * this.scale, this.front, this.origin.z + fighter.motion.z + anchor.z * this.scale);
+        placeEffect(entry.model, this.origin.x + fighter.motion.x + fighter.facing * x, this.front, this.origin.z + fighter.motion.z + z);
         BlzSetSpecialEffectYaw(entry.model, facingYaw(fighter.facing));
         BlzSetSpecialEffectPitch(entry.model, entry.cue.pitch ?? 0.0);
         BlzSetSpecialEffectScale(entry.model, entry.cue.scale * this.scale);
@@ -217,6 +226,10 @@ export class SpecialCueEffects {
     }
     this.shown = cue;
     this.shownKey = key;
+  }
+
+  private look(cue: Cue): Cue {
+    return this.definitive ? cue.definitive ?? cue : cue;
   }
 
   private popcornModel(path: string): effect | undefined {

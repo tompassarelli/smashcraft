@@ -20,6 +20,8 @@ const cue = (model: string, scale: number): Cue => ({ model, anchor: "body", sca
 export interface AttackCue {
   readonly name: string;
   readonly fromActive: number;
+  // Definitive Popcorn emitters ignore time seeks and draw nothing on their birth frame, so their cue can be born earlier.
+  readonly definitiveFromActive?: number | undefined;
   readonly cue: Cue;
 }
 
@@ -62,7 +64,7 @@ export const ATTACK_CUES: { readonly [character: number]: { readonly [style: num
 
     [AttackStyle.downSmash]: [
       { name: "Azzinoth glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx", f32(1.4)), "stand", 0.0) },
-      { name: "Flames of Azzinoth", fromActive: 3, cue: { ...timed(cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.5)), "birth", f32(1.3)), timeScale: 2.0 } },
+      { name: "Flames of Azzinoth", fromActive: 3, definitiveFromActive: 1, cue: { ...timed(cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrike1.mdx", f32(0.5)), "birth", f32(1.3)), timeScale: 2.0, definitive: cue("Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx", f32(0.8)) } },
     ],
 
     [AttackStyle.forwardAir]: [{ name: "Twin glaives", fromActive: 0, cue: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", 1.0), "stand", 0.0) }],
@@ -85,7 +87,7 @@ export interface AttackCueState {
 const scratch: HitRegion = emptyHitRegion();
 
 
-export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState): AttackCueState {
+export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState, definitive = false): AttackCueState {
   out.cue = undefined;
   const { style, frame, smashChargeFrames } = fighter.attack;
   if (style === undefined || fighter.status.out) return out;
@@ -98,7 +100,10 @@ export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState):
     if (region.effect.damage <= 0.0) continue;
     const activeFrame = frame - attackStartupFrames(style, moves);
     let chosen = 0;
-    for (let entry = 0; entry < cues.length; entry++) if ((cues[entry]?.fromActive ?? 0) <= activeFrame) chosen = entry;
+    for (let entry = 0; entry < cues.length; entry++) {
+      const each = cues[entry];
+      if (((definitive ? each?.definitiveFromActive : undefined) ?? each?.fromActive ?? 0) <= activeFrame) chosen = entry;
+    }
     out.cue = cues[chosen]?.cue;
     out.x = f32(f32(region.minX + region.maxX) * 0.5);
     out.z = f32(f32(region.minZ + region.maxZ) * 0.5);
@@ -121,7 +126,10 @@ export function allAttackCueModels(): readonly string[] {
   const models: string[] = [];
   for (const model of Object.values(DISJOINT_MODELS)) if (!models.includes(model)) models.push(model);
   for (const character of [ Character.rifleman, Character.demonHunter, ...HERO_ROSTER.map((hero) => hero.character)]) {
-    for (const { model } of fighterAttackCues(character)) if (!models.includes(model)) models.push(model);
+    for (const { model, definitive } of fighterAttackCues(character)) {
+      if (!models.includes(model)) models.push(model);
+      if (definitive !== undefined && !models.includes(definitive.model)) models.push(definitive.model);
+    }
   }
   return models;
 }
