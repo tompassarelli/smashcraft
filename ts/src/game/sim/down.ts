@@ -7,7 +7,7 @@ import { isFloorTeching, isTumbling } from "./conditions";
 import { type Fighter } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { MAX_GROUNDED_KNOCKBACK_ON_LANDING, airborneDamageLandingReaction, decayKnockback } from "./knockback";
-import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, isAerialAttack, landsIntoAttack } from "./moves";
+import { RIFLEMAN_BLASTER_AIR_FRAMES, RIFLEMAN_BLASTER_LANDING_LAG, attackLandingLag, authoredLandingHit, isAerialAttack, landsIntoAttack } from "./moves";
 import { clearMotionValue, setWorldMotionValue, totalVelocityX } from "./motion";
 import type { Controls } from "./roster";
 import { floorFriction, surfaceCount, surfaceLeft, surfaceLine, surfaceRight, surfaceZAt } from "./stage";
@@ -95,7 +95,7 @@ export function finishLanding(f: Fighter, stage: number, matchFrame: number, inp
     dodge.airFrame = 0;
   }
   const { attack } = f;
-  const landingHit = attack.style === undefined ? undefined : f.tuning.moves?.normals[attack.style]?.landingHit;
+  const landingHit = authoredLandingHit(attack.style, f.tuning.moves);
   if (landingHit !== undefined && attack.frame >= landingHit.firstFrame) {
 
   } else if (landingHit !== undefined && !wasGrounded && landsIntoAttack(attack.style, attack.frame, f.tuning.moves)) {

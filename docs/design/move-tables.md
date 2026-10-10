@@ -93,7 +93,7 @@ Missing numbers, stated plainly:
 
 ### Expected savings
 
-Estimates, to be replaced by box 3's measurements:
+Estimates, made before box 3; the measured numbers are in "Measured cost and roster decision" below:
 
 - **Locals:** a kit becomes one data module with about 3 locals (`____exports`,
   the table, one import) instead of today's 15–79 per module, two modules per
@@ -258,6 +258,111 @@ Lich King (79 locals in its moves module, also taped) is the second candidate
 if Mountain King's charge or recall rows need interpreter work box 2 cannot
 finish.
 
+## Mountain King on the table
+
+Mountain King's kit runs through the interpreter in `sim/moveTable.ts` (a pure
+core: row layouts, readers and the load-time views, no fighter state).
+`scripts/moveTables.ts` encodes the authored kit with `scripts/moveTableEncode.ts`
+and writes `sim/heroes/mountainKingTable.ts` (literals only);
+`test/move-tables.test.ts` fails when that module drifts from the kit, so an
+edit to the kit is followed by `bun scripts/moveTables.ts` from `ts/`.
+The hero definition gives the same `MoveTable` to `moves.table` and
+`specials.table`; a kit without one runs the authored code as before.
+
+What the simulation reads from the table for a fighter that has one: every
+normal's startup, active, total, landing lag, jab chain, startup travel, hit
+rows and hurt poses; every throw's contact frame, length and effect; every
+special form, EX form and follow-up's form choice (air, recall while a bolt
+flies), end frame, landing lag, flags, aim frames, cooldown, motion rows,
+body-stop rows, hit rows (contact, guard threat, placed-object strikes),
+projectile spawn frames and limits, follow-up windows and inputs, and hurt
+poses. Kit scalars (`dashAttack`, smash charge, pummel count) stay fields of
+`FighterMoves`.
+
+Deliberate exceptions:
+
+- **Projectile specs stay the kit's objects.** A projectile in flight holds its
+  spec, and snapshots rebind it by identity (`replay/moment.ts`), so shot rows
+  carry the spawn frame and limit the interpreter reads and `shotSpecs` binds
+  each row to the kit's own spec, in the order `shotOrder` walks the kit.
+- **Load-time views.** Contact code takes `HitRegion`, `HitEffect` and hurt part
+  lists by reference, so `moveTable()` builds one read-only view per hit, effect
+  and pose row at load; the per-frame walk is integer indexed over the rows.
+- **Readers outside the simulation of the move** (bots, cues, names, canonical
+  digests, the balance kit) still read the authored kit, which stays loaded.
+
+The encoder refuses any authored field the interpreter does not run yet:
+falls, landing hits, intangible, armor, guard, placement, companion commands,
+command grabs, bursts, rituals, rehits, buffs, cleanses, strike statuses, marked
+forms, aimed tilt, drift, lift, relocation, edge teleports and every optional
+projectile field beyond returns and `activeFrom`. Each of those is interpreter
+work before a kit that uses it can convert.
+
+Replay identity, on the same 43 acceptance tapes (30,950 frames, Mountain
+King's included) recorded before the change: `bun wisp parity tapes` reports 0
+divergent frames for Bun/Lua32 and Bun/Lua32 toward zero, and every frame record
+is byte-identical before and after in Bun, stock Lua32 and toward-zero Lua32.
+Altering one effect row in the table changes the Mountain King tape, so the
+table path is the one that ran.
+
+## Measured cost and roster decision
+
+Commit `2ec62de` before and the box 2 change after, Wisp pin `9f1d3fa`, stock
+Lua32 built by Wisp. Instructions and KB are deterministic; ms columns are the
+Lua32 model's prediction.
+
+`bun wisp perf census --fighter mountain-king` (8,853 frames of Mountain King
+playing every normal, throw, special and follow-up), client p0 per frame:
+
+| | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Instructions, median | 127,400 | 127,800 | +400 |
+| Instructions, mean | 130,136 | 130,545 | +409 (+0.31%) |
+| Instructions, p95 | 146,000 | 146,100 | +100 |
+| Instructions, max | 350,100 | 348,800 | -1,300 |
+| Allocated KB, mean | 28.0 | 28.0 | 0 (7 KB less over the run) |
+| Allocated KB, p95 / max | 43.1 / 222.5 | 43.1 / 218.7 | 0 / -3.8 |
+
+Inside the census move windows the mean rises 434 instructions per frame
+(+0.33%); per-entry increments move by at most ±400 and the same three entries
+stay over the 2 ms rise (rollback catch-up, as before).
+
+Whole matches, client p0 per frame:
+
+| Run | Instructions mean before → after | Median | KB mean | Predicted ms p50 / p95 |
+| --- | ---: | ---: | ---: | ---: |
+| `perf bot-mountain-king` (Mountain King computer, 1,800 frames) | 331,539 → 334,397 (+0.86%) | 287,600 → 290,800 | 83 → 83 | 6.54 / 18.16 → 6.59 / 18.43 |
+| `perf playable-bot-four` (no Mountain King) | 244,643 → 245,319 (+0.28%) | 212,650 → 212,850 | 76 → 76 | 5.17 / 9.79 → 5.18 / 9.80 |
+
+Code, from a 32-bit `luac -l` of `build/perf.lua` (locals of the module chunk):
+
+| Module | Locals before → after | Instructions before → after |
+| --- | ---: | ---: |
+| `sim.heroSpecialRules` | 105 → 142 | 2,803 → 3,908 |
+| `sim.step` | 187 → 188 | 2,835 → 2,826 |
+| `sim.specials` | 160 → 161 | 3,408 → 3,420 |
+| `sim.moves`, `sim.hitRegions`, `sim.hurtboxes` | 13, 56, 32 → 21, 63, 39 | 3,011 → 3,488 |
+| `sim.moveTable` (new) | 23 | 1,089 |
+| `sim.heroes.mountainKingTable` (new) | 1 | 3,711 |
+| Mountain King's moves and specials modules | 58, 59 → 58, 59 | 1,682 → 1,682 |
+
+The bundle grows 89 KB (4.88 MB → 4.97 MB).
+
+**Go/no-go: no-go for the roster.** The interpreter costs about 0.3% more
+instructions per frame for the converted fighter and 0.3% more for fighters
+that are not converted (each read site now tests for a table), allocates the
+same, and adds 37 locals to the special runner instead of removing any from the
+#399 modules; the authored kit stays loaded for bots, cues and names, so the
+kit modules keep their locals too. The expected wins in "Expected savings" did
+not appear: the per-frame move work was already allocation-free in steady state,
+and a reader call per field (`moveField` → `at`) costs more than a field lookup.
+Converting the roster would add a second runner and a generator step to every
+kit for no frame-time gain. What would change this: dropping the authored kit
+from the map (bots and cues reading the table too), which is the only route to
+the locals saving, and a reason other than frame cost, such as reloading a kit
+without a rebuild. Mountain King keeps running from its table as the measured
+example; removing it again is a revert of one hero definition line pair.
+
 ## Commands
 
 From `ts/`:
@@ -269,6 +374,9 @@ LUA=$LUA bun wisp perf playable-bot-four                    # whole-frame instru
 LUA=$LUA bun wisp perf census --fighter rifleman --functions
 LUA=$LUA bun wisp perf census --fighter chen-stormstout --functions
 LUA=$LUA bun wisp perf census --fighter mountain-king --functions
+LUA=$LUA bun wisp perf bot-mountain-king --samples          # a whole match with Mountain King
+LUA=$LUA TOWARD_ZERO_LUA=$(bun node_modules/wisp/scripts/wisp/lua32.ts toward-zero) bun wisp parity tapes
+bun scripts/moveTables.ts                                   # regenerate the move tables after a kit edit
 # locals and instructions per module: a 32-bit luac (make posix MYCFLAGS=-DLUA_32BITS
 # in the same Lua 5.3.6 source) listing build/perf.lua
 luac -p -l build/perf.lua

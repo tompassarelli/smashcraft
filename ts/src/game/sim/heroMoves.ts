@@ -5,6 +5,7 @@ import { strongHit, weakHit } from "./strongHits";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { Character } from "./codes";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPose } from "./hurtboxes";
+import type { MoveTable } from "./moveTable";
 
 const referenceBody = { radius: 24.0, z1: 4.0, z2: 88.0 };
 export const HERO_REFERENCE_HEIGHT = f32(f32(referenceBody.z2 - referenceBody.z1) + f32(2.0 * referenceBody.radius));
@@ -90,6 +91,8 @@ export interface FighterMoves {
   readonly maxPummels?: number | undefined;
 
   readonly hurtboxes?: FighterHurtboxes | undefined;
+
+  readonly table?: MoveTable | undefined;
 }
 
 

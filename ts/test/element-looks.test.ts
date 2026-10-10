@@ -25,7 +25,8 @@ function hitEffects(value: unknown, path: string, out: { path: string; element: 
     out.push({ path, element: Reflect.get(value, "element") });
     return;
   }
-  for (const [key, child] of Object.entries(value)) hitEffects(child, `${path}.${key}`, out, seen);
+  // A kit's move table repeats the kit's own effects as rows (docs/design/move-tables.md).
+  for (const [key, child] of Object.entries(value)) if (key !== "table") hitEffects(child, `${path}.${key}`, out, seen);
 }
 
 test("every hero attack and special names its element [spec docs/gameplay-design.md]", () => {

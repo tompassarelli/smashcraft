@@ -18,7 +18,8 @@ export interface KitSnapshot { readonly values: KitValues; readonly play: string
 
 function numericLeaves(value: unknown, path: string, out: Record<string, number>): void {
   if (typeof value === "number") out[path] = value;
-  else if (value !== null && typeof value === "object") for (const [key, child] of Object.entries(value)) numericLeaves(child, `${path}.${key}`, out);
+  // A kit's move table is generated from the kit itself (docs/design/move-tables.md), so its rows are no parameters.
+  else if (value !== null && typeof value === "object") for (const [key, child] of Object.entries(value)) if (key !== "table") numericLeaves(child, `${path}.${key}`, out);
 }
 
 

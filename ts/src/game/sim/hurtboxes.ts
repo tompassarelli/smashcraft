@@ -10,6 +10,7 @@ import { fighterPoseFacing } from "./conditions";
 import type { Fighter } from "./fighter";
 import type { FighterMoves } from "./heroMoves";
 import { attackStartupFrames, characterAttackActiveFrames } from "./moves";
+import { type MoveTable, NORMAL_COUNT, activePose, specialMove } from "./moveTable";
 
 
 export const HurtState = { normal: 0, invincible: 1, intangible: 2 } as const;
@@ -145,7 +146,28 @@ function specialHurtParts(f: Readonly<Fighter>): readonly HurtPart[] | undefined
 }
 
 
+function tableHurtParts(f: Readonly<Fighter>, table: Readonly<MoveTable>): readonly HurtPart[] {
+  const { action, frame, form } = f.special;
+  if (f.tuning.specials?.table !== table) {
+    const special = specialHurtParts(f);
+    if (special !== undefined) return special;
+  } else if (action >= SpecialAction.heroNeutral && action <= SpecialAction.heroDown) {
+    const row = activePose(table, specialMove(table, action - SpecialAction.heroNeutral, form, false), frame);
+    if (row >= 0) return at(table.poseParts, row);
+  }
+  const style = f.attack.style;
+  if (style !== undefined) {
+    const row = style < NORMAL_COUNT ? activePose(table, style, f.attack.frame) : -1;
+    return at(table.poseParts, row >= 0 ? row : table.standPose);
+  }
+  if (table.crouchPose >= 0 && f.motion.crouching && f.motion.grounded) return at(table.poseParts, table.crouchPose);
+  return at(table.poseParts, table.standPose);
+}
+
+
 export function fighterHurtParts(f: Readonly<Fighter>): readonly HurtPart[] {
+  const table = f.tuning.moves?.table;
+  if (table !== undefined) return tableHurtParts(f, table);
   const set = fighterHurtboxes(f);
   const special = specialHurtParts(f);
   if (special !== undefined) return special;

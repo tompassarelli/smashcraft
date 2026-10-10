@@ -4,7 +4,8 @@ import { max, min } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { AttackStyle, Character, GrabAction } from "./codes";
-import type { AuthoredFall, FighterMoves } from "./heroMoves";
+import type { AuthoredFall, AuthoredMove, FighterMoves } from "./heroMoves";
+import { MoveField, MoveFlag, hasMoveFlag, hasNormal, moveField, startupTravelOf, throwMove } from "./moveTable";
 
 export const SMASH_MAX_CHARGE_FRAMES = 60;
 export const SMASH_MAX_DAMAGE_MULTIPLIER = 1.3671000003814697;
@@ -65,6 +66,7 @@ export function isAerialAttack(style: AttackStyle | undefined): boolean {
 
 
 export function attackFall(style: AttackStyle | undefined, frame: number, moves?: FighterMoves): AuthoredFall | undefined {
+  if (moves?.table !== undefined) return undefined;
   const phases = style === undefined ? undefined : moves?.normals[style]?.fall;
   if (phases === undefined) return undefined;
   for (const phase of phases) if (frame >= phase.firstFrame && frame <= phase.lastFrame) return phase;
@@ -72,7 +74,37 @@ export function attackFall(style: AttackStyle | undefined, frame: number, moves?
 }
 
 
+export function attackStartupTravelOf(style: AttackStyle | undefined, moves?: FighterMoves): Pick<AuthoredMove, "startupTravelX" | "startupFrames" | "startupStopsAtBody"> | undefined {
+  if (style === undefined) return undefined;
+  const table = moves?.table;
+  if (table === undefined) return moves?.normals[style];
+  return startupTravelOf(table, style);
+}
+
+
+export function hasStartupTravel(style: AttackStyle, moves?: FighterMoves): boolean {
+  const table = moves?.table;
+  if (table !== undefined) return hasNormal(table, style) && hasMoveFlag(table, style, MoveFlag.startupTravel);
+  return moves?.normals[style]?.startupTravelX !== undefined;
+}
+
+
+export function authoredGrabFrames(moves: FighterMoves | undefined, total: boolean): number {
+  const table = moves?.table;
+  if (table !== undefined) return hasNormal(table, AttackStyle.grab) ? moveField(table, AttackStyle.grab, total ? MoveField.total : MoveField.startup) : -1;
+  const grab = moves?.normals[AttackStyle.grab];
+  return grab === undefined ? -1 : total ? grab.totalFrames : grab.startupFrames;
+}
+
+
+export function authoredLandingHit(style: AttackStyle | undefined, moves?: FighterMoves): AuthoredMove["landingHit"] {
+  if (style === undefined || moves?.table !== undefined) return undefined;
+  return moves?.normals[style]?.landingHit;
+}
+
+
 export function landsIntoAttack(style: AttackStyle | undefined, frame: number, moves?: FighterMoves): boolean {
+  if (moves?.table !== undefined) return false;
   const move = style === undefined ? undefined : moves?.normals[style];
   return move?.landingHit !== undefined && frame >= move.startupFrames && frame < move.startupFrames + move.activeFrames;
 }
@@ -96,7 +128,13 @@ export function jabChainFrom(character: Character, style: AttackStyle, moves?: F
   const next = nextJab(style);
   if (next === undefined) return undefined;
   const shared = attackStartupFrames(style) + attackActiveFrames(style) + 1;
-
+  const table = moves?.table;
+  if (table !== undefined) {
+    if (!hasNormal(table, next)) return undefined;
+    if (!hasNormal(table, style)) return shared;
+    const chain = moveField(table, style, MoveField.chainsFrom);
+    return chain < 0 ? undefined : chain;
+  }
   if (moves !== undefined) return moves.normals[next] === undefined ? undefined : moves.normals[style]?.chainsFrom ?? (moves.normals[style] === undefined ? shared : undefined);
   return character === Character.demonHunter ? shared : undefined;
 }
@@ -121,7 +159,10 @@ export function uncancelledLandingLag(style: AttackStyle | undefined): number {
 
 
 export function attackLandingLag(style: AttackStyle | undefined, moves?: FighterMoves): number {
-  if (style !== undefined && moves?.normals[style] !== undefined) return moves.normals[style].landingLag;
+  const table = moves?.table;
+  if (table !== undefined) {
+    if (style !== undefined && hasNormal(table, style)) return moveField(table, style, MoveField.landingLag);
+  } else if (style !== undefined && moves?.normals[style] !== undefined) return moves.normals[style].landingLag;
   const lag = uncancelledLandingLag(style);
   return lag > 0 ? max(1, idiv(lag, 2)) : 0;
 }
@@ -194,8 +235,13 @@ export function attackReach(style: AttackStyle): number {
 
 
 export function attackStartupFrames(style: AttackStyle, moves?: FighterMoves): number {
-  const authored = moves?.normals[style];
-  if (authored !== undefined) return authored.startupFrames;
+  const table = moves?.table;
+  if (table !== undefined) {
+    if (hasNormal(table, style)) return moveField(table, style, MoveField.startup);
+  } else {
+    const authored = moves?.normals[style];
+    if (authored !== undefined) return authored.startupFrames;
+  }
   switch (style) {
     case AttackStyle.ledgeAttack:
       return 16;
@@ -256,8 +302,13 @@ export function attackActiveFrames(style: AttackStyle): number {
 
 export function characterAttackActiveFrames(character: Character, style: AttackStyle, moves?: FighterMoves): number {
   if (style === AttackStyle.grab) return 3;
-  const authored = moves?.normals[style];
-  if (authored !== undefined) return authored.activeFrames;
+  const table = moves?.table;
+  if (table !== undefined) {
+    if (hasNormal(table, style)) return moveField(table, style, MoveField.active);
+  } else {
+    const authored = moves?.normals[style];
+    if (authored !== undefined) return authored.activeFrames;
+  }
 
   if (character === Character.demonHunter) {
     if (style === AttackStyle.forwardAir) return DEMON_HUNTER_FORWARD_AIR_ACTIVE;
@@ -273,8 +324,13 @@ export function attackDurationFrames(style: AttackStyle): number {
 
 
 export function attackDurationFramesForGrounding(style: AttackStyle, grounded: boolean, moves?: FighterMoves): number {
-  const authored = moves?.normals[style];
-  if (authored !== undefined) return authored.totalFrames;
+  const table = moves?.table;
+  if (table !== undefined) {
+    if (hasNormal(table, style)) return moveField(table, style, MoveField.total);
+  } else {
+    const authored = moves?.normals[style];
+    if (authored !== undefined) return authored.totalFrames;
+  }
   switch (style) {
     case AttackStyle.ledgeAttack:
       return LEDGE_ATTACK_FRAMES;
@@ -346,8 +402,14 @@ export function pummelLimit(moves?: FighterMoves): number {
 
 export function grabContactFrame(action: GrabAction, moves?: FighterMoves): number {
   if (action === GrabAction.pummel) return PUMMEL_CONTACT_FRAME;
-  const authored = moves?.throws[action];
-  if (authored !== undefined) return authored.contactFrame;
+  const table = moves?.table;
+  if (table !== undefined) {
+    const id = throwMove(table, action);
+    if (id >= 0) return moveField(table, id, MoveField.contactFrame);
+  } else {
+    const authored = moves?.throws[action];
+    if (authored !== undefined) return authored.contactFrame;
+  }
   switch (action) {
     case GrabAction.throwForward:
       return 12;
@@ -360,8 +422,14 @@ export function grabContactFrame(action: GrabAction, moves?: FighterMoves): numb
 
 export function grabActionDuration(action: GrabAction, moves?: FighterMoves): number {
   if (action === GrabAction.pummel) return PUMMEL_TOTAL_FRAMES;
-  const authored = moves?.throws[action];
-  if (authored !== undefined) return authored.totalFrames;
+  const table = moves?.table;
+  if (table !== undefined) {
+    const id = throwMove(table, action);
+    if (id >= 0) return moveField(table, id, MoveField.total);
+  } else {
+    const authored = moves?.throws[action];
+    if (authored !== undefined) return authored.totalFrames;
+  }
   switch (action) {
     case GrabAction.throwForward:
       return 30;

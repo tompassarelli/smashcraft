@@ -12,7 +12,6 @@ import {
   RIFLEMAN_BLASTER_GROUND_SHOT_FRAME,
 } from "./moves";
 import { HitElement, type HitEffect, type HitRegion, NO_HIT_REGION } from "./hitRegions";
-import { heroSpecialMove } from "./heroSpecials";
 import { advanceHeroCommandGrab } from "./heroCommandGrab";
 import { enterExSpecial } from "./exSpecials";
 import { ROSTER_MANA, spendMana } from "./mana";
@@ -28,7 +27,7 @@ import { advanceCompanion } from "./companions";
 import { RIFLEMAN_BEAR_LIFETIME, advanceBear, recordSpecialHit, specialAlreadyHit, canStartFreezeTrap, startFreezeTrap } from "./summons";
 import { at } from "wisp/src/runtime/lookup";
 import { travelBeforeBodies } from "./travelStop";
-import { advanceHeroSpecial, chargedAimX, enterUltimate, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
+import { advanceHeroSpecial, chargedAimX, chosenSpecialEnd, chosenSpecialFacesStick, runningTableSpecial, enterUltimate, chargedAimZ, chooseHeroSpecial, enterHeroSpecial, followUpHeroSpecial, heroSpecialContact, heroStrikeMeetsShield, isHeroSpecialAction, relocateHeroSpecial, runningHeroSpecial, resolveHeroGuards, steerHeroSpecial, stopHeroMotionAtBodies } from "./heroSpecialRules";
 
 
 export const DEMONHUNTER_MANA_BURN_STARTUP = 16;
@@ -517,10 +516,9 @@ function startHeroFighterSpecial(owner: Fighter, input: Readonly<Controls>, worl
   if (chosen === undefined) return false;
   observeActionDecision(SPECIAL_ACTION_BIT);
   turnForSpecial(owner, input);
-  const move = heroSpecialMove(specials, chosen);
-  if (input.specialX !== 0 && input.specialZ !== 0 && move.facesStick === true) owner.facing = input.specialX < 0 ? -1 : 1;
+  if (input.specialX !== 0 && input.specialZ !== 0 && chosenSpecialFacesStick(specials, chosen)) owner.facing = input.specialX < 0 ? -1 : 1;
   const action = SpecialAction.heroNeutral + chosen.slot;
-  startSpecialAction(owner, heroAction(action), move.endFrame, specialDirection(input, owner.facing));
+  startSpecialAction(owner, heroAction(action), chosenSpecialEnd(specials, chosen), specialDirection(input, owner.facing));
   enterExSpecial(owner, input);
   enterHeroSpecial(owner, chosen, input);
   return true;
@@ -856,7 +854,7 @@ export function advanceSpecials(world: Roster, stage: number, matchFrame: number
       const strike = contact.strike;
       const contactZ = f32(owner.motion.z + f32(f32((strike?.z1 ?? contact.minZ) + (strike?.z2 ?? contact.maxZ)) * 0.5));
       applyAttackHit(world, ownerSlot, targetSlot, AttackStyle.jab, at(facings, ownerSlot), heroContactEffect(contact, target), true,
-        contact.strike === undefined ? meleeHitIntersectsShield(owner, target, contact) : heroStrikeMeetsShield(owner, target, contact), runningHeroSpecial(owner)?.strikeStatus, contactZ);
+        contact.strike === undefined ? meleeHitIntersectsShield(owner, target, contact) : heroStrikeMeetsShield(owner, target, contact), runningTableSpecial(owner) >= 0 ? undefined : runningHeroSpecial(owner)?.strikeStatus, contactZ);
     }
   }
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {

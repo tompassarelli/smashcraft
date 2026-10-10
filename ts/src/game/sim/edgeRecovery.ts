@@ -4,7 +4,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { HERO_REFERENCE_HEIGHT } from "./heroMoves";
 import type { Fighter } from "./fighter";
-import { runningHeroSpecial } from "./heroSpecialRules";
+import { runningHeroSpecial, runningTableSpecial } from "./heroSpecialRules";
 import { isUpSpecialAction, snapToLedge } from "./ledge";
 import { setWorldMotionValue } from "./motion";
 import type { Roster } from "./roster";
@@ -21,7 +21,7 @@ export const TELEPORT_LEDGE_INSET = f32(HERO_REFERENCE_HEIGHT * f32(0.5));
 
 
 export function teleportsThisFrame(f: Readonly<Fighter>): boolean {
-  const move = runningHeroSpecial(f);
+  const move = runningTableSpecial(f) >= 0 ? undefined : runningHeroSpecial(f);
   if (move === undefined) return false;
   for (const segment of move.motion ?? []) {
     if (segment.throughEdge === true && f.special.frame >= segment.first && f.special.frame <= segment.last) return true;

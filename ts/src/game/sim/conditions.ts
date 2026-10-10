@@ -2,7 +2,7 @@
 
 import { AttackPhase, AttackStyle, DASH_GRAB_REQUEST, DownState, GrabAction, LedgeState, PlatformMove, ShieldBreak, SurfaceContact } from "./codes";
 import type { Fighter } from "./fighter";
-import { attackStartupFrames, characterAttackActiveFrames, jabChainFrom, nextJab } from "./moves";
+import { attackStartupFrames, authoredGrabFrames, characterAttackActiveFrames, jabChainFrom, nextJab } from "./moves";
 
 export const GROUND_ROLL_FRAMES = 31;
 export const GROUND_ROLL_INTANGIBLE_START = 4;
@@ -142,15 +142,14 @@ export function canStartAttackStyle(attacker: Fighter, style: AttackStyle | unde
 
 export function attackStartup(f: Readonly<Fighter>, style: AttackStyle): number {
   if (!f.attack.dashGrab) return attackStartupFrames(style, f.tuning.moves);
-  const authoredGrab = f.tuning.moves?.normals[AttackStyle.grab];
-  return authoredGrab === undefined ? f.tuning.dashGrab.startupFrames : authoredGrab.startupFrames + 3;
+  const authoredGrab = authoredGrabFrames(f.tuning.moves, false);
+  return authoredGrab < 0 ? f.tuning.dashGrab.startupFrames : authoredGrab + 3;
 }
 
 
 export function attackActive(f: Readonly<Fighter>, style: AttackStyle): number {
   if (!f.attack.dashGrab) return characterAttackActiveFrames(f.character, style, f.tuning.moves);
-  const authoredGrab = f.tuning.moves?.normals[AttackStyle.grab];
-  return authoredGrab === undefined ? f.tuning.dashGrab.activeFrames : 3;
+  return authoredGrabFrames(f.tuning.moves, false) < 0 ? f.tuning.dashGrab.activeFrames : 3;
 }
 
 export function attackPhase(f: Fighter): AttackPhase {

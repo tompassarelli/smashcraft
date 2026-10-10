@@ -10,7 +10,7 @@ import { isTumbling } from "./conditions";
 import { type Fighter, SHIELD_POWERSHIELD_INPUT_WINDOW_FRAMES } from "./fighter";
 import { clearDash } from "./groundMovement";
 import { clearMash } from "./mash";
-import { DOWN_ATTACK_FRAMES, attackDurationFramesForGrounding, isSmashAttack } from "./moves";
+import { DOWN_ATTACK_FRAMES, attackDurationFramesForGrounding, authoredGrabFrames, hasStartupTravel, isSmashAttack } from "./moves";
 import type { Roster } from "./roster";
 import { clearPowershield, clearShieldBreak } from "./shield";
 
@@ -338,9 +338,9 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
   attack.dashGrab = isDashGrab;
   attack.pivotGrab = false;
   attack.frame = 0;
-  const authoredGrab = attacker.tuning.moves?.normals[AttackStyle.grab];
+  const authoredGrabTotal = authoredGrabFrames(attacker.tuning.moves, true);
   attack.duration = isDashGrab
-    ? authoredGrab === undefined ? attacker.tuning.dashGrab.totalFrames : authoredGrab.totalFrames + 11
+    ? authoredGrabTotal < 0 ? attacker.tuning.dashGrab.totalFrames : authoredGrabTotal + 11
     : attackDurationFramesForGrounding(resolvedStyle, attacker.motion.grounded, attacker.tuning.moves);
   attack.serial++;
   attack.hit = false;
@@ -348,7 +348,7 @@ export function beginAttack(attacker: Fighter, style: AttackStyle, mayCharge: bo
   attack.smashChargeFrames = 0;
   attack.smashChargeAllowed = isSmashAttack(resolvedStyle) && mayCharge;
   attack.cooldown = attack.duration;
-  if (attacker.tuning.moves?.normals[resolvedStyle]?.startupTravelX !== undefined) attacker.motion.vx = 0.0;
+  if (hasStartupTravel(resolvedStyle, attacker.tuning.moves)) attacker.motion.vx = 0.0;
 }
 
 

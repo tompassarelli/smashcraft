@@ -8,6 +8,7 @@ import type { MoveRegion, StrikeCapsule } from "./heroMoves";
 import type { HitEffect } from "./hitRegions";
 import type { AppliedStatus } from "./heroStatus";
 import type { HurtPose } from "./hurtboxes";
+import type { MoveTable } from "./moveTable";
 
 
 export const SpecialSlot = { neutral: 0, side: 1, up: 2, down: 3 } as const;
@@ -383,6 +384,8 @@ export interface FighterSpecials {
   readonly side: SpecialKit;
   readonly up: SpecialKit;
   readonly down: SpecialKit;
+
+  readonly table?: MoveTable | undefined;
 }
 
 export function specialKit(specials: Readonly<FighterSpecials>, slot: number): SpecialKit {

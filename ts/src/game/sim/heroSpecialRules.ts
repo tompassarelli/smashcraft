@@ -12,7 +12,7 @@ import { AttackStyle, ProjectileKind, SpecialAction } from "./codes";
 import { mutableProjectile } from "./fighterProjectiles";
 import { canAttack, inGrabContext, isIntangible } from "./conditions";
 import { type Fighter, placedObject } from "./fighter";
-import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrder, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, specialForm, specialKit } from "./heroSpecials";
+import { type FighterSpecials, type AuthoredSpecial, CompanionMode, CompanionOrder, type SpecialFollowUp, type SpecialGuard, type SpecialKit, type SpecialPlacement, type SpecialProjectile, FOLLOW_UP_FORM, FollowUpInput, Relocation, SpecialForm, SpecialSlot, heroSpecialMove, specialForm, specialKit } from "./heroSpecials";
 import { type HitRegion, NO_HIT_REGION, authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { type Controls, type Roster, fighterAt, isActive } from "./roster";
 import { travelBeforeBodies } from "./travelStop";
@@ -24,6 +24,10 @@ import { attackCapsule, emptyCapsule, placeCapsule, segmentBoxesOverlap } from "
 import { HurtContact, strikeHurtContact } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import { solidSurfaceAt, solidSurfaceCount } from "./stage";
+import {
+  EffectField, FollowField, FollowFlag, HitField, HitFlag, MotionField, MotionFlag, MoveField, MoveFlag, type MoveTable, RecallWhile, ShotField, SlotField,
+  activeMotion, effectField, followField, hasMoveFlag, hitField, motionField, moveField, moveShot, shotField, shotLimit, slotField, specialMove,
+} from "./moveTable";
 
 
 const DIAGONAL = 0.7071067690849304;
@@ -47,6 +51,21 @@ export function runningHeroSpecial(f: Readonly<Fighter>): AuthoredSpecial | unde
   if (specials === undefined || !isHeroSpecialAction(f.special.action)) return undefined;
   return specialForm(specialKit(specials, f.special.action - SpecialAction.heroNeutral), f.special.form, f.special.ex);
 }
+
+/** The move-table id of the fighter's running hero special, or -1 when it has none or its kit runs from authored objects. */
+export function runningTableSpecial(f: Readonly<Fighter>): number {
+  const table = f.tuning.specials?.table;
+  if (table === undefined || f.special.action < SpecialAction.heroNeutral || f.special.action > SpecialAction.heroDown) return -1;
+  return specialMove(table, f.special.action - SpecialAction.heroNeutral, f.special.form, f.special.ex);
+}
+
+function kitTable(f: Readonly<Fighter>): Readonly<MoveTable> {
+  const table = f.tuning.specials?.table;
+  if (table === undefined) throw new Error("move table special without a table");
+  return table;
+}
+
+const tableShot = (table: Readonly<MoveTable>, id: number, index: number): Readonly<SpecialProjectile> => at(table.shotSpecs, moveShot(table, id, index));
 
 function requestedSlot(input: Readonly<Controls>): SpecialSlot {
   return input.specialZ > 0 ? SpecialSlot.up : input.specialZ < 0 ? SpecialSlot.down : input.specialX !== 0 ? SpecialSlot.side : SpecialSlot.neutral;
@@ -100,6 +119,51 @@ function projectilesFit(f: Readonly<Fighter>, move: Readonly<AuthoredSpecial>): 
 }
 
 
+function tableProjectilesFit(f: Readonly<Fighter>, table: Readonly<MoveTable>, id: number): boolean {
+  const count = moveField(table, id, MoveField.shotCount);
+  if (count === 0) return true;
+  if (ownedCount(f, undefined) + count > HERO_PROJECTILE_CAP) return false;
+  const ex = moveField(table, id, MoveField.ex);
+  for (let index = 0; index < count; index++) {
+    const spec = tableShot(table, id, index);
+    const upgraded = ex >= 0 && index < moveField(table, ex, MoveField.shotCount) ? tableShot(table, ex, index) : undefined;
+    const exCount = upgraded === undefined || upgraded === spec ? 0 : ownedCount(f, upgraded);
+    if (ownedCount(f, spec) + exCount >= shotLimit(table, moveShot(table, id, index))) return false;
+  }
+  return true;
+}
+
+
+function tableRecallHolds(f: Readonly<Fighter>, table: Readonly<MoveTable>, slot: number): boolean {
+  const recallWhile = slotField(table, slot, SlotField.recallWhile);
+  if (recallWhile === RecallWhile.armor) return f.status.armorFrames > 0;
+  if (recallWhile === RecallWhile.projectile) {
+    const ground = specialMove(table, slot, SpecialForm.ground, false);
+    const ex = moveField(table, ground, MoveField.ex);
+    return (moveField(table, ground, MoveField.shotCount) > 0 && ownedCount(f, tableShot(table, ground, 0)) > 0)
+      || (ex >= 0 && moveField(table, ex, MoveField.shotCount) > 0 && ownedCount(f, tableShot(table, ex, 0)) > 0);
+  }
+  return (slotField(table, slot, SlotField.recallGroundOnly) === 0 || f.motion.grounded) && placedObject(f, undefined).life > 0;
+}
+
+
+function chooseTableSpecial(f: Readonly<Fighter>, table: Readonly<MoveTable>, slot: SpecialSlot, out: SpecialRefusal): HeroSpecialChoice | undefined {
+  const airborne = !f.motion.grounded;
+  const recalls = slotField(table, slot, SlotField.recall) >= 0 && tableRecallHolds(f, table, slot);
+  const form: SpecialForm = recalls ? SpecialForm.recall : airborne && slotField(table, slot, SlotField.air) >= 0 ? SpecialForm.air : SpecialForm.ground;
+  const id = specialMove(table, slot, form, false);
+  if (hasMoveFlag(table, id, MoveFlag.groundOnly) && airborne) {
+    out.groundOnly = true;
+    return undefined;
+  }
+  if (hasMoveFlag(table, id, MoveFlag.oncePerAirtime) && airborne && (f.special.airtimeUses & (1 << slot)) !== 0) return undefined;
+  if (!tableProjectilesFit(f, table, id)) return undefined;
+  choice.slot = slot;
+  choice.form = form;
+  return choice;
+}
+
+
 function recallHolds(f: Readonly<Fighter>, kit: Readonly<SpecialKit>): boolean {
   if (kit.recallWhile === "armor") return f.status.armorFrames > 0;
   if (kit.recallWhile === "projectile") {
@@ -131,6 +195,7 @@ export function chooseHeroSpecial(f: Readonly<Fighter>, specials: Readonly<Fight
   out.groundOnly = false;
   const slot = requestedSlot(input);
   if ((f.special.cooldowns[SpecialAction.heroNeutral + slot] ?? 0) > 0) return undefined;
+  if (specials.table !== undefined) return chooseTableSpecial(f, specials.table, slot, out);
   const kit = specialKit(specials, slot);
   const airborne = !f.motion.grounded;
   const recalls = kit.recall !== undefined && recallHolds(f, kit);
@@ -180,8 +245,14 @@ export function chargedAimZ(input: Readonly<Controls>): number {
 
 
 export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
-  const move = runningHeroSpecial(f);
-  if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
+  const id = runningTableSpecial(f);
+  if (id >= 0) {
+    const aimFrames = moveField(kitTable(f), id, MoveField.aimFrames);
+    if (aimFrames < 0 || f.special.frame >= aimFrames) return;
+  } else {
+    const move = runningHeroSpecial(f);
+    if (move?.aimFrames === undefined || f.special.frame >= move.aimFrames) return;
+  }
   const x = chargedAimX(input);
   const z = chargedAimZ(input);
   if (x === 0 && z === 0) return;
@@ -190,10 +261,9 @@ export function steerHeroSpecial(f: Fighter, input: Readonly<Controls>): void {
 }
 
 
-export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>, input: Readonly<Controls>): AuthoredSpecial {
+export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>, input: Readonly<Controls>): void {
   const specials = f.tuning.specials;
   if (specials === undefined) throw new Error("hero special without a kit");
-  const move = specialForm(specialKit(specials, chosen.slot), chosen.form, f.special.ex);
   const { special } = f;
   endDivineShield(f);
   special.form = chosen.form;
@@ -205,11 +275,31 @@ export function enterHeroSpecial(f: Fighter, chosen: Readonly<HeroSpecialChoice>
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
   special.guarded = false;
+  const table = specials.table;
+  if (table !== undefined) {
+    const id = specialMove(table, chosen.slot, chosen.form, f.special.ex);
+    special.cooldowns[SpecialAction.heroNeutral + chosen.slot] = moveField(table, id, MoveField.cooldown);
+    if (hasMoveFlag(table, id, MoveFlag.oncePerAirtime)) special.airtimeUses |= 1 << chosen.slot;
+    if (hasMoveFlag(table, id, MoveFlag.recallsProjectiles)) recallProjectiles(f);
+    return;
+  }
+  const move = specialForm(specialKit(specials, chosen.slot), chosen.form, f.special.ex);
   special.cooldowns[SpecialAction.heroNeutral + chosen.slot] = move.cooldownFrames ?? 0;
   if (move.oncePerAirtime === true) special.airtimeUses |= 1 << chosen.slot;
   if (move.recallsProjectiles === true) recallProjectiles(f);
   applyWindows(f, move, 0);
-  return move;
+}
+
+
+/** The chosen special's end frame and whether it faces the stick, read before the special starts. */
+export function chosenSpecialEnd(specials: Readonly<FighterSpecials>, chosen: Readonly<HeroSpecialChoice>): number {
+  const table = specials.table;
+  return table === undefined ? heroSpecialMove(specials, chosen).endFrame : moveField(table, specialMove(table, chosen.slot, chosen.form, false), MoveField.total);
+}
+
+export function chosenSpecialFacesStick(specials: Readonly<FighterSpecials>, chosen: Readonly<HeroSpecialChoice>): boolean {
+  const table = specials.table;
+  return table === undefined ? heroSpecialMove(specials, chosen).facesStick === true : hasMoveFlag(table, specialMove(table, chosen.slot, chosen.form, false), MoveFlag.facesStick);
 }
 
 const inWindow = (window: { readonly first: number; readonly last: number } | undefined, frame: number): boolean =>
@@ -346,6 +436,29 @@ function applyMotion(f: Fighter, move: Readonly<AuthoredSpecial>, frame: number,
 }
 
 
+function applyTableMotion(f: Fighter, table: Readonly<MoveTable>, id: number, frame: number): void {
+  const { motion, special } = f;
+  const first = moveField(table, id, MoveField.motionFirst);
+  for (let row = first; row < first + moveField(table, id, MoveField.motionCount); row++) {
+    if (frame < motionField(table, row, MotionField.first) || frame > motionField(table, row, MotionField.last)) continue;
+    let velocityX = f32(f.facing * motionField(table, row, MotionField.velocityX));
+    let velocityZ = motionField(table, row, MotionField.velocityZ);
+    if ((motionField(table, row, MotionField.flags) & MotionFlag.aimed) !== 0 && (special.aimX !== 0 || special.aimZ !== 0)) {
+      const speed = motionField(table, row, MotionField.aimedSpeed);
+      const scale = special.aimX !== 0 && special.aimZ !== 0 ? f32(speed * DIAGONAL) : speed;
+      velocityX = f32(special.aimX * scale);
+      velocityZ = f32(special.aimZ * scale);
+    }
+    motion.vx = velocityX;
+    motion.vz = velocityZ;
+    if (velocityZ > 0 && motion.grounded) {
+      motion.grounded = false;
+      motion.surface = undefined;
+    }
+  }
+}
+
+
 export function companionReady(f: Readonly<Fighter>, slot = 0): boolean {
   const placed = placedObject(f, slot);
   return placed.life > 0 && placed.spec?.companion !== undefined && (placed.mode === CompanionMode.follow || placed.mode === CompanionMode.returning);
@@ -394,6 +507,8 @@ function placeObject(f: Fighter, spec: Readonly<SpecialPlacement>): void {
 
 
 export function heroMotionHolds(f: Readonly<Fighter>): boolean {
+  const id = runningTableSpecial(f);
+  if (id >= 0) return activeMotion(kitTable(f), id, f.special.frame, 0) >= 0;
   const move = runningHeroSpecial(f);
   if (move === undefined) return false;
   for (const segment of move.motion ?? []) if (f.special.frame >= segment.first && f.special.frame <= segment.last) return true;
@@ -401,8 +516,8 @@ export function heroMotionHolds(f: Readonly<Fighter>): boolean {
 }
 
 
-function endHeroSpecial(f: Fighter, move: Readonly<AuthoredSpecial>): void {
-  if (move.helpless === true && !f.motion.grounded) {
+function endHeroSpecial(f: Fighter, helpless: boolean): void {
+  if (helpless && !f.motion.grounded) {
     f.special.fall = true;
     f.jump.remaining = 0;
   }
@@ -431,7 +546,25 @@ function burstProjectiles(f: Fighter, from: Readonly<SpecialProjectile>, into: R
 }
 
 
+function advanceTableSpecial(f: Fighter, table: Readonly<MoveTable>, id: number, stage: number, world: Roster | undefined): void {
+  const frame = f.special.frame;
+  applyTableMotion(f, table, id, frame);
+  for (let index = 0; index < moveField(table, id, MoveField.shotCount); index++) {
+    if (shotField(table, moveShot(table, id, index), ShotField.spawnFrame) === frame) spawnHeroProjectile(f, tableShot(table, id, index), f.attack.serial + 1, stage, world);
+  }
+  if (frame >= moveField(table, id, MoveField.total)) {
+    if (hasMoveFlag(table, id, MoveFlag.recall)) f.placed.life = 0;
+    endHeroSpecial(f, hasMoveFlag(table, id, MoveFlag.helpless));
+  }
+}
+
+
 export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Controls>, world?: Roster): void {
+  const id = runningTableSpecial(f);
+  if (id >= 0) {
+    advanceTableSpecial(f, kitTable(f), id, stage, world);
+    return;
+  }
   const move = runningHeroSpecial(f);
   if (move === undefined) return;
   const frame = f.special.frame;
@@ -451,7 +584,7 @@ export function advanceHeroSpecial(f: Fighter, stage = 0, input?: Readonly<Contr
   applyWindows(f, move, frame);
   if (frame >= heroSpecialEndFrame(f, move)) {
     if (move.recall === true) f.placed.life = 0;
-    endHeroSpecial(f, move);
+    endHeroSpecial(f, move.helpless === true);
   }
 }
 
@@ -463,13 +596,14 @@ export function heroSpecialEndFrame(f: Readonly<Fighter>, move: Readonly<Authore
 
 
 export function landHeroSpecial(f: Fighter): boolean {
-  const move = runningHeroSpecial(f);
-  if (move?.landingLag === undefined) return false;
+  const id = runningTableSpecial(f);
+  const landingLag = id >= 0 ? moveField(kitTable(f), id, MoveField.landingLag) : runningHeroSpecial(f)?.landingLag ?? -1;
+  if (landingLag < 0) return false;
   f.special.action = SpecialAction.none;
   f.special.frame = 0;
   f.special.lockFrames = 0;
   f.attack.cooldown = 0;
-  f.landing.lag = max(f.landing.lag, move.landingLag);
+  f.landing.lag = max(f.landing.lag, landingLag);
   return true;
 }
 
@@ -492,7 +626,28 @@ export function heroStrikeMeetsShield(owner: Readonly<Fighter>, target: Readonly
 
 
 
+function tableSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fighter>, table: Readonly<MoveTable>, id: number): Readonly<HitRegion> {
+  const frame = owner.special.frame - 1;
+  const first = moveField(table, id, MoveField.hitFirst);
+  for (let row = first; row < first + moveField(table, id, MoveField.hitCount); row++) {
+    if (frame < hitField(table, row, HitField.first) || frame > hitField(table, row, HitField.last) || (hitField(table, row, HitField.flags) & HitFlag.strike) === 0) continue;
+    const region = at(table.regions, row);
+    if (region.strike === undefined) continue;
+    placeCapsule(strike, region.strike, owner.motion.x, owner.motion.z, owner.facing);
+    const contact = strikeHurtContact(strike, target);
+    if (contact === HurtContact.hit || heroStrikeMeetsShield(owner, target, region)) return region;
+    if (contact === HurtContact.invincible) return NO_HIT_REGION;
+  }
+  return NO_HIT_REGION;
+}
+
+
 export function heroSpecialContact(owner: Readonly<Fighter>, target: Readonly<Fighter>, alreadyHit: boolean): Readonly<HitRegion> {
+  const id = runningTableSpecial(owner);
+  if (id >= 0) {
+    if (alreadyHit || owner.launch.hitlag > 0 || target.status.out || isIntangible(target)) return NO_HIT_REGION;
+    return tableSpecialContact(owner, target, kitTable(owner), id);
+  }
   const move = runningHeroSpecial(owner);
   if (move === undefined || alreadyHit || owner.launch.hitlag > 0 || target.status.out || isIntangible(target)) return NO_HIT_REGION;
   const regions = move.regions ?? [];
@@ -529,7 +684,19 @@ function threatensBody(attacker: Readonly<Fighter>, target: Readonly<Fighter>): 
     }
   }
 
-  const special = runningHeroSpecial(attacker);
+  const id = runningTableSpecial(attacker);
+  if (id >= 0) {
+    const table = kitTable(attacker);
+    const first = moveField(table, id, MoveField.hitFirst);
+    for (let row = first; row < first + moveField(table, id, MoveField.hitCount); row++) {
+      const strike = at(table.regions, row).strike;
+      if (strike === undefined || attacker.special.frame < hitField(table, row, HitField.first) || attacker.special.frame > hitField(table, row, HitField.last)
+        || effectField(table, hitField(table, row, HitField.effect), EffectField.damage) <= 0) continue;
+      placeCapsule(guardStrike, strike, attacker.motion.x, attacker.motion.z, attacker.facing);
+      if (strikeHurtContact(guardStrike, target) !== HurtContact.none) return true;
+    }
+  }
+  const special = id >= 0 ? undefined : runningHeroSpecial(attacker);
   for (const region of special?.regions ?? []) {
     const strike = region.hit.strike;
     if (strike === undefined || attacker.special.frame < region.firstFrame || attacker.special.frame > region.lastFrame || region.hit.effect.damage <= 0) continue;
@@ -578,7 +745,7 @@ export function resolveHeroGuards(world: Roster): void {
   for (let slot = 0; slot < PARTICIPANT_CAPACITY; slot++) {
     if (!isActive(world, slot)) continue;
     const f = fighterAt(world, slot);
-    const guard = runningHeroSpecial(f)?.guard;
+    const guard = runningTableSpecial(f) >= 0 ? undefined : runningHeroSpecial(f)?.guard;
     if (guard === undefined || f.special.guarded || !inWindow(guard, f.special.frame + 1)) continue;
     for (let other = 0; other < PARTICIPANT_CAPACITY; other++) {
       if (other === slot || !isActive(world, other) || !threatensBody(fighterAt(world, other), f)) continue;
@@ -606,6 +773,16 @@ export function specialCooldownReady(f: Readonly<Fighter>, action: number): bool
 
 export function stopHeroMotionAtBodies(world: Roster, slot: number): void {
   const f = fighterAt(world, slot);
+  const id = runningTableSpecial(f);
+  if (id >= 0) {
+    const table = kitTable(f);
+    const row = activeMotion(table, id, f.special.frame, MotionFlag.stopsAtBody | MotionFlag.stopsAtShield);
+    if (row < 0) return;
+    const forward = f32(f.motion.vx * f.facing);
+    if (forward <= 0.0) return;
+    f.motion.vx = f32(f.facing * travelBeforeBodies(world, slot, forward, (motionField(table, row, MotionField.flags) & MotionFlag.stopsAtBody) !== 0));
+    return;
+  }
   const move = runningHeroSpecial(f);
   if (move?.motion === undefined) return;
   const frame = f.special.frame;
@@ -629,6 +806,7 @@ const BEHIND_MARK = 60.0;
 
 export function relocateHeroSpecial(world: Roster, slot: number): void {
   const f = fighterAt(world, slot);
+  if (runningTableSpecial(f) >= 0) return;
   const move = runningHeroSpecial(f);
   if (move?.motion === undefined) return;
   for (const segment of move.motion) {
@@ -659,8 +837,7 @@ export function relocateHeroSpecial(world: Roster, slot: number): void {
 }
 
 function followUpPressed(followUp: Readonly<SpecialFollowUp>, input: Readonly<Controls>): boolean {
-  const kind = followUp.input ?? FollowUpInput.special;
-  return kind === FollowUpInput.attack ? input.attackPressed : kind === FollowUpInput.shield ? input.shieldPressed : input.specialPressed;
+  return inputPressed(followUp.input ?? FollowUpInput.special, input);
 }
 
 
@@ -668,7 +845,35 @@ function followUpPressed(followUp: Readonly<SpecialFollowUp>, input: Readonly<Co
 
 
 
+function inputPressed(kind: number, input: Readonly<Controls>): boolean {
+  return kind === FollowUpInput.attack ? input.attackPressed : kind === FollowUpInput.shield ? input.shieldPressed : input.specialPressed;
+}
+
+
+function followUpTableSpecial(f: Fighter, input: Readonly<Controls>, table: Readonly<MoveTable>, id: number): boolean {
+  const { special } = f;
+  const first = moveField(table, id, MoveField.followFirst);
+  const count = moveField(table, id, MoveField.followCount);
+  if (count === 0 || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
+  let index = 0;
+  while (index < count) {
+    const row = first + index;
+    const frame = special.frame + 1;
+    if (frame >= followField(table, row, FollowField.first) && frame <= followField(table, row, FollowField.last) && inputPressed(followField(table, row, FollowField.input), input)) break;
+    index++;
+  }
+  if (index >= count) return false;
+  const row = first + index;
+  if ((followField(table, row, FollowField.flags) & FollowFlag.facesStick) !== 0 && input.direction !== 0) f.facing = input.direction < 0 ? -1 : 1;
+  special.form += FOLLOW_UP_FORM * (index + 1);
+  startFollowUp(f, moveField(table, followField(table, row, FollowField.target), MoveField.total));
+  return true;
+}
+
+
 export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): boolean {
+  const id = runningTableSpecial(f);
+  if (id >= 0) return followUpTableSpecial(f, input, kitTable(f), id);
   const { special } = f;
   const followUps = runningHeroSpecial(f)?.followUps;
   if (followUps === undefined || special.form >= FOLLOW_UP_FORM || f.launch.hitlag > 0 || f.launch.hitstun > 0) return false;
@@ -684,16 +889,21 @@ export function followUpHeroSpecial(f: Fighter, input: Readonly<Controls>): bool
 }
 
 
-function enterFollowUp(f: Fighter, next: Readonly<AuthoredSpecial>): void {
+function startFollowUp(f: Fighter, endFrame: number): void {
   const { special } = f;
   special.exArmorUsed = special.ex;
   special.frame = 0;
-  special.duration = next.endFrame;
-  special.lockFrames = next.endFrame;
+  special.duration = endFrame;
+  special.lockFrames = endFrame;
 
-  f.attack.cooldown = next.endFrame;
+  f.attack.cooldown = endFrame;
   for (let entry = 0; entry < PARTICIPANT_CAPACITY; entry++) special.hitTargets[entry] = undefined;
   special.hit = false;
+}
+
+
+function enterFollowUp(f: Fighter, next: Readonly<AuthoredSpecial>): void {
+  startFollowUp(f, next.endFrame);
   applyWindows(f, next, 0);
 }
 
