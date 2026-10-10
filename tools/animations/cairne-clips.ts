@@ -96,7 +96,14 @@ for (const [pose, key, gesture, contact] of [
 ] as const) {
   const special = CAIRNE_SPECIALS[key]; ensure(special, `${pose}: missing special`);
   for (const air of [false,true]) { const form = air ? special.air ?? special.ground : special.ground;
-    actions.push({pose:(air?`${pose}Air`:pose) as HeroPose,frames:form.endFrame,contact,gesture,air:air||key==="up"}); }
+    const charge: Gesture = {...brace,chest:-12,arm:-105,elbow:35,free:-75,freeElbow:25,lean:-8,yaw:-15,head:10};
+    const wound: Gesture = {...charge,chest:-24,arm:-155,elbow:55,free:-110,hip:-45,knee:70,yaw:-25};
+    actions.push({pose:(air?`${pose}Air`:pose) as HeroPose,frames:form.endFrame,contact,gesture,air:air||key==="up",
+      first:key==="neutral"?charge:undefined,
+      phases:key==="neutral"?[
+        {frame:1,gesture:charge},{frame:12,gesture:wound},{frame:contact-1,gesture:wound},
+        {frame:contact,gesture},{frame:contact+4,gesture},
+      ]:undefined}); }
 }
 const damageActions: Action[] = [];
 for (let height=0;height<3;height++) for (let strength=0;strength<3;strength++) {
@@ -139,7 +146,8 @@ for (const [ordinal,action] of [...actions,...damageActions].entries()) {
     MinimumExtent:new Float32Array([-320,-320,-200]),MaximumExtent:new Float32Array([320,320,360]),BoundsRadius:440});
   const coil=blend(ready,action.gesture,-0.32);
   const phases:Phase[]=action.roll ? [0,0.12,0.25,0.5,0.75,0.9,1].map(t=>({frame:Math.round(t*action.frames),gesture:{...blend(ready,brace,t===0||t===1?0:1),lean:t*360*action.roll!}})) : action.hold ? [{frame:0,gesture:action.gesture},{frame:action.frames,gesture:action.gesture}] : [
-    {frame:0,gesture:action.first??ready},{frame:Math.max(1,action.contact-3),gesture:blend(action.first??ready,coil,0.75)},
+    {frame:0,gesture:action.first??ready},{frame:Math.max(1,action.contact-3),gesture:action.pose==="neutralSpecial"||action.pose==="neutralSpecialAir"
+      ? action.phases?.[1]?.gesture??ready : blend(action.first??ready,coil,0.75)},
     ...(action.phases ?? [{frame:action.contact,gesture:action.gesture,target:action.target},{frame:Math.min(action.frames-1,action.contact+4),gesture:action.gesture,target:action.target}]),
     {frame:action.frames,gesture:action.pose==="pummel"||action.pose==="victimPummel"?action.first??ready:ready},
   ].sort((a,b)=>a.frame-b.frame).filter((p,i,array)=>i===0||p.frame!==array[i-1]?.frame);
