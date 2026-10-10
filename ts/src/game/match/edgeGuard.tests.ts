@@ -36,7 +36,7 @@ sweep("every fighter's predictable recovery at 40% is killed by a roster fighter
   for (const character of SELECTABLE_CHARACTERS) gimped(character);
 });
 
-test("Rifleman's Recoil Shot leaves a 15-frame hittable opening around its intangible frames 4 to 10 [spec #387] [spec #127]", () => {
+test("Rifleman's Recoil Shot leaves a 15-frame hittable opening around its intangible frames 4 to 7 [spec #387] [spec #127]", () => {
   beatable(Character.rifleman);
 });
 
