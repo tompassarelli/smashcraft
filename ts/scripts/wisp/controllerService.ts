@@ -80,7 +80,7 @@ const fail = (problem: string) => new PlayProblem({ problem });
 /** The pinned wc3-controller service built beside the Smashcraft plug-in (currentPlaytest.ts). */
 export const pointLaunchers = (helper: string) => [pointLauncher(helper), pointLauncher(join(dirname(helper), "wc3-controller"), SERVICE_LAUNCHER)].some(Boolean);
 
-export function serviceBuildAction(running: string | undefined, wanted: string): "keep" | "relink+restart" {
+function serviceBuildAction(running: string | undefined, wanted: string): "keep" | "relink+restart" {
   return running === wanted ? "keep" : "relink+restart";
 }
 

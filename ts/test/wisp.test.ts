@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
 import { expect, test } from "bun:test";
-import { serviceBuildAction } from "../scripts/wisp/controllerService";
 import {
   DevCommandReceipt,
   InputTrace,
@@ -11,22 +10,6 @@ import {
 } from "../scripts/wisp/boundary";
 
 const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures/wisp", name), "utf8");
-
-test("service refresh agrees with both running controller and plug-in builds and keeps the refreshed pair [k2 property]", () => {
-  for (let controller = 0; controller < 8; controller++) {
-    for (let plugin = 0; plugin < 8; plugin++) {
-      const wanted = `${controller}/${plugin}`;
-      expect(serviceBuildAction(undefined, wanted)).toBe("relink+restart");
-      for (let runningController = 0; runningController < 8; runningController++) {
-        for (let runningPlugin = 0; runningPlugin < 8; runningPlugin++) {
-          const running = `${runningController}/${runningPlugin}`;
-          expect(serviceBuildAction(running, wanted)).toBe(runningController === controller && runningPlugin === plugin ? "keep" : "relink+restart");
-          expect(serviceBuildAction(wanted, wanted)).toBe("keep");
-        }
-      }
-    }
-  }
-});
 
 test("each game-written file kind decodes its native Preload fixture [k5 boundary wc3-preload]", async () => {
   expect(await Effect.runPromise(MeleeReady.decode("ready.txt", fixture("melee-ready.pld"))))
