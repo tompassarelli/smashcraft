@@ -94,7 +94,7 @@ const LICH: AuthoredSpecial = {
   name: "Frost Wyrm", endFrame: 60,
   projectiles: [
     mark("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathTargetArt.mdx", 2, 29, -600.0, 215.0),
-    { ...shot(31, -600.0, 215.0, 28.0, 0.0, 70, 45.0, hit(16.0, 60, 85.0, 45.0, HitElement.ice), "Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx"), status: CHILL },
+    { ...shot(31, -600.0, 215.0, 28.0, 0.0, 70, 45.0, hit(16.0, 60, 85.0, 45.0, HitElement.ice), "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx"), status: CHILL },
   ],
 };
 
@@ -167,12 +167,12 @@ const THRALL: AuthoredSpecial = {
 };
 
 const ray = (spawnFrame: number, velocityX: number, velocityZ: number, effect: HitEffect): SpecialProjectile =>
-  shot(spawnFrame, 40.0, 90.0, velocityX, velocityZ, 15, 30.0, effect, "Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx");
+  shot(spawnFrame, 40.0, 90.0, velocityX, velocityZ, 15, 30.0, effect, "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx");
 const GLANCE = hit(5.0, 30, 30.0, 25.0, HitElement.ice);
 const JAINA: AuthoredSpecial = {
   name: "Glacial Ray", endFrame: 80, groundOnly: true,
   projectiles: [
-    mark("Abilities\\Spells\\Other\\BreathOfFrost\\BreathOfFrostTarget.mdx", 2, 22, 40.0, 90.0),
+    mark("Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathTargetArt.mdx", 2, 22, 40.0, 90.0),
     ray(25, f32(28.284271), f32(28.284271), GLANCE),
     ray(33, f32(37.587704), f32(13.680806), GLANCE),
     ray(41, 40.0, 0.0, GLANCE),
@@ -193,7 +193,7 @@ const ANCESTRAL_PILLAR: AuthoredSpecial = {
 };
 const CAIRNE: AuthoredSpecial = {
   name: "Reincarnation", endFrame: 75, groundOnly: true,
-  projectiles: [mark("Abilities\\Spells\\Orc\\AncestralSpirit\\AncestralSpiritCaster.mdx", 1, 49, 0.0)],
+  projectiles: [mark("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", 1, 49, 0.0)],
   intangible: frames(7, 50),
   guard: { ...frames(7, 50), heal: 0.0, counter: true },
   followUps: [{ window: NO_FOLLOW_UP, special: ANCESTRAL_PILLAR }],

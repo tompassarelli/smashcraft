@@ -99,6 +99,11 @@ export const PROJECTILE_DRAW_SCALES: { readonly [model: string]: number | undefi
   "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": 0.5,
   "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx": f32(0.85),
   "Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx": f32(0.6),
+  "Abilities\\Spells\\Other\\Consecration\\Consecration.mdx": 0.25,
+  "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx": 0.5,
+  "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl": f32(0.6),
+  "Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx": f32(0.7),
+  "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx": f32(0.7),
 };
 
 
