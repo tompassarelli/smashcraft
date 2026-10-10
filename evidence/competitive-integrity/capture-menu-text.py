@@ -23,8 +23,22 @@ if args.scale <= 0:
 started = time.time_ns()
 if args.window is not None:
     path = Path(str(args.output_prefix) + f'-{started}.png')
-    subprocess.run(['niri', 'msg', 'action', 'screenshot-window', '--id',
-                    str(args.window), '--show-pointer', 'false', '--path', str(path)],
+    windows = json.loads(subprocess.check_output(['niri', 'msg', '--json', 'windows'],
+                                                 text=True, timeout=5))
+    window = next(window for window in windows if window['id'] == args.window)
+    workspaces = json.loads(subprocess.check_output(['niri', 'msg', '--json', 'workspaces'],
+                                                    text=True, timeout=5))
+    workspace = next(workspace for workspace in workspaces
+                     if workspace['id'] == window['workspace_id'])
+    outputs = json.loads(subprocess.check_output(['niri', 'msg', '--json', 'outputs'],
+                                                 text=True, timeout=5))
+    output = outputs[workspace['output']]['logical']
+    layout = window['layout']
+    tile_x, tile_y = layout['tile_pos_in_workspace_view']
+    offset_x, offset_y = layout['window_offset_in_tile']
+    width, height = layout['window_size']
+    x, y = round(output['x'] + tile_x + offset_x), round(output['y'] + tile_y + offset_y)
+    subprocess.run(['grim', '-g', f'{x},{y} {width}x{height}', '-s', str(args.scale), str(path)],
                    check=True, timeout=5)
     deadline = time.monotonic() + 10
     while True:
