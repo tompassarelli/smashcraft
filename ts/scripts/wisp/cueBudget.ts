@@ -51,6 +51,7 @@ export interface CueMove {
   readonly name: string;
   readonly style?: AttackStyle;
   readonly special?: (typeof SPECIALS)[number];
+  readonly ultimate?: true;
 }
 
 export interface CueMeasurement {
@@ -106,6 +107,7 @@ export function cueMoves(): CueMove[] {
   for (const character of Object.values(Character)) for (const special of SPECIALS) {
     moves.push({ character, name: `${fighterSlug(character)}:${special.slot}-special`, special });
   }
+  for (const character of Object.values(Character)) moves.push({ character, name: `${fighterSlug(character)}:ultimate`, ultimate: true });
   return moves;
 }
 
@@ -162,7 +164,8 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
       if (isAerialAttack(move.style)) { f.motion.grounded = false; f.motion.z = 300.0; }
       beginFighterAttack(world, 0, move.style, false);
     }
-    const press = move.special === undefined ? idle : { ...neutralControls(), specialPressed: true, specialX: move.special.x, specialZ: move.special.z };
+    const press = move.ultimate === true ? { ...neutralControls(), specialPressed: true, ultimatePressed: true, attackHeld: true }
+      : move.special === undefined ? idle : { ...neutralControls(), specialPressed: true, specialX: move.special.x, specialZ: move.special.z };
     const scenes: RenderScene[] = [];
     const poses: (readonly ParkPose[])[] = [];
     let lastDanger = -1, ended = -1, lastLive = 0;

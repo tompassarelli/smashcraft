@@ -14,6 +14,7 @@ anub'arak	jab2	jab	0/4	2.40	FAIL	1.00	0.07	body	FAIL	0.04	0.04	0.00	FAIL	5	8	26	
 anub'arak	neutral-air	aerial	0/4	4.65	FAIL	1.00	-0.03	body	FAIL	0.00	0.01	0.00	FAIL	6	14	37	0.92	9	15	39	FAIL	0.20	0.71	0.80	unjudged	0							bowser nair	8	49
 anub'arak	neutral-special	special	1/4	2.63	FAIL	1.00	0.05	body	pass	0.01	0.05	0.25	FAIL	15	28	44	0.93	17	17	46	FAIL	0.05	0.69	0.95	unjudged	0							bowser neutral_b	23	92
 anub'arak	side-special	special	1/4	9.88	FAIL	1.00	-0.39	body	FAIL	0.02	0.23	0.00	FAIL	0	10	35	0.27	25	28	54	pass	0.86	0.14	0.14	unjudged	0							bowser side_b	16	59
+anub'arak	ultimate	special	0/4	5.10	FAIL	0.00	0.00	body	FAIL	0.01	0.04	0.02	FAIL	16	20	56	0.95	16	16	58	FAIL	0.19	0.81	0.67	unjudged	0									
 anub'arak	up-air	aerial	3/4	1.00	pass	1.00	0.07	body	FAIL	0.01	0.01	0.00	pass	5	8	33	0.96	8	11	34	pass	0.30	0.63	0.70	unjudged	0							bowser uair	22	47
 anub'arak	up-smash	smash	2/4	4.08	pass	1.00	0.08	body	FAIL	0.04	0.04	0.00	pass	13	19	50	0.97	16	20	51	FAIL	0.35	0.61	0.65	unjudged	0							bowser usmash	16	59
 anub'arak	up-special	special	0/4	3.23	FAIL	1.00	0.02	body	FAIL	0.02	0.02	0.00	FAIL	0	8	43	0.97	8	15	44	FAIL	0.32	0.68	0.55	unjudged	0							bowser up_b	5	79
@@ -33,6 +34,7 @@ beastmaster	jab2	jab	1/4	1.36	FAIL	0.10	0.15	arm L	FAIL	0.00	0.04	0.23	FAIL	1	3	
 beastmaster	jab3	jab	0/4	7.15	FAIL	0.00	0.00	arm L	FAIL	0.01	0.12	0.00	FAIL	0	5	26	1.00	5	7	26	FAIL	0.30	0.70	0.45	unjudged	0							link jab2	6	21
 beastmaster	neutral-air	aerial	1/4	11.27	FAIL	0.00	-0.17	leg L	FAIL	0.01	0.01	0.04	FAIL	4	21	35	1.00	7	12	35	pass	0.58	0.36	0.42	unjudged	0							link nair	4	41
 beastmaster	neutral-special	special	4/5	0.75	FAIL	0.22	0.21	arm L	pass	0.03	0.03	0.55	pass	8	14	33	1.00	15	19	33	pass	0.54	0.38	0.46	pass	1	4.00	4.00	4.00	4.00	4.00	4.00	link neutral_b	18	42
+beastmaster	ultimate	special	0/4	6.01	FAIL	0.14	-0.11	arm R	FAIL	0.11	0.11	0.18	FAIL	17	28	68	1.00	24	54	68	FAIL	0.35	0.51	0.65	unjudged	0									
 beastmaster	up-air	aerial	2/4	1.42	FAIL	0.00	0.20	arm R	FAIL	0.01	0.02	0.15	pass	1	6	32	0.96	7	10	33	pass	0.50	0.48	0.50	unjudged	0							link uair	5	69
 beastmaster	up-smash	smash	2/4	2.00	FAIL	0.00	0.19	arm R	pass	0.01	0.01	0.29	FAIL	5	15	52	0.94	17	21	54	pass	0.48	0.49	0.52	unjudged	0							link usmash	11	60
 beastmaster	up-tilt	tilt	1/4	12.63	FAIL	0.15	-0.07	arm L	FAIL	0.21	0.21	0.23	FAIL	0	6	34	1.00	8	11	34	pass	0.63	0.37	0.22	unjudged	0							link utilt	9	29
@@ -50,6 +52,7 @@ blademaster	jab	jab	2/4	0.63	FAIL	0.22	0.15	arm R	pass	0.02	0.02	0.04	pass	1	2	1
 blademaster	jab2	jab	1/4	1.84	FAIL	0.00	0.09	arm R	FAIL	0.01	0.04	0.29	pass	0	3	17	0.88	2	3	19	FAIL	0.27	0.73	0.61	unjudged	0							marth jab2	4	27
 blademaster	neutral-air	aerial	2/5	1.53	FAIL	0.19	0.18	arm R	FAIL	0.01	0.01	0.08	pass	3	6	30	0.94	6	14	31	pass	0.42	0.43	0.58	FAIL	1	2.00	4.00	2.00	3.00	3.00	3.00	marth nair	6	49
 blademaster	neutral-special	special	2/4	6.07	pass	1.00	0.34	body	FAIL	0.20	0.20	0.11	FAIL	8	17	34	0.81	17	17	38	pass	0.52	0.18	0.48	unjudged	0							marth neutral_b	16	29
+blademaster	ultimate	special	0/4	6.24	FAIL	0.40	0.15	arm R	FAIL	0.13	0.13	0.87	FAIL	0	64	101	0.96	16	77	102	FAIL	0.39	0.36	0.61	unjudged	0									
 blademaster	up-air	aerial	1/4	4.09	FAIL	0.00	0.13	arm L	FAIL	0.01	0.01	0.07	FAIL	0	3	25	0.95	5	7	26	pass	0.47	0.48	0.53	unjudged	0							marth uair	5	45
 blademaster	up-smash	smash	2/5	1.08	FAIL	0.00	0.14	arm R	FAIL	0.01	0.02	0.12	pass	11	16	45	0.93	14	17	47	pass	0.49	0.33	0.51	FAIL	1	2.00	4.00	2.00	4.00	3.00	3.00	marth usmash	13	54
 blademaster	up-special	special	1/4	6.90	FAIL	0.48	0.14	arm R	FAIL	0.15	0.15	0.00	FAIL	0	8	22	1.00	8	13	22	pass	0.55	0.36	0.45	unjudged	0							marth up_b	5	39
@@ -89,6 +92,7 @@ chen-stormstout	jab3	jab	1/4	7.01	FAIL	0.00	0.08	arm R	FAIL	0.10	0.10	0.00	FAIL	
 chen-stormstout	neutral-air	aerial	1/4	21.22	FAIL	0.00	-0.00	leg L	FAIL	0.10	0.10	0.00	FAIL	3	13	31	0.95	6	10	32	pass	0.35	0.54	0.65	unjudged	0							captain_falcon nair	7	44
 chen-stormstout	neutral-special	special	1/4	8.51	FAIL	0.00	-0.18	leg R	FAIL	0.12	0.12	0.00	FAIL	0	0	40	1.00	11	21	40	pass	0.56	0.28	0.44	unjudged	0							captain_falcon neutral_b	52	99
 chen-stormstout	side-special	special	0/4	4.60	FAIL	1.00	0.06	body	FAIL	0.10	0.10	0.21	FAIL	11	26	35	0.96	13	13	36	FAIL	0.12	0.56	0.88	unjudged	0							captain_falcon side_b	15	79
+chen-stormstout	ultimate	special	0/4	6.95	FAIL	0.00	-0.02	arm L	FAIL	0.11	0.11	0.03	FAIL	0	2	61	0.93	20	47	62	FAIL	0.32	0.68	0.60	unjudged	0									
 chen-stormstout	up-air	aerial	1/4	19.60	FAIL	0.00	0.04	arm R	FAIL	0.10	0.10	0.00	FAIL	2	7	30	0.95	6	9	31	pass	0.33	0.54	0.67	unjudged	0							captain_falcon uair	6	33
 chen-stormstout	up-smash	smash	1/5	2.36	FAIL	0.00	0.12	arm R	FAIL	0.02	0.02	0.00	pass	11	14	47	0.97	14	17	48	FAIL	0.40	0.59	0.60	FAIL	1	2.00	3.00	2.00	2.00	3.00	3.00	captain_falcon usmash	21	54
 chen-stormstout	up-special	special	0/4	5.62	FAIL	1.00	0.01	leg L	FAIL	0.11	0.11	0.03	FAIL	3	9	38	1.00	7	21	38	FAIL	0.41	0.59	0.59	unjudged	0							captain_falcon up_b	13	64
@@ -109,6 +113,7 @@ dreadlord	jab2	jab	2/4	2.22	FAIL	0.00	0.03	arm R	pass	0.01	0.01	0.06	pass	1	4	17
 dreadlord	jab3	jab	0/4	5.33	FAIL	0.17	0.02	arm L	FAIL	0.01	0.07	0.00	FAIL	0	5	26	0.95	5	7	27	FAIL	0.22	0.74	0.78	unjudged	0									
 dreadlord	neutral-air	aerial	1/4	4.07	FAIL	0.00	0.00	arm L	FAIL	0.01	0.01	0.02	FAIL	0	6	34	1.00	6	15	34	pass	0.40	0.60	0.58	unjudged	0							ganondorf nair	7	44
 dreadlord	neutral-special	special	2/4	2.14	FAIL	0.00	0.00	arm R	pass	0.02	0.03	0.16	pass	9	18	43	1.00	19	19	43	FAIL	0.41	0.53	0.59	unjudged	0							ganondorf neutral_b	70	119
+dreadlord	ultimate	special	2/4	2.34	FAIL	0.00	-0.04	arm R	pass	0.01	0.02	0.21	pass	13	39	53	0.92	39	41	54	FAIL	0.40	0.60	0.58	unjudged	0									
 dreadlord	up-air	aerial	1/4	4.38	FAIL	0.00	0.03	leg R	FAIL	0.02	0.02	0.01	FAIL	3	9	29	1.00	6	8	29	pass	0.51	0.49	0.48	unjudged	0							ganondorf uair	6	33
 dreadlord	up-smash	smash	1/4	7.33	FAIL	0.00	0.00	arm R	FAIL	0.02	0.06	0.15	FAIL	15	49	50	1.00	15	19	50	pass	0.62	0.32	0.38	unjudged	0							ganondorf usmash	21	54
 dreadlord	up-tilt	tilt	2/4	2.91	FAIL	0.00	0.00	arm L	pass	0.01	0.02	0.14	FAIL	1	4	29	1.00	6	9	29	pass	0.36	0.57	0.64	unjudged	0							ganondorf utilt	81	114
@@ -128,6 +133,7 @@ forsaken-paladin	jab2	jab	0/4	3.11	FAIL	0.10	0.11	arm R	FAIL	0.01	0.01	0.00	FAIL
 forsaken-paladin	neutral-air	aerial	2/4	2.34	FAIL	0.12	0.07	arm R	FAIL	0.01	0.01	0.00	pass	4	7	34	1.00	7	11	34	pass	0.43	0.56	0.57	unjudged	0							roy nair	7	57
 forsaken-paladin	neutral-special	special	0/4	3.22	FAIL	0.12	0.08	arm R	FAIL	0.02	0.09	0.25	FAIL	11	15	35	0.95	13	15	36	FAIL	0.43	0.57	0.53	unjudged	0							roy neutral_b	16	45
 forsaken-paladin	side-special	special	1/4	2.52	FAIL	0.01	0.07	leg L	pass	0.01	0.01	0.15	FAIL	12	15	44	0.89	14	19	47	FAIL	0.06	0.55	0.94	unjudged	0									
+forsaken-paladin	ultimate	special	2/4	4.12	FAIL	0.00	0.04	arm R	pass	0.01	0.01	0.24	FAIL	0	0	66	0.60	39	63	68	pass	0.50	0.48	0.50	unjudged	0									
 forsaken-paladin	up-air	aerial	1/4	5.44	FAIL	0.00	-0.03	arm R	FAIL	0.00	0.00	0.00	FAIL	4	8	30	0.87	7	10	33	pass	0.28	0.50	0.72	unjudged	0							roy uair	5	52
 forsaken-paladin	up-smash	smash	1/4	6.05	FAIL	0.00	0.00	arm R	FAIL	0.01	0.03	0.00	FAIL	17	51	51	0.94	17	20	53	pass	0.68	0.32	0.31	unjudged	0							roy usmash	15	62
 forsaken-paladin	up-special	special	1/4	4.20	FAIL	0.00	0.11	leg R	pass	0.03	0.03	0.05	FAIL	7	20	27	1.00	9	14	27	FAIL	0.12	0.51	0.88	unjudged	0							roy up_b	9	48
@@ -148,6 +154,7 @@ goblin-tinker	jab2	jab	1/5	2.37	FAIL	0.00	0.10	body	FAIL	0.01	0.01	0.00	pass	1	2
 goblin-tinker	jab3	jab	2/4	1.26	FAIL	1.00	0.11	body	FAIL	0.01	0.01	0.00	pass	3	5	23	0.89	5	7	25	pass	0.40	0.39	0.60	unjudged	0							samus jab2	4	29
 goblin-tinker	neutral-air	aerial	1/4	21.61	FAIL	1.00	0.01	body	FAIL	0.11	0.11	0.01	FAIL	4	17	36	1.00	7	12	36	pass	0.52	0.37	0.48	unjudged	0							samus nair	5	49
 goblin-tinker	neutral-special	special	0/4	7.16	FAIL	0.00	-0.08	body	FAIL	0.12	0.12	0.18	FAIL	0	0	40	0.94	13	25	41	FAIL	0.44	0.47	0.56	unjudged	0							samus neutral_b	14	44
+goblin-tinker	ultimate	special	0/4	7.89	FAIL	0.00	-0.06	body	FAIL	0.10	0.18	0.06	FAIL	0	2	48	1.00	19	19	48	FAIL	0.43	0.57	0.42	unjudged	0									
 goblin-tinker	up-air	aerial	2/4	22.86	pass	1.00	0.05	body	FAIL	0.11	0.11	0.01	FAIL	0	15	32	0.96	7	10	33	pass	0.48	0.37	0.52	unjudged	0							samus uair	5	39
 goblin-tinker	up-smash	smash	1/4	1.90	pass	1.00	0.12	body	FAIL	0.01	0.01	0.01	FAIL	14	26	51	0.97	16	20	52	FAIL	0.41	0.28	0.59	unjudged	0							samus usmash	12	59
 goblin-tinker	up-special	special	1/4	2.76	FAIL	1.00	0.05	body	FAIL	0.03	0.03	0.00	FAIL	0	5	30	1.00	6	9	30	pass	0.64	0.36	0.31	unjudged	0							samus up_b	4	49
@@ -168,6 +175,7 @@ grom-hellscream	jab2	jab	3/4	0.83	pass	0.64	0.32	arm R	FAIL	0.02	0.02	0.00	pass	
 grom-hellscream	neutral-air	aerial	1/4	25.53	FAIL	0.03	0.15	leg R	FAIL	0.13	0.13	0.19	FAIL	0	6	27	1.00	7	12	27	pass	0.62	0.36	0.38	unjudged	0							roy nair	7	57
 grom-hellscream	neutral-special	special	2/4	2.04	FAIL	0.35	0.07	arm R	pass	0.02	0.02	0.04	pass	9	12	31	0.94	11	14	32	FAIL	0.10	0.49	0.90	unjudged	0							roy neutral_b	16	45
 grom-hellscream	side-special	special	1/4	1.81	FAIL	0.47	0.34	arm R	FAIL	0.06	0.06	0.05	FAIL	6	14	37	0.95	9	16	38	pass	0.72	0.13	0.28	unjudged	0									
+grom-hellscream	ultimate	special	1/4	1.70	FAIL	0.51	0.33	arm R	FAIL	0.06	0.06	0.04	FAIL	11	24	66	0.93	16	39	68	pass	0.76	0.12	0.24	unjudged	0									
 grom-hellscream	up-air	aerial	2/4	2.65	FAIL	0.00	0.01	arm R	FAIL	0.01	0.01	0.00	pass	4	8	24	0.93	7	10	25	pass	0.44	0.40	0.56	unjudged	0							roy uair	5	52
 grom-hellscream	up-smash	smash	1/4	3.86	FAIL	0.00	0.01	arm R	FAIL	0.01	0.01	0.00	FAIL	4	14	40	0.96	13	16	41	pass	0.44	0.44	0.56	unjudged	0							roy usmash	15	62
 grom-hellscream	up-special	special	1/5	4.35	FAIL	0.00	0.00	leg R	pass	0.01	0.01	0.10	FAIL	0	4	33	0.95	6	13	34	FAIL	0.30	0.41	0.70	FAIL	1	2.00	3.00	3.00	2.00	3.00	3.00	roy up_b	9	48
@@ -203,6 +211,7 @@ jaina-proudmoore	jab2	jab	2/4	1.24	FAIL	1.00	-0.02	body	pass	0.01	0.01	0.07	pass
 jaina-proudmoore	neutral-air	aerial	2/4	20.80	FAIL	0.30	-0.05	arm R	FAIL	0.10	0.10	0.00	pass	4	8	34	0.96	7	11	35	pass	0.42	0.41	0.58	unjudged	0							zelda nair	6	49
 jaina-proudmoore	neutral-special	special	1/4	4.51	FAIL	0.00	0.02	leg R	FAIL	0.09	0.10	0.25	pass	14	17	34	0.95	16	16	35	FAIL	0.14	0.67	0.86	unjudged	0							zelda neutral_b	12	59
 jaina-proudmoore	side-special	special	0/4	5.37	FAIL	0.05	0.03	arm R	FAIL	0.10	0.10	0.12	FAIL	5	20	44	0.95	7	7	46	FAIL	0.19	0.61	0.81	unjudged	0							zelda side_b	60	77
+jaina-proudmoore	ultimate	special	0/4	7.24	FAIL	0.00	0.00	arm R	FAIL	0.10	0.10	0.02	FAIL	24	37	75	0.90	24	48	78	FAIL	0.16	0.84	0.70	unjudged	0									
 jaina-proudmoore	up-air	aerial	2/4	20.05	FAIL	0.00	0.09	arm R	FAIL	0.10	0.10	0.00	pass	6	10	36	0.96	9	12	37	pass	0.33	0.53	0.67	unjudged	0							zelda uair	14	54
 jaina-proudmoore	up-smash	smash	0/4	3.80	FAIL	0.00	0.04	arm R	FAIL	0.02	0.02	0.00	FAIL	13	21	52	0.94	17	20	54	FAIL	0.36	0.48	0.64	unjudged	0							zelda usmash	5	56
 jaina-proudmoore	up-tilt	tilt	2/4	1.35	pass	1.00	0.08	body	FAIL	0.01	0.05	0.01	FAIL	4	8	14	0.19	7	10	31	pass	0.39	0.50	0.61	unjudged	0							zelda utilt	10	43
@@ -221,6 +230,7 @@ kael'thas-sunstrider	jab	jab	4/5	0.00	pass	1.00	0.16	arm R	pass	0.01	0.03	0.06	p
 kael'thas-sunstrider	jab2	jab	4/5	0.00	pass	0.82	0.16	leg R	pass	0.00	0.02	0.08	pass	3	6	21	0.88	5	7	23	pass	0.47	0.40	0.53	FAIL	1	2.00	3.00	2.00	3.00	3.00	2.00			
 kael'thas-sunstrider	neutral-air	aerial	4/5	0.00	pass	0.61	0.14	arm R	pass	0.00	0.01	0.15	pass	4	10	33	0.95	7	12	34	pass	0.38	0.43	0.62	FAIL	1	1.00	1.00	1.00	1.00	2.00	1.00	zelda nair	6	49
 kael'thas-sunstrider	neutral-special	special	4/5	0.00	pass	0.92	0.45	arm R	pass	0.01	0.05	0.05	pass	9	16	35	0.95	15	15	36	pass	0.65	0.09	0.35	FAIL	1	2.00	2.00	2.00	3.00	2.00	2.00	zelda neutral_b	12	59
+kael'thas-sunstrider	ultimate	special	3/4	1.00	pass	0.93	0.51	arm R	pass	0.01	0.02	0.62	FAIL	12	20	56	0.93	28	30	58	pass	0.59	0.04	0.41	unjudged	0									
 kael'thas-sunstrider	up-air	aerial	4/5	0.00	pass	0.66	0.11	arm R	pass	0.00	0.01	0.14	pass	5	12	33	1.00	9	12	33	pass	0.25	0.56	0.75	FAIL	1	2.00	3.00	2.00	3.00	3.00	2.00	zelda uair	14	54
 kael'thas-sunstrider	up-smash	smash	4/5	0.00	pass	0.56	0.10	leg L	pass	0.01	0.01	0.10	pass	10	20	52	1.00	17	21	52	pass	0.45	0.44	0.55	FAIL	1	2.00	3.00	3.00	3.00	3.00	2.00	zelda usmash	5	56
 kael'thas-sunstrider	up-special	special	4/5	0.00	pass	0.97	0.21	leg R	pass	0.00	0.04	0.05	pass	8	20	81	0.91	19	71	82	pass	0.57	0.35	0.43	FAIL	1	2.00	2.00	2.00	2.00	2.00	2.00	zelda up_b	10	114
@@ -241,6 +251,7 @@ kobold	jab2	jab	1/4	1.56	FAIL	0.22	0.18	arm R	FAIL	0.02	0.02	0.00	pass	1	5	20	1.
 kobold	neutral-air	aerial	2/4	1.72	FAIL	0.20	0.17	arm R	FAIL	0.01	0.01	0.00	pass	1	5	29	1.00	4	9	29	pass	0.41	0.46	0.59	unjudged	0							young_link nair	4	39
 kobold	neutral-special	special	0/4	3.33	FAIL	0.19	0.11	arm R	FAIL	0.02	0.08	0.21	FAIL	9	13	34	1.00	11	11	34	FAIL	0.16	0.62	0.84	unjudged	0							young_link neutral_b	13	38
 kobold	side-special	special	0/4	7.78	FAIL	0.00	-0.04	leg R	FAIL	0.07	0.20	0.12	FAIL	0	1	30	1.00	7	21	30	FAIL	0.36	0.64	0.48	unjudged	0							young_link side_b	27	45
+kobold	ultimate	special	2/4	1.84	FAIL	1.00	0.03	body	pass	0.03	0.03	0.27	FAIL	35	63	83	1.00	54	57	83	pass	0.50	0.50	0.47	unjudged	0									
 kobold	up-air	aerial	3/5	1.36	pass	1.00	0.10	body	FAIL	0.02	0.02	0.70	pass	2	4	28	1.00	5	8	28	pass	0.40	0.58	0.60	FAIL	1	2.00	3.00	2.00	2.00	3.00	3.00	young_link uair	5	69
 kobold	up-smash	smash	3/5	0.03	pass	1.00	0.20	body	FAIL	0.01	0.01	0.73	pass	5	9	46	0.97	10	13	47	pass	0.45	0.47	0.55	FAIL	1	2.00	3.00	2.00	2.00	3.00	3.00	young_link usmash	11	60
 kobold	up-special	special	1/4	4.65	FAIL	0.00	-0.04	leg L	pass	0.04	0.04	0.08	FAIL	0	0	32	1.00	5	13	32	FAIL	0.27	0.73	0.58	unjudged	0							young_link up_b	8	80
@@ -260,6 +271,7 @@ lich	jab2	jab	2/4	2.69	pass	1.00	0.16	body	FAIL	0.04	0.07	0.06	FAIL	3	16	20	0.76
 lich	neutral-air	aerial	1/4	14.74	FAIL	0.00	0.00	body	FAIL	0.06	0.06	0.04	FAIL	8	28	38	1.00	8	21	38	pass	0.48	0.52	0.42	unjudged	0							mewtwo nair	5	54
 lich	neutral-special	special	1/4	2.51	FAIL	1.00	0.13	body	FAIL	0.07	0.09	0.11	FAIL	0	18	37	1.00	17	17	37	pass	0.78	0.22	0.18	unjudged	0							mewtwo neutral_b	17	26
 lich	side-special	special	2/4	2.49	FAIL	1.00	-0.10	body	pass	0.02	0.04	0.16	FAIL	0	6	48	1.00	7	7	48	pass	0.78	0.22	0.17	unjudged	0							mewtwo side_b	12	55
+lich	ultimate	special	2/4	4.09	FAIL	0.00	-0.02	body	pass	0.02	0.02	0.77	FAIL	0	0	58	1.00	30	30	58	pass	0.60	0.30	0.40	unjudged	0									
 lich	up-air	aerial	1/4	4.55	FAIL	0.00	0.02	body	FAIL	0.01	0.03	0.02	FAIL	3	32	33	1.00	7	10	33	pass	0.40	0.60	0.54	unjudged	0							mewtwo uair	9	37
 lich	up-smash	smash	1/4	5.26	FAIL	0.00	-0.03	body	FAIL	0.02	0.03	0.01	FAIL	8	11	57	1.00	19	23	57	pass	0.43	0.51	0.57	unjudged	0							mewtwo usmash	9	79
 lich	up-tilt	tilt	2/4	1.45	FAIL	1.00	0.01	body	pass	0.01	0.02	0.03	FAIL	4	13	33	0.95	7	14	34	pass	0.41	0.59	0.59	unjudged	0							mewtwo utilt	6	31
@@ -280,6 +292,7 @@ lich-king	jab3	jab	2/5	1.59	FAIL	0.17	0.16	leg R	FAIL	0.01	0.02	0.00	pass	5	8	32
 lich-king	neutral-air	aerial	2/4	4.22	FAIL	0.06	0.08	arm R	FAIL	0.01	0.05	0.04	pass	6	9	38	0.92	9	16	40	pass	0.29	0.71	0.57	unjudged	0							ganondorf nair	7	44
 lich-king	neutral-special	special	2/4	4.62	pass	0.91	0.23	leg R	FAIL	0.12	0.12	0.00	FAIL	0	16	42	1.00	15	15	42	pass	0.57	0.23	0.43	unjudged	0							ganondorf neutral_b	70	119
 lich-king	side-special	special	1/4	5.16	FAIL	0.40	0.08	arm L	FAIL	0.11	0.12	0.00	pass	10	14	37	0.96	13	13	38	FAIL	0.25	0.50	0.75	unjudged	0							ganondorf side_b	15	79
+lich-king	ultimate	special	0/4	7.00	FAIL	0.81	0.05	leg R	FAIL	0.12	0.12	0.00	FAIL	12	41	58	0.83	39	39	62	FAIL	0.27	0.47	0.73	unjudged	0									
 lich-king	up-air	aerial	1/4	3.75	FAIL	0.00	0.05	arm R	FAIL	0.01	0.03	0.51	FAIL	5	8	37	0.96	9	13	38	pass	0.31	0.59	0.69	unjudged	0							ganondorf uair	6	33
 lich-king	up-smash	smash	1/4	2.84	FAIL	0.25	0.21	arm R	FAIL	0.01	0.04	0.00	pass	10	17	59	0.92	17	24	62	FAIL	0.36	0.46	0.64	unjudged	0							ganondorf usmash	21	54
 lich-king	up-special	special	0/4	3.37	FAIL	0.68	0.21	leg R	FAIL	0.09	0.09	0.03	FAIL	5	18	43	0.93	7	29	44	FAIL	0.46	0.40	0.54	unjudged	0							ganondorf up_b	13	64
@@ -299,6 +312,7 @@ malfurion-stormrage	jab2	jab	2/4	3.10	FAIL	1.00	0.01	arm L	FAIL	0.01	0.06	0.00	p
 malfurion-stormrage	neutral-air	aerial	3/4	18.78	pass	0.33	0.09	arm R	FAIL	0.10	0.10	0.00	pass	4	8	34	0.96	7	11	35	pass	0.38	0.41	0.62	unjudged	0							link nair	4	41
 malfurion-stormrage	neutral-special	special	1/4	4.91	FAIL	0.00	0.03	leg R	FAIL	0.10	0.11	0.21	pass	5	8	37	0.91	7	7	40	FAIL	0.07	0.57	0.93	unjudged	0							link neutral_b	18	42
 malfurion-stormrage	side-special	special	2/4	4.33	FAIL	0.50	0.03	arm L	FAIL	0.10	0.10	0.00	pass	7	11	41	1.00	11	19	41	pass	0.57	0.41	0.43	unjudged	0							link side_b	27	45
+malfurion-stormrage	ultimate	special	1/4	3.61	FAIL	1.00	0.04	body	FAIL	0.08	0.11	0.67	FAIL	23	30	48	1.00	28	28	48	pass	0.50	0.36	0.50	unjudged	0									
 malfurion-stormrage	up-air	aerial	2/4	29.37	pass	0.80	0.15	leg R	FAIL	0.11	0.25	0.25	FAIL	0	12	36	0.96	9	12	37	pass	0.55	0.28	0.45	unjudged	0							link uair	5	69
 malfurion-stormrage	up-smash	smash	1/4	2.28	FAIL	0.21	0.12	leg R	FAIL	0.01	0.01	0.00	FAIL	14	26	53	0.97	17	20	54	pass	0.54	0.41	0.46	unjudged	0							link usmash	11	60
 malfurion-stormrage	up-special	special	1/4	9.79	FAIL	0.00	0.11	arm L	FAIL	0.21	0.21	0.00	FAIL	6	17	37	0.94	9	22	38	pass	0.58	0.33	0.42	unjudged	0							link up_b	8	79
@@ -319,6 +333,7 @@ medivh	jab2	jab	1/4	1.91	FAIL	1.00	0.03	body	FAIL	0.01	0.01	0.00	pass	2	5	22	0.9
 medivh	neutral-air	aerial	1/4	17.98	FAIL	0.00	0.05	leg R	FAIL	0.09	0.09	0.00	FAIL	4	16	33	0.95	7	12	34	pass	0.37	0.63	0.62	unjudged	0							mewtwo nair	5	54
 medivh	neutral-special	special	1/4	4.57	FAIL	0.00	-0.01	leg R	FAIL	0.09	0.09	0.03	pass	9	12	36	0.93	11	11	38	FAIL	0.13	0.70	0.87	unjudged	0							mewtwo neutral_b	17	26
 medivh	side-special	special	0/4	4.06	FAIL	1.00	0.01	body	FAIL	0.09	0.09	0.12	FAIL	1	4	34	0.91	11	13	36	FAIL	0.21	0.72	0.79	unjudged	0							mewtwo side_b	12	55
+medivh	ultimate	special	0/4	6.52	FAIL	0.00	0.01	arm L	FAIL	0.09	0.09	0.00	FAIL	15	21	66	0.33	24	65	68	FAIL	0.29	0.69	0.71	unjudged	0									
 medivh	up-air	aerial	1/4	17.00	FAIL	0.00	0.06	arm L	FAIL	0.09	0.09	0.00	pass	5	9	32	0.95	9	12	33	FAIL	0.24	0.65	0.76	unjudged	0							mewtwo uair	9	37
 medivh	up-smash	smash	1/4	2.20	pass	1.00	0.07	body	FAIL	0.01	0.01	0.00	FAIL	15	21	51	0.97	17	21	52	FAIL	0.34	0.64	0.66	unjudged	0							mewtwo usmash	9	79
 medivh	up-special	special	1/4	7.51	FAIL	0.02	-0.01	leg R	FAIL	0.16	0.16	0.18	FAIL	1	11	33	0.95	8	14	34	pass	0.52	0.48	0.17	unjudged	0							mewtwo up_b	7	32
@@ -339,6 +354,7 @@ mountain-king	jab2	jab	2/4	1.19	FAIL	0.37	0.14	arm L	FAIL	0.01	0.02	0.00	pass	2	
 mountain-king	neutral-air	aerial	1/4	5.70	FAIL	0.00	-0.04	leg R	FAIL	0.01	0.01	0.00	FAIL	0	6	33	0.95	7	12	34	pass	0.41	0.59	0.55	unjudged	0							donkey_kong nair	10	43
 mountain-king	neutral-special	special	4/5	0.00	pass	1.00	0.35	body	pass	0.02	0.05	0.04	pass	9	20	56	1.00	19	19	56	pass	0.84	0.16	0.10	FAIL	1	3.00	3.00	4.00	3.00	4.00	4.00	donkey_kong neutral_b	17	46
 mountain-king	side-special	special	3/4	0.78	pass	1.00	0.31	leg R	FAIL	0.01	0.01	0.01	pass	7	11	42	0.93	12	17	44	pass	0.50	0.14	0.50	unjudged	0							donkey_kong side_b	20	59
+mountain-king	ultimate	special	2/4	1.68	FAIL	0.29	0.31	arm R	pass	0.02	0.02	0.47	FAIL	11	22	48	1.00	32	34	48	pass	0.53	0.31	0.47	unjudged	0									
 mountain-king	up-air	aerial	1/4	3.53	FAIL	0.00	0.08	leg R	FAIL	0.01	0.01	0.06	FAIL	0	1	29	0.91	6	9	31	pass	0.36	0.54	0.64	unjudged	0							donkey_kong uair	6	44
 mountain-king	up-smash	smash	1/4	2.14	FAIL	0.07	0.14	arm L	pass	0.00	0.00	0.16	FAIL	6	17	21	0.03	16	20	52	FAIL	0.26	0.38	0.74	unjudged	0							donkey_kong usmash	14	53
 mountain-king	up-special	special	1/4	11.56	FAIL	0.00	0.12	leg L	FAIL	0.28	0.28	0.40	FAIL	2	4	26	1.00	8	13	26	pass	0.53	0.47	0.37	unjudged	0							donkey_kong up_b	3	84
@@ -359,6 +375,7 @@ murloc	jab2	jab	1/4	8.16	FAIL	0.00	-0.11	arm L	FAIL	0.09	0.09	0.01	FAIL	0	0	20	1
 murloc	neutral-air	aerial	1/4	5.37	FAIL	0.18	-0.04	arm R	FAIL	0.01	0.01	0.00	FAIL	1	14	28	0.95	4	9	29	pass	0.41	0.40	0.59	unjudged	0							kirby nair	10	79
 murloc	neutral-special	special	1/4	4.41	FAIL	0.00	0.02	leg L	FAIL	0.10	0.10	0.05	pass	9	12	33	0.96	11	11	34	FAIL	0.19	0.60	0.81	unjudged	0							kirby neutral_b	17	79
 murloc	side-special	special	0/4	9.42	FAIL	0.00	0.00	arm R	FAIL	0.11	0.23	0.02	FAIL	7	20	29	0.89	7	21	30	FAIL	0.28	0.72	0.64	unjudged	0							kirby side_b	22	59
+murloc	ultimate	special	0/4	5.51	FAIL	0.00	-0.00	leg R	FAIL	0.10	0.10	0.06	FAIL	17	24	66	0.96	19	19	68	FAIL	0.29	0.71	0.67	unjudged	0									
 murloc	up-air	aerial	3/4	1.26	pass	0.55	0.13	arm R	FAIL	0.01	0.01	0.00	pass	2	5	28	1.00	5	8	28	pass	0.37	0.51	0.63	unjudged	0							kirby uair	11	39
 murloc	up-smash	smash	1/4	12.22	pass	0.29	0.15	arm R	FAIL	0.11	0.11	0.00	FAIL	4	14	46	0.97	10	13	47	FAIL	0.39	0.47	0.61	unjudged	0							kirby usmash	13	49
 murloc	up-special	special	0/4	8.07	FAIL	0.00	-0.01	leg R	FAIL	0.13	0.13	0.02	FAIL	1	9	32	1.00	5	13	32	FAIL	0.29	0.71	0.54	unjudged	0							kirby up_b	2	34
@@ -377,6 +394,7 @@ peon	jab	jab	1/4	0.92	FAIL	0.39	0.08	arm R	pass	0.03	0.03	0.09	FAIL	0	3	12	0.67	
 peon	jab2	jab	1/4	2.56	FAIL	0.97	-0.02	arm L	FAIL	0.02	0.02	0.00	FAIL	2	6	15	0.50	5	6	24	pass	0.42	0.58	0.58	unjudged	0							ness jab2	3	19
 peon	neutral-air	aerial	3/4	22.56	pass	0.36	0.11	arm R	FAIL	0.12	0.12	0.00	pass	3	6	30	1.00	5	9	30	pass	0.48	0.52	0.42	unjudged	0							ness nair	5	39
 peon	neutral-special	special	0/4	5.29	FAIL	0.73	0.03	arm R	FAIL	0.12	0.12	0.14	FAIL	12	15	35	0.88	13	13	38	FAIL	0.28	0.72	0.63	unjudged	0							ness neutral_b	64	109
+peon	ultimate	special	0/4	6.35	FAIL	0.04	-0.08	leg L	FAIL	0.12	0.12	0.14	FAIL	18	40	67	0.95	36	47	68	FAIL	0.41	0.53	0.59	unjudged	0									
 peon	up-air	aerial	1/4	25.67	FAIL	0.00	0.01	arm R	FAIL	0.12	0.12	0.00	FAIL	0	10	18	0.39	7	9	32	pass	0.47	0.53	0.53	unjudged	0							ness uair	8	45
 peon	up-smash	smash	0/4	5.60	FAIL	0.00	0.01	arm R	FAIL	0.02	0.03	0.00	FAIL	4	21	28	0.29	16	19	50	FAIL	0.43	0.50	0.57	unjudged	0							ness usmash	12	49
 peon	up-tilt	tilt	1/4	2.15	FAIL	0.00	0.09	arm R	FAIL	0.02	0.02	0.00	FAIL	3	6	18	0.45	6	9	29	pass	0.37	0.55	0.63	unjudged	0							ness utilt	5	39
@@ -396,6 +414,7 @@ pit-lord	jab2	jab	2/4	9.19	pass	0.66	0.28	arm L	FAIL	0.01	0.24	0.00	FAIL	5	7	10	
 pit-lord	neutral-air	aerial	2/4	2.59	FAIL	0.00	0.01	foreleg L	FAIL	0.00	0.01	0.02	pass	9	14	44	0.93	11	17	46	pass	0.50	0.49	0.50	unjudged	0							bowser nair	8	49
 pit-lord	neutral-special	special	0/4	5.62	FAIL	0.00	-0.05	foreleg L	FAIL	0.00	0.01	0.00	FAIL	0	0	40	0.85	14	17	44	FAIL	0.33	0.67	0.58	unjudged	0							bowser neutral_b	23	92
 pit-lord	side-special	special	0/4	4.03	FAIL	0.00	-0.03	arm L	FAIL	0.00	0.01	0.02	FAIL	15	20	58	0.89	18	25	62	FAIL	0.25	0.75	0.56	unjudged	0							bowser side_b	16	59
+pit-lord	ultimate	special	1/4	2.53	FAIL	1.00	-0.00	arm R	pass	0.00	0.00	0.40	FAIL	9	31	53	0.86	18	21	58	FAIL	0.25	0.71	0.75	unjudged	0									
 pit-lord	up-air	aerial	2/4	2.21	FAIL	0.23	0.11	foreleg R	pass	0.00	0.01	0.15	FAIL	0	3	38	0.89	10	13	41	pass	0.43	0.57	0.56	unjudged	0							bowser uair	22	47
 pit-lord	up-smash	smash	1/4	2.02	FAIL	0.00	0.18	leg R	pass	0.00	0.00	0.14	FAIL	4	6	63	0.92	23	27	66	FAIL	0.42	0.50	0.58	unjudged	0							bowser usmash	16	59
 pit-lord	up-special	special	1/4	4.75	FAIL	0.00	-0.11	leg R	pass	0.00	0.03	0.14	FAIL	0	9	27	0.77	12	17	30	FAIL	0.45	0.55	0.53	unjudged	0							bowser up_b	5	79
@@ -432,6 +451,7 @@ shadow-hunter	jab2	jab	1/4	14.75	FAIL	0.61	0.05	leg R	FAIL	0.01	0.39	0.00	FAIL	0
 shadow-hunter	jab3	jab	3/4	0.45	FAIL	1.00	0.08	body	pass	0.01	0.03	0.06	pass	3	5	25	1.00	5	7	25	pass	0.44	0.50	0.56	unjudged	0							link jab2	6	21
 shadow-hunter	neutral-air	aerial	1/4	55.18	FAIL	1.00	-0.04	body	FAIL	0.27	0.27	0.00	FAIL	0	7	30	0.95	6	10	31	pass	0.42	0.44	0.58	unjudged	0							link nair	4	41
 shadow-hunter	neutral-special	special	1/4	25.48	pass	1.00	0.83	body	FAIL	0.64	0.64	0.03	FAIL	4	38	36	0.90	17	17	38	FAIL	0.26	0.01	0.74	unjudged	0							link neutral_b	18	42
+shadow-hunter	ultimate	special	1/4	3.51	FAIL	0.00	-0.08	arm R	FAIL	0.01	0.01	0.03	FAIL	22	83	115	0.89	29	91	118	pass	0.48	0.52	0.20	unjudged	0									
 shadow-hunter	up-air	aerial	1/4	10.37	FAIL	0.26	0.23	leg R	FAIL	0.05	0.08	0.11	FAIL	2	12	29	1.00	6	8	29	pass	0.49	0.34	0.51	unjudged	0							link uair	5	69
 shadow-hunter	up-smash	smash	2/4	6.60	FAIL	0.09	0.14	arm L	FAIL	0.03	0.09	0.58	pass	4	17	50	1.00	16	19	50	pass	0.50	0.44	0.50	unjudged	0							link usmash	11	60
 shadow-hunter	up-tilt	tilt	2/4	1.68	FAIL	0.01	0.07	arm L	FAIL	0.03	0.09	0.49	pass	1	5	29	1.00	6	10	29	pass	0.47	0.46	0.53	unjudged	0							link utilt	9	29
@@ -451,6 +471,7 @@ sylvanas-windrunner	jab3	jab	1/4	2.80	FAIL	0.06	0.07	arm L	FAIL	0.01	0.01	0.00	F
 sylvanas-windrunner	neutral-air	aerial	2/4	18.27	FAIL	1.00	0.02	body	FAIL	0.10	0.10	0.03	pass	3	6	26	0.94	5	9	27	pass	0.40	0.60	0.58	unjudged	0							young_link nair	4	39
 sylvanas-windrunner	neutral-special	special	0/4	6.83	FAIL	0.00	-0.03	arm L	FAIL	0.10	0.10	0.00	FAIL	0	15	25	0.43	15	15	38	FAIL	0.43	0.57	0.57	unjudged	0							young_link neutral_b	13	38
 sylvanas-windrunner	side-special	special	0/5	5.35	FAIL	1.00	0.09	body	FAIL	0.10	0.10	0.00	FAIL	11	19	28	0.33	17	19	46	FAIL	0.43	0.55	0.57	FAIL	1	1.00	3.00	3.00	1.00	2.00	3.00	young_link side_b	27	45
+sylvanas-windrunner	ultimate	special	0/4	5.97	FAIL	0.00	0.00	arm L	FAIL	0.10	0.10	0.20	FAIL	12	17	25	0.28	20	20	38	FAIL	0.37	0.49	0.63	unjudged	0									
 sylvanas-windrunner	up-air	aerial	1/4	22.43	FAIL	0.00	-0.05	leg R	FAIL	0.10	0.10	0.00	FAIL	4	7	19	0.45	7	10	30	pass	0.49	0.35	0.51	unjudged	0							young_link uair	5	69
 sylvanas-windrunner	up-smash	smash	1/4	3.70	FAIL	1.00	0.06	body	FAIL	0.01	0.03	0.00	FAIL	2	15	26	0.31	14	17	46	pass	0.55	0.42	0.45	unjudged	0							young_link usmash	11	60
 sylvanas-windrunner	up-tilt	tilt	1/4	2.73	FAIL	1.00	0.01	body	FAIL	0.01	0.02	0.00	FAIL	3	11	19	0.47	7	10	29	pass	0.50	0.46	0.50	unjudged	0							young_link utilt	9	29
@@ -470,6 +491,7 @@ thrall	jab2	jab	0/4	5.17	FAIL	0.00	0.02	foreleg L	FAIL	0.02	0.02	0.00	FAIL	0	0	2
 thrall	neutral-air	aerial	2/4	1.35	pass	0.31	0.05	arm R	FAIL	0.00	0.00	0.00	pass	4	8	29	0.90	7	11	31	FAIL	0.16	0.73	0.84	unjudged	0							bowser nair	8	49
 thrall	neutral-special	special	1/5	4.89	FAIL	0.00	0.01	leg R	pass	0.02	0.04	0.04	FAIL	0	1	40	0.93	13	13	42	FAIL	0.04	0.77	0.96	FAIL	1	2.00	3.00	2.00	2.00	3.00	4.00	bowser neutral_b	23	92
 thrall	side-special	special	1/4	3.59	FAIL	0.00	0.01	foreleg L	pass	0.02	0.02	0.12	FAIL	13	41	40	0.89	15	23	42	FAIL	0.17	0.63	0.83	unjudged	0							bowser side_b	16	59
+thrall	ultimate	special	1/4	3.96	FAIL	0.00	0.00	foreleg L	pass	0.01	0.01	0.25	FAIL	21	56	55	0.91	26	26	58	FAIL	0.02	0.98	0.79	unjudged	0									
 thrall	up-air	aerial	2/4	1.96	FAIL	0.00	0.06	arm R	FAIL	0.01	0.01	0.00	pass	5	8	28	0.90	7	10	30	pass	0.26	0.67	0.74	unjudged	0							bowser uair	22	47
 thrall	up-smash	smash	1/4	2.27	FAIL	0.03	0.10	arm R	FAIL	0.02	0.02	0.00	pass	5	19	46	0.93	16	19	48	FAIL	0.31	0.61	0.69	unjudged	0							bowser usmash	16	59
 thrall	up-tilt	tilt	1/4	2.79	FAIL	0.05	0.10	arm R	FAIL	0.02	0.02	0.00	FAIL	1	10	29	0.95	7	10	30	pass	0.29	0.62	0.71	unjudged	0							bowser utilt	7	54
@@ -490,6 +512,7 @@ warden	jab3	jab	2/4	1.96	pass	1.00	0.18	body	FAIL	0.01	0.01	0.00	FAIL	0	5	20	0.9
 warden	neutral-air	aerial	1/4	2.47	FAIL	0.02	0.06	arm R	FAIL	0.01	0.01	0.14	FAIL	2	9	26	1.00	4	8	26	pass	0.52	0.42	0.48	unjudged	0							sheik nair	3	48
 warden	neutral-special	special	2/4	3.55	FAIL	0.23	0.03	arm R	pass	0.00	0.03	0.20	FAIL	0	15	16	0.05	15	15	35	pass	0.49	0.51	0.34	unjudged	0							sheik neutral_b	4	40
 warden	side-special	special	1/4	7.76	FAIL	0.00	-0.15	leg L	FAIL	0.13	0.13	0.77	FAIL	1	7	38	1.00	10	13	38	pass	0.61	0.39	0.30	unjudged	0							sheik side_b	22	75
+warden	ultimate	special	1/4	5.23	FAIL	0.00	-0.05	arm L	pass	0.00	0.03	0.49	FAIL	0	23	22	0.06	21	21	38	FAIL	0.46	0.54	0.37	unjudged	0									
 warden	up-air	aerial	1/4	2.88	FAIL	0.06	0.24	arm R	FAIL	0.01	0.02	0.00	FAIL	2	7	26	0.93	4	12	27	pass	0.45	0.39	0.55	unjudged	0							sheik uair	5	39
 warden	up-smash	smash	0/4	3.02	FAIL	0.00	0.20	leg R	FAIL	0.01	0.01	0.00	FAIL	8	13	41	0.96	12	15	42	FAIL	0.42	0.38	0.58	unjudged	0							sheik usmash	12	47
 warden	up-tilt	tilt	1/4	5.52	FAIL	0.00	-0.04	arm L	FAIL	0.01	0.02	0.00	FAIL	0	0	21	0.94	3	6	22	pass	0.28	0.49	0.72	unjudged	0							sheik utilt	5	33

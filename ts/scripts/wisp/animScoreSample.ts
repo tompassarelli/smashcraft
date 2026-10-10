@@ -47,9 +47,10 @@ export const SCORED_NORMALS: readonly { readonly move: string; readonly style: A
 ];
 
 
-export const SCORED_SPECIALS: readonly { readonly move: string; readonly x: number; readonly z: number }[] = [
+export const SCORED_SPECIALS: readonly { readonly move: string; readonly x: number; readonly z: number; readonly ultimate?: true }[] = [
   { move: "neutral-special", x: 0, z: 0 }, { move: "side-special", x: 1, z: 0 },
   { move: "up-special", x: 0, z: 1 }, { move: "down-special", x: 0, z: -1 },
+  { move: "ultimate", x: 0, z: 0, ultimate: true },
 ];
 
 
@@ -221,7 +222,7 @@ export function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, charac
   const p = createFighterPose();
   const idle = neutralControls();
   for (let frame = 0; frame < 3; frame++) { step(world, idle); advanceFighterPose(p, f, world, idle, false, false, false, false); }
-  const press = { ...neutralControls(), specialPressed: true, specialX: entry.x, specialZ: entry.z };
+  const press = { ...neutralControls(), specialPressed: true, ultimatePressed: entry.ultimate === true, attackHeld: entry.ultimate === true, specialX: entry.x, specialZ: entry.z };
   const frames: PoseFrame[] = [];
   const activeFrames: number[] = [];
   let strike: { x: number; z: number } | undefined;
@@ -238,10 +239,15 @@ export function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, charac
       const move = runningHeroSpecial(f);
       const frame = f.special.frame - 1;
       const region = move?.regions?.find((candidate) => frame >= candidate.firstFrame && frame <= candidate.lastFrame && candidate.hit.strike !== undefined);
-      const projectile = move?.projectiles?.find((candidate) => candidate.spawnFrame - 1 === frame);
-      if (region !== undefined || projectile !== undefined) {
+      const projectile = move?.projectiles?.find((candidate) => entry.ultimate !== true ? candidate.spawnFrame - 1 === frame
+        : (candidate.activeFrom ?? 0) <= candidate.life ? candidate.spawnFrame - 1 === frame : candidate.expiresInto !== undefined && candidate.spawnFrame - 1 + candidate.life === frame);
+      const grab = move?.commandGrab !== undefined && frame >= move.commandGrab.first - 1 && frame <= move.commandGrab.last - 1 ? move.commandGrab : undefined;
+      const placed = move?.placement?.frame === frame + 1 ? move.placement : undefined;
+      if (region !== undefined || projectile !== undefined || grab !== undefined || placed !== undefined) {
         activeFrames.push(frames.length);
         if (strike === undefined && region?.hit.strike !== undefined) strike = strikeEnd(region.hit.strike, 50);
+        else if (strike === undefined && grab !== undefined) strike = strikeEnd(grab.strike, 50);
+        else if (strike === undefined && placed !== undefined) strike = { x: placed.offsetX, z: placed.offsetZ ?? 60.0 };
         else if (strike === undefined && projectile !== undefined) {
           const speed = Math.hypot(projectile.velocityX, projectile.velocityZ) || 1;
           strike = { x: projectile.offsetX + projectile.velocityX / speed * 60, z: projectile.offsetZ + projectile.velocityZ / speed * 60 };
