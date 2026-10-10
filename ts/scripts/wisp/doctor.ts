@@ -9,12 +9,13 @@ import { Effect, Schema } from "effect";
 import { type DoctorDeclaration, clientsDoctor } from "wisp/scripts/wisp/clientDoctorCommand";
 import { DoctorStop, withDoctor } from "wisp/scripts/wisp/doctor";
 import { ClientWatch } from "wisp/scripts/wisp/watch";
+import { capacityHelper } from "../heavyCapacity";
 import { clientState } from "./project";
 
 const steam = join(homedir(), ".local/share/Steam");
 const proton = join(steam, "compatibilitytools.d/GE-Proton11-7-x86_64/proton");
 const runtime = join(steam, "steamapps/common/SteamLinuxRuntime_4/_v2-entry-point");
-const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
+const capacity = capacityHelper;
 
 
 const CLIENTS: Readonly<Record<string, { readonly compatData: string; readonly appId: number; readonly gameId: string }>> = {

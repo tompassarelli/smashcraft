@@ -12,6 +12,7 @@ import { ChildProcess } from "effect/process";
 import { PlayProblem } from "wisp/scripts/wisp/play";
 import { runProcess } from "../hostProcess";
 import { buildOnce } from "./buildInputs";
+import { capacityHelper } from "../heavyCapacity";
 import { withLock } from "./fileLock";
 import { PLAYABLE_FILE, installName } from "./greenBuilds";
 import { projectRoot } from "./project";
@@ -126,7 +127,7 @@ const helperTarget = join(inputsRoot, "play-helper-target");
 
 
 const buildHelper = (lane: string, helper: string) => withLock(join(locks, "play-helper-target.lock"), "Waiting for another controller helper build", Effect.gen(function*() {
-  const capacity = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
+  const capacity = capacityHelper;
   // The pinned wc3-controller service comes from the plug-in's git dependency (controller/Cargo.toml).
   const build = (target: string) => `cargo build --release --locked --jobs 2 --target-dir '${helperTarget}' ${target}`;
   yield* run(join(lane, "controller"), ["nix-shell", "-p", "stdenv.cc", "cmake", "pkg-config", "libxkbcommon", "udev", "--run",

@@ -6,10 +6,22 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { Effect, Schema } from "effect";
 
-export const capacityHelper = join(homedir(), "code/nixos-config/main/dotfiles/agents/skills/machine-capacity/scripts/machine-capacity.mjs");
+const northCapacityHelper = join(homedir(), "code/north/main/socrates/skills/machine-capacity/scripts/machine-capacity.mjs");
+
+function resolveCapacityHelper(): string {
+  if (existsSync(northCapacityHelper)) return northCapacityHelper;
+  try {
+    const skill = Bun.spawnSync(["agents", "path", "machine-capacity"]).stdout.toString().trim();
+    return skill === "" ? northCapacityHelper : join(dirname(skill), "scripts/machine-capacity.mjs");
+  } catch {
+    return northCapacityHelper;
+  }
+}
+
+export const capacityHelper = resolveCapacityHelper();
 
 
 export function insideCapacityScope(): boolean {
