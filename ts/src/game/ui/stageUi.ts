@@ -12,7 +12,7 @@ import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
 import { RANDOM_STAGE, STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { dropsSetting, hazardsSetting, rulesSummary } from "../shell/messages";
-import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft } from "./frames";
+import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft, setFrameText } from "./frames";
 import { MENU_FONT, PANEL_TEXTURE } from "./hudLayout";
 import { StageCard } from "./stageCard";
 
@@ -38,7 +38,7 @@ function stageText(parent: framehandle, name: string, x: number, y: number, widt
   const label = createText(name, parent, 0);
   placeTopLeft(label, x, y);
   BlzFrameSetSize(label, width, height);
-  BlzFrameSetText(label, text);
+  setFrameText(label, text);
   BlzFrameSetEnable(label, false);
   BlzFrameSetFont(label, MENU_FONT, fontSize, 0);
   BlzFrameSetTextAlignment(label, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_LEFT);
@@ -49,7 +49,7 @@ function stageButton(parent: framehandle, x: number, y: number, width: number, h
   const control = BlzCreateFrame("ScriptDialogButton", parent, 0, 0);
   placeTopLeft(control, x, y);
   BlzFrameSetSize(control, width, height);
-  BlzFrameSetText(control, text);
+  setFrameText(control, text);
   return control;
 }
 
@@ -103,6 +103,7 @@ export class StagePanel {
       if (choice !== RANDOM_STAGE) {
         new StageCard(root, `MeleeStageTile${I2S(choice)}`, stageTileLeft(choice), stageTileTop(choice), f32(0.094), f32(0.059), true).show(choice);
         this.tileNames[choice] = BlzGetFrameByName(`MeleeStageTile${I2S(choice)}Name`, 0);
+        setFrameText(this.tileNames[choice], stage.name);
         continue;
       }
       const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
@@ -206,21 +207,21 @@ export class StagePanel {
     if (this.lastChoice !== game.stageChoice) {
       const stage = stageInfo(game.stageChoice);
       this.preview.show(game.stageChoice);
-      BlzFrameSetText(this.previewName, stage.name);
-      BlzFrameSetText(this.previewDescription, stage.description);
+      setFrameText(this.previewName, stage.name);
+      setFrameText(this.previewDescription, stage.description);
       this.lastChoice = game.stageChoice;
     }
     if (this.lastHazards !== game.hazards) {
-      BlzFrameSetText(this.hazardsToggle, hazardsSetting(game.hazards));
+      setFrameText(this.hazardsToggle, hazardsSetting(game.hazards));
       this.lastHazards = game.hazards;
     }
     if (this.lastDrops !== game.drops.on) {
-      BlzFrameSetText(this.dropsToggle, dropsSetting(game.drops.on));
+      setFrameText(this.dropsToggle, dropsSetting(game.drops.on));
       this.lastDrops = game.drops.on;
     }
     const rules = rulesSummary(game);
     if (this.lastRules !== rules) {
-      BlzFrameSetText(this.ruleLabel, rules);
+      setFrameText(this.ruleLabel, rules);
       this.lastRules = rules;
     }
     BlzFrameSetVisible(this.poolRoot, this.poolOpen);
@@ -229,16 +230,16 @@ export class StagePanel {
       clearStageDrag(this.drag);
       const pool = game.stagePool;
       const count = stagePoolCount(pool);
-      BlzFrameSetText(this.poolMode, pool.only ? "Only these" : "All except these");
+      setFrameText(this.poolMode, pool.only ? "Only these" : "All except these");
       for (let index = 0; index < STAGE_CATALOG.length; index++) {
         const stage = STAGE_CATALOG[index];
         const frame = this.poolStages[index];
         if (stage === undefined || frame === undefined) continue;
         const selected = (pool.selectedMask & (1 << stage.id)) !== 0;
-        BlzFrameSetText(frame, `${selected ? "Yes" : "No"}: ${stage.name}`);
+        setFrameText(frame, `${selected ? "Yes" : "No"}: ${stage.name}`);
         BlzFrameSetEnable(frame, count > 1 || !stageInPool(pool, stage.id));
       }
-      BlzFrameSetText(this.poolSummary, `${I2S(count)} ${count === 1 ? "stage" : "stages"} in the pool.\nEach plays once before the pool repeats.`);
+      setFrameText(this.poolSummary, `${I2S(count)} ${count === 1 ? "stage" : "stages"} in the pool.\nEach plays once before the pool repeats.`);
       this.clicks.refreshHover();
       return;
     }
