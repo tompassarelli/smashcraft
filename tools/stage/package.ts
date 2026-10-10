@@ -114,16 +114,17 @@ export const STAGE_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${imports[0]}
 export const STAGE_MAIN_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${imports[1]}`)};
 `);
 console.log(`Stage decks: ${STAGE_DECK_PALETTES.length} palettes; slab bounds x=[-50,50], z=[-54,0]; main decks from each stage's collision outline`);
+const liquidNames = await packageLiquids(output);
 
 
 const factsPath = join(import.meta.dir, "../../ts/scripts/wisp/modelFacts.ts");
 const factsSource = await Bun.file(factsPath).text();
 const deckFacts: string[] = [];
-for (const name of imports.filter(name => name.startsWith("StageDeck-") || name.startsWith("StageMainDeck-"))) {
+for (const name of [...imports.filter(name => name.startsWith("StageDeck-") || name.startsWith("StageMainDeck-")), ...liquidNames.filter(name => /^StageTomb(Water|Sea)-.*\.mdx$/.test(name))]) {
     const facts = modelFacts(await Bun.file(join(output, name)).bytes());
     deckFacts.push(`  ${JSON.stringify(`war3mapImported\\${name}`)}: ${JSON.stringify(facts, (_key, value: unknown) => typeof value === "number" ? Math.round(value * 1000) / 1000 : value)},`);
 }
-await Bun.write(factsPath, factsSource.split("\n").filter(line => !line.includes('"war3mapImported\\\\StageDeck-') && !line.includes('"war3mapImported\\\\StageMainDeck-')).join("\n").replace(/\n};\s*$/, `\n${deckFacts.join("\n")}\n};\n`));
+await Bun.write(factsPath, factsSource.split("\n").filter(line => !line.includes('"war3mapImported\\\\StageDeck-') && !line.includes('"war3mapImported\\\\StageMainDeck-') && !/"war3mapImported\\\\StageTomb(Water|Sea)-/.test(line)).join("\n").replace(/\n};\s*$/, `\n${deckFacts.join("\n")}\n};\n`));
 
 
 const snowExtent = 'MinimumExtent { -1600, -200, -1500 }, MaximumExtent { 1600, 200, 2800 }, BoundsRadius 3500,';
@@ -175,5 +176,4 @@ for (const { stage, theme, lights } of STAGE_POINT_LIGHTS) {
 }
 await Bun.write(infoPath, `${await Bun.file(infoPath).text()}/** Each stage's backdrop omni light models, in the order of its lights in stagePointLights.ts. */\nexport const STAGE_POINT_LIGHT_MODELS: Readonly<Record<number, readonly string[]>> = {\n${pointLights.join("\n")}\n};\n`);
 const skyNames = await packageSkies(output);
-const liquidNames = await packageLiquids(output);
 await Bun.write(join(output, "imports.txt"), `${[...new Set([...imports, snowName, ...pointLightNames, ...skyNames, ...liquidNames])].join("\n")}\n`);

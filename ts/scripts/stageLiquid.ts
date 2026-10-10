@@ -4,6 +4,7 @@
 
 export type Liquid = "Water" | "Lava";
 export const LIQUID_TEXTURE_SIZE = 64;
+export const TOMB_LIQUID_TEXTURE_SIZE = 512;
 type Rgba = readonly [red: number, green: number, blue: number, alpha: number];
 
 
@@ -31,11 +32,20 @@ export function lavaGlowTexel(x: number, y: number): Rgba {
   return [LAVA_GLOW.color[0], LAVA_GLOW.color[1], LAVA_GLOW.color[2], Math.round(255 * strength)];
 }
 
+export function tombWaterTexel(x: number, y: number): Rgba {
+  const u = x * 2 * Math.PI / TOMB_LIQUID_TEXTURE_SIZE;
+  const v = y * 2 * Math.PI / TOMB_LIQUID_TEXTURE_SIZE;
+  const broad = Math.sin(2 * u + 0.8 * Math.sin(v) + 0.35 * Math.sin(3 * v));
+  const crossed = Math.sin(3 * u + v + 1.1 * Math.sin(2 * v + 0.7));
+  const crest = Math.sin(5 * u + 2 * v + 0.6 * Math.sin(u - v + 1.3));
+  const r = 0.5 + (broad + 0.55 * crossed + 0.25 * crest) / 3.6;
+  return [Math.round(90 + 45 * r), Math.round(161 + 40 * r), Math.round(172 + 42 * r), 110];
+}
 
-export function liquidTga(texel: (x: number, y: number) => Rgba): Uint8Array {
-  const size = LIQUID_TEXTURE_SIZE;
+
+export function liquidTga(texel: (x: number, y: number) => Rgba, size = LIQUID_TEXTURE_SIZE): Uint8Array {
   const texture = new Uint8Array(18 + size * size * 4);
-  texture[2] = 2; texture[12] = size; texture[14] = size; texture[16] = 32; texture[17] = 0x28;
+  texture[2] = 2; texture[12] = size & 255; texture[13] = size >> 8; texture[14] = size & 255; texture[15] = size >> 8; texture[16] = 32; texture[17] = 0x28;
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const [red, green, blue, alpha] = texel(x, y);
     texture.set([blue, green, red, alpha], 18 + (y * size + x) * 4);
