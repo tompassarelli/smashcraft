@@ -34,7 +34,7 @@ VertexGroup { 0, 0, 0, 0, } Faces 1 6 { Triangles { { 0, 1, 2, 0, 2, 3 }, } }
 Groups 1 1 { Matrices { 0 }, } ${extent} Anim { ${extent} } MaterialID ${material}, SelectionGroup 0,
 } ${tint === undefined ? "" : `GeosetAnim { static Alpha 1, static Color ${vec([...tint].reverse())}, GeosetId ${index}, }`}`;
     const bands = [-60, -32, -20, -12, 0, 18, 36, 60];
-    const tones = [0.78, 0.92, 1, 0.96, 0.88, 0.8, 0.76];
+    const tones = [0.72, 0.9, 1, 0.96, 0.86, 0.76, 0.7];
     const surface = sea ? bands.slice(0, -1).map((low, index) => {
       const high = bands[index + 1] ?? 60;
       const tone = tones[index] ?? 1;
@@ -57,7 +57,7 @@ TextureAnims ${sea ? 3 : tomb ? 2 : 1} {
   ${tomb ? "TVertexAnim { Translation 2 { Linear, GlobalSeqId 0, 0: { 0.37, 0.61, 0 }, 240000: { -2.63, 2.61, 0 }, } Scaling 1 { DontInterp, 0: { 1.375, 0.875, 1 }, } }" : ""}
   ${sea ? "TVertexAnim { Translation 2 { Linear, GlobalSeqId 0, 0: { 0.18, 0.43, 0 }, 240000: { -5.82, 3.43, 0 }, } Scaling 1 { DontInterp, 0: { 1.75, 1.25, 1 }, } }" : ""}
 }
-Materials ${sea ? 2 : 1} { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 0, TVertexAnimId 0, static Alpha 1, } ${glowName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 0, static Alpha 1, }"} ${highlightsName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 1, Alpha 9 { Linear, GlobalSeqId 0, 0: 0.22, 30000: 0.38, 60000: 0.26, 90000: 0.34, 120000: 0.22, 150000: 0.38, 180000: 0.26, 210000: 0.34, 240000: 0.22, } }"} ${sea ? "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 2, TVertexAnimId 2, static Alpha 0.18, }" : ""} } ${sea ? "Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 3, static Alpha 0.72, } }" : ""} }
+Materials ${sea ? 2 : 1} { Material { Layer { FilterMode Blend, Unshaded, TwoSided, static TextureID 0, TVertexAnimId 0, static Alpha 1, } ${glowName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 0, static Alpha 1, }"} ${highlightsName === undefined ? "" : "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 1, TVertexAnimId 1, Alpha 9 { Linear, GlobalSeqId 0, 0: 0.22, 30000: 0.38, 60000: 0.26, 90000: 0.34, 120000: 0.22, 150000: 0.38, 180000: 0.26, 210000: 0.34, 240000: 0.22, } }"} ${sea ? "Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 2, TVertexAnimId 2, static Alpha 0.38, }" : ""} } ${sea ? "Material { Layer { FilterMode Additive, Unshaded, TwoSided, static TextureID 3, static Alpha 0.9, } }" : ""} }
 ${sea ? surface + "\n" + foam : `Geoset {
 Vertices 4 { { -50, -60, 0 }, { 50, -60, 0 }, { 50, 60, 0 }, { -50, 60, 0 }, }
 Normals 4 { { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, { 0, 0, 1 }, }

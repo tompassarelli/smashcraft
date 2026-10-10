@@ -38,3 +38,5 @@
   ts/stage-thumbnails.json; run it after changing that stage or its art, or
   ts/test/stage-thumbnails.test.ts fails and prints the command. Without
   `--stage` it redraws every stage (smashcraft:docs/design/stage-select.md).
+
+- Deck texture repetition: `bun tools/stage/period.ts IMAGE.ppm X0,Y0,X1,Y1 [EXCLUDED_X0:X1,...|-] [PROJECTED_PERIOD_PX]` measures the visible front face using radius-32 high-pass luma and overlap-normalized Pearson correlation at horizontal lags 64–700 pixels (up to half the box width). State each camera's box and any excluded occluder columns; the strongest correlation must be below 0.30.
