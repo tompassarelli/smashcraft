@@ -165,6 +165,11 @@ export class SpecialCueEffects {
       }
     }
     if (cue !== undefined) cue = this.look(cue);
+    const anchorFrame = fighter === undefined ? undefined : cue?.anchorFrames?.[Math.max(0, fighter.special.frame - 1)];
+    if (anchorFrame !== undefined) {
+      x = anchorFrame.x * this.scale;
+      z = anchorFrame.z * this.scale;
+    }
     const parked = (this.parked ??= []);
     const failed = cue !== undefined && modelFailed(cue.model);
     if (failed && fighter !== undefined && cue !== undefined) {
