@@ -40,7 +40,16 @@ function tileFace(face: DeckFace, tileSize = 128): { corners: number[][]; uv: nu
 
 
 export function texturedDeckMdl(faces: readonly DeckFace[], materials: PlatformMaterialSet, palette: DeckPalette): string {
-  const textures = parts.map(part => materials[part]);
+  const tomb = materials.body.texture === "Textures\\RuinsNatural.blp";
+  const textures = parts.map(part => tomb ? { ...materials[part], ...(part === "top" ? { tint: [244, 222, 176] as const, tileSize: 256 } : {}), ...(part === "body" || part === "underside" ? { tileSize: 4096 } : {}) } : materials[part]);
+  if (tomb) faces = faces.flatMap(face => {
+    if (face.material < 2) return [face];
+    return tileFace(face, 140).map(({ corners }) => ({ ...face, corners: corners.map(([x = 0, y = 0, z = 0]) => {
+      const bevel = Math.min(1, Math.max(0, (-z - 11) / 220));
+      const inset = 16 + 10 * Math.sin(x / 83) + 7 * Math.sin(x / 151);
+      return [x, y * (1 - bevel * inset / 60), z] as const;
+    }) }));
+  });
   const points = faces.flatMap(face => face.corners);
   const low = [0,1,2].map(axis => Math.min(...points.map(p=>p[axis] ?? 0)));
   const high = [0,1,2].map(axis => Math.max(...points.map(p=>p[axis] ?? 0)));
@@ -51,7 +60,7 @@ export function texturedDeckMdl(faces: readonly DeckFace[], materials: PlatformM
     if (source === undefined) throw new Error(`missing ${part} texture`);
     const [u0,v0,u1,v1] = source.crop ?? (source.texture.startsWith("TerrainArt\\") ? [0,0,0.25,0.25] : [0,0,1,1]);
     const vertices: number[][] = [], normals: number[][] = [], uv: number[][] = [], triangles: number[] = [];
-    for (const face of faces.filter(f=>f.material===material)) for (const cell of tileFace(face, source.tileSize)) {
+    for (const face of faces.filter(f=>f.material===material)) for (const cell of tomb && part !== "top" && part !== "lip" ? [{ corners: face.corners.map(p => [...p]), uv: face.corners.map(p => [(p[0] + 600) / 1200, (p[2] + 300) / 300]) }] : tileFace(face, source.tileSize)) {
       const offset=vertices.length;
       vertices.push(...cell.corners); normals.push(...cell.corners.map(()=>[...face.normal]));
       const bottom = Math.min(...face.corners.map(p => p[2] ?? 0));
