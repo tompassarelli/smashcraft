@@ -50,6 +50,8 @@ const TRANSPORT = new TransportDecoder();
 const failControls = (s: ShellState) => setStatus(s, "Controls stopped responding. Restart the match.", LASTING);
 
 
+export const checksumRow = (s: ShellState, epoch: number, frame: number): string => `checksum ${epoch} ${frame} ${confirmedChecksum(s)} ${s.game.phase}`;
+
 export function delayRow(s: ShellState, rollback: Rollback): string {
   const requests: number[] = [];
   for (const slot of PARTICIPANT_SLOTS) if (humanActive(s.game, slot)) requests.push(requestFor(rollback.net, s.game, slot, s.participants[slot].bindings.delay));
@@ -234,7 +236,7 @@ function stepConfirmed(s: ShellState, rollback: Rollback): boolean {
   if (!schedule.readConfirmed(epoch, accepted)) return false;
   if (!captureNetworkFrame(s.frameInput, frame, accepted, s.world, s.game.humanMask)) return false;
   applyFrame(s);
-  if (s.build.epochProbe === true && epochChecksumDue(s.probe, frame)) probeIntegrity(s.probe, `checksum ${epoch} ${frame} ${confirmedChecksum(s)} ${s.game.phase}`);
+  if (s.build.epochProbe === true && epochChecksumDue(s.probe, frame)) probeIntegrity(s.probe, checksumRow(s, epoch, frame));
   if (probeRecording(s.probe)) {
     for (const slot of PARTICIPANT_SLOTS) {
       if (!humanActive(s.game, slot)) continue;

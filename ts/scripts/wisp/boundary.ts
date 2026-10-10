@@ -123,30 +123,39 @@ const ObjectDataReceipt = preloadRecord(
 
 
 const ResponseLine = Schema.String.check(Schema.isPattern(new RegExp(
-  `^(?:clock=.+|[ABCDPQ] (?:row|epoch) .+|A(?: ${real}){6}(?: ${integer}){6}|B(?: ${integer}){10}|C(?: ${integer}){3} ${real} ${integer} ${real}|D(?: ${integer}){2}(?: ${real}){3}|P(?: ${integer}){3}(?: ${real}){2}|Q ${integer}(?: ${real}){12}|I ${integer} (?:(?:capture|receive|confirmed|predict)(?: ${integer}){7}|(?:action|legal)(?: ${integer}){6}|rollback(?: ${integer}){2}|(?:stall|held)(?: ${integer}){3}|checksum(?: ${integer}){2} \\d+:\\d+ ${integer}|pause-boundary (?:paused|resumed) ${integer}))$`,
+  `^(?:clock=.+|[ABCDPQ] (?:row|epoch) .+|A(?: ${real}){6}(?: ${integer}){6}|B(?: ${integer}){10}|C(?: ${integer}){3} ${real} ${integer} ${real}|D(?: ${integer}){2}(?: ${real}){3}|P(?: ${integer}){3}(?: ${real}){2}|Q ${integer}(?: ${real}){12}|I ${integer} (?:(?:capture|receive|confirmed|predict)(?: ${integer}){7}|(?:action|legal)(?: ${integer}){6}|rollback(?: ${integer}){2}|(?:stall|held)(?: ${integer}){3}|checksum(?: ${integer}){2} \\d+:\\d+ ${integer}|delay(?: ${integer}){2} (?:\\d+(?:,\\d+)*|-)|pause-boundary (?:paused|resumed) ${integer}))$`,
 )));
 
 const responseHead = [
     "RS v=3 build={build} local={slot} run={run} page={page} rows={rows} mode={mode} edge_pairs={edgePairs} edge_limit={edgeLimit} edge_dropped={edgeDropped}",
     "integrity retained={integrityRetained} dropped={integrityDropped}",
-    "counts poll={polls} capture_attempt={captures} advance={advances} present={presentations}",
 ];
+// Only the native-input build's epoch windows (#396) write this line.
+const responseEpoch = "epoch recorded={epochRecorded} incomplete={epochsIncomplete}";
+const responseCounts = "counts poll={polls} capture_attempt={captures} advance={advances} present={presentations}";
+const responseWaiting = "waiting callbacks={waitingCallbacks} own_callbacks={waitingOwnCallbacks}";
 const responseTransport = "transport sent_frames={sentFrames} received_frames={receivedFrames} unmatched_receipts={unmatchedReceipts} dropped_from_export={transportDropped} retained={transportRetained}";
 const responseFields = { build: Schema.NonEmptyString, slot: Count, run: Count, page: Count, rows: Count, mode: Schema.Literals(["clean", "edge-stamp"]), edgePairs: Count, edgeLimit: Count, edgeDropped: Count,
     integrityRetained: Count, integrityDropped: Count, polls: Count, captures: Count, advances: Count, presentations: Count,
     sentFrames: Count, receivedFrames: Count, unmatchedReceipts: Count, transportDropped: Count, transportRetained: Count, lines: Schema.Array(ResponseLine) };
 const recordedResponseSchema = Schema.Struct(responseFields);
-const recordedResponsePage = preloadRecord(
-  { head: [...responseHead, responseTransport], rest: "lines" }, recordedResponseSchema,
-);
-const waitingResponsePage = preloadRecord(
-  { head: [...responseHead, "waiting callbacks={waitingCallbacks} own_callbacks={waitingOwnCallbacks}", responseTransport], rest: "lines" },
-  Schema.Struct({ ...responseFields, waitingCallbacks: Count, waitingOwnCallbacks: Count }),
-);
+const epochFields = { epochRecorded: Count, epochsIncomplete: Schema.String.check(Schema.isPattern(/^(?:none|\d+(?:,\d+)*)$/)) };
+const waitingFields = { waitingCallbacks: Count, waitingOwnCallbacks: Count };
+const responsePages = {
+  recorded: preloadRecord({ head: [...responseHead, responseCounts, responseTransport], rest: "lines" }, recordedResponseSchema),
+  waiting: preloadRecord({ head: [...responseHead, responseCounts, responseWaiting, responseTransport], rest: "lines" }, Schema.Struct({ ...responseFields, ...waitingFields })),
+  epoch: preloadRecord({ head: [...responseHead, responseEpoch, responseCounts, responseTransport], rest: "lines" }, Schema.Struct({ ...responseFields, ...epochFields })),
+  epochWaiting: preloadRecord({ head: [...responseHead, responseEpoch, responseCounts, responseWaiting, responseTransport], rest: "lines" }, Schema.Struct({ ...responseFields, ...epochFields, ...waitingFields })),
+};
 
 
-export const ResponsePage: GameFileKind<typeof recordedResponseSchema.Type & { readonly waitingCallbacks?: number; readonly waitingOwnCallbacks?: number }> = {
-  decode: (file, text) => (preloadLines(text)?.[3]?.startsWith("waiting ") ? waitingResponsePage : recordedResponsePage).decode(file, text),
+export const ResponsePage: GameFileKind<typeof recordedResponseSchema.Type & { readonly waitingCallbacks?: number; readonly waitingOwnCallbacks?: number; readonly epochRecorded?: number; readonly epochsIncomplete?: string }> = {
+  decode: (file, text) => {
+    const lines = preloadLines(text);
+    const epoch = lines?.[2]?.startsWith("epoch ") === true;
+    const waiting = lines?.[epoch ? 4 : 3]?.startsWith("waiting ") === true;
+    return (epoch ? (waiting ? responsePages.epochWaiting : responsePages.epoch) : (waiting ? responsePages.waiting : responsePages.recorded)).decode(file, text);
+  },
 };
 
 const EdgeStamp = preloadRecord(

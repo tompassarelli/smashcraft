@@ -1,4 +1,5 @@
 import { afterAll, expect } from "bun:test";
+import { Effect } from "effect";
 import { installHeadless } from "wisp/scripts/wisp/headless";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import { MEASURED_BATTLE_NET, syncDelivery } from "wisp/src/headless/syncChannel";
@@ -10,6 +11,7 @@ import { CHECKSUM_FRAMES, EPOCH_CALLBACKS } from "../src/platform/shell/response
 import { responsePageFile } from "../src/runtime/gameFiles";
 import { shellState } from "../src/platform/shell/state";
 import { SMASHCRAFT_HEADLESS } from "../scripts/wisp/headless";
+import { ResponsePage } from "../scripts/wisp/boundary";
 import { entryFor } from "./desync/journeys";
 import { sweep } from "./sweep";
 
@@ -45,6 +47,8 @@ function exported(clients: Lockstep, index: number, run: number): Window {
   for (let page = 0; ; page++) {
     const file = client.files.get(responsePageFile(index, run, page));
     if (file === undefined) break;
+    // the page `bun wisp integrity` reads must decode
+    Effect.runSync(ResponsePage.decode(`page ${page}`, ["function PreloadFiles takes nothing returns nothing", ...file.map(line => `call Preload( "${line}" )`), "endfunction"].join("\n")));
     lines.push(...file);
   }
   const checksums = new Map<number, string>();
