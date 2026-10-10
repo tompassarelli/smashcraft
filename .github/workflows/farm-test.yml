@@ -1,9 +1,9 @@
 name: Farm test
 
-# The full Bun and 32-bit Lua suites for one commit on free hosted runners,
-# sharded by each test file's (Bun) or test's (Lua) measured time
-# (wisp:docs/farm.md). `bun wisp farm test` dispatches it and prints the
-# summary the merge job uploads.
+# Everything main's CI checks, for one commit on free hosted runners: the Bun
+# and 32-bit Lua suites with their sweeps, sharded by each test file's (Bun) or
+# test's (Lua) measured time (wisp:docs/farm.md), and CI's other checks.
+# `bun wisp farm test` dispatches it and prints the summary the merge job uploads.
 on:
   workflow_dispatch:
     inputs:
@@ -29,11 +29,11 @@ permissions:
   contents: read
 
 env:
-  # The account runs 20 jobs at once across every repository: a run holds at
-  # most BUN_SHARDS + LUA_JOBS + the corpus job, so farm runs start together.
+  # A run holds BUN_SHARDS + LUA_JOBS + the four check jobs at once. One Lua test
+  # takes about 140 s, so more than 32 Lua shards would not shorten the run.
   BUN_SHARDS: 3
   # Lua runs one core a process: each Lua job runs LUA_PER_JOB shards at once.
-  LUA_JOBS: 4
+  LUA_JOBS: 8
   LUA_PER_JOB: 4
 
 jobs:
@@ -63,11 +63,15 @@ jobs:
           path: ts/farm-timings.json
           key: farm-test-timings-${{ github.run_id }}
           restore-keys: farm-test-timings-
+      # Check jobs record their time as Lua rows; they run on their own runners, so no shard plans them.
       - id: plan
         working-directory: ts
         run: |
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          bun node_modules/wisp/scripts/wisp/farmShards.ts plan --timings farm-timings.json --bun "$BUN_SHARDS" --lua $((LUA_JOBS * LUA_PER_JOB)) $(bun scripts/test.ts --units) > plan.json
+          if [ -f farm-timings.json ]; then
+            jq '.lua |= with_entries(select(.key | (startswith("check: ") or startswith("parity corpus: ") or . == "stack-trace profile TypeScript frames") | not))' farm-timings.json > plan-timings.json
+          fi
+          bun node_modules/wisp/scripts/wisp/farmShards.ts plan --timings plan-timings.json --bun "$BUN_SHARDS" --lua $((LUA_JOBS * LUA_PER_JOB)) $(bun scripts/test.ts --units) > plan.json
           echo "bun=$(jq -c '[range(.bun | length)]' plan.json)" >> "$GITHUB_OUTPUT"
           echo "lua=$(jq -c "[range($LUA_JOBS)]" -n)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
@@ -108,22 +112,27 @@ jobs:
         with:
           name: farm-test-plan
           path: ts
+      # The shard's files, then their sweeps (SWEEPS=1): a file's measured time counts both.
       - name: Test shard ${{ matrix.shard }}
         working-directory: ts
+        timeout-minutes: 20
         run: |
           set +e
-          mkdir -p build/junit
-          bun scripts/test.ts $(jq -r ".bun[${{ matrix.shard }}][]" plan.json)
+          files=$(jq -r ".bun[${{ matrix.shard }}][]" plan.json)
+          mkdir -p build/junit build/junit-sweeps
+          TEST_JUNIT_DIR=build/junit bun scripts/test.ts $files
           code=$?
           bun node_modules/wisp/scripts/wisp/farmShards.ts junit --shard ${{ matrix.shard }} --exit-code "$code" build/junit/*.xml > result.json
+          SWEEPS=1 TEST_JUNIT_DIR=build/junit-sweeps bun scripts/test.ts $files
+          sweeps=$?
+          bun node_modules/wisp/scripts/wisp/farmShards.ts junit --shard ${{ matrix.shard }} --exit-code "$sweeps" build/junit-sweeps/*.xml > result-sweeps.json
+          [ "$code" = 0 ] && exit "$sweeps"
           exit "$code"
-        env:
-          TEST_JUNIT_DIR: build/junit
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: farm-test-result-bun-${{ matrix.shard }}
-          path: ts/result.json
+          path: ts/result*.json
           retention-days: 3
 
   lua:
@@ -158,33 +167,47 @@ jobs:
           path: ts
       - name: Compile the Lua test bundle
         working-directory: ts
-        run: bun scripts/lua-tests.ts
+        run: |
+          set +e -o pipefail
+          bun scripts/lua-tests.ts 2>&1 | tee build-compile.log
+          code=$?
+          if [ "$code" != 0 ] && [ "${{ matrix.job }}" = 0 ]; then
+            { echo "Lua test bundle didn't compile:"; grep -E 'error' build-compile.log | head -5; } | tr '\n' ' ' > problems-lua-compile.txt
+          fi
+          exit "$code"
         env:
           LUA_TESTS_STEP: compile
-      # Job 0 also runs the stack-trace check, a bundle of its own.
+      # Each slot runs its shard of the suite, then its shard of the sweeps (SWEEPS=1);
+      # the plan balances both. Sweep costs stay out of lua-cost-*.tsv: the budget covers the suite.
       - name: Test shards
         working-directory: ts
+        timeout-minutes: 20
         run: |
           LUA=$(bun node_modules/wisp/scripts/wisp/lua32.ts stock)
           set +e
           bun node_modules/wisp/scripts/wisp/farmShards.ts lua-plan plan.json > build/lua-plan.tsv
           count=$((LUA_JOBS * LUA_PER_JOB))
+          # A failing test's result names the module that registers it.
+          result() {
+            bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard "$1" --exit-code "$2" "$3" \
+              | jq --rawfile costs "$4" '($costs | split("\n") | map(split("\t") | select(length > 3) | {key: (.[3:] | join("\t")), value: .[0]}) | from_entries) as $modules
+                  | .tests |= map(if .status == "fail" then .name = "\($modules[.unit] // "unknown module"): \(.name)" else . end)'
+          }
           pids=()
           for slot in $(seq 0 $((LUA_PER_JOB - 1))); do
             shard=$((${{ matrix.job }} * LUA_PER_JOB + slot))
-            ( LUA_SHARD="$shard/$count" LUA_SHARD_PLAN=build/lua-plan.tsv LUA_TEST_RESULT="build/lua-$shard.tsv" LUA_TEST_COST="build/lua-cost-$shard.tsv" "$LUA" build/lua-tests/tests.lua > "build/lua-$shard.log" 2>&1
+            ( export LUA_SHARD="$shard/$count" LUA_SHARD_PLAN=build/lua-plan.tsv
+              touch "build/lua-cost-$shard.tsv" "build/sweep-cost-$shard.tsv"
+              LUA_TEST_RESULT="build/lua-$shard.tsv" LUA_TEST_COST="build/lua-cost-$shard.tsv" "$LUA" build/lua-tests/tests.lua > "build/lua-$shard.log" 2>&1
               code=$?
-              bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard "$shard" --exit-code "$code" "build/lua-$shard.tsv" > "result-lua-$shard.json"
+              result "$shard" "$code" "build/lua-$shard.tsv" "build/lua-cost-$shard.tsv" > "result-lua-$shard.json"
+              SWEEPS=1 LUA_TEST_RESULT="build/lua-sweeps-$shard.tsv" LUA_TEST_COST="build/sweep-cost-$shard.tsv" "$LUA" build/lua-tests/tests.lua > "build/lua-sweeps-$shard.log" 2>&1
+              sweeps=$?
+              result "$shard" "$sweeps" "build/lua-sweeps-$shard.tsv" "build/sweep-cost-$shard.tsv" > "result-lua-sweeps-$shard.json"
+              [ "$code" = 0 ] && exit "$sweeps"
               exit "$code" ) &
             pids+=($!)
           done
-          if [ "${{ matrix.job }}" = 0 ]; then
-            ( started=$(date +%s); LUA_TESTS_STEP=stack bun scripts/lua-tests.ts > build/lua-stack.log 2>&1; code=$?
-              printf '%s\t%s\tstack-trace profile TypeScript frames\n' "$([ $code = 0 ] && echo pass || echo fail)" "$(( $(date +%s) - started ))" > build/lua-stack.tsv
-              bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard 0 --exit-code "$code" build/lua-stack.tsv > result-lua-stack.json
-              exit "$code" ) &
-            pids+=($!)
-          fi
           failed=0
           for pid in "${pids[@]}"; do wait "$pid" || failed=1; done
           for log in build/lua-*.log; do echo "== $log"; cat "$log"; done
@@ -195,16 +218,21 @@ jobs:
           name: farm-test-result-lua-${{ matrix.job }}
           path: |
             ts/result-lua-*.json
+            ts/problems-*.txt
             ts/build/lua-cost-*.tsv
           retention-days: 3
 
-  # Every native recording in the checked-in corpus replays headless in Bun and
-  # 32-bit Lua, each on the source that recorded it (wisp#69, scripts/wisp/corpus.ts).
-  corpus:
+  # The rest of main's CI, each check a result row of its own; a failing check
+  # adds its last output lines to the summary.
+  checks:
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    name: native corpus
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [perf, parity, corpus, policy]
+    name: ${{ matrix.group }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -222,30 +250,72 @@ jobs:
         with:
           path: ~/.cache/wisp/lua32
           key: wisp-lua32-${{ hashFiles('ts/node_modules/wisp/scripts/wisp/lua32.ts', 'ts/node_modules/wisp/native/toward-zero.h') }}
-      - name: Replay the native corpus headless
+      - name: Run the ${{ matrix.group }} checks
         working-directory: ts
+        timeout-minutes: 20
+        env:
+          GROUP: ${{ matrix.group }}
+          CI_TIMING: report
         run: |
           set +e
           mkdir -p build
-          started=$(date +%s)
-          bun wisp parity corpus test/corpus > build/corpus.log 2>&1
-          code=$?
-          cat build/corpus.log
-          printf '%s\t%s\tparity corpus: every native recording replays headless with 0 divergent frames\n' "$([ $code = 0 ] && echo pass || echo fail)" "$(( $(date +%s) - started ))" > build/corpus.tsv
-          bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard 0 --exit-code "$code" build/corpus.tsv > result-corpus.json
-          exit "$code"
+          failed=0
+          check() {
+            local name="$1" started code
+            shift
+            started=$(date +%s)
+            echo "::group::$name"
+            "$@" > build/check.log 2>&1
+            code=$?
+            cat build/check.log
+            echo "::endgroup::"
+            printf '%s\t%s\tcheck: %s\n' "$([ "$code" = 0 ] && echo pass || echo fail)" "$(( $(date +%s) - started ))" "$name" >> build/checks.tsv
+            if [ "$code" != 0 ]; then
+              failed=1
+              echo "check: $name exited $code: $(sed 's/\x1b\[[0-9;]*m//g' build/check.log | grep -v '^\s*$' | tail -n 6 | tr '\n' ' ' | cut -c1-700)" >> "problems-check-$GROUP.txt"
+            fi
+          }
+          case "$GROUP" in
+            perf)
+              # Frame-cost landing gate (#48, #168): see ci.yml for rewriting the baseline.
+              check "frame cost within 5% of the committed baseline" sh -c 'bun wisp perf playable-bot-four --samples --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf'
+              check "focused logic test" env GAME_TESTS=sim/meleeScalarMath bun test test/game.test.ts
+              if [ -f build/playable-bot-four.perf ]; then
+                bun wisp perf budget build/playable-bot-four.perf || echo "perf target (#168) not met: reported, not gated (#394)"
+                bun scripts/commitMetrics.ts build/playable-bot-four.perf build/playable.lua | tee -a "$GITHUB_STEP_SUMMARY"
+              fi ;;
+            parity)
+              # Tapes and the numeric corpus in stock Lua32 and in one whose raw float + - * round toward zero must equal Bun (wisp:docs/headless.md#raw-float-rounding).
+              check "parity tapes and numeric" sh -c 'bun wisp parity tapes && bun wisp parity numeric'
+              check "stack-trace profile TypeScript frames" env LUA_TESTS_STEP=stack bun scripts/lua-tests.ts ;;
+            corpus)
+              # Every native recording replays headless with 0 divergent frames, each on the source that recorded it (wisp#69).
+              check "parity corpus: every native recording replays headless with 0 divergent frames" bun wisp parity corpus test/corpus
+              check "compiler affected-module and output-equivalence checks" env COMPILER_TIMINGS=1 bun scripts/compiler-benchmark.ts ;;
+            policy)
+              check "no game files or copied game scripts outside the allowlist" bun scripts/cleanRoom.ts
+              check "effect-kit check" sh -c 'git clone -q --depth 1 https://github.com/tompassarelli/north "$RUNNER_TEMP/north" && cd .. && bun "$RUNNER_TEMP/north/agent-machinery/scripts/effect-kit.mjs" check'
+              check "type-check edit loop and dependency validation" bun scripts/typecheck-benchmark.ts
+              check "every selectable computer fighter is active" bun scripts/cpuCoverage.ts ;;
+          esac
+          bun node_modules/wisp/scripts/wisp/farmShards.ts lua --shard 0 --exit-code "$failed" build/checks.tsv > "result-check-$GROUP.json"
+          exit "$failed"
       - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: farm-test-result-corpus
-          path: ts/result-corpus.json
+          name: farm-test-result-check-${{ matrix.group }}
+          path: |
+            ts/result-check-*.json
+            ts/problems-*.txt
           retention-days: 3
 
+  # The summary is uploaded whatever happens, so a red run always names its cause:
+  # failing tests, each failing check's output, Lua budget overruns and missing shards.
   merge:
-    needs: [plan, bun, lua, corpus]
+    needs: [plan, bun, lua, checks]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -268,20 +338,45 @@ jobs:
         with:
           pattern: farm-test-*
           path: ts/farm
-      - working-directory: ts
-        run: bun node_modules/wisp/scripts/wisp/farmShards.ts merge --plan farm/farm-test-plan/plan.json --timings farm-timings.json --out summary.json $(find farm -name 'result*.json')
-      - name: Check Lua32 instruction and allocation budget from every shard
+      - name: Merge the results and check the Lua32 instruction and allocation budget
         working-directory: ts
+        timeout-minutes: 5
         env:
-          LUA_TESTS_STEP: budget
+          PLAN_RESULT: ${{ needs.plan.result }}
           LUA_TEST_COST_DIR: farm
-        run: bun scripts/lua-tests.ts
-      - uses: actions/upload-artifact@v4
+        run: |
+          set +e
+          fallback() { echo "{\"bun\":$1,\"lua\":$1,\"failures\":[],\"problems\":[$2]}" > summary.json; }
+          zero='{"passed":0,"failed":0,"skipped":0,"shards":0,"slowestShardSeconds":0}'
+          fallback "$zero" '"the merge step did not finish: see its log"'
+          : > problems.txt
+          [ "$PLAN_RESULT" = success ] || echo "the plan job ended $PLAN_RESULT, so no shard ran: see its log" >> problems.txt
+          bun node_modules/wisp/scripts/wisp/farmShards.ts merge --plan farm/farm-test-plan/plan.json --timings farm-timings.json --out summary.json $(find farm -name 'result*.json') 2> merge.log
+          merged=$?
+          cat merge.log
+          if [ "$merged" != 0 ]; then
+            fallback "$zero" ""
+            echo "merging the shard results failed: $(tail -n 3 merge.log | tr '\n' ' ')" >> problems.txt
+          fi
+          LUA_TESTS_STEP=budget bun scripts/lua-tests.ts > budget.log 2>&1
+          budget=$?
+          cat budget.log
+          if [ "$budget" != 0 ]; then
+            grep -E '^(src|test|scripts)/[^ ]+\.ts: ' budget.log | sed 's/^/Lua32 budget: /' >> problems.txt
+            grep -q '^Lua32 budget: ' problems.txt || echo "the Lua32 budget check exited $budget: $(tail -n 3 budget.log | tr '\n' ' ')" >> problems.txt
+          fi
+          find farm -name 'problems-*.txt' -exec sh -c 'cat "$1"; echo' _ {} \; >> problems.txt
+          jq --rawfile extra problems.txt '.problems = ($extra | split("\n") | map(select(test("\\S")))) + .problems' summary.json > summary.next && mv summary.next summary.json
+          cat summary.json
+          [ "$merged" = 0 ] && [ "$budget" = 0 ]
+      - if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: farm-test-summary
           path: ts/summary.json
           retention-days: 7
-      - uses: actions/cache/save@v4
+      - if: always() && hashFiles('ts/farm-timings.json') != ''
+        uses: actions/cache/save@v4
         with:
           path: ts/farm-timings.json
           key: farm-test-timings-${{ github.run_id }}

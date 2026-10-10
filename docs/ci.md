@@ -2,9 +2,9 @@
 
 | Workflow | Runs | Does |
 | --- | --- | --- |
-| CI (smashcraft:.github/workflows/ci.yml) | every push except `farm/**`, pull requests, dispatch | development loop, perf gate, Lua32 suites, and the sweeps the suites skip (Sweeps (Bun), Lua32 (sweeps)) |
+| CI (smashcraft:.github/workflows/ci.yml) | every push except `farm/**` and `claude/**`, pull requests, dispatch | development loop, perf gate, Lua32 suites, and the sweeps the suites skip (Sweeps (Bun), Lua32 (sweeps)); Autoland's dispatch after a landing runs only the smoke job (perf compare and commit metrics), because the farm test already ran every check on that commit |
 | Main is red (smashcraft:.github/workflows/main-red.yml) | after each CI run on main | the sheriff reverts a landing that turned green main red, then opens, updates or closes the "main is red" issue (smashcraft:AGENTS.md) |
-| Farm test (smashcraft:.github/workflows/farm-test.yml) | `bun wisp farm test`, autoland | full Bun and Lua32 suites, sharded (wisp:docs/farm.md) |
+| Farm test (smashcraft:.github/workflows/farm-test.yml) | `bun wisp farm test`, autoland | every check CI runs: full Bun and Lua32 suites with their sweeps, sharded (wisp:docs/farm.md), and the stack trace, parity corpus, tapes and numeric, perf compare, effect-kit, clean room, benchmark and computer coverage checks. Its summary, uploaded even when the run fails or times out, names each failing test (a Lua test with its module), failing check, Lua budget overrun and missing shard |
 | Playtest (smashcraft:.github/workflows/playtest.yml) | nightly, dispatch with `matches` | plays computer-versus-computer matches across every fighter, stage and computer level on the newest green main, each seed twice to compare state hashes, and opens or updates one issue per finding kind (smashcraft:docs/commands/soak.md) |
 | Autoland (smashcraft:.github/workflows/autoland.yml) | push to `claude/**`, `safe-push --to main`, dispatch with `branch` | main's one landing queue: batches waiting branches, lands on green |
 | Effect upgrade (smashcraft:.github/workflows/effect-upgrade.yml) | Mondays, dispatch | `effect-kit upgrade` and `effect-kit check`; a clean upgrade goes to Autoland, findings to the "Weekly Effect upgrade" issue |
@@ -25,12 +25,13 @@ landing restarts another's suites.
    is refused and the rest go on.
 3. **Checks and suites.** The candidate is pushed to a scratch
    `farm/autoland-SHA` branch, which runs the pre-push gate
-   (smashcraft:ts/scripts/prePush.ts), and the farm test workflow runs the
-   full Bun and Lua32 suites on it inside the run: one farm run per batch.
+   (smashcraft:ts/scripts/prePush.ts), and the farm test workflow runs every
+   check main's CI runs on it inside the run: one farm run per batch.
 4. **Land.** Only when the suites pass on that exact candidate, main's known
    failures included (#394), main is fast-forwarded to it, each branch's
    status becomes "landed as SHA" and its branch is deleted. Pushes made with
-   the workflow token start no workflows, so the run dispatches main's CI.
+   the workflow token start no workflows, so the run dispatches main's CI,
+   which runs only its smoke job for a landed commit.
 5. **Bisect.** A red batch of several branches marks them "bisect" and queues
    one run for each half. A lone red branch gets a failed status and every
    issue its commits reference (`Refs smashcraft#N`) gets a comment naming

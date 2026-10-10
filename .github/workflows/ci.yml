@@ -17,8 +17,29 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: false
 
+# Autoland lands only a candidate the farm test (farm-test.yml) passed, which runs
+# every check below; its dispatch after a landing runs only the smoke job.
 jobs:
+  # This commit's p95 frame cost, allocation and map script size on main, in the job summary and log (`grep commit-metrics`).
+  smoke:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - run: bun install --frozen-lockfile
+        working-directory: ts
+      - run: bun wisp perf playable-bot-four --samples --out build/playable-bot-four.perf && bun wisp perf compare test/fixtures/perf/playable-bot-four.perf build/playable-bot-four.perf
+        working-directory: ts
+      - if: ${{ !cancelled() }}
+        run: bun scripts/commitMetrics.ts build/playable-bot-four.perf build/playable.lua | tee -a "$GITHUB_STEP_SUMMARY"
+        working-directory: ts
+
   development-loop:
+    if: github.event_name != 'workflow_dispatch' || github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -76,6 +97,7 @@ jobs:
         working-directory: ts
 
   lua-tests:
+    if: github.event_name != 'workflow_dispatch' || github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -146,6 +168,7 @@ jobs:
   # Sweeps (many matches, whole-roster measurements) that the suite skips run
   # here on every push, so a failure still turns main red (#243).
   sweeps:
+    if: github.event_name != 'workflow_dispatch' || github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     name: Sweeps (Bun)
@@ -164,7 +187,7 @@ jobs:
   # Autoland dispatches this workflow after a landing, and a dispatched run
   # starts no workflow_run, so it hands its own result to "Main is red".
   main-red:
-    needs: [development-loop, lua-tests, sweeps]
+    needs: [smoke, development-loop, lua-tests, sweeps]
     if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
