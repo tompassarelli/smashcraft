@@ -7,6 +7,9 @@
   Both commands resolve every special, attack, contact-accent and projectile
   cue model in Classic and Definitive through the renderer's real asset resolver.
   A missing path in either look fails the build before replacing the map.
+  `--profile playable` also writes predicted Lua cost and its raw samples
+  beside the map (`.lua-cost.json` and `.lua-cost.perf`); see
+  [workflow](workflow.md) for the calibration scope and fixture comparison.
   `--profile native-input` measures the playable keyboard path with developer
   setup and the response probe (Ctrl+G records, Ctrl+H exports); its rendered
   marker identifies the callback actually captured in pixels. Report that

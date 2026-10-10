@@ -61,3 +61,11 @@ referenced issue (smashcraft:docs/ci.md, "Autoland").
 Keep proprietary game assets and base maps privately outside repository trees.
 Always identify the current playable artifact separately from an experimental
 candidate; a diagnostic pass does not replace that release.
+
+`bun wisp map build --profile playable` writes `MAP.w3x.lua-cost.json` and
+`MAP.w3x.lua-cost.perf` beside the map. The JSON records predicted Lua p50/p95
+for player 0's 1,800 `playable-bot-four` callbacks, within #19's solo/four-bot
+calibration scope. Worst is diagnostic. Its note is "Lua cost predicted;
+whole frame not measured". The installed playtest keeps both files beside
+its map. Compare the samples from `ts/` with
+`bun wisp perf compare test/fixtures/perf/playable-bot-four.perf MAP.w3x.lua-cost.perf`.

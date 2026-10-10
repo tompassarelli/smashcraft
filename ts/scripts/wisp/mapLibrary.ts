@@ -1,6 +1,6 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, renameSync } from "node:fs";
 import { basename, join } from "node:path";
-import { PLAYABLE_FILE, pruneTargets } from "./greenBuilds";
+import { PLAYABLE_FILE, PLAYTEST_COST_SUFFIXES, pruneTargets } from "./greenBuilds";
 
 
 const PLAYABLE = PLAYABLE_FILE;
@@ -17,9 +17,17 @@ export function installLatest(documents: string, map: string): void {
   const staged = join(root, `${name}.${process.pid}.next`);
   copyFileSync(map, staged);
   renameSync(staged, join(root, name));
+  for (const suffix of PLAYTEST_COST_SUFFIXES) {
+    if (existsSync(`${map}${suffix}`)) copyFileSync(`${map}${suffix}`, join(root, `${name}${suffix}`));
+  }
   for (const entry of pruneTargets(readdirSync(root), name)) {
     const target = join(older, entry);
-    if (!existsSync(target)) renameSync(join(root, entry), target);
+    if (!existsSync(target)) {
+      renameSync(join(root, entry), target);
+      for (const suffix of PLAYTEST_COST_SUFFIXES) {
+        if (existsSync(join(root, `${entry}${suffix}`))) renameSync(join(root, `${entry}${suffix}`), `${target}${suffix}`);
+      }
+    }
   }
   for (const entry of readdirSync(root).filter((entry) => /\b(?:diagnostic|integrity|probe|test)\b.*\.w3x$/i.test(entry))) {
     const target = join(tests, entry);

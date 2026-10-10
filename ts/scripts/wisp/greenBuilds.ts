@@ -13,6 +13,7 @@ export interface Candidate {
 }
 
 export const SHORT_COMMIT = 7;
+export const PLAYTEST_COST_SUFFIXES = [".lua-cost.json", ".lua-cost.perf"] as const;
 
 export const PLAYABLE_FILE = /^Smashcraft (\d+\.\d+\.\d+)(?: ([0-9a-f]{7,40}))?\.w3x$/;
 

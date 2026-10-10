@@ -15,6 +15,7 @@ import { SMASHCRAFT_MAP } from "../../mapInfo";
 import { fighterUnits, fileIoAbility } from "../../objectData";
 import { POST_PROCESSING_FILE } from "../../postProcessing";
 import { checkCueModels, headlessRender } from "../headlessRender";
+import { writePlaytestCost } from "../playtestCost";
 
 
 export const profileOptions = (args: readonly string[]) => Effect.gen(function*() {
@@ -85,6 +86,7 @@ const checkMapSize = (out: string, imports: readonly ArchiveEntry[], bounded: bo
 export const build: Command = (args) => Effect.gen(function*() {
   const options = yield* profileOptions(args);
   const bounded = options.profile === "main";
+  const playable = options.profile === "playable";
   return yield* decodeBuildOptions(options.args).pipe(
     Effect.flatMap((options) => Effect.gen(function*() {
 
@@ -95,7 +97,8 @@ export const build: Command = (args) => Effect.gen(function*() {
       const imports = yield* importedAssets(assets ?? declared.assets, summon ?? declared.summon);
       const checked = yield* checkCueModels(headlessRender({ assets: assets ?? declared.assets, imports })).pipe(step("cue models resolved in both looks"));
       yield* Console.log(`${checked} cue model/look resolutions passed`);
-      return yield* MapBuild.use((maps) => maps.build({ ...map, base: base ?? declared.base, container: container ?? declared.container, ...(packager === undefined ? {} : { packager }), declaration: SMASHCRAFT_MAP, imports, objectData: generatedFiles() })).pipe(Effect.andThen(checkMapSize(map.out, imports, bounded)));
+      yield* MapBuild.use((maps) => maps.build({ ...map, base: base ?? declared.base, container: container ?? declared.container, ...(packager === undefined ? {} : { packager }), declaration: SMASHCRAFT_MAP, imports, objectData: generatedFiles() })).pipe(Effect.andThen(checkMapSize(map.out, imports, bounded)));
+      if (playable) yield* writePlaytestCost(map.out).pipe(step("predict playtest Lua cost"));
     })),
     Effect.provide(options.services),
   );
