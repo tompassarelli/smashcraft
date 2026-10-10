@@ -36,7 +36,7 @@ const cases: readonly (readonly [name: string, change: (seen: Observations) => v
   ["an earlier failure", (seen) => { seen.failures.push("slot 0: fewer than 500 injected edges"); }, {}, ["slot 0: fewer than 500 injected edges"]],
 ];
 
-test("verdict passes a capture only when every gate holds and nothing failed [invariant]", () => {
+test("verdict passes a capture only when every gate holds and nothing failed [k2 property]", () => {
   for (const [name, change, gates, failures = []] of cases) {
     const seen = clean();
     change(seen);
@@ -47,7 +47,7 @@ test("verdict passes a capture only when every gate holds and nothing failed [in
   }
 });
 
-test("verdict fails a capture whose rollback limit is not the commanded window, and leaves the observations untouched [invariant]", () => {
+test("verdict fails a capture whose rollback limit is not the commanded window, and leaves the observations untouched [k2 property]", () => {
   const seen = clean();
   expect(verdict(seen, METADATA, PAIR, [], 24).passed).toBe(true);
   const result = verdict(seen, METADATA, PAIR, [], 12);
