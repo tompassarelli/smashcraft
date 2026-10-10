@@ -80,6 +80,11 @@ This is a proposed expansion roster and implementation brief for Tom Passarelli�
 
 All move designs and numbers below are proposals, not existing implementation facts, copied Melee frame data, or a claim of proven balance. Preserve the existing Rifleman and Illidan. The current source tree was not inspected for this document; the implementation agent must map this specification onto the real project rather than assume module or animation names.
 
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 19-21, 17%; weak hit sourspot, frames 19-21, 11.9%. Wrath bursts at the staff's tip, so the druid kills at range.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 ## Scope and priorities
 
 “Shadow shaman” is interpreted as Warcraft III’s Shadow Hunter, with Rokhan as the character reference. If Tom intended a different character, preserve this design under Shadow Hunter rather than silently rename another hero. Forsaken Paladin uses the Paladin identity. The eight Tavern kits are historical candidates from the expansion brief; the five additions named above are the current plan.
@@ -179,6 +184,11 @@ Expert gameplan: Mix candle control, mobility and fast pick conversions with rec
 
 
 Build order is a recommendation, not permission to delete or overwrite ongoing work. Finish or checkpoint the current synchronization milestone before integrating new gameplay into that branch. A first overnight pass should finish one or two complete heroes and reusable move primitives; it should not report all fifteen finished because character-select entries exist.
+
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 14-16, 16%; weak hit sourspot, frames 14-16, 11.2%. The candle's flame at the end of the pick: you no take candle.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
 
 ## Shared combat contract
 
@@ -439,6 +449,11 @@ Basic gameplan: Poke with grounded tilts and use a neutral aerial on simple jump
 
 Expert gameplan: Time dash-dancing, sword confirms and aerial routes into the right finisher. Use the full authored kit and gameplan at the same CPU skill.
 
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 17-19, 18.1%; weak hit sourspot, frames 17-19, 14.3%. Critical Strike at the katana's tip: the duelist who spaces to the tip kills.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 
 ## Mountain King
 
@@ -527,6 +542,11 @@ Basic gameplan: Use safe axe pokes and a hammer throw, then return directly. Kee
 
 Expert gameplan: Mix hammer control, grabs, close confirms and charged kill windows. Use the full authored kit and gameplan at the same CPU skill.
 
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 20-22, 23.2%; weak hit sourspot, frames 20-22, 17.7%. The storm hammer's head carries the weight; the haft only shoves.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 
 ## Warden
 
@@ -612,6 +632,11 @@ basic-moves: forward-tilt,side-special,neutral-air
 Basic gameplan: Poke, throw a simple knife and use a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Cross up with blinks and vary knife pressure, drills and directional finishers. Use the full authored kit and gameplan at the same CPU skill.
+
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 15-17, 16%; weak hit sourspot, frames 15-17, 12%. The blade's far edge: a hunter who strikes at her reach.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
 
 
 ## Pandaren Brewmaster
@@ -764,6 +789,11 @@ Basic gameplan: Shoot the two frost tools and smash only close targets. Keep one
 
 Expert gameplan: Choose frost placement, shield pressure and ranged confirms for the opponent position. Use the full authored kit and gameplan at the same CPU skill.
 
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 18-20, 18%; weak hit sourspot, frames 18-20, 12.6%. Frost bursts at the staff's tip, so a caster who keeps distance kills at range.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 
 ## Forsaken Paladin
 
@@ -893,6 +923,11 @@ Basic gameplan: Approach with simple aerials and one rush. Keep one approach, us
 
 Expert gameplan: Mix sleep, grabs, cross-up rushes and conversion routes. Use the full authored kit and gameplan at the same CPU skill.
 
+### Signature strong/weak move (#389)
+
+Back air, split by timing: strong hit clean, frames 9-9, 13.6%; weak hit late, frames 10-12, 9.5%. The wing-claw rakes hardest the frame it opens; a vampire who reads the approach takes the clean strike, the rest lingers as a weak wall.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 
 ## Shadow Hunter
 
@@ -967,6 +1002,11 @@ basic-moves: forward-tilt,side-special,neutral-special
 Basic gameplan: Use a spear poke and the two simple ranged tools. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Time wards, healing and hex to control space and create a conversion. Use the full authored kit and gameplan at the same CPU skill.
+
+### Signature strong/weak move (#389)
+
+Forward tilt, split by position: strong hit sweetspot, frames 9-10, 11%; weak hit sourspot, frames 9-10, 7.7%. The spear's point: a trickster who pokes from outside reach.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
 
 
 ## Pit Lord
@@ -1444,6 +1484,11 @@ Basic gameplan: Use sword pokes and a simple ranged strike. Keep one approach, u
 
 Expert gameplan: Combine ground control, grabs and sword confirms into planned finishers. Use the full authored kit and gameplan at the same CPU skill.
 
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 22-25, 21%; weak hit sourspot, frames 22-25, 17%. Frostmourne's point: the king kills at the end of the blade.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 
 ## Original fighters
 
@@ -1864,6 +1909,11 @@ Stock campaign Grom model, textures, portrait, cries and Orc spell effects
 are the first inputs. Authored clips reshape that stock rig to make each
 contact point readable in Classic and Definitive; no third-party model.
 
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 18-21, 18%; weak hit sourspot, frames 18-21, 12.6%. Gorehowl bites with its blade; the haft only shoves.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 ## Anub'arak (#341)
 
 **Identity:** an ancient insect king who treats the stage as his crypt. He advances with a low, six-legged scuttle, skewers ankles with his tusks, disappears under the floor and erupts beneath prey. His carrion beetles do the undignified chasing for him. Heavy ground control and frightening eruptions cost slow turns, a broad body and committed recovery. No damage reflection, resource or hidden stat bonus.
@@ -1937,6 +1987,11 @@ basic-moves: forward-tilt,down-tilt,neutral-special
 Basic gameplan: Use claw pokes and simple impales. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Choose burrow approaches, beetle pressure and impale/grab conversion routes. Use the full authored kit and gameplan at the same CPU skill.
+
+### Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 20-23, 20%; weak hit sourspot, frames 20-23, 14%. The impaling claw's point.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
 
 
 ## Fighter identity audit (#148, Tom 9 Oct 2026)
@@ -2042,3 +2097,8 @@ basic-moves: neutral-special,forward-tilt,neutral-air
 Basic gameplan: Use staff pokes and a simple spell. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Choose and execute blink/raven movement, aerial routes and spell conversions. Use the full authored kit and gameplan at the same CPU skill.
+
+### Signature strong/weak move (#389)
+
+Neutral air, split by timing: strong hit clean, frames 8-9, 6%; weak hit late, frames 10-13, 4.2%. An arcane ring strongest as it forms, lingering as weak cover.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
