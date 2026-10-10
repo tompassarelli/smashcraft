@@ -52,7 +52,7 @@ export const DEFINITIVE_ACCENT_REDRAWS: { readonly [model: string]: string } = {
   "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx": "HD glaive with Popcorn trail",
   "Abilities\\Weapons\\Axe\\AxeMissile.mdx": "HD thrown axe",
   "Abilities\\Spells\\Undead\\FreezingBreath\\FreezingBreathMissile.mdx": "Popcorn frost breath",
-  "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx": "Popcorn flame",
+  "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx": "Popcorn flame breath",
   "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdx": "Popcorn fireball",
   "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": "Popcorn lightning orb",
   "Abilities\\Spells\\Other\\FrostDamage\\FrostDamage.mdx": "Popcorn frost burst",
