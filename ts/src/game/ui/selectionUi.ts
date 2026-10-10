@@ -65,7 +65,7 @@ import { Character, ItemKind, itemBit } from "../sim/codes";
 import { TILE_PORTRAIT_SLOT, cardPortrait, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
 import { type TutorialButton, type TutorialMenuFrames, createTutorialMenu, markTutorialSeen, showTutorialLesson, tutorialSeen } from "./tutorialMenu";
-import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft } from "./frames";
 
 
 export interface SelectionActions {
@@ -181,6 +181,7 @@ export class SelectionPanel {
 
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
+  private hovered: SelectionButton | undefined;
 
   private movesOpen = false;
   private movesCharacter: number = Character.rifleman;
@@ -494,21 +495,22 @@ export class SelectionPanel {
   }
 
 
-  private highlight(button: SelectionButton | undefined): void {
+  private highlight(button: SelectionButton | undefined, updateDrag = true): void {
+    this.hovered = button;
     const tile = button?.kind === "tile" ? button.tile : undefined;
     for (let slot = 0; slot < this.cards.length; slot++) {
       const card = this.cards[slot];
-      if (card !== undefined) BlzFrameSetTextColor(card.tag, button?.kind === "mode" && button.slot === slot ? -13312 : -1);
+      if (card !== undefined) highlightText(card.tag, button?.kind === "mode" && button.slot === slot);
     }
-    BlzFrameSetTextColor(this.confirm, button?.kind === "start" ? -13312 : -1);
+    highlightText(this.confirm, button?.kind === "start");
     for (const kind of ["Settings", "Moves"]) {
       const label = BlzGetFrameByName(`Melee${kind}Label${I2S(this.participantId)}`, 0);
-      BlzFrameSetTextColor(label, (kind === "Settings" && button?.kind === "settings") || (kind === "Moves" && button?.kind === "moves") ? -13312 : -1);
+      highlightText(label, (kind === "Settings" && button?.kind === "settings") || (kind === "Moves" && button?.kind === "moves"));
     }
-    this.drag.hover = tile;
+    if (updateDrag) this.drag.hover = tile;
     for (let index = 0; index < this.tiles.length; index++) {
       const name = this.tiles[index]?.[2];
-      if (name !== undefined) BlzFrameSetTextColor(name, index === tile ? -13312 : -1);
+      if (name !== undefined) highlightText(name, index === tile);
     }
   }
 
@@ -820,6 +822,8 @@ export class SelectionPanel {
     BlzFrameSetText(this.confirm, this.confirmText(game));
     this.showRules(game);
     this.showHelp(game, x, y);
+    this.clicks.refreshHover();
+    this.highlight(this.hovered, false);
   }
 
   private showHelp(game: Readonly<MatchState>, x: number, y: number): void {
