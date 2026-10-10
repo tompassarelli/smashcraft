@@ -1,4 +1,8 @@
+import { BunRuntime, BunServices } from "@effect/platform-bun";
+import { Effect, Schema } from "effect";
+import { ChildProcess } from "effect/process";
 import { parseArgs } from "node:util";
+import { runProcess } from "./hostProcess";
 import { type FieldOptions, type MatchRecord, playCpuField } from "./cpuField";
 import { DROP_VARIANTS, type DropVariant, isDropVariant } from "./dropVariants";
 import { SELECTABLE_CHARACTERS, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
@@ -112,6 +116,25 @@ const OPTIONS = {
   rules: { type: "string" }, workers: { type: "string" }, shard: { type: "string" },
 } as const;
 
+class CampingFailure extends Schema.TaggedError<CampingFailure>()("CampingFailure", { problem: Schema.String }) {
+  override get message(): string {
+    return this.problem;
+  }
+}
+
+const playShards = (rules: readonly CampingRule[], values: Record<string, string | undefined>) => Effect.gen(function*() {
+  const workers = Math.min(4, Number(values.workers ?? 4));
+  const passed = Object.entries(values).flatMap(([name, value]) => name === "workers" || value === undefined ? [] : [`--${name}`, String(value)]);
+  const started = performance.now();
+  const shards = yield* Effect.forEach(Array.from({ length: workers }, (_, index) => index), index => Effect.gen(function*() {
+    const text = yield* runProcess(ChildProcess.make("bun", [import.meta.path, ...passed, "--shard", `${index}/${workers}`]));
+    const parsed: unknown = yield* Effect.try({ try: () => JSON.parse(text), catch: cause => new CampingFailure({ problem: `shard ${index}: ${String(cause)}` }) });
+    if (!isShardOutput(parsed)) return yield* new CampingFailure({ problem: `shard ${index} printed no camping matches` });
+    return parsed;
+  }), { concurrency: "unbounded" });
+  return { workers, started, shards };
+});
+
 if (import.meta.main) {
   const { values } = parseArgs({ options: OPTIONS });
   const rules = (values.rules?.split(",") ?? [...CAMPING_RULES]).map(rule => {
@@ -132,31 +155,22 @@ if (import.meta.main) {
     for (const rule of rules) out[rule] = playCpuField({ ...base, ...ruleOptions(rule) }).map(compact);
     process.stdout.write(JSON.stringify(out));
   } else {
-    const workers = Math.min(4, Number(values.workers ?? 4));
-    const passed = Object.entries(values).flatMap(([name, value]) => name === "workers" || value === undefined ? [] : [`--${name}`, String(value)]);
-    const started = performance.now();
-    const shards = await Promise.all(Array.from({ length: workers }, async (_, index) => {
-      const child = Bun.spawn(["bun", import.meta.path, ...passed, "--shard", `${index}/${workers}`], { stdout: "pipe", stderr: "inherit" });
-      const text = await new Response(child.stdout).text();
-      if (await child.exited !== 0) throw new Error(`shard ${index} failed`);
-      const parsed: unknown = JSON.parse(text);
-      if (!isShardOutput(parsed)) throw new Error(`shard ${index} printed no camping matches`);
-      return parsed;
-    }));
-    const by = Object.fromEntries(rules.map(rule => [rule, shards.flatMap(shard => shard[rule] ?? [])]));
-    const pct = (n: number) => `${(100 * n).toFixed(1)}%`;
-    const pp = (n: number) => `${n >= 0 ? "+" : ""}${(100 * n).toFixed(1)}`;
-    const off = by.off;
-    console.log(`camping field: ${by[rules[0] ?? "off"]?.length ?? 0} matches per rule (every pair of ${values.fighters?.split(",").length ?? SELECTABLE_CHARACTERS.length} fighters, both sides, stages ${values.stages ?? "frozen-throne,hellfire"}, ${values.seeds ?? 1} seed(s), ${values.tier ?? "expert"} vs ${values.tier ?? "expert"}, ${values.minutes ?? 4} min), ${workers} workers, ${((performance.now() - started) / 1000).toFixed(0)} s`);
-    console.log("| rule | apart | Δ apart vs off (95% CI) | win spread (SD) | Δ spread vs off (95% CI) | win range | camping | drops/match |");
-    console.log("|---|---|---|---|---|---|---|---|");
-    for (const rule of rules) {
-      const matches = by[rule] ?? [];
-      const summary = summarizeCamping(matches);
-      const ci = off === undefined || rule === "off" ? undefined : pairedIntervals(off, matches);
-      const delta = (now: number, before: number, interval: readonly [number, number] | undefined) => interval === undefined ? "—" : `${pp(now - before)} pp [${pp(interval[0])}, ${pp(interval[1])}]`;
-      const before = off === undefined ? undefined : summarizeCamping(off);
-      console.log(`| ${rule} | ${pct(summary.apartShare)} | ${delta(summary.apartShare, before?.apartShare ?? 0, ci?.apart)} | ${(100 * summary.winSpread).toFixed(1)} pp | ${delta(summary.winSpread, before?.winSpread ?? 0, ci?.spread)} | ${pct(summary.winRange[0])}–${pct(summary.winRange[1])} | ${pct(summary.campShare)} | ${summary.dropsPerMatch.toFixed(1)} |`);
-    }
+    BunRuntime.runMain(playShards(rules, values).pipe(Effect.map(({ workers, started, shards }) => {
+      const by = Object.fromEntries(rules.map(rule => [rule, shards.flatMap(shard => shard[rule] ?? [])]));
+      const pct = (n: number) => `${(100 * n).toFixed(1)}%`;
+      const pp = (n: number) => `${n >= 0 ? "+" : ""}${(100 * n).toFixed(1)}`;
+      const off = by.off;
+      console.log(`camping field: ${by[rules[0] ?? "off"]?.length ?? 0} matches per rule (every pair of ${values.fighters?.split(",").length ?? SELECTABLE_CHARACTERS.length} fighters, both sides, stages ${values.stages ?? "frozen-throne,hellfire"}, ${values.seeds ?? 1} seed(s), ${values.tier ?? "expert"} vs ${values.tier ?? "expert"}, ${values.minutes ?? 4} min), ${workers} workers, ${((performance.now() - started) / 1000).toFixed(0)} s`);
+      console.log("| rule | apart | Δ apart vs off (95% CI) | win spread (SD) | Δ spread vs off (95% CI) | win range | camping | drops/match |");
+      console.log("|---|---|---|---|---|---|---|---|");
+      for (const rule of rules) {
+        const matches = by[rule] ?? [];
+        const summary = summarizeCamping(matches);
+        const ci = off === undefined || rule === "off" ? undefined : pairedIntervals(off, matches);
+        const delta = (now: number, before: number, interval: readonly [number, number] | undefined) => interval === undefined ? "—" : `${pp(now - before)} pp [${pp(interval[0])}, ${pp(interval[1])}]`;
+        const before = off === undefined ? undefined : summarizeCamping(off);
+        console.log(`| ${rule} | ${pct(summary.apartShare)} | ${delta(summary.apartShare, before?.apartShare ?? 0, ci?.apart)} | ${(100 * summary.winSpread).toFixed(1)} pp | ${delta(summary.winSpread, before?.winSpread ?? 0, ci?.spread)} | ${pct(summary.winRange[0])}–${pct(summary.winRange[1])} | ${pct(summary.campShare)} | ${summary.dropsPerMatch.toFixed(1)} |`);
+      }
+    }), Effect.provide(BunServices.layer)));
   }
 }
