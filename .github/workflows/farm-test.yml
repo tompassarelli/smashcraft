@@ -13,6 +13,9 @@ on:
       tag:
         description: Names the run so `bun wisp farm test` can find the one it dispatched
         default: ""
+      farm-runner:
+        description: Runner label for the even shard jobs in place of the FARM_RUNNER variable (measures a box before enabling it)
+        default: ""
   # Autoland (autoland.yml) runs the suites for a rebased branch inside its own run.
   workflow_call:
     inputs:
@@ -46,6 +49,9 @@ jobs:
       sha: ${{ steps.plan.outputs.sha }}
       bun: ${{ steps.plan.outputs.bun }}
       lua: ${{ steps.plan.outputs.lua }}
+      bun-runners: ${{ steps.plan.outputs.bun-runners }}
+      lua-runners: ${{ steps.plan.outputs.lua-runners }}
+      lua-parallel: ${{ steps.plan.outputs.lua-parallel }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,7 +74,11 @@ jobs:
       # Check jobs record their time as Lua rows; they run on their own runners, so no shard plans them.
       - id: plan
         working-directory: ts
+        env:
+          FARM: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && (inputs.farm-runner || vars.FARM_RUNNER) || '' }}
         run: |
+          # Even shard jobs go to FARM_RUNNER when it is set, odd ones to hosted runners, so both pools run at once.
+          pool() { jq -c -n --arg farm "$FARM" "[range($1) | if \$farm != \"\" and . % 2 == 0 then \$farm else \"ubuntu-latest\" end]"; }
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           if [ -f farm-timings.json ]; then
             jq '.lua |= with_entries(select(.key | (startswith("check: ") or startswith("parity corpus: ") or . == "stack-trace profile TypeScript frames") | not))' farm-timings.json > plan-timings.json
@@ -76,6 +86,9 @@ jobs:
           bun node_modules/wisp/scripts/wisp/farmShards.ts plan --timings plan-timings.json --bun "$BUN_SHARDS" --lua $((LUA_JOBS * LUA_PER_JOB)) $(bun scripts/test.ts --units) > plan.json
           echo "bun=$(jq -c '[range(.bun | length)]' plan.json)" >> "$GITHUB_OUTPUT"
           echo "lua=$(jq -c "[range($LUA_JOBS)]" -n)" >> "$GITHUB_OUTPUT"
+          echo "bun-runners=$(pool "$(jq '.bun | length' plan.json)")" >> "$GITHUB_OUTPUT"
+          echo "lua-runners=$(pool "$LUA_JOBS")" >> "$GITHUB_OUTPUT"
+          echo "lua-parallel=$([ -n "$FARM" ] && echo "$LUA_JOBS" || echo 5)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: farm-test-plan
@@ -84,7 +97,7 @@ jobs:
 
   bun:
     needs: plan
-    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ fromJSON(needs.plan.outputs.bun-runners)[matrix.shard] }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -95,9 +108,24 @@ jobs:
       - name: Install stock texture converter
         if: runner.environment == 'github-hosted'
         run: sudo apt-get update -q && sudo apt-get install -y -q imagemagick
-      - uses: actions/checkout@v4
+      - if: runner.environment == 'github-hosted'
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.sha }}
+      # The farm box keeps a mirror of the repository (/srv/farm-mirror, refreshed each minute): fetch only what it lacks.
+      - if: runner.environment == 'self-hosted'
+        name: Check out from the farm box's mirror
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          [ ! -f .git/shallow ] || rm -rf .git
+          git init -q .
+          git remote get-url origin >/dev/null 2>&1 || git remote add origin "https://github.com/$GITHUB_REPOSITORY"
+          mirror="/srv/farm-mirror/${GITHUB_REPOSITORY#*/}.git/objects"
+          if [ -d "$mirror" ]; then echo "$mirror" > .git/objects/info/alternates; fi
+          git -c gc.auto=0 fetch -q --no-tags origin "$SHA"
+          git checkout -q --force --detach "$SHA"
+          git clean -q -ffdx
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
@@ -140,18 +168,33 @@ jobs:
 
   lua:
     needs: plan
-    runs-on: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && vars.FARM_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ fromJSON(needs.plan.outputs.lua-runners)[matrix.job] }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: ${{ fromJSON(needs.plan.outputs.lua-parallel) }}
       matrix:
         job: ${{ fromJSON(needs.plan.outputs.lua) }}
     name: lua32 ${{ matrix.job }}
     steps:
-      - uses: actions/checkout@v4
+      - if: runner.environment == 'github-hosted'
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.sha }}
+      # The farm box keeps a mirror of the repository (/srv/farm-mirror, refreshed each minute): fetch only what it lacks.
+      - if: runner.environment == 'self-hosted'
+        name: Check out from the farm box's mirror
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          [ ! -f .git/shallow ] || rm -rf .git
+          git init -q .
+          git remote get-url origin >/dev/null 2>&1 || git remote add origin "https://github.com/$GITHUB_REPOSITORY"
+          mirror="/srv/farm-mirror/${GITHUB_REPOSITORY#*/}.git/objects"
+          if [ -d "$mirror" ]; then echo "$mirror" > .git/objects/info/alternates; fi
+          git -c gc.auto=0 fetch -q --no-tags origin "$SHA"
+          git checkout -q --force --detach "$SHA"
+          git clean -q -ffdx
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13

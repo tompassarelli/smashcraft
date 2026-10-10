@@ -119,9 +119,24 @@ jobs:
       matrix:
         pairs: ${{ fromJSON(needs.plan.outputs.shards) }}
     steps:
-      - uses: actions/checkout@v4
+      - if: runner.environment == 'github-hosted'
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.sha }}
+      # The farm box keeps a mirror of the repository (/srv/farm-mirror, refreshed each minute): fetch only what it lacks.
+      - if: runner.environment == 'self-hosted'
+        name: Check out from the farm box's mirror
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          [ ! -f .git/shallow ] || rm -rf .git
+          git init -q .
+          git remote get-url origin >/dev/null 2>&1 || git remote add origin "https://github.com/$GITHUB_REPOSITORY"
+          mirror="/srv/farm-mirror/${GITHUB_REPOSITORY#*/}.git/objects"
+          if [ -d "$mirror" ]; then echo "$mirror" > .git/objects/info/alternates; fi
+          git -c gc.auto=0 fetch -q --no-tags origin "$SHA"
+          git checkout -q --force --detach "$SHA"
+          git clean -q -ffdx
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
@@ -208,9 +223,24 @@ jobs:
       matrix:
         fighters: ${{ fromJSON(needs.plan.outputs.probes) }}
     steps:
-      - uses: actions/checkout@v4
+      - if: runner.environment == 'github-hosted'
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.sha }}
+      # The farm box keeps a mirror of the repository (/srv/farm-mirror, refreshed each minute): fetch only what it lacks.
+      - if: runner.environment == 'self-hosted'
+        name: Check out from the farm box's mirror
+        env:
+          SHA: ${{ needs.plan.outputs.sha }}
+        run: |
+          [ ! -f .git/shallow ] || rm -rf .git
+          git init -q .
+          git remote get-url origin >/dev/null 2>&1 || git remote add origin "https://github.com/$GITHUB_REPOSITORY"
+          mirror="/srv/farm-mirror/${GITHUB_REPOSITORY#*/}.git/objects"
+          if [ -d "$mirror" ]; then echo "$mirror" > .git/objects/info/alternates; fi
+          git -c gc.auto=0 fetch -q --no-tags origin "$SHA"
+          git checkout -q --force --detach "$SHA"
+          git clean -q -ffdx
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
