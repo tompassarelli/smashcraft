@@ -63,7 +63,7 @@ export const NAXXRAMAS_SCENERY: StageScenery = {
 
 export const HELLFIRE_SCENERY: StageScenery = {
   sky: STAGE_SKY_MODELS[14] ?? "",
-  fog: { start: 3300.0, end: 16000.0, red: 0.375, green: 0.25, blue: 0.21875 },
+  fog: { start: 3300.0, end: 16000.0, red: 0.3125, green: 0.203125, blue: 0.171875 },
   floor: { model: STAGE_SEA_MODEL, z: -1300.0, color: [88, 36, 28] },
   pieces: [
     { model: "buildings\\demon\\DemonGate\\DemonGate.mdx", x: -1850.0, y: 4500.0, z: -50.0, scale: 1.5, yaw: 280.0 },

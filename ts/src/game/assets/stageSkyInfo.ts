@@ -6,9 +6,9 @@ export const STAGE_SKY_MODELS: Readonly<Record<number, string>> = {
   11: "war3mapImported\\StageSky-c3a88e4c3b121d131d7676b51cf3276b50ce2653997f33010a0a1b55c1d7bed5.mdx",
   3: "war3mapImported\\StageSky-2f2c893f3ceed80677bba9a312d64e0808a7b02e969bd4312f3261f222daefc9.mdx",
   4: "war3mapImported\\StageSky-034c18bba1141796f0cc0cf846d478fbc91623c2d7cc5e667c479a188024a101.mdx",
-  14: "war3mapImported\\StageSky-4fdca07a9d6155b871fb5704458be5ce29dc8bce50a980c85439e651a6093a3a.mdx",
+  14: "war3mapImported\\StageSky-182468882190bc893996147c418aec342bf5f0fa1a9b2c823edef4c271e5e3e2.mdx",
   12: "war3mapImported\\StageSky-56040f98ef724d03bf2acfa7cfa864123d9d7fbfb27476865853631f56ab4fda.mdx",
-  6: "war3mapImported\\StageSky-a5561c63547e7c780d8fdf773cb39eb49c4b2e1ed6b70250c4c708ff76b52449.mdx",
+  6: "war3mapImported\\StageSky-2f85251a53b3f8c5cba65643ed19cfc85ae7f166aa346684168ecc016933b883.mdx",
   7: "war3mapImported\\StageSky-4144d99e4c338deba06dd135d6272f006bb35a5c0c6f51fc75de1691be1f5e09.mdx",
   13: "war3mapImported\\StageSky-6b2f702b854f591c521b318bae0c60eb6020f2218b9790cdb33b8b2b9d197574.mdx",
 };
