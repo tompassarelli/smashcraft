@@ -50,19 +50,18 @@ interface Pose { hand: V; tip: V; lean: number; twist: number; knee: number; off
 const pose = (hand: V, tip: V, lean = 0, twist = 0, knee = 12, offhand = 25, legSplit=0): Pose => ({hand, tip, lean, twist, knee, offhand, legSplit});
 const guard = pose([26,-25,100],[100,-25,145]);
 const coil = pose([-16,-25,135],[-65,-20,180],-12,-20,24,35);
-const lowCoil = pose([-22,-24,65],[-85,-24,95],16,-24,40,45);
 const gestures = [
-  {key:"jab",name:"Jab Quick Cut",style:AttackStyle.jab,prep:pose([10,-26,120],[-45,-25,170],-5,-12),hit:pose([46,-24,76],[128,-24,65],8,8,16),exit:pose([42,-25,64],[65,-24,12],12,16)},
+  {key:"jab",name:"Jab Quick Cut",style:AttackStyle.jab,prep:pose([10,-50,120],[-45,-50,170],-5,-12),hit:pose([46,-24,76],[128,-24,65],8,8,16),exit:pose([42,-25,64],[65,-24,12],12,16)},
   {key:"jab2",name:"Jab Returning Cut",style:AttackStyle.jab2,prep:pose([30,-24,58],[78,-24,8],14,18),hit:pose([48,-24,74],[135,-24,91],3,-12,20),exit:pose([15,-25,126],[-40,-24,160],-4,-20)},
   {key:"forwardTilt",name:"Tilt Level Cut",style:AttackStyle.forwardTilt,prep:coil,hit:pose([50,-24,86],[145,-24,85],12,12,20),exit:pose([45,-25,62],[85,-25,5],18,25,28)},
-  {key:"forwardTiltUp",name:"Tilt Rising Cut",style:AttackStyle.forwardTiltUp,prep:pose([-12,-25,72],[-60,-25,20],15,-18,26),hit:pose([40,-24,115],[115,-24,182],-8,14,14),exit:pose([5,-25,140],[-55,-25,204],-12,24)},
-  {key:"forwardTiltDown",name:"Tilt Falling Cut",style:AttackStyle.forwardTiltDown,prep:pose([6,-24,132],[-40,-24,206],-12,-18),hit:pose([48,-24,60],[132,-24,18],20,10,34),exit:pose([25,-25,46],[42,-25,-15],28,22,38)},
+  {key:"forwardTiltUp",name:"Tilt Rising Cut",style:AttackStyle.forwardTiltUp,prep:pose([-12,-50,72],[-60,-50,20],15,-18,26),hit:pose([40,-24,115],[115,-24,182],-8,14,14),exit:pose([30,-50,115],[-15,-50,235],-12,24)},
+  {key:"forwardTiltDown",name:"Tilt Falling Cut",style:AttackStyle.forwardTiltDown,prep:pose([6,-24,132],[-40,-24,206],-12,-18),hit:pose([48,-24,60],[132,-24,18],20,10,34),exit:pose([25,-50,46],[42,-50,-15],28,22,38)},
   {key:"upTilt",name:"Tilt Overhead Arc",style:AttackStyle.upTilt,prep:pose([32,-25,72],[100,-25,22],10,-15),hit:pose([12,-25,143],[25,-25,236],-10,8,14),exit:pose([-32,-25,124],[-114,-25,154],-7,20)},
-  {key:"downTilt",name:"Tilt Low Poke",style:AttackStyle.downTilt,prep:lowCoil,hit:pose([48,-24,43],[145,-24,20],27,8,44,55),exit:pose([42,-24,40],[136,-24,8],24,12,40)},
+  {key:"downTilt",name:"Tilt Low Poke",style:AttackStyle.downTilt,prep:pose([-22,-50,65],[-85,-50,95],16,-24,40,45),hit:pose([48,-50,43],[145,-50,20],27,8,44,55),exit:pose([42,-50,40],[136,-50,8],24,12,40)},
   {key:"dashAttack",name:"Dash Lunging Cut",style:AttackStyle.dashAttack,prep:pose([-8,-25,104],[-75,-25,147],6,-28,28),hit:pose([61,-24,80],[155,-24,58],28,18,34,65),exit:pose([52,-24,56],[116,-24,-8],30,30,40)},
   {key:"forwardSmash",name:"Smash Shoulder Cleave",style:AttackStyle.forwardSmash,prep:pose([-25,-24,139],[-65,-24,220],-20,-32,36,60),hit:pose([52,-24,112],[150,-24,50],35,35,50,80),exit:pose([44,-24,48],[96,-24,-20],32,40,42)},
   {key:"upSmash",name:"Smash Sky Splitter",style:AttackStyle.upSmash,prep:pose([-8,-24,58],[-62,-24,0],24,-20,48,50),hit:pose([12,-24,150],[12,-24,252],-16,10,10,65),exit:pose([-25,-24,143],[-88,-24,214],-10,22,18)},
-  {key:"downSmash",name:"Smash Front Rear Sweep",style:AttackStyle.downSmash,prep:lowCoil,hit:pose([50,-24,40],[146,-24,12],18,35,72,90),exit:pose([-48,-24,39],[-146,-24,8],23,-35,65,70),second:16},
+  {key:"downSmash",name:"Smash Front Rear Sweep",style:AttackStyle.downSmash,prep:pose([-22,-50,65],[-85,-50,95],16,-24,40,45),hit:pose([50,-50,40],[146,-50,12],18,35,72,90),exit:pose([-48,-50,39],[-146,-50,8],23,-35,65,70),second:16},
   {key:"neutralAir",name:"Air Crescent Slash",style:AttackStyle.neutralAir,prep:pose([-15,-24,121],[-70,-24,172],-9,-18,48,50),hit:pose([48,-24,99],[140,-24,117],4,12,38,55),exit:pose([-40,-24,96],[-130,-24,121],-5,-25,54,65),second:12},
   {key:"forwardAir",name:"Air Forward Cleave",style:AttackStyle.forwardAir,prep:pose([-5,-24,144],[-45,-24,225],-15,-22,55,50),hit:pose([52,-24,95],[140,-24,49],16,18,40,60),exit:pose([43,-24,52],[90,-24,-25],22,30,64,65)},
   {key:"backAir",name:"Air Turning Back Cut",style:AttackStyle.backAir,prep:pose([26,-24,130],[95,-24,192],-10,20,52,45),hit:pose([-42,-24,100],[-138,-24,83],-12,-55,44,65),exit:pose([-40,-24,112],[-115,-24,174],-6,-65,62,60)},
@@ -106,8 +105,8 @@ for(const g of gestures){
   const start=existing?.Interval[0]??cursor,end=existing?.Interval[1]??start+Math.round(total*1000/60),index=model.Sequences.length;cursor=end+100;
   ensure(existing === undefined || shipped.Sequences.indexOf(existing) === index, "gesture index changed");
   model.Sequences.push({...stand,Name:`Sword Gesture ${g.name}`,Interval:new Uint32Array([start,end]),NonLooping:true,MoveSpeed:0,Rarity:0,MinimumExtent:new Float32Array([-300,-300,-200]),MaximumExtent:new Float32Array([300,300,350]),BoundsRadius:400});
-  const controlFrames=g.style===AttackStyle.upTilt ? [0,first-3,first,first+1,first+2,first+3,last,last+2,total-4,total] : [0,Math.max(1,first-3),first,("second" in g?g.second:last+2),total];
-  const poses=g.style===AttackStyle.upTilt ? [guard,pose([40,-50,120],[165,-50,120],8,-15),pose([40,-50,120],[165,-50,120],8,-10),pose([28,-50,140],[108,-50,242],-6,-4),pose([0,-50,150],[-22,-50,275],-10,0),pose([-28,-50,140],[-131,-50,212],-6,4),pose([-40,-50,120],[-165,-50,120],4,10),pose([0,-50,145],[0,-50,270],-6,14),pose([30,-50,115],[-15,-50,235],0,4),guard] : [guard,g.prep,g.hit,g.exit,guard];
+  const controlFrames=g.style===AttackStyle.upTilt ? [0,first-3,first,first+1,first+2,first+3,last,last+2,total-4,total] : g.style===AttackStyle.forwardTiltUp ? [0,Math.max(1,first-3),first,last+2,total-4,total] : [0,Math.max(1,first-3),first,("second" in g?g.second:last+2),total];
+  const poses=g.style===AttackStyle.upTilt ? [guard,pose([40,-50,120],[165,-50,120],8,-15),pose([40,-50,120],[165,-50,120],8,-10),pose([28,-50,140],[108,-50,242],-6,-4),pose([0,-50,150],[-22,-50,275],-10,0),pose([-28,-50,140],[-131,-50,212],-6,4),pose([-40,-50,120],[-165,-50,120],4,10),pose([0,-50,145],[0,-50,270],-6,14),pose([30,-50,115],[-15,-50,235],0,4),guard] : g.style===AttackStyle.forwardTiltUp ? [guard,g.prep,g.hit,pose([0,-50,145],[0,-50,270],-6,14),pose([30,-50,115],[-15,-50,235],0,4),guard] : [guard,g.prep,g.hit,g.exit,guard];
   const rotations=new Map<number,Float32Array[]>();
   for(let phase=0;phase<poses.length;phase++){
     const p=poses[phase]!;
