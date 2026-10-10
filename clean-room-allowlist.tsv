@@ -7,3 +7,15 @@ tools/selection/art/SmashcraftHUD.toc	generated	bun scripts/wisp/uiFrames.ts (fr
 tools/selection/art/CueGraphics.fdf	original	Authored local graphics-mode string for Classic spell cue timing (#144).
 tools/selection/art/CueGraphics.toc	original	Authored loader for the local graphics-mode string (#144).
 tools/selection/art/CueGraphicsDE.fdf	original	Authored Definitive override of the local graphics-mode string (#144).
+evidence/ui450/character-select-after.png	generated	Wisp Classic headless render for #450, frame 30, after UI cleanup; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/character-select-before.png	generated	Wisp Classic headless render for #450, frame 30, reviewed #439 preview base; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/hud-after.png	generated	Wisp Classic headless render for #450, frame 350, after UI cleanup; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/hud-before.png	generated	Wisp Classic headless render for #450, frame 350, reviewed #439 preview base; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/pause-after.png	generated	Wisp Classic headless render for #450, frame 450, after UI cleanup; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/pause-before.png	generated	Wisp Classic headless render for #450, frame 450, reviewed #439 preview base; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/results-after.png	generated	Wisp Classic headless render for #450, frame 1800, after UI cleanup; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/results-before.png	generated	Wisp Classic headless render for #450, frame 1800, reviewed #439 preview base; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/stage-select-after.png	generated	Wisp Classic headless render for #450, frame 100, after UI cleanup; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/stage-select-before.png	generated	Wisp Classic headless render for #450, frame 100, reviewed #439 preview base; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/title-after.png	generated	Wisp Classic headless render for #450, frame 600, after UI cleanup; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
+evidence/ui450/title-before.png	generated	Wisp Classic headless render for #450, frame 600, reviewed #439 preview base; displays stock Warcraft art; authorized issue evidence, not original art or an extracted asset.
