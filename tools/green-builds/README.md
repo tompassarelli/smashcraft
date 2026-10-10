@@ -2,7 +2,8 @@
 
 `smashcraft-green-builds.timer` runs `smashcraft-green-builds.service` every ten
 minutes on Tom's machine; the service runs `bun wisp play --install-green` from
-the main checkout (docs/commands/play.md). These files are not installed by the
+its own detached worktree, `worktrees/green-builds-runner`, moved to
+`origin/main` before each run (docs/commands/play.md). These files are not installed by the
 repository.
 
 To install them:

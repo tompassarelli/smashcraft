@@ -40,7 +40,7 @@ const reservation = (directory: string, revision: string) => join(directory, `${
 
 export function playVersion(directory: string, library: string, revision: string): string {
   const parse = (text: string) => {
-    const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(text.trim());
+    const match = /^(0)\.(0)\.(\d+)$/.exec(text.trim());
     return match === null ? [] : [[Number(match[1]), Number(match[2]), Number(match[3])] as const];
   };
   const numbered = (folder: string): (readonly [number, number, number])[] => {
@@ -67,7 +67,7 @@ const reserveVersion = (library: string, revision: string) => withLock(join(lock
   tryPlay(() => {
     const version = playVersion(builds, library, revision);
     const path = reservation(builds, revision);
-    if (!existsSync(path)) {
+    if (!existsSync(path) || readFileSync(path, "utf8").trim() !== version) {
       mkdirSync(builds, { recursive: true });
       writeFileSync(`${path}.${process.pid}.next`, `${version}\n`);
       renameSync(`${path}.${process.pid}.next`, path);
