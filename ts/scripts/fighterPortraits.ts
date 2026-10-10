@@ -280,6 +280,7 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     "Anub'arak": { flipped: true },
     Lich: { zoom: 1.2 },
     JainaProudmoore: { zoom: 1.2 },
+    MalfurionStormrage: { zoom: 2.2, shift: [0, 0.5] },
     Murloc: { rest: true, body: true, zoom: 0.7, shift: [0.3, 1.6], bones: { bone_head: [0, -20, 0] } },
   },
 };
