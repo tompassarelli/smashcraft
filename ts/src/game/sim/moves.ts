@@ -44,7 +44,7 @@ export const RIFLEMAN_BLASTER_AIR_SHOT_FRAME = 14;
 export const RIFLEMAN_BLASTER_AIR_FRAMES = 40;
 export const RIFLEMAN_BLASTER_LANDING_LAG = 8;
 /** A grounded shot deals 4 to an aerial shot's 3; f32(4/3) * 3 rounds to exactly 4. */
-export const RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER = 1.3333333730697632;
+export const RIFLEMAN_BLASTER_GROUND_DAMAGE_MULTIPLIER = 1.0;
 
 
 

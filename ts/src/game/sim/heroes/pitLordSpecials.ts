@@ -21,7 +21,7 @@ const meteor = (spawnFrame: number, offset: number): SpecialProjectile => ({
   spawnFrame, offsetX: h(offset), offsetZ: h(f32(2.8)),
   velocityX: 0.0, velocityZ: -h(f32(0.16)),
   life: 24, radius: h(f32(0.22)),
-  effect: hit(5.275000095367432, "POKE", 70, 1.0, HitElement.fire), reflectable: true, limit: 1,
+  effect: hit(6.013500213623047, "POKE", 70, 1.0, HitElement.fire), reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\DemolisherFireMissile\\DemolisherFireMissile.mdx",
 });
 
@@ -35,7 +35,7 @@ const rain = (air: boolean): AuthoredSpecial => ({
 
 
 
-const CHARGE = hit(15.824999809265137, "EDGE", 35, 1.0, HitElement.normal);
+const CHARGE = hit(18.04050064086914, "EDGE", 35, 1.0, HitElement.normal);
 const CHARGE_BODY = capsule(10.0, 30.0, 40.0, 80.0, 40.0);
 const CHARGE_HURT = [hurtPose(16, 30, [hurtCapsule(Character.pitLord), hurtPart(10.0, 30.0, 40.0, 80.0, 40.0)])];
 const chargeMotion = (distance: number): readonly SpecialMotion[] => [
@@ -73,7 +73,7 @@ const leap = (rise: number, drift: number, steer: number): SpecialMotion[] => {
 const LEAP_HOOF = capsule(10.0, 0.0, 40.0, 40.0, 22.0);
 const abyssalLeap = (rise: number, drift: number, steer: number): AuthoredSpecial => ({
   endFrame: 32,
-  regions: [heroRegion(13, 18, LEAP_HOOF, hit(10.550000190734863, "LAUNCH", 80, 1.0, HitElement.normal))],
+  regions: [heroRegion(13, 18, LEAP_HOOF, hit(12.027000427246094, "LAUNCH", 80, 1.0, HitElement.normal))],
   motion: leap(rise, drift, steer),
   facesStick: true, oncePerAirtime: true, helpless: true,
 });
@@ -86,8 +86,8 @@ const HOWL_HEIGHT = h(f32(0.6));
 const howl = (air: boolean): AuthoredSpecial => ({
   endFrame: 46,
   regions: [
-    heroRegion(15, 18, capsule(0.0, HOWL_HEIGHT, f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(7.385000228881836, "POKE", 35, 1.0, HitElement.normal)),
-    heroRegion(15, 18, capsule(0.0, HOWL_HEIGHT, -f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(7.385000228881836, "POKE", 35, -1.0, HitElement.normal)),
+    heroRegion(15, 18, capsule(0.0, HOWL_HEIGHT, f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(8.418900489807129, "POKE", 35, 1.0, HitElement.normal)),
+    heroRegion(15, 18, capsule(0.0, HOWL_HEIGHT, -f32(HOWL_REACH - HOWL_RADIUS), HOWL_HEIGHT, HOWL_RADIUS), hit(8.418900489807129, "POKE", 35, -1.0, HitElement.normal)),
   ],
   landingLag: air ? AIR_SPECIAL_LANDING_LAG : undefined,
 });

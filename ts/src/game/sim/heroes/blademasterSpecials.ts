@@ -28,7 +28,7 @@ const windCutter: AuthoredSpecial = {
     velocityZ: 0.0,
     life: 24,
     radius: length(f32(0.16)),
-    effect: hit(5.323170185089111, "POKE", 35),
+    effect: hit(4.790853023529053, "POKE", 35),
     reflectable: true,
     limit: 1,
   }],
@@ -46,7 +46,7 @@ const walkMotion = [{ ...frames(8, 31), velocityX: WALK_SPEED, velocityZ: 0.0, s
 const WALK_BRANCHES = frames(10, 31);
 
 
-const backstab: AuthoredSpecial = { name: "Backstab", endFrame: 30, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(10.646340370178223, "EDGE", 40)) };
+const backstab: AuthoredSpecial = { name: "Backstab", endFrame: 30, hurt: [hurtPose(4, 12, LOW_CUT_ARM)], motion: [{ ...frames(1, 1), ...STOP }], regions: cut(6, [52.0, 45.0, 38.0], L, hit(9.581706047058105, "EDGE", 40)) };
 
 const stepOut: AuthoredSpecial = { name: "Step Out", endFrame: 8, motion: [{ ...frames(1, 1), ...STOP }] };
 
@@ -83,7 +83,7 @@ const risingBlade: AuthoredSpecial = {
     capsule(10.0, 55.0, 15.0, BLADE_TOP),
     capsule(5.0, 60.0, 5.0, BLADE_TOP),
     capsule(0.0, 60.0, 0.0, BLADE_TOP),
-  ], hit(7.984755039215088, "LAUNCH", 80)),
+  ], hit(7.186279296875, "LAUNCH", 80)),
   hurt: [hurtPose(7, 16, reach(18.0, 128.0))],
   oncePerAirtime: true,
   helpless: true,
@@ -115,7 +115,7 @@ const imageSwap: AuthoredSpecial = {
   endFrame: 30,
   hurt: [hurtPose(6, 14, LOW_CUT_ARM)],
   motion: [{ ...frames(6, 6), ...STOP, relocate: Relocation.placed }],
-  regions: cut(8, [52.0, 45.0, 38.0], L, hit(8.871950149536133, "EDGE", 40)),
+  regions: cut(8, [52.0, 45.0, 38.0], L, hit(7.984755039215088, "EDGE", 40)),
 };
 
 const inAir = (special: AuthoredSpecial): AuthoredSpecial => ({ ...special, landingLag: AIR_LANDING_LAG });

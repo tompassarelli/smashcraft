@@ -11,7 +11,7 @@ const AIR_SPECIAL_LANDING_LAG = 20;
 const axe = (spawnFrame: number, height: number): SpecialProjectile => ({
   spawnFrame, offsetX: h(f32(0.35)), offsetZ: h(height),
   velocityX: h(f32(0.12)), velocityZ: 0.0, life: 80, radius: h(f32(0.12)),
-  effect: hit(3.9644999504089355, "POKE", 40), returnEffect: hit(3.171599864959717, "LINK", 65),
+  effect: hit(3.4094698429107666, "POKE", 40), returnEffect: hit(2.7275757789611816, "LINK", 65),
   returns: { age: 24, speed: h(f32(0.15)) }, reflectable: true, limit: 1,
   model: "Abilities\\Weapons\\Axe\\AxeMissile.mdx",
 });
@@ -24,7 +24,7 @@ export const BEAR: SpecialCompanion = {
   followSpeed: h(f32(0.035)), followBehind: h(f32(0.8)), returnSpeed: h(f32(0.06)),
   lungeStartup: 10, lungeActive: 4, lungeRecovery: 30, lungeTravel: h(f32(1.2)),
   bite: capsule(15.0, 30.0, f32(h(f32(0.45)) - 20.0), 40.0, 20.0),
-  biteEffect: hit(9.514799118041992, "EDGE", 40, 1.0, HitElement.normal),
+  biteEffect: hit(8.182726860046387, "EDGE", 40, 1.0, HitElement.normal),
   stunFrames: 18, leash: h(6.0), leashFrames: 120,
 };
 export const BEAR_PLACEMENT: SpecialPlacement = {
@@ -34,7 +34,7 @@ export const BEAR_PLACEMENT: SpecialPlacement = {
 const stampede = (spawnFrame: number): SpecialProjectile => ({
   spawnFrame, offsetX: h(f32(0.4)), offsetZ: h(f32(0.15)),
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.15)),
-  effect: hit(3.171599864959717, "POKE", 25, 1.0, HitElement.normal), reflectable: false, limit: 1,
+  effect: hit(2.7275757789611816, "POKE", 25, 1.0, HitElement.normal), reflectable: false, limit: 1,
   model: "Abilities\\Spells\\Other\\Stampede\\StampedeMissile.mdx",
 });
 export const STAMPEDE = [stampede(12), stampede(20)];
@@ -43,7 +43,7 @@ const BEAR_COMMAND: AuthoredSpecial = { name: "Stampede", endFrame: 32, command:
 export const QUILL: SpecialProjectile = {
   spawnFrame: 0, offsetX: h(f32(0.25)), offsetZ: h(f32(0.3)),
   velocityX: h(f32(0.14)), velocityZ: 0.0, life: 24, radius: h(f32(0.09)),
-  effect: hit(2.378699779510498, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
+  effect: hit(2.0456817150115967, "LINK", 35, 1.0, HitElement.normal), reflectable: true, limit: 3,
   model: "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx",
 };
 const QUILBEAST: SpecialCompanion = {
@@ -60,7 +60,7 @@ const QUILL_VOLLEY: AuthoredSpecial = { name: "Quill Volley", endFrame: 24, face
 export const HAWK: SpecialCompanion = {
   ...BEAR, behavior: "flying", followSpeed: h(f32(0.07)), followBehind: -h(f32(0.6)), followHeight: h(f32(1.2)),
   lungeStartup: 8, lungeActive: 8, lungeRecovery: 28, lungeTravel: h(f32(1.5)), lungeDrop: h(f32(1.6)),
-  bite: capsule(-12.0, 10.0, 18.0, 25.0, 20.0), biteEffect: hit(4.757399559020996, "LAUNCH", 80, 1.0, HitElement.normal),
+  bite: capsule(-12.0, 10.0, 18.0, 25.0, 20.0), biteEffect: hit(4.091363430023193, "LAUNCH", 80, 1.0, HitElement.normal),
 };
 export const HAWK_PLACEMENT: SpecialPlacement = {
   slot: 2, frame: 12, offsetX: h(f32(0.6)), offsetZ: h(f32(1.2)), radius: 18.0, height: 45.0,

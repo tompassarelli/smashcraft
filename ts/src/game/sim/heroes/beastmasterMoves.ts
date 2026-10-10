@@ -16,15 +16,15 @@ const AXE_RADIUS = 9.0;
 
 
 export const hit = makeHit({
-  LINK: { growth: 65.93730163574219, base: 12.0 },
-  POKE: { growth: 89.91449737548828, base: 18.0 },
-  LAUNCH: { growth: 125.88029479980469, base: 20.0 },
-  EDGE: { growth: 131.87460327148438, base: 22.0 },
-  KILL: { growth: 143.86318969726562, base: 26.0 },
-  SPIKE: { growth: 119.88600158691406, base: 22.0 },
+  LINK: { growth: 71.01447296142578, base: 12.0 },
+  POKE: { growth: 96.8379135131836, base: 18.0 },
+  LAUNCH: { growth: 135.5730743408203, base: 20.0 },
+  EDGE: { growth: 142.02894592285156, base: 22.0 },
+  KILL: { growth: 154.94065856933594, base: 26.0 },
+  SPIKE: { growth: 129.11721801757812, base: 22.0 },
 
-  JUGGLE: { growth: 65.93730163574219, base: 50.0 },
-  CHASE: { growth: 47.95439910888672, base: 75.0 },
+  JUGGLE: { growth: 71.01447296142578, base: 50.0 },
+  CHASE: { growth: 51.646888732910156, base: 75.0 },
 }, HitElement.slash);
 
 
@@ -96,35 +96,35 @@ export const BEASTMASTER_MOVES: FighterMoves = {
     [AttackStyle.jab]: jabStep(heroMove(4, 2, 14, 0, path(4, [
       capsule(18.0, 58.0, f32(S - 9.0), 56.0, 9.0),
       capsule(18.0, 56.0, f32(S - 9.0), 52.0, 9.0),
-    ], hit(3.361895799636841, "LINK", 35, 1.0, HitElement.normal)))),
+    ], hit(2.891230344772339, "LINK", 35, 1.0, HitElement.normal)))),
 
     [AttackStyle.jab2]: jabStep(heroMove(4, 2, 14, 0, path(4, [
       capsule(18.0, 60.0, f32(S - 6.0), 58.0, 9.0),
       capsule(18.0, 58.0, f32(S - 6.0), 54.0, 9.0),
-    ], hit(2.5214216709136963, "LINK", 70, 1.0, HitElement.normal)))),
+    ], hit(2.1684226989746094, "LINK", 70, 1.0, HitElement.normal)))),
     [AttackStyle.jab3]: heroMove(6, 3, 19, 0, path(6, [
       capsule(10.0, 40.0, f32(S + 6.0), 50.0, 14.0),
       capsule(10.0, 40.0, f32(S + 8.0), 48.0, 14.0),
       capsule(10.0, 40.0, f32(S + 4.0), 46.0, 14.0),
-    ], hit(5.042843341827393, "POKE", 40, 1.0, HitElement.normal))),
+    ], hit(4.336845397949219, "POKE", 40, 1.0, HitElement.normal))),
 
-    [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, chop(10, [75.0, 50.0, 28.0], L, hit(9.245213508605957, "EDGE", 35))),
-    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(9.245213508605957, "EDGE", 50))),
-    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, chop(10, [10.0, -10.0, -30.0], L, hit(9.245213508605957, "EDGE", 20))),
+    [AttackStyle.forwardTilt]: heroMove(10, 3, 23, 0, chop(10, [75.0, 50.0, 28.0], L, hit(7.950883388519287, "EDGE", 35))),
+    [AttackStyle.forwardTiltUp]: heroMove(10, 3, 23, 0, chop(10, [115.0, 135.0, 150.0], L, hit(7.950883388519287, "EDGE", 50))),
+    [AttackStyle.forwardTiltDown]: heroMove(10, 3, 23, 0, chop(10, [10.0, -10.0, -30.0], L, hit(7.950883388519287, "EDGE", 20))),
 
     [AttackStyle.upTilt]: heroMove(9, 4, 23, 0, path(9, [
       capsule(25.0, 70.0, 55.0, 105.0),
       capsule(15.0, 80.0, 22.0, f32(M + 40.0)),
       capsule(0.0, 80.0, 0.0, f32(M + 45.0)),
       capsule(-15.0, 80.0, -28.0, f32(M + 35.0)),
-    ], hit(7.564265727996826, "LAUNCH", 85))),
+    ], hit(6.505268573760986, "LAUNCH", 85))),
 
 
     [AttackStyle.downTilt]: heroMove(8, 3, 22, 0, path(8, [
       capsule(20.0, 16.0, f32(M - AXE_RADIUS), 14.0),
       capsule(20.0, 12.0, f32(M - AXE_RADIUS), 8.0),
       capsule(20.0, 10.0, f32(M - AXE_RADIUS), 4.0),
-    ], { ...hit(5.883317470550537, "LINK", 80), growth: 0.0, base: 45.0 })),
+    ], { ...hit(5.059652805328369, "LINK", 80), growth: 0.0, base: 45.0 })),
 
 
     [AttackStyle.dashAttack]: heroMove(11, 5, 28, 0, path(11, [
@@ -133,9 +133,9 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(10.0, 54.0, f32(M - 22.0), 56.0, 22.0),
       capsule(10.0, 52.0, f32(M - 24.0), 54.0, 20.0),
       capsule(10.0, 50.0, f32(M - 26.0), 52.0, 18.0),
-    ], hit(10.085686683654785, "LAUNCH", 45, -1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
+    ], hit(8.673690795898438, "LAUNCH", 45, -1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
 
-    [AttackStyle.forwardSmash]: tipperMove(heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(16.809478759765625, "KILL", 40))), 0.25),
+    [AttackStyle.forwardSmash]: tipperMove(heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(14.456151962280273, "KILL", 40))), 0.25),
 
     [AttackStyle.upSmash]: heroMove(18, 5, 33, 0, path(18, [
       capsule(30.0, 80.0, 55.0, f32(L - 10.0)),
@@ -143,7 +143,7 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(0.0, 85.0, 0.0, f32(L + 25.0)),
       capsule(-15.0, 85.0, -22.0, f32(L + 20.0)),
       capsule(-30.0, 80.0, -55.0, f32(L - 10.0)),
-    ], hit(14.288056373596191, "KILL", 85))),
+    ], hit(12.287728309631348, "KILL", 85))),
 
     [AttackStyle.downSmash]: heroMove(17, 6, 22, 0, [
       ...path(17, [
@@ -163,35 +163,35 @@ export const BEASTMASTER_MOVES: FighterMoves = {
         capsule(20.0, 40.0, f32(M - AXE_RADIUS), 40.0),
         capsule(15.0, 60.0, 65.0, 95.0),
         capsule(0.0, 65.0, 0.0, f32(M + 20.0)),
-      ], hit(8.404739379882812, "POKE", 50)),
+      ], hit(7.228075981140137, "POKE", 50)),
       ...path(11, [
         capsule(-15.0, 60.0, -65.0, 95.0),
         capsule(-20.0, 40.0, -f32(M - AXE_RADIUS), 40.0),
         capsule(-15.0, 20.0, -60.0, 0.0),
-      ], hit(8.404739379882812, "POKE", 50, -1.0)),
+      ], hit(7.228075981140137, "POKE", 50, -1.0)),
     ]),
 
-    [AttackStyle.forwardAir]: heroMove(13, 4, 28, 18, chop(13, [110.0, 75.0, 40.0, 10.0], L, hit(11.766634941101074, "KILL", 40))),
+    [AttackStyle.forwardAir]: heroMove(13, 4, 28, 18, chop(13, [110.0, 75.0, 40.0, 10.0], L, hit(10.119305610656738, "KILL", 40))),
 
     [AttackStyle.backAir]: heroMove(9, 3, 24, 14, path(9, [
       capsule(-12.0, 28.0, -f32(M - 12.0), 30.0, 12.0),
       capsule(-12.0, 32.0, -f32(M - 12.0), 40.0, 12.0),
       capsule(-12.0, 34.0, -f32(M - 12.0), 50.0, 12.0),
-    ], hit(9.245213508605957, "EDGE", 35, -1.0, HitElement.normal))),
+    ], hit(7.950883388519287, "EDGE", 35, -1.0, HitElement.normal))),
 
     [AttackStyle.upAir]: heroMove(8, 4, 23, 14, path(8, [
       capsule(8.0, 80.0, 14.0, f32(M + 45.0)),
       capsule(0.0, 80.0, 0.0, f32(M + 50.0)),
       capsule(-8.0, 80.0, -14.0, f32(M + 45.0)),
       capsule(-12.0, 75.0, -30.0, f32(M + 30.0)),
-    ], hit(7.564265727996826, "LAUNCH", 85))),
+    ], hit(6.505268573760986, "LAUNCH", 85))),
 
     [AttackStyle.downAir]: heroMove(16, 4, 32, 22, path(16, [
       capsule(10.0, 10.0, 20.0, -f32(M - 30.0)),
       capsule(5.0, 10.0, 10.0, -f32(M - 25.0)),
       capsule(0.0, 10.0, 0.0, -f32(M - 25.0)),
       capsule(-5.0, 10.0, -10.0, -f32(M - 30.0)),
-    ], hit(10.926161766052246, "SPIKE", 270), hit(10.926161766052246, "SPIKE", 55))),
+    ], hit(9.396498680114746, "SPIKE", 270), hit(9.396498680114746, "SPIKE", 55))),
     [AttackStyle.grab]: heroMove(8, 2, 25, 0, [heroRegion(8, 9,
       capsule(18.0, 52.0, f32(f32(HERO_REFERENCE_HEIGHT * f32(0.60)) - 10.0), 50.0, 10.0),
       { damage: 0.0, ...NO_LAUNCH })]),
@@ -199,9 +199,9 @@ export const BEASTMASTER_MOVES: FighterMoves = {
   throws: {
 
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 2.861999750137329, ...NO_LAUNCH } },
-    [GrabAction.throwForward]: { contactFrame: 13, totalFrames: 35, effect: hit(6.723791599273682, "EDGE", 35, 1.0, HitElement.normal) },
-    [GrabAction.throwBack]: { contactFrame: 17, totalFrames: 43, effect: hit(7.564265727996826, "EDGE", 40, -1.0, HitElement.normal) },
-    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: hit(5.883317470550537, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(5.042843341827393, "CHASE", 70, 1.0, HitElement.normal) },
+    [GrabAction.throwForward]: { contactFrame: 13, totalFrames: 35, effect: hit(5.782460689544678, "EDGE", 35, 1.0, HitElement.normal) },
+    [GrabAction.throwBack]: { contactFrame: 17, totalFrames: 43, effect: hit(6.505268573760986, "EDGE", 40, -1.0, HitElement.normal) },
+    [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: hit(5.059652805328369, "JUGGLE", 85, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: hit(4.336845397949219, "CHASE", 70, 1.0, HitElement.normal) },
   },
 };

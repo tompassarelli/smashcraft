@@ -21,7 +21,7 @@ export const FREEZE_TRAP_FREEZE_FRAMES = 300;
 const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
 const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
 
-export const BEAR_SWIPE = { damage: 9.300000190734863, growth: 83.70000457763672, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
+export const BEAR_SWIPE = { damage: 7.90500020980835, growth: 97.51050567626953, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
 export const BEAR_SWIPE_EX = { ...BEAR_SWIPE, damage: f32(BEAR_SWIPE.damage * 1.25) } as const;
 
 export function specialAlreadyHit(owner: Fighter, targetSlot: number): boolean {
