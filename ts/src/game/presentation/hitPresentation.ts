@@ -11,6 +11,7 @@ import { VoiceClass } from "./voiceBudget";
 import type { Character } from "../sim/codes";
 import { ELEMENTS } from "./elementLooks";
 import { tierSoundPaths } from "./moveTiers";
+import { STRONG_SPARK_SCALE } from "./moveTiers";
 import { IMPACT_FIRE_HIT, IMPACT_SLASH_HIT, IMPACT_ICE_HIT, IMPACT_ELECTRIC_SHIELD, IMPACT_PUMMEL } from "./impactState";
 import { IMPACT_DUST_MODEL, IMPACT_ROLL_MODEL, IMPACT_TECH_MODEL, IMPACT_JUMP_MODEL, IMPACT_SHIELD_MODEL, IMPACT_HIT_MODEL, IMPACT_KO_MODEL } from "../assets/impactAssetInfo";
 
@@ -42,6 +43,18 @@ export function impactModel(kind: number): string {
     case IMPACT_ICE_HIT: return "Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx";
     default: return "Abilities\\Spells\\Human\\DispelMagic\\DispelMagicTarget.mdx";
   }
+}
+
+
+const PLAIN_SPARK_COLOUR: readonly number[] = [255, 255, 255];
+const FIRE_SPARK_COLOUR: readonly number[] = [255, 100, 25];
+export const STRONG_SPARK_COLOUR: readonly number[] = [255, 205, 40];
+
+
+export function impactColour(kind: number, strength: number): readonly number[] | undefined {
+  if (kind !== 0 && kind !== IMPACT_SLASH_HIT && kind !== IMPACT_FIRE_HIT) return undefined;
+  if (strength === STRONG_SPARK_SCALE) return STRONG_SPARK_COLOUR;
+  return kind === IMPACT_FIRE_HIT ? FIRE_SPARK_COLOUR : PLAIN_SPARK_COLOUR;
 }
 
 

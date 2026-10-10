@@ -336,7 +336,7 @@ const cues = (args: readonly string[]) => Effect.gen(function*() {
   }
   const frames = (value: number) => Number.isFinite(value) ? String(value) : "never";
   for (const row of [...rows].sort((a, b) => b.linger - a.linger || b.coverage - a.coverage)) {
-    yield* Console.log(`${row.over.length > 0 ? "OVER" : "ok  "} ${row.move} ${row.graphics}: danger to ${row.lastDanger}, shown ${row.firstShown}-${frames(row.lastShown)}, linger ${frames(row.linger)}, covers ${(row.coverage * 100).toFixed(1)}% (${row.widest.join(", ")})${row.popcorn ? " (Popcorn undrawn)" : ""}${row.over.length > 0 ? `; ${row.over.join("; ")}` : ""}`);
+    yield* Console.log(`${row.over.length > 0 ? "OVER" : "ok  "} ${row.move} ${row.graphics}: danger to ${row.lastDanger}, shown ${row.firstShown}-${frames(row.lastShown)}, linger ${frames(row.linger)}, covers ${(row.coverage * 100).toFixed(1)}% (${row.widest.join(", ")})${row.colour === undefined ? "" : `, colour rgb(${row.colour.join(",")}), ${row.feedback}`}${row.popcorn ? " (Popcorn undrawn)" : ""}${row.over.length > 0 ? `; ${row.over.join("; ")}` : ""}`);
   }
   const over = rows.filter((row) => row.over.length > 0);
   yield* Console.log(`${rows.length} cue measurements, ${over.length} over budget; frames in ${CUE_FRAMES}`);

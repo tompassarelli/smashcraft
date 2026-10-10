@@ -18,9 +18,9 @@ import { DEFINITIVE_CUE_EMITTERS } from "../../src/game/presentation/cueEmitterI
 import { SpecialCueEffects } from "../../src/game/render/specialCueEffects";
 import { ProjectilePresentation } from "../../src/game/render/projectilePresentation";
 import { beginFighterAttack, resolveAttacks } from "../../src/game/sim/attacks";
-import { AttackPhase, AttackStyle, Character, SpecialAction } from "../../src/game/sim/codes";
+import { AttackPhase, AttackStyle, Character, ContactKind, SpecialAction } from "../../src/game/sim/codes";
 import { attackPhase } from "../../src/game/sim/conditions";
-import { beginDamageContacts, finishDamageContacts } from "../../src/game/sim/contacts";
+import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "../../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../../src/game/sim/fighter";
 import { advanceHeroStatus, runningHeroSpecial } from "../../src/game/sim/heroSpecialRules";
 import { fighterSlug } from "../../src/game/sim/heroes/registry";
@@ -34,6 +34,12 @@ import { advanceFighter } from "../../src/game/sim/step";
 import { DROP_TELEGRAPH_FRAMES, advanceMeterDrops, meterDropPoint } from "../../src/game/match/meterDrops";
 import { Phase, createMatchState } from "../../src/game/match/rules";
 import { MeterDropPresentation } from "../../src/game/render/meterDropPresentation";
+import { CombatEffects } from "../../src/game/render/combatEffects";
+import { advanceImpacts, createImpactState, emitImpacts } from "../../src/game/presentation/impactState";
+import { captureImpactEventsBefore, createImpactEvents, finishImpactEventsAfter } from "../../src/game/presentation/impactEvents";
+import { presentImpactSounds } from "../../src/game/presentation/hitPresentation";
+import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion, type HitEffect } from "../../src/game/sim/hitRegions";
+import { authoredTuning } from "../../src/game/sim/tuning";
 
 export const CUE_FADE_FRAMES = 12;
 export const CUE_COVERAGE_LIMIT = 0.04;
@@ -56,6 +62,7 @@ export interface CueMove {
   readonly special?: (typeof SPECIALS)[number];
   readonly ultimate?: true;
   readonly drop?: boolean;
+  readonly spark?: "strong" | "weak";
 }
 
 export interface CueMeasurement {
@@ -69,6 +76,8 @@ export interface CueMeasurement {
   readonly widest: readonly string[];
   readonly over: readonly string[];
   readonly popcorn: boolean;
+  readonly colour?: readonly number[];
+  readonly feedback?: string;
 }
 
 interface ParkPose { readonly handle: number; readonly model: string; readonly shown: boolean; readonly timeScale: number }
@@ -113,7 +122,75 @@ export function cueMoves(): CueMove[] {
   }
   for (const character of Object.values(Character)) moves.push({ character, name: `${fighterSlug(character)}:ultimate`, ultimate: true });
   moves.push({ character: Character.rifleman, name: "meter-drop:telegraph-and-orb", drop: true });
+  for (const spark of ["strong", "weak"] as const) moves.push({ character: Character.blademaster, name: `blademaster:forwardSmash-${spark}-spark`, style: AttackStyle.forwardSmash, spark });
   return moves;
+}
+
+function sparkEffect(character: Character, style: AttackStyle, strong: boolean): HitEffect {
+  const moves = authoredTuning(character).moves;
+  const region = emptyHitRegion();
+  for (let frame = 0; frame < 120; frame++) for (let index = 0; index < authoredHitRegionCount(style, moves); index++) {
+    authoredHitRegion(region, character, style, frame, 0, index, moves);
+    if (region.window > 0 && region.effect.damage > 0 && (region.effect.strong === true) === strong) return { ...region.effect };
+  }
+  throw new Error(`${fighterSlug(character)} style ${style} has no ${strong ? "strong" : "weak"} hit`);
+}
+
+export function sparkScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene; readonly feedback: string } {
+  if (move.style === undefined) throw new Error("a spark row names its move");
+  const attacker = createFighter(move.character, -60.0, 1);
+  const victim = createFighter(Character.rifleman, 0.0, -1);
+  const world = createRoster(3, [attacker, victim]);
+  beginFighterAttack(world, 0, move.style, false);
+  const effect = sparkEffect(move.character, move.style, move.spark === "strong");
+  const events = createImpactEvents();
+  captureImpactEventsBefore(events, victim);
+  beginDamageContacts();
+  queueDamageContact(world, 0, 1, effect, 1, ContactKind.launch, true, undefined);
+  finishDamageContacts(world);
+  finishImpactEventsAfter(events, victim, world);
+  const sounds: string[] = [];
+  presentImpactSounds(events, (sound, _x, _z, volume) => { sounds.push(`${sound.split("\\").at(-1)} volume ${volume}`); });
+  const feedback = `damage ${effect.damage.toFixed(1)}%, hitlag ${victim.launch.hitlagFrames} victim/${attacker.launch.hitlag} attacker, tier ${events.tier}, sound ${sounds.join(" + ") || "none"}`;
+  const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: (client) => ({
+    ...SMASHCRAFT_HEADLESS.natives?.(client),
+    GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? graphics : key,
+  }) });
+  try {
+    const clients = runtime.clients({ install() {}, start() {} }, [0]);
+    const client = clients.client(0);
+    clients.start();
+    const origin = { x: 0.0, y: PLAYABLE_BOUNDS.centreY, z: FLOOR_HEIGHT };
+    let combat: CombatEffects | undefined;
+    client.run(() => { combat = new CombatEffects(origin); });
+    if (combat === undefined) throw new Error("missing impact renderer");
+    const impacts = createImpactState();
+    emitImpacts(impacts, events, 0);
+    const scenes: RenderScene[] = [];
+    const poses: (readonly ParkPose[])[] = [];
+    let empty: RenderScene | undefined;
+    for (let tick = 0; tick < 24; tick++) {
+      const renderer = combat;
+      client.run(() => {
+        renderer.present(impacts, tick, impacts, true);
+        SetCameraField(CAMERA_FIELD_ROTATION, ARENA_CAMERA.rotation, 0.0);
+        SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, ARENA_CAMERA.angleOfAttack, 0.0);
+        SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, near.distance, 0.0);
+        SetCameraField(CAMERA_FIELD_ZOFFSET, FLOOR_HEIGHT + 100.0, 0.0);
+        SetCameraField(CAMERA_FIELD_FIELD_OF_VIEW, cameraFieldOfView(near, MATCH_CAMERA_ASPECT), 0.0);
+        SetCameraField(CAMERA_FIELD_FARZ, ARENA_CAMERA.farZ, 0.0);
+        SetCameraPosition(origin.x + victim.motion.x, origin.y);
+      });
+      advanceImpacts(impacts);
+      clients.frames(1);
+      const scene = captureScene(client, { visibleOnly: true });
+      empty ??= { ...scene, frame: -1, effects: [] };
+      scenes.push({ ...scene, frame: tick, units: [] });
+      poses.push(client.effectPoses().map(({ handle, model, scale, alpha, timeScale }) => ({ handle: Number(handle.id), model, shown: scale > 0 && alpha > 0, timeScale })));
+    }
+    if (empty === undefined) throw new Error("no frames");
+    return { scenes, poses, lastDanger: 0, empty, feedback };
+  } finally { runtime.restore(); }
 }
 
 function step(world: Roster, input: Readonly<Controls>): void {
@@ -191,8 +268,9 @@ function dropScenes(graphics: Graphics): ReturnType<typeof cueScenes> {
   } finally { runtime.restore(); }
 }
 
-export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene } {
+export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene; readonly feedback?: string } {
   if (move.drop === true) return dropScenes(graphics);
+  if (move.spark !== undefined) return sparkScenes(move, graphics);
   const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: (client) => ({
     ...SMASHCRAFT_HEADLESS.natives?.(client),
     GetLocalizedString: (key: string) => key === "SMASHCRAFT_CUE_GRAPHICS" ? graphics : key,
@@ -251,13 +329,16 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
   } finally { runtime.restore(); }
 }
 
-function drawnShares(empty: Uint8Array, frame: Uint8Array): number {
+function drawnPixels(empty: Uint8Array, frame: Uint8Array): { readonly share: number; readonly colour: readonly number[] } {
   let drawn = 0;
+  const sum = [0, 0, 0];
   for (let index = 0; index < frame.length; index += 4) {
     const delta = Math.abs((frame[index] ?? 0) - (empty[index] ?? 0)) + Math.abs((frame[index + 1] ?? 0) - (empty[index + 1] ?? 0)) + Math.abs((frame[index + 2] ?? 0) - (empty[index + 2] ?? 0));
-    if (delta > DRAWN_DELTA) drawn++;
+    if (delta <= DRAWN_DELTA) continue;
+    drawn++;
+    for (let channel = 0; channel < 3; channel++) sum[channel] = (sum[channel] ?? 0) + (frame[index + channel] ?? 0);
   }
-  return drawn / (frame.length / 4);
+  return { share: drawn / (frame.length / 4), colour: sum.map((total) => drawn === 0 ? 0 : Math.round(total / drawn)) };
 }
 
 const rgba = (path: string) => Effect.gen(function*() {
@@ -282,9 +363,14 @@ export const measureCueMoves = (moves: readonly CueMove[], graphics: Graphics, d
   }
   const blank = yield* rgba(join(directory, "p0-frame--1.png"));
   const results: CueMeasurement[] = [];
-  for (const { move, index, scenes, poses, lastDanger } of sampled) {
+  for (const { move, index, scenes, poses, lastDanger, feedback } of sampled) {
     const shares: number[] = [];
-    for (const scene of scenes) shares.push(scene.effects.length === 0 ? 0 : drawnShares(blank, yield* rgba(join(directory, `p0-frame-${frameOf(index, scene.frame)}.png`))));
+    const colours: (readonly number[])[] = [];
+    for (const scene of scenes) {
+      const pixels = scene.effects.length === 0 ? { share: 0, colour: [0, 0, 0] } : drawnPixels(blank, yield* rgba(join(directory, `p0-frame-${frameOf(index, scene.frame)}.png`)));
+      shares.push(pixels.share);
+      colours.push(pixels.colour);
+    }
     const shown = shares.flatMap((share, tick) => share >= SHOWN_SHARE ? [tick] : []);
     const tail = yield* Effect.promise(() => particleTails(poses, graphics));
     const firstShown = shown[0] ?? -1, lastShown = Math.max(shown.at(-1) ?? -1, tail);
@@ -297,7 +383,8 @@ export const measureCueMoves = (moves: readonly CueMove[], graphics: Graphics, d
     ];
     const models = new Set(scenes.flatMap(({ effects }) => effects.map(({ model }) => model)));
     const popcorn = [...undrawn].filter((line) => [...models].some((model) => line.startsWith(model)));
-    results.push({ move: move.name, graphics, lastDanger, firstShown, lastShown, linger, coverage, widest, over, popcorn: popcorn.length > 0 });
+    results.push({ move: move.name, graphics, lastDanger, firstShown, lastShown, linger, coverage, widest, over, popcorn: popcorn.length > 0,
+      ...(move.spark === undefined ? {} : { colour: colours[shares.indexOf(coverage)] ?? [0, 0, 0], feedback }) });
   }
   return results;
 });

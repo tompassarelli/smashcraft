@@ -433,3 +433,8 @@ basic-moves: forward-tilt,forward-air,neutral-air
 Basic gameplan: Walk into tilt range, use a forward aerial and save jumps for recovery. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Chain dash approaches, cross-ups and aerial pressure with timed recovery mixups. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Neutral air, split by timing: strong hit clean, frames 4-7, 7%; weak hit late, frames 8-31, 4.9%. The glaive spin cuts hardest as it starts and punishes a jump-in; its long lingering spin stays a weak landing and edge-guard cover.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

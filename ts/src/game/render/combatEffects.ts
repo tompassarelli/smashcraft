@@ -5,7 +5,6 @@ import { RIFLEMAN_MODEL_FILE } from "../presentation/fighterAssetInfo";
 import {
   IMPACT_CHARGE,
   IMPACT_COUNT,
-  IMPACT_FIRE_HIT,
   IMPACT_GRAB,
   IMPACT_LEDGE_CATCH,
   IMPACT_LEDGE_RECOVERY,
@@ -27,7 +26,7 @@ import {
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-import { impactAnimation, impactModel, impactModelScale, impactSoundNames, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
+import { impactAnimation, impactColour, impactModel, impactModelScale, impactSoundNames, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
 import { VOICE_CAP, admitVoice, createVoiceBudget, resetVoiceBudget } from "../presentation/voiceBudget";
 import { SoundBank, SoundKind } from "./soundBank";
 import { tierSoundPaths } from "../presentation/moveTiers";
@@ -73,6 +72,8 @@ export class CombatEffects {
 
   private shownEmissions: (number | undefined)[] = [];
 
+  private tints: (readonly number[] | undefined)[] | undefined;
+
   private drawnContacts: number[] = [];
 
 
@@ -108,7 +109,7 @@ export class CombatEffects {
     this.sounds.prepare(SoundKind.combatLabel, names.labels);
     for (let i = 0; i < IMPACT_COUNT; i++) {
       const model = AddSpecialEffect(impactModel(floorDiv(i, IMPACTS_PER_KIND)), origin.x, origin.y);
-      if (floorDiv(i, IMPACTS_PER_KIND) === IMPACT_FIRE_HIT) BlzSetSpecialEffectColor(model, 255, 100, 25);
+      this.tint(model, i, floorDiv(i, IMPACTS_PER_KIND), 0.0);
       parkOnce(model, this, parked, i);
       this.impacts.push(model);
     }
@@ -255,7 +256,7 @@ export class CombatEffects {
       }
       shownAges[i] = age;
       if (age !== undefined) this.drawn(i, kind, frame - age);
-      this.place(model, i, kind, pose);
+      this.place(model, i, kind, pose, source.strength[i] ?? 0.0);
     }
     if (this.lateLive > 0) this.presentLate(state, frame, playing);
     this.presentKoFlash(frame, playing);
@@ -293,9 +294,18 @@ export class CombatEffects {
     }
   }
 
-  private place(model: effect, i: number, kind: number, pose: ReturnType<typeof projectImpact>): void {
+  private tint(model: effect, i: number, kind: number, strength: number): void {
+    const colour = impactColour(kind, strength);
+    const tints = (this.tints ??= []);
+    if (colour === undefined || tints[i] === colour) return;
+    tints[i] = colour;
+    BlzSetSpecialEffectColor(model, colour[0] ?? 255, colour[1] ?? 255, colour[2] ?? 255);
+  }
+
+  private place(model: effect, i: number, kind: number, pose: ReturnType<typeof projectImpact>, strength: number): void {
     const parked = (this.parked ??= []);
     parked[i] = false;
+    this.tint(model, i, kind, strength);
 
     const depth = kind === IMPACT_STAR_KO ? STAR_KO_DEPTH
       : isContactImpact(kind) || kind === IMPACT_GRAB || kind === IMPACT_THROW ? -120.0 : 0.0;
@@ -348,7 +358,7 @@ export class CombatEffects {
           BlzSetSpecialEffectAnimation(model, impactAnimation(kind));
           BlzSetSpecialEffectTime(model, impactStartSeconds(kind));
         }
-        this.place(model, i, kind, projectImpact(late, i));
+        this.place(model, i, kind, projectImpact(late, i), late.strength[i] ?? 0.0);
       }
     }
     if (advance) advanceImpacts(late);

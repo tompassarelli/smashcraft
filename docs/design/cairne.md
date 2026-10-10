@@ -136,3 +136,8 @@ basic-moves: forward-tilt,neutral-special,neutral-air
 Basic gameplan: Use long axe pokes and a simple shockwave. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Choose armor, stomp, grabs and slow kill commitments around opponent recovery. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 28-31, 25%; weak hit sourspot, frames 28-31, 19%. The totem's head carries the earth's weight; the haft only shoves.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

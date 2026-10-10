@@ -131,3 +131,8 @@ basic-moves: forward-tilt,neutral-special,neutral-air
 Basic gameplan: Use a wrench poke and one ranged tool. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Arrange machines and missiles to cover routes and convert their pressure. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 20-23, 17%; weak hit sourspot, frames 20-23, 11.9%. The claw clamps hardest at full extension; the arm only pushes.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

@@ -98,3 +98,8 @@ basic-moves: forward-tilt,side-special,neutral-air
 Basic gameplan: Use cleave range and a direct rush. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Commit armor and fire zoning at the right moment and choose kill routes. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 27-30, 25%; weak hit sourspot, frames 27-30, 19%. The cleaver's far edge: the demon lord's huge reach is the point.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

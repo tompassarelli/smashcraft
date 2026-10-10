@@ -1342,7 +1342,9 @@ against these rules.
 Feedback for whichever axis produced it: a strong hit adds 3 hitlag frames to
 attacker and victim (the extra Forsaken Paladin's hammer head already had),
 draws the contact spark at 1.75 times its size (above the 1.25 of the largest
-ordinary spark, reusing the same pooled models so no effect is added) and plays
+ordinary spark, reusing the same pooled models so no effect is added), tints
+it gold (`STRONG_SPARK_COLOUR`; size alone did not read on a single hit, since
+the ordinary star is the same white-blue) and plays
 the fighter's strong hit sound (the large-tier hit layered with its sweetener).
 A weak hit keeps the ordinary spark, sound and hitlag.
 

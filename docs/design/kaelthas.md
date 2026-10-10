@@ -203,3 +203,8 @@ into up air and forward smash.
 [wing]: https://www.ssbwiki.com/Wing_Blitz
 [tatsu]: https://wiki.supercombo.gg/w/Street_Fighter_6/Akuma
 [phantom]: https://www.ssbwiki.com/Phantom_Slash
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 13-15, 16%; weak hit sourspot, frames 13-15, 11.2%. Phoenix flame at the blade's tip: a vain duelist who must space to shine.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

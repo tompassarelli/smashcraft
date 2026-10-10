@@ -829,6 +829,14 @@ Popcorn (`DEFINITIVE_CUE_EMITTERS`) run without clock controls and are born
 per cast and destroyed a second later; they now park when their window ends,
 and their Popcorn particle lives stay unmeasured.
 
+The check also plays Blademaster's forward smash strong and weak hit through
+the real impact renderer (rows `blademaster:forwardSmash-strong-spark` and
+`-weak-spark`) and adds the spark's mean drawn colour, damage, hitlag and hit
+sound. On 10 Oct 2026, both looks: strong 18.1%, 12 hitlag frames on both
+bodies, MetalHeavySlice at volume 127, gold star covering 0.6-0.7% for 7-8
+frames; weak 14.3%, 7 hitlag frames, MetalLightSlice at 110, white-blue star
+covering 0.2% for 7 frames. Both sit well inside the 4% and 12-frame limits.
+
 On 9 Oct 2026 the check listed 195 of 224 rows over budget before the fix
 (nearly all parked particle tails, frozen at time scale 0), and after it 1 of
 240: Kael'thas's Flame Strike (8.2%), which #381 replaces. Coverage fixes,

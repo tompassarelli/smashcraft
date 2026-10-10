@@ -174,3 +174,8 @@ basic-moves: forward-tilt,neutral-special,neutral-air
 Basic gameplan: Poke and shoot from a steady range. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Mix mobility, traps, silence and ranged confirms with close punish routes. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 16-18, 16.5%; weak hit sourspot, frames 16-18, 11.6%. The blade's point: the Windrunner is rewarded for keeping her distance.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

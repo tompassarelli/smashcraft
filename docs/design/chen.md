@@ -126,3 +126,8 @@ basic-moves: forward-tilt,down-tilt,neutral-air
 Basic gameplan: Use grounded pokes and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Manage drink commitments and mix flame routes, close confirms and recovery. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Neutral air, split by timing: strong hit clean, frames 7-8, 10%; weak hit late, frames 9-11, 7%. A drunken flying kick: hit early to punish, let it linger to cover a landing.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

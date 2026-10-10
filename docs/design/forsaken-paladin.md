@@ -182,3 +182,8 @@ basic-moves: forward-tilt,down-tilt,neutral-special
 Basic gameplan: Poke and use a simple holy strike. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Choose guard, healing, resource commitments and the right punish window. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 21-23, 20%; weak hit sourspot, frames 21-23, 15%. The hammer's head carries the blessing; the haft only shoves.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

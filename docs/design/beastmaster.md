@@ -128,3 +128,8 @@ basic-moves: forward-tilt,down-tilt,neutral-special
 Basic gameplan: Poke with axes and use a simple axe throw. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Position summons, choose pressure routes and cover the opponent escape. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Forward smash, split by position: strong hit sweetspot, frames 21-24, 19.1%; weak hit sourspot, frames 21-24, 13.4%. The axe head bites; the haft only shoves.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

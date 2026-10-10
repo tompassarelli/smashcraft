@@ -167,3 +167,8 @@ and the computer no longer approaches with it.
 After (dc96043e, same field and seeds): 46% over 8568 matches; balance score
 23.7 to 9.7, with the profile misses (back air 40%, up air 5%, Ensnare 19%,
 Tidal Rush 20%) left for later tuning.
+
+## Signature strong/weak move (#389)
+
+Neutral air, split by timing: strong hit clean, frames 5-6, 8%; weak hit late, frames 7-10, 5.6%. A flailing spin strongest at its first slap; the rest is a scrappy weak wall.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).

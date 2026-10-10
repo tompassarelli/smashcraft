@@ -142,3 +142,8 @@ basic-moves: neutral-special,side-special,neutral-air
 Basic gameplan: Use simple frost shots and a neutral aerial. Keep one approach, use the listed moves, no read-based punishes or advanced kit sequences. Recovery keeps the normal up special.
 
 Expert gameplan: Place blizzard and freeze traps to force escapes and finish them. Use the full authored kit and gameplan at the same CPU skill.
+
+## Signature strong/weak move (#389)
+
+Neutral air, split by timing: strong hit clean, frames 8-9, 8%; weak hit late, frames 10-12, 5.6%. An arcane burst strongest as it forms and fading as it lingers: a landing and edge-guard cover.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
