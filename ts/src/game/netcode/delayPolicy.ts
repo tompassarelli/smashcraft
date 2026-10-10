@@ -3,7 +3,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 // Integer milliseconds and frames only, so Bun and both Lua32 modes decide alike.
 
 export const DEFAULT_DELAY = 2;
-export const ROLLBACK_BUDGET = 7;
+const ROLLBACK_BUDGET = 7;
 export const MAX_FIXED_DELAY = 8;
 const HIGH_DELAY_FRAMES = 8;
 export const AUTO_DELAY = -1;
@@ -52,7 +52,7 @@ const clampDelay = (policy: DelayPolicy, delay: number): number => Math.min(poli
 
 const delayForRtt = (policy: DelayPolicy, rttMs: number): number => clampDelay(policy, oneWayFrames(rttMs) - policy.budget);
 
-export function autoDelay(policy: DelayPolicy, estimate: Readonly<RttEstimate>): number {
+function autoDelay(policy: DelayPolicy, estimate: Readonly<RttEstimate>): number {
   return estimate.samples === 0 ? policy.floor : delayForRtt(policy, guardedRttMs(estimate));
 }
 

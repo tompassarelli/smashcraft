@@ -23,7 +23,7 @@ interface ClientDelay {
   readonly cursorOffset: Distribution | undefined;
 }
 
-export interface Dropped {
+interface Dropped {
   readonly integrity: number;
   readonly transport: number;
   readonly edges: number;
