@@ -24,7 +24,7 @@ export const ROSTER_ATTACK_CLIPS = {
     backAir: { index: 59, seconds: f32(0.517) },
     downSmash: { index: 60, seconds: f32(0.733) },
     dashAttack: { index: 61, seconds: f32(0.417), aligned: true },
-    forwardAir: { index: 62, seconds: 0.5 },
+    forwardAir: { index: 62, seconds: 0.5, aligned: true },
     upSmash: { index: 63, seconds: f32(0.717), aligned: true },
     upAir: { index: 64, seconds: f32(0.467), aligned: true },
     upTilt: { index: 65, seconds: f32(0.383), aligned: true },
