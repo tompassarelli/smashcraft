@@ -90,11 +90,19 @@ test("a match still in play at the cap is a never-ends finding with its seed and
   expect(hits[0]?.frame).toBe(14700);
 });
 
-test("only a string of the minimum hits from the start of a stock to its loss is a zero-to-death finding [spec #403]", () => {
-  const short = runOf(1, { ...clean, strings: [{ victim: 1, frame: 400, hits: 2, damage: 30 }] });
-  const long = runOf(2, { ...clean, strings: [{ victim: 0, frame: 900, hits: 5, damage: 80 }] });
-  const hits = classify([short, long]).filter((finding) => finding.kind === "zero-to-death");
-  expect(hits.map((finding) => [finding.spec?.index, finding.frame])).toEqual([[2, 900]]);
+test("a zero-to-death finding is exactly a string of the minimum hits from a stock's start to its loss with no actionable frame between hits; one escapable frame anywhere clears it [spec #388]", () => {
+  const random = rng(11);
+  for (let trial = 0; trial < 200; trial++) {
+    const hits = 1 + Math.floor(random() * 8);
+    const gaps = Array.from({ length: hits - 1 }, () => (random() > 0.7 ? Math.floor(random() * 80) : 0));
+    const string = { victim: 0, frame: 900, hits, damage: 80, gaps, tail: Math.floor(random() * 60) };
+    const flagged = classify([runOf(trial, { ...clean, strings: [string] })]).filter((finding) => finding.kind === "zero-to-death").length;
+    expect(flagged).toBe(hits >= DEFAULT_CONFIG.minStringHits && gaps.every((gap) => gap === 0) ? 1 : 0);
+    if (hits > 1) {
+      const escapable = gaps.map((gap, i) => (i === trial % gaps.length ? gap + 1 : gap));
+      expect(classify([runOf(trial, { ...clean, strings: [{ ...string, gaps: escapable }] })]).filter((finding) => finding.kind === "zero-to-death")).toEqual([]);
+    }
+  }
 });
 
 test("two runs of one seed that differ in a state hash or outcome are a desync at the first differing frame, and equal runs never are [spec #403]", () => {
@@ -133,7 +141,7 @@ test("classification ignores run order and a merge of shards equals the whole [i
   const random = rng(3);
   const runs: Run[] = planMatches(roster, 0, 120).map((spec) => ({
     spec, wallMs: 1, second: undefined,
-    first: { ...clean, ended: random() > 0.1, winner: random() > 0.5 ? 0 : 1, stockLosses: Math.floor(random() * 5), strings: random() > 0.8 ? [{ victim: 0, frame: Math.floor(random() * 9000), hits: 3 + Math.floor(random() * 4), damage: 50 }] : [], kos: [{ fighter: spec.a, move: random() > 0.3 ? "jab" : "grab", count: 1 }] },
+    first: { ...clean, ended: random() > 0.1, winner: random() > 0.5 ? 0 : 1, stockLosses: Math.floor(random() * 5), strings: random() > 0.8 ? [{ victim: 0, frame: Math.floor(random() * 9000), hits: 3, damage: 50, gaps: [0, random() > 0.5 ? 0 : 9], tail: 0 }] : [], kos: [{ fighter: spec.a, move: random() > 0.3 ? "jab" : "grab", count: 1 }] },
   }));
   const whole = classify(runs);
   const shuffled = [...runs].sort(() => random() - 0.5);

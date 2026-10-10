@@ -13,10 +13,21 @@ export interface Observation {
   readonly winner: number | null;
   readonly timedOut: boolean;
   readonly stockLosses: number;
-  readonly strings: readonly { readonly victim: number; readonly frame: number; readonly hits: number; readonly damage: number }[];
+  readonly strings: readonly ComboString[];
   readonly checksums: readonly (readonly [number, string])[];
   readonly kos: readonly { readonly fighter: string; readonly move: string; readonly count: number }[];
 }
+
+export interface ComboString {
+  readonly victim: number;
+  readonly frame: number;
+  readonly hits: number;
+  readonly damage: number;
+  readonly gaps: readonly number[];
+  readonly tail: number;
+}
+
+export const isTrueCombo = (string: ComboString): boolean => string.gaps.length === string.hits - 1 && string.gaps.every((gap) => gap === 0);
 
 export interface Run {
   readonly spec: MatchSpec;
@@ -140,10 +151,10 @@ export function classify(runs: readonly Run[], config: Config = DEFAULT_CONFIG):
       findings.push({ kind: "never-ends", subject: matchId(spec), spec, frame: first.frames, detail: `still in play at frame ${first.frames}, the cap of ${config.frameCap}` });
     }
     for (const string of first.strings) {
-      if (string.hits < config.minStringHits) continue;
+      if (string.hits < config.minStringHits || !isTrueCombo(string)) continue;
       const victim = string.victim === 0 ? spec.a : spec.b;
       const attacker = string.victim === 0 ? spec.b : spec.a;
-      findings.push({ kind: "zero-to-death", subject: matchId(spec), spec, frame: string.frame, detail: `${attacker} took ${victim} from 0% to a stock lost in ${string.hits} hits and ${string.damage.toFixed(0)}% by frame ${string.frame}` });
+      findings.push({ kind: "zero-to-death", subject: matchId(spec), spec, frame: string.frame, detail: `${attacker} took ${victim} from 0% to a stock lost in ${string.hits} hits and ${string.damage.toFixed(0)}% by frame ${string.frame}, with no actionable frame between hits and ${string.tail} after the last` });
     }
     if (second !== undefined) {
       const at = firstDivergence(first, second);
@@ -259,7 +270,7 @@ export function renderReport(runs: readonly Run[], findings: readonly Finding[],
     `${s.matches} matches (${s.repeated} played twice to compare state hashes) over ${s.fighters} fighters, ${s.stages} stages and ${s.tiers} computer levels, ${s.frames} frames.`,
     `Wall time ${(s.wallMs / 1000).toFixed(1)} s, ${s.msPerMatch.toFixed(0)} ms a match (both runs), slowest ${s.slowestMs.toFixed(0)} ms.`,
     "",
-    `Bands: fighter win rate ${(100 * config.winLow).toFixed(0)}-${(100 * config.winHigh).toFixed(0)}% over at least ${config.minDecisive} decisive matches; a move at most ${(100 * config.moveShareMax).toFixed(0)}% of its fighter's KOs over at least ${config.minMoveKos}; a zero-to-death string is ${config.minStringHits} or more hits; a stage with no KOs needs ${config.minStageMatches} matches; frame cap ${config.frameCap}.`,
+    `Bands: fighter win rate ${(100 * config.winLow).toFixed(0)}-${(100 * config.winHigh).toFixed(0)}% over at least ${config.minDecisive} decisive matches; a move at most ${(100 * config.moveShareMax).toFixed(0)}% of its fighter's KOs over at least ${config.minMoveKos}; a zero-to-death string is ${config.minStringHits} or more hits with no actionable frame between them; a stage with no KOs needs ${config.minStageMatches} matches; frame cap ${config.frameCap}.`,
     "",
     "| Finding | Count |",
     "| --- | --- |",

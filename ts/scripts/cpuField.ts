@@ -175,6 +175,8 @@ export interface ZeroToDeath {
   readonly frame: number;
   readonly hits: number;
   readonly damage: number;
+  readonly gaps: readonly number[];
+  readonly tail: number;
 }
 
 export interface FieldOptions {
@@ -236,6 +238,8 @@ interface Punish {
 
   stunned: number;
   fromStockStart: boolean;
+  free: number;
+  gaps: number[];
 }
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
@@ -277,7 +281,7 @@ function closePunish(totals: PunishTotals, punish: Punish, kill: boolean, string
     totals.kills++;
     if (punish.fromStockStart) {
       totals.zeroToDeaths++;
-      strings?.push({ victim, frame, hits: punish.hits, damage: punish.damage });
+      strings?.push({ victim, frame, hits: punish.hits, damage: punish.damage, gaps: punish.gaps, tail: punish.free });
     }
   }
 }
@@ -409,14 +413,19 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
         if (striking === undefined) other.rangedDamage += dealt;
         other.damageDealt += dealt;
         if (seen.punish === undefined) {
-          seen.punish = { hits: 0, damage: 0, quiet: 0, neutral: opponentSeen.punish === undefined, disadvantage: false, stunned: 0, fromStockStart: seen.stockFirstHit };
+          seen.punish = { hits: 0, damage: 0, quiet: 0, neutral: opponentSeen.punish === undefined, disadvantage: false, stunned: 0, fromStockStart: seen.stockFirstHit, free: 0, gaps: [] };
           seen.stockFirstHit = false;
+        }
+        if (hit && seen.punish.hits > 0) {
+          seen.punish.gaps.push(seen.punish.free);
+          seen.punish.free = 0;
         }
         seen.punish.hits += hit ? 1 : 0;
         seen.punish.damage += dealt;
         seen.punish.quiet = 0;
       } else if (seen.punish !== undefined && other !== undefined) {
         const punish = seen.punish;
+        if (!f.status.out && !unactionable(f)) punish.free++;
 
         if (unactionable(f)) {
           punish.quiet = 0;

@@ -17,7 +17,7 @@ const OpenIssuesSchema = Schema.Array(Schema.Struct({ number: Schema.Finite, tit
 const readJson = (file: string): unknown => JSON.parse(readFileSync(file, "utf8"));
 const ObservationSchema = Schema.Struct({
   frames: Schema.Finite, ended: Schema.Boolean, winner: Schema.NullOr(Schema.Finite), timedOut: Schema.Boolean, stockLosses: Schema.Finite,
-  strings: Schema.Array(Schema.Struct({ victim: Schema.Finite, frame: Schema.Finite, hits: Schema.Finite, damage: Schema.Finite })),
+  strings: Schema.Array(Schema.Struct({ victim: Schema.Finite, frame: Schema.Finite, hits: Schema.Finite, damage: Schema.Finite, gaps: Schema.Array(Schema.Finite), tail: Schema.Finite })),
   checksums: Schema.Array(Schema.Tuple([Schema.Finite, Schema.String])),
   kos: Schema.Array(Schema.Struct({ fighter: Schema.String, move: Schema.String, count: Schema.Finite })),
 });
