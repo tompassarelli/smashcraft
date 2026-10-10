@@ -44,6 +44,8 @@ export interface MapBuild {
 
   readonly pausePositionProbe?: boolean;
 
+  readonly epochProbe?: boolean;
+
   readonly analogPad?: "keys" | "cursor";
 
   readonly analogPadDiagnostic?: boolean;
