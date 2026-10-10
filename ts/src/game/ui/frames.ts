@@ -67,6 +67,7 @@ export class ButtonClicks<T> {
   private readonly buttons: Button<T>[] = [];
   private hovered: Button<T> | undefined;
   private hover: ((target: T | undefined, clicker: player) => void) | undefined;
+  private trace: ((entry: string) => void) | undefined;
 
   constructor(private readonly name: string, handle: (target: T, clicker: player) => void, hover?: (target: T | undefined, clicker: player) => void) {
     this.hover = hover;
@@ -82,6 +83,7 @@ export class ButtonClicks<T> {
       for (const button of this.buttons) {
         if (button.id !== id) continue;
         const event = BlzGetTriggerFrameEvent();
+        if (event === FRAMEEVENT_CONTROL_CLICK) this.trace?.(`${this.name} click frame=${id} player=${GetPlayerId(clicker)} enabled=${BlzFrameGetEnable(button.frame)} visible=${BlzFrameIsVisible(button.frame)} text=${BlzFrameGetText(button.frame)}`);
         if (event !== FRAMEEVENT_CONTROL_CLICK) {
           if (GetLocalPlayer() !== clicker) return;
           if (this.hovered !== undefined) highlightText(this.hovered.frame, false);
@@ -91,6 +93,7 @@ export class ButtonClicks<T> {
           return;
         }
         releaseFocus(button.frame, clicker);
+        this.trace?.(`${this.name} callback frame=${id}`);
         handle(button.target, clicker);
         return;
       }
@@ -107,6 +110,11 @@ export class ButtonClicks<T> {
 
   refreshHover(): void {
     if (this.hovered !== undefined) highlightText(this.hovered.frame, true);
+  }
+
+  traceFrames(trace: (entry: string) => void): void {
+    this.trace = trace;
+    for (const button of this.buttons) trace(`${this.name} registered frame=${button.id} enabled=${BlzFrameGetEnable(button.frame)} visible=${BlzFrameIsVisible(button.frame)} text=${BlzFrameGetText(button.frame)}`);
   }
 
   destroy(): void {

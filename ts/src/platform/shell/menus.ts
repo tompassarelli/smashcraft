@@ -26,7 +26,7 @@ import { type PlaytestRequest, preparePlaytest } from "../../game/shell/playtest
 import { nextStage } from "../../game/menu/stageCatalog";
 import { nextMatchCharacter } from "../../game/match/rules";
 import { stepCpuOpponent, stepCpuTier } from "../../game/match/cpuProfiles";
-import { traceSelectionState } from "./diagnostics";
+import { traceParticipant, traceSelectionState } from "./diagnostics";
 import { ClassicStep, continueClassic, quitClassic, skipToClassicBoss, startClassic } from "../../game/classic/classic";
 import { LORE_BATTLES, LoreStep, continueLore, startLore } from "../../game/classic/loreBattles";
 import { clearParticipantInputs, controlsAvailable, currentComputerMask, currentHumanMask } from "./inputs";
@@ -53,6 +53,7 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
 
 
 export function confirm(s: ShellState, slot: ParticipantSlot): void {
+  if (s.build.devConsole) traceParticipant(s, slot, `menu confirm phase=${s.game.phase} controlsAvailable=${controlsAvailable(s, slot)} stageLoading=${stageLoading(s)}`);
   if (s.pauseMenu?.title) {
     s.pauseMenu.title = false;
     return;
@@ -82,7 +83,8 @@ export function confirm(s: ShellState, slot: ParticipantSlot): void {
       for (const panel of views(s).settings) panel.close();
     }
   } else if (game.phase === Phase.stageMenu) {
-    requestStageLoad(s, slot);
+    const requested = requestStageLoad(s, slot);
+    if (s.build.devConsole) traceParticipant(s, slot, `menu start requested=${requested} stage=${game.stageChoice} ready=${game.characterReadiness.join(",")}`);
   } else if (game.phase === Phase.result && game.run.active && game.lore) {
     const step = continueLore(game, slot);
     if (step === LoreStep.none) return;
@@ -134,6 +136,7 @@ export function serviceAutomaticRematch(s: ShellState): void {
 }
 
 export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
+  if (s.build.devConsole) traceParticipant(s, slot, `menu controls requested phase=${s.game.phase} human=${humanActive(s.game, slot)} ready=${s.participants[slot].bindings.ready}`);
   if (s.game.phase !== Phase.characterMenu || !humanActive(s.game, slot)) return;
   if (!s.participants[slot].bindings.ready) {
     announce(s, "Controls are still loading.");
@@ -141,6 +144,7 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
   }
   clearParticipantInputs(s, slot);
   views(s).settings[slot].show();
+  if (s.build.devConsole) traceParticipant(s, slot, `menu controls open=${views(s).settings[slot].isOpen()}`);
 }
 
 

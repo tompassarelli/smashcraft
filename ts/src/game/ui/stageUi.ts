@@ -64,6 +64,7 @@ export class StagePanel {
   private readonly hazardsToggle: framehandle;
   private readonly dropsToggle: framehandle;
   private readonly clicks: ButtonClicks<StageButton>;
+  private trace: ((entry: string) => void) | undefined;
   private readonly tileNames: framehandle[] = [];
   private readonly sync: trigger;
   private readonly poolRoot: framehandle;
@@ -177,6 +178,7 @@ export class StagePanel {
   }
 
   private click(button: StageButton, actor: number): void {
+    this.trace?.(`stage dispatch kind=${button.kind} actor=${actor} poolOpen=${this.poolOpen}`);
     if (button.kind === "stage") this.actions.selectStage(actor, button.choice);
     else if (button.kind === "start") this.actions.start(actor);
     else if (button.kind === "hazards") this.actions.toggleHazards(actor);
@@ -187,6 +189,13 @@ export class StagePanel {
     else if (button.kind === "poolMode") this.actions.togglePoolMode(actor);
     else this.actions.togglePoolStage(actor, button.choice);
 
+  }
+
+  traceClicks(trace: (entry: string) => void): void {
+    this.trace = trace;
+    this.clicks.traceFrames(trace);
+    trace(`stage root frame=${GetHandleId(this.root)} enabled=${BlzFrameGetEnable(this.root)} visible=${BlzFrameIsVisible(this.root)}`);
+    trace(`stage pool root frame=${GetHandleId(this.poolRoot)} enabled=${BlzFrameGetEnable(this.poolRoot)} visible=${BlzFrameIsVisible(this.poolRoot)}`);
   }
 
 

@@ -182,6 +182,7 @@ export class SelectionPanel {
   private game: Readonly<MatchState> | undefined;
   private settingsOpen = false;
   private hovered: SelectionButton | undefined;
+  private trace: ((entry: string) => void) | undefined;
 
   private movesOpen = false;
   private movesCharacter: number = Character.rifleman;
@@ -456,6 +457,7 @@ export class SelectionPanel {
   }
 
   private click(button: SelectionButton, clicker: player): void {
+    this.trace?.(`selection dispatch kind=${button.kind} player=${GetPlayerId(clicker)} owner=${this.participantId} cpuOpen=${this.cpuSlot !== undefined} settingsOpen=${this.settingsOpen}`);
     if (clicker !== Player(this.participantId)) return;
     if (this.cpuSlot !== undefined && button.kind !== "cpuStep" && button.kind !== "cpuClose") return;
     if (button.kind === "tile") {
@@ -517,6 +519,14 @@ export class SelectionPanel {
   private choosing(): Readonly<MatchState> | undefined {
     const { game } = this;
     return game === undefined || game.phase !== Phase.characterMenu || this.settingsOpen || !humanActive(game, this.participantId) ? undefined : game;
+  }
+
+  traceClicks(trace: (entry: string) => void): void {
+    this.trace = trace;
+    this.clicks.traceFrames(trace);
+    const frame = BlzGetFrameByName(`MeleeSettingsLabel${I2S(this.participantId)}`, 0);
+    trace(`selection controls label frame=${GetHandleId(frame)} enabled=${BlzFrameGetEnable(frame)} visible=${BlzFrameIsVisible(frame)} text=${BlzFrameGetText(frame)}`);
+    trace(`selection root frame=${GetHandleId(this.root)} enabled=${BlzFrameGetEnable(this.root)} visible=${BlzFrameIsVisible(this.root)}`);
   }
 
   private openCpuSettings(slot: number): void {

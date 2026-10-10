@@ -232,6 +232,7 @@ function triggerSlot(): ParticipantSlot | undefined {
 
 export function onKeyDown(s: ShellState): void {
   const slot = triggerSlot();
+  if (s.build.devConsole && GetHandleId(BlzGetTriggerPlayerKey()) === Key.f1) traceParticipant(s, GetPlayerId(GetTriggerPlayer()), `menu raw F1 human=${slot !== undefined && humanActive(s.game, slot)} journalOwns=${slot !== undefined && journalOwnsKey(s, slot, Key.f1)}`);
   if (slot !== undefined) participantKeyDown(s, slot);
 }
 

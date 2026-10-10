@@ -75,6 +75,13 @@ export function startInputTrace(s: ShellState): void {
   traceInput(s.trace, `humans ${s.game.humanCount} frame ${s.runtime.simulationFrame} phase ${s.game.phase}`);
   traceConfirmedState(s);
   traceSelectionState(s, "trace-start");
+  if (s.build.devConsole) {
+    const ui = views(s);
+    const local = localSlot();
+    for (const slot of PARTICIPANT_SLOTS) if (slot === local) ui.selections[slot].traceClicks(entry => traceParticipant(s, slot, `menu ${entry}`));
+    ui.stage.traceClicks(entry => traceParticipant(s, local, `menu ${entry}`));
+    traceParticipant(s, local, `menu key-trigger down=${s.keyEvents.down === undefined ? -1 : GetHandleId(s.keyEvents.down)} escapeOnly=${s.keyEvents.escapeOnly}`);
+  }
   const receiptStarted = traceSeconds(s.trace);
   writeLines(INPUT_START_FILE, [traceStartLine(s.build.id)]);
   traceInput(s.trace, `trace-start receipt native-seconds ${R2S(traceSeconds(s.trace) - receiptStarted)}`);
