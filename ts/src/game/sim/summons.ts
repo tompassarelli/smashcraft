@@ -14,7 +14,7 @@ import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clear
 
 export const RIFLEMAN_BEAR_LIFETIME = 60;
 const RIFLEMAN_BEAR_SWIPE_INTERVAL = 20;
-const FREEZE_TRAP_ARMING_FRAMES = 20;
+const FREEZE_TRAP_ARMING_FRAMES = 23;
 const FREEZE_TRAP_LIFETIME_FRAMES = 480;
 
 export const FREEZE_TRAP_FREEZE_FRAMES = 300;

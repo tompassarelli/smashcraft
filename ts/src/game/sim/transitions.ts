@@ -19,7 +19,7 @@ export const LEDGE_REGRAB_FRAMES = 30;
 
 const FREEZE_IMMUNITY_FRAMES = 20;
 
-export const FREEZE_MINIMUM_FRAMES = 60;
+export const FREEZE_MINIMUM_FRAMES = 45;
 
 
 export function thawFighter(f: Fighter): void {
