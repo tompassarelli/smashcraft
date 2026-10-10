@@ -279,6 +279,7 @@ const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<str
     CairneBloodhoof: { elapsed: 30.5, angle: 20, zoom: 1.5 },
     "Anub'arak": { flipped: true },
     Lich: { zoom: 1.2 },
+    LichKing: { turn: 150, zoom: 1.5 },
     JainaProudmoore: { zoom: 1.2 },
     MalfurionStormrage: { zoom: 2.2, shift: [0, 0.5] },
     Murloc: { rest: true, body: true, zoom: 0.7, shift: [0.3, 1.6], bones: { bone_head: [0, -20, 0] } },
