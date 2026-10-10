@@ -1,3 +1,4 @@
+import { traceUi } from "../../game/ui/frames";
 import { cameraKey, returnPauseMenu, PAUSE_CAMERA_KEYS, pauseCameraKey } from "./pauseCamera";
 import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
 import { createImpactEvents } from "../../game/presentation/impactEvents";
@@ -114,6 +115,7 @@ function exitPausedMatch(s: ShellState, title: boolean): void {
   const menu = s.pauseMenu ??= { choice: 0, shown: false, title: false };
   menu.shown = false;
   menu.title = title;
+  traceUi(`ui title-set source=exitPausedMatch title=${title} phase=${s.game.phase}`);
   clearCapturedInputs(s);
   setStatus(s, "", 0.0);
   makePreview(s);
@@ -123,6 +125,7 @@ function exitPausedMatch(s: ShellState, title: boolean): void {
 export function selectPauseMenu(s: ShellState, actor: number, choice: number): void {
   if (!isParticipantSlot(actor) || !humanActive(s.game, actor)) return;
   if (s.pauseMenu?.title) {
+    traceUi("ui title-clear source=selectPauseMenu");
     s.pauseMenu.title = false;
     return;
   }
@@ -136,6 +139,7 @@ export function selectPauseMenu(s: ShellState, actor: number, choice: number): v
 function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
+  if (key === Key.f1) traceUi(`ui F1 down slot=${slot} phase=${s.game.phase} journalOwns=${journalOwnsKey(s, slot, key)} title=${s.pauseMenu?.title} held=${keyDown(s.participants[slot].keys, key)} settings=${views(s).settings[slot].isOpen()} ready=${s.participants[slot].bindings.ready}`);
   if (journalOwnsKey(s, slot, key)) return;
   if (s.trace.active) s.trace.window.keyDown[slot]++;
   traceParticipant(s, slot, `received down ${key}`);
@@ -144,6 +148,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   const settings = views(s).settings[slot];
   if (key < 0 || key > 255 || keyDown(keys, key)) return;
   if (s.pauseMenu?.title && (key === Key.n || key === Key.y)) {
+    traceUi(`ui title-clear source=keyDown key=${key}`);
     s.pauseMenu.title = false;
     return;
   }
@@ -177,6 +182,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (key === Key.f1) {
+    traceUi("ui F1 handler=openSettingsScreen");
     openSettingsScreen(s, slot);
     return;
   }
@@ -208,6 +214,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
 function participantKeyUp(s: ShellState, slot: ParticipantSlot): void {
   if (!humanActive(s.game, slot)) return;
   const key = GetHandleId(BlzGetTriggerPlayerKey());
+  if (key === Key.f1) traceUi(`ui F1 up slot=${slot} phase=${s.game.phase} journalOwns=${journalOwnsKey(s, slot, key)}`);
 
   if (key === Key.y) {
     startKeyUp(s.session, slot);

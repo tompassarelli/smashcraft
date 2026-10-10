@@ -1,10 +1,12 @@
+import { bindUiTrace, snapshotUiTrace, traceUi } from "../../game/ui/frames";
+import { traceF1Registrations } from "./keyEvents";
 
 
 import { hasPendingAttack, type AttackBuffer } from "../../game/input/attackBuffer";
 import { pulsePending } from "../../game/input/directionalInput";
 import { encodeBindings } from "../../game/input/keyBindings";
 import { PARTICIPANT_SLOTS, type ParticipantSlot } from "../../game/input/participants";
-import { directionX, directionZ } from "../../game/input/playerKeys";
+import { directionX, directionZ, heldActions } from "../../game/input/playerKeys";
 import { characterFor, characterReady, computerActive, fighterMask, firstHumanSlot, humanActive, humanFighterActive } from "../../game/match/rules";
 import { captureReplaySnapshot } from "../../game/replay/snapshot";
 import { beginStateChecksum, foldStateChecksum, stateChecksum } from "../../game/replay/canonical";
@@ -75,6 +77,9 @@ export function startInputTrace(s: ShellState): void {
   traceInput(s.trace, `humans ${s.game.humanCount} frame ${s.runtime.simulationFrame} phase ${s.game.phase}`);
   traceConfirmedState(s);
   traceSelectionState(s, "trace-start");
+  bindUiTrace(entry => traceInput(s.trace, entry));
+  traceF1Registrations();
+  traceUi(`ui key-triggers down=${s.keyEvents.down === undefined ? -1 : GetHandleId(s.keyEvents.down)} up=${s.keyEvents.up === undefined ? -1 : GetHandleId(s.keyEvents.up)} escapeOnly=${s.keyEvents.escapeOnly}`);
   const receiptStarted = traceSeconds(s.trace);
   writeLines(INPUT_START_FILE, [traceStartLine(s.build.id)]);
   traceInput(s.trace, `trace-start receipt native-seconds ${R2S(traceSeconds(s.trace) - receiptStarted)}`);
@@ -97,6 +102,7 @@ export function localParticipantSlot(s: Readonly<ShellState>): ParticipantSlot |
 
 function traceLength(s: Readonly<ShellState>): number {
   if (s.build.responseProbe) return RESPONSE_TRACE_CALLBACKS;
+  if (s.build.devConsole) return 1200;
   if (s.build.inputProfile === "native-driver") return 1200;
   return s.build.scenario === "shield-break" || s.build.scenario === "ledge" ? 600 : 300;
 }
@@ -126,6 +132,8 @@ export function traceTick(s: ShellState): void {
     }
   }
   if (floorMod(trace.ticks, 60) === 0) {
+    snapshotUiTrace("tick");
+    traceUi(`ui state phase=${s.game.phase} frame=${s.runtime.simulationFrame} title=${s.pauseMenu?.title} paused=${s.session.paused} resultFrames=${views(s).match.resultFrames} resultsShown=${views(s).match.resultsShown()} hudHidden=${s.pauseCamera?.hideHud} resumeHeld=${s.resumePresentationUntil !== undefined} heldActions=${heldActions(s.participants[0].keys)}`);
 
     if (trace.ticks - trace.pausedTicks + CHECKSUM_FOLD_CALLBACKS < traceLength(s)) traceConfirmedState(s);
     const rollback = activeRollback(s);

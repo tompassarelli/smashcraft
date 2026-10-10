@@ -1,3 +1,4 @@
+import { traceUi } from "../../game/ui/frames";
 import type { QuickStageSettings } from "../../game/shell/devSettings";
 
 
@@ -54,6 +55,7 @@ export function choose(s: ShellState, slot: ParticipantSlot, direction: -1 | 1):
 
 export function confirm(s: ShellState, slot: ParticipantSlot): void {
   if (s.pauseMenu?.title) {
+    traceUi(`ui title-clear source=confirm slot=${slot}`);
     s.pauseMenu.title = false;
     return;
   }
@@ -134,6 +136,7 @@ export function serviceAutomaticRematch(s: ShellState): void {
 }
 
 export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
+  traceUi(`ui controls-handler slot=${slot} phase=${s.game.phase} human=${humanActive(s.game, slot)} ready=${s.participants[slot].bindings.ready}`);
   if (s.game.phase !== Phase.characterMenu || !humanActive(s.game, slot)) return;
   if (!s.participants[slot].bindings.ready) {
     announce(s, "Controls are still loading.");
@@ -141,6 +144,7 @@ export function openSettingsScreen(s: ShellState, slot: ParticipantSlot): void {
   }
   clearParticipantInputs(s, slot);
   views(s).settings[slot].show();
+  traceUi(`ui controls-handler shown=${views(s).settings[slot].isOpen()}`);
 }
 
 

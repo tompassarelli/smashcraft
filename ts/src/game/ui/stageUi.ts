@@ -12,7 +12,7 @@ import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
 import { RANDOM_STAGE, STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { dropsSetting, hazardsSetting, rulesSummary } from "../shell/messages";
-import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft, setFrameText } from "./frames";
+import { traceUi, traceUiFrame, ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft, setFrameText } from "./frames";
 import { MENU_FONT, PANEL_TEXTURE } from "./hudLayout";
 import { StageCard } from "./stageCard";
 
@@ -85,7 +85,7 @@ export class StagePanel {
     const journal = controls === "journal";
     this.clicks = new ButtonClicks("ui.stage.click", (button, clicker) => this.click(button, GetPlayerId(clicker)), button => this.highlightStage(button?.kind === "stage" ? button.choice : undefined));
     const root = BlzCreateFrameByType("FRAME", "MeleeStageRoot", gameUi(), "", 0);
-    this.root = root;
+    this.root = traceUiFrame(root, "stage.root", "FRAME");
     this.backdrop = createBackdrop("MeleeStageBackdrop", consoleUi(), 800);
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\StageBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
@@ -99,6 +99,7 @@ export class StagePanel {
       const button = BlzCreateFrameByType("BUTTON", `MeleeStageTileButton${I2S(choice)}`, root, "", 0);
       placeTopLeft(button, stageTileLeft(choice), stageTileTop(choice));
       BlzFrameSetSize(button, f32(0.094), choice === RANDOM_STAGE ? f32(0.08) : f32(0.059));
+      traceUiFrame(button, `stage.tile.${I2S(choice)}`, "BUTTON");
       this.clicks.add(button, { kind: "stage", choice });
       if (choice !== RANDOM_STAGE) {
         new StageCard(root, `MeleeStageTile${I2S(choice)}`, stageTileLeft(choice), stageTileTop(choice), f32(0.094), f32(0.059), true).show(choice);
@@ -138,7 +139,7 @@ export class StagePanel {
       ? "Click a stage or move the stick.\nAny player can choose.\nA or Start: start · X: back"
       : "Click a stage or move the chip.\nAny player can choose.\nMovement controls: change stage · Y: start";
     stageText(root, "MeleeStageHelp", f32(0.454), f32(0.119), f32(0.3), f32(0.025), f32(0.008), help);
-    const startButton = this.clicks.add(stageButton(root, f32(0.545), f32(0.092), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), { kind: "start" });
+    const startButton = this.clicks.add(traceUiFrame(stageButton(root, f32(0.545), f32(0.092), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), "stage.start", "ScriptDialogButton", 1), { kind: "start" });
     BlzFrameSetLevel(startButton, 1);
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK [X]" : "BACK TO FIGHTERS"), { kind: "back" });
     this.hazardsToggle = stageButton(root, HAZARDS_BUTTON.x, HAZARDS_BUTTON.y, HAZARDS_BUTTON.width, HAZARDS_BUTTON.height, "");
@@ -179,6 +180,7 @@ export class StagePanel {
   }
 
   private click(button: StageButton, actor: number): void {
+    traceUi(`ui stage kind=${button.kind} actor=${actor}`);
     if (button.kind === "stage") this.actions.selectStage(actor, button.choice);
     else if (button.kind === "start") this.actions.start(actor);
     else if (button.kind === "hazards") this.actions.toggleHazards(actor);

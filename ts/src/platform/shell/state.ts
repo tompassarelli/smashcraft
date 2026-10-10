@@ -399,7 +399,7 @@ export function createShellState(build: MapBuild, setup: ShellSetup): ShellState
     status: { text: "", seconds: 0.0 }, frames: setup.frames, stageDecks: [], stageDeckParts: [], drawnStage: 0, stageCannon: undefined, stageLava: undefined, stageWind: [], stageScenery: undefined, shadowLightsRaised: false, viewExtreme: undefined, ui: undefined,
     sounds: createModelSoundCursor(ORIGINAL_MODEL_SOUNDS),
     dev: { rollback: isShadow(input) ? input.rollback : 6, delay: isShadow(input) ? input.delay : 3, batch: DEFAULT_BATCH, rematchSeconds: REMATCH_COUNTDOWN_SECONDS }, devReceipts: 0,
-    trace: inputTrace(build.responseProbe || build.inputProfile === "native-driver" ? 2048 : 256),
+    trace: inputTrace(build.devConsole || build.responseProbe || build.inputProfile === "native-driver" ? 2048 : 256),
     probe: build.responseProbe ? createResponseProbe(build.id) : undefined,
     rollback: isShadow(input) ? rollback(input, setup.playback, setup.editbox) : undefined,
     keyEvents: { down: undefined, up: undefined, escapeOnly: false }, readyMarkerWritten: false, restartRequested: false,

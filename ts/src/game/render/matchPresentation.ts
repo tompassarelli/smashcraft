@@ -19,7 +19,7 @@ import { confirmedDropCues, createDropCueObservation, observeDropCues } from "..
 import { meterDropPoint } from "../match/meterDrops";
 import { SELECTABLE_CHARACTERS } from "../sim/heroes/registry";
 import { STAGE_CATALOG } from "../menu/stageCatalog";
-import { coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
+import { traceUi, traceUiFrame, coverScreen, createBackdrop, createText, gameUi } from "../ui/frames";
 import { MENU_FONT, PANEL_TEXTURE } from "../ui/hudLayout";
 import { hideEffect, type WorldOrigin } from "./effects";
 import { SoundBank, SoundKind } from "./soundBank";
@@ -93,14 +93,14 @@ export class MatchPresentation {
     for (const path of presentationSoundPaths(SELECTABLE_CHARACTERS, STAGE_CATALOG.map(stage => stage.id))) Preload(path);
     this.sounds.prepare(SoundKind.interfaceFile, interfaceSoundPaths(SELECTABLE_CHARACTERS));
     const parent = gameUi();
-    this.panel = createBackdrop("MatchResultsPanel", parent, 0);
+    this.panel = traceUiFrame(createBackdrop("MatchResultsPanel", parent, 0), "results.panel", "BACKDROP");
     BlzFrameSetTexture(this.panel, "ReplaceableTextures\\TeamColor\\TeamColor20.blp", 0, true);
     BlzFrameSetVertexColor(this.panel, -13619144);
 
     BlzFrameSetAbsPoint(this.panel, FRAMEPOINT_TOPRIGHT, f32(0.79), f32(0.52));
     BlzFrameSetSize(this.panel, f32(0.36), f32(0.05) + PARTICIPANT_CAPACITY * f32(0.04));
     BlzFrameSetEnable(this.panel, false);
-    this.title = createText("MatchResultsTitle", this.panel, 0);
+    this.title = traceUiFrame(createText("MatchResultsTitle", this.panel, 0), "results.title", "TEXT");
     BlzFrameSetPoint(this.title, FRAMEPOINT_TOP, this.panel, FRAMEPOINT_TOP, 0.0, f32(-0.012));
     BlzFrameSetSize(this.title, f32(0.33), f32(0.03));
     BlzFrameSetFont(this.title, MENU_FONT, f32(0.016), 0);
@@ -115,7 +115,7 @@ export class MatchPresentation {
       lines.push(line);
     }
     this.lines = lines;
-    this.help = createText("MatchResultsHelp", this.panel, 0);
+    this.help = traceUiFrame(createText("MatchResultsHelp", this.panel, 0), "results.help", "TEXT");
     BlzFrameSetSize(this.help, f32(0.33), f32(0.06));
     BlzFrameSetFont(this.help, MENU_FONT, f32(0.009), 0);
     BlzFrameSetTextAlignment(this.help, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
@@ -220,6 +220,7 @@ export class MatchPresentation {
 
 
   beginResults(view: ResultsView, delay: number): void {
+    traceUi(`ui results begin delay=${delay} rows=${view.rows.length} winner=${view.winnerSlot}`);
     this.pending = view;
     this.resultView = view;
     this.resultFrames = 0;
@@ -240,6 +241,7 @@ export class MatchPresentation {
     }
     const view = this.pending;
     this.pending = undefined;
+    traceUi(`ui results show frames=${this.resultFrames} rows=${view.rows.length}`);
     this.showResults(view);
     return true;
   }
@@ -317,6 +319,7 @@ export class MatchPresentation {
   }
 
   hideResults(): void {
+    if (this.resultView !== undefined) traceUi(`ui results hide frames=${this.resultFrames} pending=${this.pending !== undefined}`);
     this.pending = undefined;
     this.resultView = undefined;
     this.resultFrames = 0;

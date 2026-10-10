@@ -1,3 +1,4 @@
+import { traceUi } from "../../game/ui/frames";
 
 
 
@@ -10,6 +11,11 @@ import { pauseCameraKey } from "./pauseCamera";
 
 export const KEY_DOWN = "shell.keyDown";
 export const KEY_UP = "shell.keyUp";
+const f1Events: string[] = [];
+
+export function traceF1Registrations(): void {
+  for (const entry of f1Events) traceUi(entry);
+}
 
 
 export const Key = {
@@ -19,7 +25,14 @@ export const Key = {
 
 export function registerKey(s: Readonly<ShellState>, trigger: trigger, key: number, down: boolean, meta: number = 0): void {
   for (const slot of PARTICIPANT_SLOTS) {
-    if (humanActive(s.game, slot)) BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), meta, down);
+    if (humanActive(s.game, slot)) {
+      BlzTriggerRegisterPlayerKeyEvent(trigger, Player(slot), ConvertOsKeyType(key), meta, down);
+      if (key === Key.f1) {
+        const entry = `ui F1 registration trigger=${GetHandleId(trigger)} slot=${slot} down=${down} meta=${meta}`;
+        if (f1Events.length < 128) f1Events.push(entry);
+        traceUi(entry);
+      }
+    }
   }
 }
 
@@ -51,6 +64,9 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
 
 export function removeKeyEvents(s: ShellState): void {
   const { keyEvents } = s;
+  const entry = `ui key-remove down=${keyEvents.down === undefined ? -1 : GetHandleId(keyEvents.down)} up=${keyEvents.up === undefined ? -1 : GetHandleId(keyEvents.up)}`;
+  if (f1Events.length < 128) f1Events.push(entry);
+  traceUi(entry);
   if (keyEvents.down !== undefined) DestroyTrigger(keyEvents.down);
   if (keyEvents.up !== undefined) DestroyTrigger(keyEvents.up);
   keyEvents.down = undefined;

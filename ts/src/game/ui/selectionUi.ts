@@ -65,7 +65,7 @@ import { Character, ItemKind, itemBit } from "../sim/codes";
 import { TILE_PORTRAIT_SLOT, cardPortrait, tilePortrait } from "./portraitFrames";
 import { slotColor } from "./slotColors";
 import { type TutorialButton, type TutorialMenuFrames, createTutorialMenu, markTutorialSeen, showTutorialLesson, tutorialSeen } from "./tutorialMenu";
-import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft, setFrameText } from "./frames";
+import { traceUi, traceUiFrame, ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft, setFrameText } from "./frames";
 
 
 export interface SelectionActions {
@@ -248,7 +248,7 @@ export class SelectionPanel {
     const suffix = I2S(participantId);
     this.clicks = new ButtonClicks(`ui.selection.${suffix}.click`, (button, clicker) => this.click(button, clicker), button => this.highlight(button));
     const root = BlzCreateFrameByType("FRAME", `MeleeSelectRoot${suffix}`, gameUi(), "", 0);
-    this.root = root;
+    this.root = traceUiFrame(root, `selection.root.${suffix}`, "FRAME");
     this.backdrop = createBackdrop(`MeleeSelectBackdrop${suffix}`, consoleUi(), 400 + participantId);
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\SelectionBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
@@ -301,14 +301,14 @@ export class SelectionPanel {
     BlzFrameSetVisible(this.hand, false);
     art(root, `MeleeConfirmArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.071), f32(0.043), f32(0.235), f32(0.037));
     this.confirm = label(root, `MeleeConfirmLabel${suffix}`, f32(0.079), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
-    this.clicks.add(hotspot(root, f32(0.071), f32(0.043), f32(0.235), f32(0.037)), { kind: "start" });
+    this.clicks.add(traceUiFrame(hotspot(root, f32(0.071), f32(0.043), f32(0.235), f32(0.037)), `selection.start.${suffix}`, "ScriptDialogButton"), { kind: "start" });
     art(root, `MeleeSettingsArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.51), f32(0.043), f32(0.235), f32(0.037));
     const settingsLabel = label(root, `MeleeSettingsLabel${suffix}`, f32(0.518), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
-    this.settingsLabel = settingsLabel;
+    this.settingsLabel = traceUiFrame(settingsLabel, `selection.controls.label.${suffix}`, "TEXT");
     setFrameText(settingsLabel, "Controls (F1)");
     this.delayLine = label(root, `MeleeDelayLine${suffix}`, f32(0.36), f32(0.6), f32(0.42), f32(0.03), f32(0.010));
     BlzFrameSetTextAlignment(this.delayLine, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_RIGHT);
-    const settingsButton = this.clicks.add(hotspot(root, f32(0.51), f32(0.043), f32(0.235), f32(0.037)), { kind: "settings" });
+    const settingsButton = this.clicks.add(traceUiFrame(hotspot(root, f32(0.51), f32(0.043), f32(0.235), f32(0.037)), `selection.controls.${suffix}`, "ScriptDialogButton", 1), { kind: "settings" });
     BlzFrameSetLevel(settingsButton, 1);
     art(root, `MeleeMovesArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.318), f32(0.043), f32(0.18), f32(0.037));
     this.movesLabel = label(root, `MeleeMovesLabel${suffix}`, f32(0.324), f32(0.039), f32(0.168), f32(0.028), f32(0.011));
@@ -464,6 +464,7 @@ export class SelectionPanel {
   }
 
   private click(button: SelectionButton, clicker: player): void {
+    traceUi(`ui selection kind=${button.kind} player=${GetPlayerId(clicker)} owner=${this.participantId} cpuOpen=${this.cpuSlot !== undefined} settingsOpen=${this.settingsOpen}`);
     if (clicker !== Player(this.participantId)) return;
     if (this.cpuSlot !== undefined && button.kind !== "cpuStep" && button.kind !== "cpuClose") return;
     if (button.kind === "tile") {

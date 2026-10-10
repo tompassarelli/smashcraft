@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { bindPrototype } from "../../platform/rebind";
-import { ButtonClicks, consoleUi, createBackdrop, createText, placeTopLeft } from "./frames";
+import { traceUi, traceUiFrame, ButtonClicks, consoleUi, createBackdrop, createText, placeTopLeft } from "./frames";
 import { MENU_FONT } from "./hudLayout";
 
 export class PauseMenu {
@@ -18,7 +18,7 @@ export class PauseMenu {
 
   constructor(select: (choice: number, clicker: player) => void) {
     this.clicks = new ButtonClicks("ui.pause.click", select, choice => this.highlight(choice));
-    this.root = createBackdrop("SmashcraftPause", consoleUi(), 1800);
+    this.root = traceUiFrame(createBackdrop("SmashcraftPause", consoleUi(), 1800), "pause.root", "BACKDROP", 20);
     BlzFrameSetTexture(this.root, "ReplaceableTextures\\TeamColor\\TeamColor20.blp", 0, true);
     BlzFrameSetVertexColor(this.root, -13619144);
     placeTopLeft(this.root, f32(0.08), f32(0.53));
@@ -67,6 +67,7 @@ export class PauseMenu {
   }
 
   update(paused: boolean, choice: number, title: boolean, training = false, hints = false): void {
+    if (title !== this.title) traceUi(`ui title-panel title=${title} paused=${paused}`);
     BlzFrameSetVisible(this.root, paused || title);
     if (!paused && !title) return;
     BlzFrameSetText(this.heading, title ? "Smashcraft" : "Paused");

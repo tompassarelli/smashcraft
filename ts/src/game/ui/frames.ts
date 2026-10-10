@@ -9,6 +9,30 @@ import { f32 } from "wisp/src/sim/f32";
 export type MenuControls = "journal" | "keyboard";
 
 const plainFrameText = new Map<framehandle, string>();
+const tracedFrames = new Map<framehandle, { readonly name: string; readonly type: string; readonly level: number; readonly registrations: string[] }>();
+let uiTrace: ((entry: string) => void) | undefined;
+
+export function traceUi(entry: string): void {
+  uiTrace?.(entry);
+}
+
+export function traceUiFrame(frame: framehandle, name: string, type: string, level = 0): framehandle {
+  tracedFrames.set(frame, { name, type, level, registrations: [] });
+  return frame;
+}
+
+export function bindUiTrace(trace: (entry: string) => void): void {
+  uiTrace = trace;
+  snapshotUiTrace("start");
+}
+
+export function snapshotUiTrace(reason: string): void {
+  for (const [frame, info] of tracedFrames) {
+    const parent = BlzFrameGetParent(frame);
+    traceUi(`ui frame reason=${reason} name=${info.name} id=${GetHandleId(frame)} type=${info.type} parent=${GetHandleId(parent)} parentName=${BlzFrameGetName(parent)} enabled=${BlzFrameGetEnable(frame)} visible=${BlzFrameIsVisible(frame)} levelSet=${info.level} textSet=${plainFrameText.get(frame) ?? ""}`);
+    if (reason === "start") for (const event of info.registrations) traceUi(`ui registration name=${info.name} id=${GetHandleId(frame)} event=${event}`);
+  }
+}
 
 export function gameUi(): framehandle {
   return BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0);
@@ -85,6 +109,7 @@ export class ButtonClicks<T> {
     on(this.name, () => {
       const id = GetHandleId(BlzGetTriggerFrame());
       const clicker = GetTriggerPlayer();
+      traceUi(`ui event handler=${this.name} frame=${id} event=${GetHandleId(BlzGetTriggerFrameEvent())} player=${GetPlayerId(clicker)}`);
       for (const button of this.buttons) {
         if (button.id !== id) continue;
         const event = BlzGetTriggerFrameEvent();
@@ -97,6 +122,7 @@ export class ButtonClicks<T> {
           return;
         }
         releaseFocus(button.frame, clicker);
+        traceUi(`ui dispatch handler=${this.name} frame=${id}`);
         handle(button.target, clicker);
         return;
       }
@@ -108,6 +134,8 @@ export class ButtonClicks<T> {
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_CONTROL_CLICK);
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_ENTER);
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_LEAVE);
+    const info = tracedFrames.get(frame);
+    if (info !== undefined) info.registrations.push("CONTROL_CLICK", "MOUSE_ENTER", "MOUSE_LEAVE");
     this.buttons.push({ id: GetHandleId(frame), frame, target });
     return frame;
   }
