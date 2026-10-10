@@ -36,7 +36,7 @@ import { STAGE_READY_PREFIX } from "../../game/shell/stageLoad";
 import { makePreview } from "./preview";
 import { preloadStageAssets } from "./stageScenery";
 import * as probe from "./responseProbe";
-import { receiveInput, rollbackTick } from "./rollback";
+import { delayRow, receiveInput, rollbackTick } from "./rollback";
 import { floorMod } from "wisp/src/sim/intMath";
 import * as netDelay from "./netDelay";
 import { SAVE_MOMENT, momentKey, serviceMomentRequest, serviceMomentSave } from "./moment";
@@ -83,7 +83,7 @@ function gameTick(s: ShellState): void {
   if (s.build.pausePositionProbe && s.game.phase === Phase.match && s.probe?.run === 0) probe.startProbe(s.probe, false);
   const recorder = s.probe;
   if (s.build.epochProbe === true && recorder !== undefined) {
-    probe.serviceEpochProbe(recorder, s.game.phase === Phase.match ? activeRollback(s)?.epoch : undefined, () => `checksum ${recorder.epoch ?? -1} ${s.runtime.simulationFrame} ${confirmedChecksum(s)} ${s.game.phase}`);
+    probe.serviceEpochProbe(recorder, s.game.phase === Phase.match ? activeRollback(s)?.epoch : undefined, () => `checksum ${recorder.epoch ?? -1} ${s.runtime.simulationFrame} ${confirmedChecksum(s)} ${s.game.phase}`, () => (s.rollback === undefined ? "delay -1 -1 -" : delayRow(s, s.rollback)));
   }
   const pausedBefore = s.session.paused;
   view.serviceResumePresentation(s);

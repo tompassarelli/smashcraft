@@ -33,6 +33,7 @@ function probeState(clients: Lockstep, index: number) {
 interface Window {
   readonly header: string;
   readonly epochLine: string;
+  readonly delay: string;
   readonly checksums: Map<number, string>;
   readonly lastChecksumFrame: number;
 }
@@ -54,7 +55,8 @@ function exported(clients: Lockstep, index: number, run: number): Window {
     checksums.set(Number(frame), sum ?? "");
     lastChecksumFrame = Number(frame);
   }
-  return { header: lines.find(line => line.startsWith("integrity ")) ?? "", epochLine: lines.find(line => line.startsWith("epoch ")) ?? "", checksums, lastChecksumFrame };
+  const delay = lines.find(line => / delay /.test(line))?.replace(/^I \d+ /, "") ?? "";
+  return { delay, header: lines.find(line => line.startsWith("integrity ")) ?? "", epochLine: lines.find(line => line.startsWith("epoch ")) ?? "", checksums, lastChecksumFrame };
 }
 
 sweep("native-input records each match epoch from its first callback for at most 6,000 callbacks, checksums confirmed frames every 600 equally on both clients, and reports an epoch it could not record [spec #396]", () => {
@@ -103,12 +105,17 @@ sweep("native-input records each match epoch from its first callback for at most
     const windows = [0, 1].map(index => exported(clients, index, run));
     for (const window of windows) {
       expect(window.header).toMatch(/ dropped=0$/);
+      const [, agreed, requests] = /^delay (?:\d+) (\d+) ([\d,]+)$/.exec(window.delay) ?? [];
+      expect(window.delay.startsWith(`delay ${epoch} `)).toBe(true);
+      expect(Number(agreed)).toBe(Math.max(...(requests ?? "").split(",").map(Number)));
+      if (run === 1) expect(window.delay).toBe(`delay ${epoch} 2 2,2`);
       expect(window.epochLine).toBe(`epoch recorded=${epoch} incomplete=${incomplete}`);
       const periodic = [...window.checksums.keys()].filter(frame => frame !== window.lastChecksumFrame);
       expect(periodic.length).toBeGreaterThanOrEqual(5);
       periodic.forEach((frame, index) => expect(frame).toBe((index + 1) * CHECKSUM_FRAMES));
     }
     const [a, b] = windows;
+    expect(b?.delay).toBe(a?.delay ?? "");
     let compared = 0;
     for (const [frame, sum] of a?.checksums ?? []) {
       const other = b?.checksums.get(frame);
