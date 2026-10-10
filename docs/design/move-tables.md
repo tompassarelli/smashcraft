@@ -5,6 +5,11 @@ fighter moves as compact numeric tables read by one small interpreter, in place
 of per-move code. It measures today's move code, proposes the table format and
 the interpreter loop, sets the determinism rules and picks the first fighter.
 
+**Status: measured and removed.** Mountain King ran from a table as a pilot
+(`bc84e95a0`); it measured a no-go, and the pilot was removed again, so every
+fighter runs from its authored `FighterMoves` and `FighterSpecials` through one
+runner. The table format, the pilot and its numbers below are history.
+
 ## What the move code costs today
 
 Measured on commit `8b76d67` (Wisp pin `9f1d3fa`) in a stock Lua32
@@ -258,18 +263,17 @@ Lich King (79 locals in its moves module, also taped) is the second candidate
 if Mountain King's charge or recall rows need interpreter work box 2 cannot
 finish.
 
-## Mountain King on the table
+## Mountain King on the table (history)
 
-Mountain King's kit runs through the interpreter in `sim/moveTable.ts` (a pure
+From `bc84e95a0` until its removal ("Removal" below), Mountain King's kit ran through the interpreter in `sim/moveTable.ts` (a pure
 core: row layouts, readers and the load-time views, no fighter state).
-`scripts/moveTables.ts` encodes the authored kit with `scripts/moveTableEncode.ts`
-and writes `sim/heroes/mountainKingTable.ts` (literals only);
-`test/move-tables.test.ts` fails when that module drifts from the kit, so an
-edit to the kit is followed by `bun scripts/moveTables.ts` from `ts/`.
-The hero definition gives the same `MoveTable` to `moves.table` and
-`specials.table`; a kit without one runs the authored code as before.
+`scripts/moveTables.ts` encoded the authored kit with `scripts/moveTableEncode.ts`
+and wrote `sim/heroes/mountainKingTable.ts` (literals only);
+`test/move-tables.test.ts` failed when that module drifted from the kit.
+The hero definition gave the same `MoveTable` to `moves.table` and
+`specials.table`; a kit without one ran the authored code.
 
-What the simulation reads from the table for a fighter that has one: every
+What the simulation read from the table for a fighter that had one: every
 normal's startup, active, total, landing lag, jab chain, startup travel, hit
 rows and hurt poses; every throw's contact frame, length and effect; every
 special form, EX form and follow-up's form choice (air, recall while a bolt
@@ -281,22 +285,22 @@ poses. Kit scalars (`dashAttack`, smash charge, pummel count) stay fields of
 
 Deliberate exceptions:
 
-- **Projectile specs stay the kit's objects.** A projectile in flight holds its
+- **Projectile specs stayed the kit's objects.** A projectile in flight holds its
   spec, and snapshots rebind it by identity (`replay/moment.ts`), so shot rows
-  carry the spawn frame and limit the interpreter reads and `shotSpecs` binds
+  carried the spawn frame and limit the interpreter read and `shotSpecs` bound
   each row to the kit's own spec, in the order `shotOrder` walks the kit.
 - **Load-time views.** Contact code takes `HitRegion`, `HitEffect` and hurt part
-  lists by reference, so `moveTable()` builds one read-only view per hit, effect
-  and pose row at load; the per-frame walk is integer indexed over the rows.
+  lists by reference, so `moveTable()` built one read-only view per hit, effect
+  and pose row at load; the per-frame walk was integer indexed over the rows.
 - **Readers outside the simulation of the move** (bots, cues, names, canonical
-  digests, the balance kit) still read the authored kit, which stays loaded.
+  digests, the balance kit) still read the authored kit, which stayed loaded.
 
-The encoder refuses any authored field the interpreter does not run yet:
+The encoder refused any authored field the interpreter did not run:
 falls, landing hits, intangible, armor, guard, placement, companion commands,
 command grabs, bursts, rituals, rehits, buffs, cleanses, strike statuses, marked
 forms, aimed tilt, drift, lift, relocation, edge teleports and every optional
-projectile field beyond returns and `activeFrom`. Each of those is interpreter
-work before a kit that uses it can convert.
+projectile field beyond returns and `activeFrom`. Each of those would be
+interpreter work before a kit that uses it could convert.
 
 Replay identity, on the same 43 acceptance tapes (30,950 frames, Mountain
 King's included) recorded before the change: `bun wisp parity tapes` reports 0
@@ -305,7 +309,7 @@ is byte-identical before and after in Bun, stock Lua32 and toward-zero Lua32.
 Altering one effect row in the table changes the Mountain King tape, so the
 table path is the one that ran.
 
-## Measured cost and roster decision
+## Measured cost and roster decision (history)
 
 Commit `2ec62de` before and the box 2 change after, Wisp pin `9f1d3fa`, stock
 Lua32 built by Wisp. Instructions and KB are deterministic; ms columns are the
@@ -360,8 +364,36 @@ Converting the roster would add a second runner and a generator step to every
 kit for no frame-time gain. What would change this: dropping the authored kit
 from the map (bots and cues reading the table too), which is the only route to
 the locals saving, and a reason other than frame cost, such as reloading a kit
-without a rebuild. Mountain King keeps running from its table as the measured
-example; removing it again is a revert of one hero definition line pair.
+without a rebuild (Wisp hot reload already swaps TypeScript behaviour in a
+running match). Single-source tables would mean converting every kit, moving
+every reader above (and projectile spec identity) onto the table and dropping
+the authored kits; before funding that, measure one complete fighter with every
+runtime reader moved and its authored objects absent. `bc84e95a0` holds the
+pilot to start from.
+
+## Removal
+
+The no-go was accepted and the pilot removed (#408 box B): the interpreter, the
+generated Mountain King table, the encoder, the generator and its drift test are
+gone, and every read site lost its table branch.
+
+Measured against main `1772758` (before) with the removal applied (after),
+Wisp pin `41ee080`, stock Lua32. The 43 acceptance tapes recorded on
+`1772758` (30,950 frames) replay to byte-identical frame records after the
+removal in Bun, stock Lua32 and toward-zero Lua32 (0 divergent frames), and
+`bun wisp parity tapes` still reports 0 divergent frames between runtimes.
+
+Whole matches, client p0 per frame:
+
+| Run | Instructions mean before → after | Median | KB mean (run total) | Predicted ms p50 / p95 |
+| --- | ---: | ---: | ---: | ---: |
+| `perf bot-mountain-king` | 317,290 → 314,857 (−0.77%) | 278,250 → 276,100 | 62 → 62 (111,215 → 111,578) | 6.32 / 17.35 → 6.28 / 17.39 |
+| `perf playable-bot-four` | 226,142 → 225,487 (−0.29%) | 189,300 → 188,900 | 20 → 20 (35,771 → 35,752) | 4.54 / 8.94 → 4.53 / 8.92 |
+
+From a 32-bit `luac -l` of `build/perf.lua`, `sim.heroSpecialRules` drops from
+72 to 60 locals (3,951 → 2,800 instructions); `sim.moves`, `sim.hitRegions`
+and `sim.hurtboxes` go from 7, 40, 22 to 6, 38, 19 locals. The bundle shrinks
+89 KB (4,930,406 → 4,841,078 bytes).
 
 ## Commands
 
@@ -376,7 +408,6 @@ LUA=$LUA bun wisp perf census --fighter chen-stormstout --functions
 LUA=$LUA bun wisp perf census --fighter mountain-king --functions
 LUA=$LUA bun wisp perf bot-mountain-king --samples          # a whole match with Mountain King
 LUA=$LUA TOWARD_ZERO_LUA=$(bun node_modules/wisp/scripts/wisp/lua32.ts toward-zero) bun wisp parity tapes
-bun scripts/moveTables.ts                                   # regenerate the move tables after a kit edit
 # locals and instructions per module: a 32-bit luac (make posix MYCFLAGS=-DLUA_32BITS
 # in the same Lua 5.3.6 source) listing build/perf.lua
 luac -p -l build/perf.lua

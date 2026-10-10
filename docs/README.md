@@ -101,7 +101,7 @@ From ts/, `bun wisp help` lists commands and topics; `bun wisp help TOPIC` print
 - [Smash Melee reference data](smash-melee-reference/README.md): physics parameters, every fighter's retail attributes and the targeted retail observations used by the physics tests.
 - [Melee frame-data reference](../references/melee-frame-data/README.md): the one Melee frame-data corpus: per-move frame data, hitbox positions and dodge travel.
 - [Move data](move-data.md), [move comparisons](move-comparisons.md) and [move reference join](move-reference-join.md): queryable production move facts.
-- [Move tables](design/move-tables.md): measured cost of today's move code (locals, bytecode, instructions and KB per frame) and the design for compact move tables read by one interpreter.
+- [Move tables](design/move-tables.md): measured cost of the move code (locals, bytecode, instructions and KB per frame) and compact move tables read by one interpreter: measured and removed.
 - [Native arithmetic comparison](native-physics-precision.md): how to check Warcraft against headless numbers.
 
 ## Netcode and controllers
