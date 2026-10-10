@@ -8,6 +8,10 @@ import { f32 } from "wisp/src/sim/f32";
 
 export type MenuControls = "journal" | "keyboard";
 
+declare global {
+  var __smashcraftPlainFrameText: Map<framehandle, string> | undefined;
+}
+
 export function gameUi(): framehandle {
   return BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0);
 }
@@ -45,11 +49,16 @@ function releaseFocus(frame: framehandle, clicker: player): void {
   BlzFrameSetFocus(frame, false);
 }
 
+export function setFrameText(frame: framehandle, text: string): void {
+  if (globalThis.__smashcraftPlainFrameText === undefined) globalThis.__smashcraftPlainFrameText = new Map();
+  globalThis.__smashcraftPlainFrameText.set(frame, text);
+  BlzFrameSetText(frame, text);
+}
+
 export function highlightText(frame: framehandle, highlighted: boolean): void {
-  const text = BlzFrameGetText(frame);
-  const plain = text.startsWith("|cffffcc00") && text.endsWith("|r") ? text.slice(10, -2) : text;
+  const plain = globalThis.__smashcraftPlainFrameText?.get(frame) ?? "";
   const colored = highlighted && plain !== "" ? `|cffffcc00${plain}|r` : plain;
-  if (colored !== text) BlzFrameSetText(frame, colored);
+  BlzFrameSetText(frame, colored);
 }
 
 interface Button<T> {
@@ -97,7 +106,8 @@ export class ButtonClicks<T> {
     });
   }
 
-  add(frame: framehandle, target: T): framehandle {
+  add(frame: framehandle, target: T, text?: string): framehandle {
+    if (text !== undefined) setFrameText(frame, text);
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_CONTROL_CLICK);
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_ENTER);
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_LEAVE);
