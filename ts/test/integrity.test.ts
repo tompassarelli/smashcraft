@@ -43,7 +43,7 @@ test("the r8 capture reconciles to #26's measured table [k4 reference native]", 
 });
 
 
-test("the delay readout reports each client's echo, lateness, depth, agreed delay, cursor offset, halts and drops from a hand-counted pair [spec #396]", () => {
+test("the delay readout reports each client's echo, lateness, depth, agreed delay, cursor offset, halts and drops from a hand-counted pair [k4 reference native]", () => {
   const clients = withCursorOffsets(savedClients(join(import.meta.dir, "fixtures/delay-readout")).map(clientDelay));
   expect(delayTable(clients).slice(2)).toEqual([
     "| . p0 run1 | 1:2 (2,3) | 1 / 1 / 1 (n=1) | 0 | 4 / 4 / 4 (n=1) | 0 / 3 / 3 (n=2) | 4 / 4 / 4 (n=1) | 1 / 1 / 1 (n=3) | 1 | 0 / 1 / 0 |",

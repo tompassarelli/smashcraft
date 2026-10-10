@@ -63,7 +63,7 @@ function exported(clients: Lockstep, index: number, run: number): Window {
   return { delay, header: lines.find(line => line.startsWith("integrity ")) ?? "", epochLine: lines.find(line => line.startsWith("epoch ")) ?? "", checksums, lastChecksumFrame };
 }
 
-sweep("native-input records each match epoch from its first callback for at most 6,000 callbacks, checksums confirmed frames every 600 equally on both clients, and reports an epoch it could not record [spec #396]", () => {
+sweep("native-input records each match epoch from its first callback for at most 6,000 callbacks, checksums confirmed frames every 600 equally on both clients, and reports an epoch it could not record [k1 scenario]", () => {
   const clients = headless.clients(entryFor(NATIVE_INPUT), [0, 1], { delivery: syncDelivery(MEASURED_BATTLE_NET, 396) });
   let tick = 0;
   const play = (frames: number) => {
