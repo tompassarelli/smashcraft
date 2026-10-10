@@ -79,7 +79,10 @@ export function advanceSpecialEffect(state: SpecialEffectState, fighter: Readonl
 
 const HIDDEN: Readonly<StaticSpecialPose> = { visible: false, x: 0.0, z: 0.0, scale: 0.0, alpha: 0, red: 0, green: 0, blue: 0 };
 
-export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighter: Readonly<Fighter> | undefined, slot: number, kind: StaticSpecial): Readonly<StaticSpecialPose> {
+export const createStaticSpecialPose = (): StaticSpecialPose => ({ visible: false, x: 0.0, z: 0.0, scale: 0.0, alpha: 0, red: 0, green: 0, blue: 0 });
+
+/** The pose of a static special effect, written into out (a renderer keeps one so a frame allocates none). */
+export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighter: Readonly<Fighter> | undefined, slot: number, kind: StaticSpecial, out = createStaticSpecialPose()): Readonly<StaticSpecialPose> {
   if (fighter === undefined || fighter.status.out || (kind !== STATIC_DRAIN_FLASH && fighter.character !== Character.demonHunter)) return HIDDEN;
   const scale = characterModelScale(fighter.character);
   const { special, motion } = fighter;
@@ -93,44 +96,39 @@ export function projectSpecialEffect(state: Readonly<SpecialEffectState>, fighte
     const tell = felRush && special.form === 0 && special.frame >= 1 && special.frame <= FEL_RUSH_TELL_LAST;
     const chaos = felRush && (special.form === CHAOS_STRIKE_FORM || special.form === CHAOS_STRIKE_AIR_FORM)
       && special.frame >= CHAOS_STRIKE_FIRST && special.frame <= CHAOS_STRIKE_LAST;
-    return {
-      visible: immolate || tell || chaos,
-      x: motion.x,
-      z: f32(motion.z + f32(50 * scale)),
-      scale: f32((immolate ? f32(1.4) : f32(1.1)) * scale),
-      alpha: 230,
-      red: immolate ? 85 : 60,
-      green: 255,
-      blue: immolate ? 100 : 60,
-    };
+    out.visible = immolate || tell || chaos;
+    out.x = motion.x;
+    out.z = f32(motion.z + f32(50 * scale));
+    out.scale = f32((immolate ? f32(1.4) : f32(1.1)) * scale);
+    out.alpha = 230;
+    out.red = immolate ? 85 : 60;
+    out.green = 255;
+    out.blue = immolate ? 100 : 60;
+    return out;
   }
   if (kind === STATIC_WING_TRAIL) {
-    return {
-
-
-      visible: (special.action === SpecialAction.demonHunterWingAscent && (special.frame >= DEMONHUNTER_WING_STARTUP || special.form !== 0))
-        || (felRush && special.form === 0 && special.frame >= FEL_RUSH_FIRST && special.frame <= FEL_RUSH_LAST)
-        || (felRush && special.form === VENGEFUL_RETREAT_FORM && special.frame <= VENGEFUL_RETREAT_MOVE_LAST),
-      x: motion.x,
-      z: f32(motion.z + f32(8 * scale)),
-      scale: f32(0.75 * scale),
-      alpha: 180,
-      red: 95,
-      green: 255,
-      blue: 125,
-    };
+    const visible = (special.action === SpecialAction.demonHunterWingAscent && (special.frame >= DEMONHUNTER_WING_STARTUP || special.form !== 0))
+      || (felRush && special.form === 0 && special.frame >= FEL_RUSH_FIRST && special.frame <= FEL_RUSH_LAST)
+      || (felRush && special.form === VENGEFUL_RETREAT_FORM && special.frame <= VENGEFUL_RETREAT_MOVE_LAST);
+    out.visible = visible;
+    out.x = motion.x;
+    out.z = f32(motion.z + f32(8 * scale));
+    out.scale = f32(0.75 * scale);
+    out.alpha = 180;
+    out.red = 95;
+    out.green = 255;
+    out.blue = 125;
+    return out;
   }
   const age = state.drainAge[slot] ?? DRAIN_FLASH_FRAMES;
   const progress = f32(age / DRAIN_FLASH_FRAMES);
-  return {
-    visible: age < DRAIN_FLASH_FRAMES,
-
-    x: motion.x,
-    z: f32(motion.z + f32(150 * scale)),
-    scale: f32(f32(f32(0.8) + f32(progress * f32(0.7))) * scale),
-    alpha: toInt(f32(255 * f32(1.0 - progress))),
-    red: 170,
-    green: 80,
-    blue: 255,
-  };
+  out.visible = age < DRAIN_FLASH_FRAMES;
+  out.x = motion.x;
+  out.z = f32(motion.z + f32(150 * scale));
+  out.scale = f32(f32(f32(0.8) + f32(progress * f32(0.7))) * scale);
+  out.alpha = toInt(f32(255 * f32(1.0 - progress)));
+  out.red = 170;
+  out.green = 80;
+  out.blue = 255;
+  return out;
 }

@@ -11,6 +11,7 @@ import {
   STATIC_WING_TRAIL,
   type SpecialEffectState,
   type StaticSpecialPose,
+  createStaticSpecialPose,
   projectSpecialEffect,
 } from "../presentation/specialEffectState";
 import { SUMMON_BEAR } from "../presentation/summonClipInfo";
@@ -62,6 +63,7 @@ const SIPHON_LIGHTNING = "DRAM";
 
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
+  private readonly pose = createStaticSpecialPose();
   private parked: ParkedFlags | undefined;
   private readonly sounds = new SoundBank();
 
@@ -255,9 +257,9 @@ export class SpecialEffects {
     effects.lastZ = fighter.motion.z;
     this.presentSiphon(effects, fighter);
     this.presentEyeBlast(effects, slot, fighter);
-    this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA));
-    this.applyStatic(effects.wingTrail, slot, WING_TRAIL, projectSpecialEffect(state, fighter, slot, STATIC_WING_TRAIL));
-    this.applyStatic(effects.drainFlash, slot, DRAIN_FLASH, projectSpecialEffect(state, fighter, slot, STATIC_DRAIN_FLASH));
+    this.applyStatic(effects.aura, slot, AURA, projectSpecialEffect(state, fighter, slot, STATIC_AURA, this.pose));
+    this.applyStatic(effects.wingTrail, slot, WING_TRAIL, projectSpecialEffect(state, fighter, slot, STATIC_WING_TRAIL, this.pose));
+    this.applyStatic(effects.drainFlash, slot, DRAIN_FLASH, projectSpecialEffect(state, fighter, slot, STATIC_DRAIN_FLASH, this.pose));
   }
 
   private hideSiphon(slot: SpecialSlot): void {
