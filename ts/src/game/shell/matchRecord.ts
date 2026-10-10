@@ -15,7 +15,7 @@ import type { MatchTally } from "../presentation/matchCues";
 import { fighterName } from "../sim/heroes/registry";
 import { type Roster, fighterAt, isActive } from "../sim/roster";
 
-export const MATCH_RECORD_HEADER = "smashcraft-match";
+const MATCH_RECORD_HEADER = "smashcraft-match";
 const MATCH_RECORD_VERSION = 1;
 
 
@@ -31,7 +31,7 @@ interface MatchRecordSource {
 const label = (slot: number) => `P${slot + 1}`;
 
 
-export function recordValue(text: string): string {
+function recordValue(text: string): string {
   let value = "";
   for (let index = 0; index < text.length; index++) {
     const character = text.substring(index, index + 1);
@@ -52,7 +52,7 @@ function mode(game: Readonly<MatchState>): string {
 const flag = (value: boolean) => (value ? "1" : "0");
 
 // Integer decimal steps keep Bun and Lua output equal.
-export function ratio(count: number, per: number): string {
+function ratio(count: number, per: number): string {
   if (per <= 0) return "none";
   const tenths = floorDiv(count * 10, per);
   return `${floorDiv(tenths, 10)}.${floorMod(tenths, 10)}`;

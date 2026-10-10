@@ -96,7 +96,7 @@ export interface FighterGameplan {
 }
 
 
-export function gameplanKeyMoves(plan: Readonly<FighterGameplan>): GameplanMove[] {
+function gameplanKeyMoves(plan: Readonly<FighterGameplan>): GameplanMove[] {
   const moves: GameplanMove[] = [];
   const add = (move: GameplanMove) => {
     for (const known of moves) if (known === move) return;

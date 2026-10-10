@@ -10,8 +10,8 @@ import { currentFeel } from "./balanceFeel";
 import { type Envelope, type Field, type Measures, type MoveClass, type MoveRow, type Range, type Sample, type Tolerances, MOVE_CLASSES, buildEnvelope } from "./genreEnvelope";
 
 const ROOT = join(import.meta.dir, "../..");
-export const ENVELOPE_FILE = join(ROOT, "tools/move-data/genre-envelope.json");
-export const MELEE_CORPUS = join(ROOT, "references/melee-frame-data/records.jsonl");
+const ENVELOPE_FILE = join(ROOT, "tools/move-data/genre-envelope.json");
+const MELEE_CORPUS = join(ROOT, "references/melee-frame-data/records.jsonl");
 
 type Cell = number | null;
 interface EnvelopeFile {
@@ -26,7 +26,7 @@ const isClass = (value: string): value is MoveClass => MOVE_CLASSES.some((name) 
 const defined = (entries: readonly (readonly [Field, Cell | undefined])[]): Measures =>
   Object.fromEntries(entries.filter((entry): entry is [Field, number] => typeof entry[1] === "number" && Number.isFinite(entry[1])));
 
-export function attackMeasures(startup: Cell, lastActive: Cell, total: Cell, landing: Cell, shield: Cell): Measures {
+function attackMeasures(startup: Cell, lastActive: Cell, total: Cell, landing: Cell, shield: Cell): Measures {
   return defined([
     ["startup", startup],
     ["active", startup !== null && lastActive !== null ? lastActive - startup + 1 : null],
@@ -69,7 +69,7 @@ function meleeSamples(classes: Record<string, MoveClass>): Sample[] {
   return samples;
 }
 
-export interface GenreReference { readonly envelope: Envelope; readonly tolerances: Tolerances; readonly sources: EnvelopeFile["sources"]; readonly samples: readonly Sample[] }
+interface GenreReference { readonly envelope: Envelope; readonly tolerances: Tolerances; readonly sources: EnvelopeFile["sources"]; readonly samples: readonly Sample[] }
 
 export function genreReference(): GenreReference {
   const file = JSON.parse(readFileSync(ENVELOPE_FILE, "utf8")) as EnvelopeFile;
@@ -119,7 +119,7 @@ function specialRows(fighter: string, specials: unknown, feel: ReturnType<typeof
   return rows;
 }
 
-export function fighterRows(character: Character): MoveRow[] {
+function fighterRows(character: Character): MoveRow[] {
   const fighter = fighterSlug(character);
   const tuning = authoredTuning(character);
   const feel = currentFeel(character);
@@ -158,7 +158,7 @@ export function fighterRows(character: Character): MoveRow[] {
   return rows;
 }
 
-export function universalRows(): MoveRow[] {
+function universalRows(): MoveRow[] {
   return [
     { fighter: "all", move: "spot-dodge", measures: { total: SPOT_DODGE_FRAMES } },
     { fighter: "all", move: "roll", measures: { total: GROUND_ROLL_FRAMES } },

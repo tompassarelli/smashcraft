@@ -2,18 +2,18 @@ export const MOVE_CLASSES = ["jab", "tilt", "dash-attack", "smash", "aerial", "s
 export type MoveClass = (typeof MOVE_CLASSES)[number];
 export const FIELDS = ["startup", "active", "endLag", "landingLag", "shieldAdvantage", "killPercent", "total"] as const;
 export type Field = (typeof FIELDS)[number];
-export type Tier = "normal" | "special" | "ex";
+type Tier = "normal" | "special" | "ex";
 
 export type Measures = Partial<Record<Field, number>>;
 export interface Range { readonly low: number; readonly high: number }
 export type Envelope = Partial<Record<MoveClass, Partial<Record<Field, Range>>>>;
 
-export interface Tolerance { readonly frames: number; readonly shieldAdvantage: number; readonly killPercentShare: number }
+interface Tolerance { readonly frames: number; readonly shieldAdvantage: number; readonly killPercentShare: number }
 export interface Tolerances extends Tolerance { readonly special: Tolerance; readonly ex: Tolerance }
 
 export interface Sample { readonly source: string; readonly moveClass: MoveClass; readonly measures: Measures }
 export interface MoveRow { readonly fighter: string; readonly move: string; readonly measures: Measures }
-export interface FieldMiss { readonly field: Field; readonly value: number; readonly range: Range; readonly excess: number; readonly allowance: number }
+interface FieldMiss { readonly field: Field; readonly value: number; readonly range: Range; readonly excess: number; readonly allowance: number }
 export interface Outlier { readonly fighter: string; readonly move: string; readonly moveClass: MoveClass; readonly tier: Tier; readonly distance: number; readonly misses: readonly FieldMiss[] }
 
 const NORMAL_CLASSES: Readonly<Record<string, MoveClass>> = {
@@ -39,7 +39,7 @@ export function classify(move: string): { readonly moveClass: MoveClass; readonl
   return universal === undefined || rest.length > 0 ? undefined : { moveClass: universal, tier: "normal" };
 }
 
-export function percentile(sorted: readonly number[], share: number): number {
+function percentile(sorted: readonly number[], share: number): number {
   if (sorted.length === 0) return Number.NaN;
   const position = (sorted.length - 1) * share;
   const below = Math.floor(position);
@@ -81,7 +81,7 @@ export function allowance(field: Field, range: Range, tier: Tier, tolerances: To
   return tolerance.frames;
 }
 
-export function fieldMiss(field: Field, value: number, range: Range, tier: Tier, tolerances: Tolerances): FieldMiss {
+function fieldMiss(field: Field, value: number, range: Range, tier: Tier, tolerances: Tolerances): FieldMiss {
   const excess = Math.max(range.low - value, value - range.high, 0);
   return { field, value, range, excess, allowance: allowance(field, range, tier, tolerances) };
 }

@@ -22,7 +22,7 @@ export type JournalRead =
 export type ControlState = "PREPARE" | "PAUSE" | "RESUME";
 
 
-export const RECORD_PACKETS = 16;
+const RECORD_PACKETS = 16;
 
 const WAIT: JournalRead = { kind: "wait" };
 const INVALID: JournalRead = { kind: "invalid" };

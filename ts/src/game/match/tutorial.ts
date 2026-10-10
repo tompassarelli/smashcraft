@@ -15,8 +15,8 @@ import {
 } from "./rules";
 
 
-export const LessonAction = { dash: 0, doubleJump: 1, hit: 2, special: 3, dodge: 4, throw: 5, ledge: 6, knockout: 7 } as const;
-export type LessonAction = (typeof LessonAction)[keyof typeof LessonAction];
+const LessonAction = { dash: 0, doubleJump: 1, hit: 2, special: 3, dodge: 4, throw: 5, ledge: 6, knockout: 7 } as const;
+type LessonAction = (typeof LessonAction)[keyof typeof LessonAction];
 
 interface Lesson {
   readonly name: string;
@@ -43,7 +43,7 @@ export const LESSONS: readonly Lesson[] = [
 
 export const NO_LESSON = -1;
 
-export const LESSON_CHEER_FRAMES = 120;
+const LESSON_CHEER_FRAMES = 120;
 
 export const tutorialOn = (state: Readonly<TrainingState>): boolean => state.lesson !== NO_LESSON;
 
@@ -141,7 +141,7 @@ export const lessonChoiceText = (lesson: number): string => {
 };
 
 
-export const TUTORIAL_STAGE = 0;
+const TUTORIAL_STAGE = 0;
 
 
 

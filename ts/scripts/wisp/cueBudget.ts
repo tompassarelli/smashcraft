@@ -85,7 +85,7 @@ export interface CueMeasurement {
   readonly models?: readonly CueModelPixels[];
 }
 
-export interface CueModelPixels {
+interface CueModelPixels {
   readonly model: string;
   readonly pixels: number;
   readonly frames: number;

@@ -49,7 +49,7 @@ export function createCryGate(): CryGate {
 }
 
 
-export function isCryClip(character: Character, clipIndex: number | undefined, clipName: string): boolean {
+function isCryClip(character: Character, clipIndex: number | undefined, clipName: string): boolean {
   const clips = CRIES[character];
   if (clips === undefined) return false;
   return clipIndex !== undefined ? clipIndex === clips.cry : clipName.toLowerCase() === "death";

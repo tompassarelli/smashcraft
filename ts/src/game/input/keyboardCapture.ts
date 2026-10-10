@@ -83,7 +83,7 @@ export function commitEdges(capture: KeyboardCapture): void {
 }
 
 
-export function captureKeys(capture: KeyboardCapture, schedule: LocalSchedule, epoch: number): Capture {
+function captureKeys(capture: KeyboardCapture, schedule: LocalSchedule, epoch: number): Capture {
   const result = schedule.captureLocal(epoch, capture.row);
   if (result === Capture.captured) commitEdges(capture);
   return result;

@@ -17,7 +17,7 @@ const STAND_BOUNDS: Readonly<Record<string, Box>> = {
   [TEMPLE_OF_TIDES]: { min: [-180.0, -170.0, -91.0], max: [176.0, 183.0, 374.0] },
 };
 
-export function insideWorld(x: number, y: number): boolean {
+function insideWorld(x: number, y: number): boolean {
   const nativeY = y + PLAYABLE_BOUNDS.centreY;
   return x >= WORLD_BOUNDS.left && x <= WORLD_BOUNDS.right && nativeY >= WORLD_BOUNDS.front && nativeY <= WORLD_BOUNDS.back;
 }

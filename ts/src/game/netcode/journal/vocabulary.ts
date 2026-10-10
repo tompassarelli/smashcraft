@@ -5,13 +5,13 @@
 
 import { ALPHABET, HEADER_MIN_BYTES, PACKET_MAX_BYTES, RECORD_MIN_BYTES } from "../../input/wire";
 
-export const symbolFile = (base: string, offset: number) => `${base}-c${offset}.pld`;
-export const markerFile = (base: string) => `${base}-length.pld`;
+const symbolFile = (base: string, offset: number) => `${base}-c${offset}.pld`;
+const markerFile = (base: string) => `${base}-length.pld`;
 
 
-export type ReadFile = (filename: string) => string | undefined;
+type ReadFile = (filename: string) => string | undefined;
 
-export type VocabularyRead =
+type VocabularyRead =
 
   | { kind: "missing" }
 

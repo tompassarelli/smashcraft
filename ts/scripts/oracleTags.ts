@@ -3,13 +3,13 @@ import { join, resolve } from "node:path";
 import ts from "typescript";
 
 /** The one kind tag a title ends with (#422). */
-export const KIND_TAG = / \[(k1 scenario|k2 property|k3 measure (#\d+|docs\/[\w./-]+\.md)|k4 reference [\w.:/#-]+|k5 boundary [a-z0-9-]+)\]$/;
+const KIND_TAG = / \[(k1 scenario|k2 property|k3 measure (#\d+|docs\/[\w./-]+\.md)|k4 reference [\w.:/#-]+|k5 boundary [a-z0-9-]+)\]$/;
 
 const ANY_KIND = /\[k\d[^\]]*\]/g;
 
 const ORACLE = /\[(?:native|reference|invariant|provisional)\]|\[repro (?:wisp)?#\d+\]|\[spec [^\]]+\]/;
 
-export const KIND_TAGS = [
+const KIND_TAGS = [
   "Every test title ends with exactly one kind tag (#422):",
   "  [k1 scenario]                       replayed input through the whole system, asserting invariants or agreement",
   "  [k2 property]                       a property over a pure core",
@@ -21,7 +21,7 @@ export const KIND_TAGS = [
 
 export type TestTitle = { readonly file: string; readonly line: number; readonly title: string | undefined };
 
-export type Refused = { readonly file: string; readonly line: number; readonly title: string; readonly why: string };
+type Refused = { readonly file: string; readonly line: number; readonly title: string; readonly why: string };
 
 
 /** The pure core: every title that breaks the kind-tag rule, and why. `docExists` answers for repo-relative paths. */
@@ -74,7 +74,7 @@ function titleText(node: ts.Expression | undefined): string | undefined {
 
 
 /** Every test call site's title in `files`; a title that is not literal text is undefined. */
-export function testTitles(root: string, files: readonly string[]): TestTitle[] {
+function testTitles(root: string, files: readonly string[]): TestTitle[] {
   const found: TestTitle[] = [];
   for (const file of files) {
     const source = ts.createSourceFile(file, readFileSync(join(root, file), "utf8"), ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);

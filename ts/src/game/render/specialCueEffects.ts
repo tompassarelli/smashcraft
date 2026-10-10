@@ -30,7 +30,7 @@ interface CueModel {
   readonly model: effect;
 }
 
-export const POPCORN_VOICES = 2;
+const POPCORN_VOICES = 2;
 
 interface PopcornVoices {
   readonly models: effect[];

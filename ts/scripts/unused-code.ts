@@ -24,7 +24,7 @@ const consumers = [...tracked.filter((file) => file.startsWith("tools/") && file
 // Recorded pads, corpus runs and fixtures are test data that tests and tools open by directory.
 const fixture = (file: string): boolean => /^ts\/test\/(native\/(pads|captures)|corpus|fixtures)\//.test(file);
 
-const conventional = new Set([".gitignore", "bunfig.toml", "package.json", "bun.lock", "README.md"]);
+const conventional = new Set([".gitignore", "bunfig.toml", "package.json", "bun.lock", "README.md", "AGENTS.md"]);
 
 const live = tracked.filter((file) => !/^(evidence|repos|references)\//.test(file) && !file.startsWith("ts/vendor/")
   && !/\.(png|svg|jsonl|pld|txt|chain|toc|fdf|tgz)$/.test(file));

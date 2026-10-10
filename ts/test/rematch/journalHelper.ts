@@ -38,7 +38,7 @@ const PULSES: readonly number[] = [
 ];
 
 
-export interface Workload {
+interface Workload {
 
   readonly denseCycles: number;
 

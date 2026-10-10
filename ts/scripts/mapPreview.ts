@@ -34,7 +34,7 @@ export function encodePreview(image: Rgba): Uint8Array {
 
 
 
-export const PREVIEW_FIGHTERS = [
+const PREVIEW_FIGHTERS = [
   { card: "FighterCardWardenP1.tga", x: 30, height: 116, flip: false, shade: 0.72 },
   { card: "FighterCardDreadlordP2.tga", x: 222, height: 120, flip: true, shade: 0.72 },
   { card: "FighterCardBlademasterP1.tga", x: 70, height: 126, flip: false, shade: 0.9 },
@@ -211,7 +211,7 @@ export function composePreview(cards: (file: string) => Rgba): Rgba {
 }
 
 
-export function encodeTga(image: Rgba): Uint8Array {
+function encodeTga(image: Rgba): Uint8Array {
   const out = new Uint8Array(18 + image.width * image.height * 4);
   const view = new DataView(out.buffer);
   out[2] = 2;

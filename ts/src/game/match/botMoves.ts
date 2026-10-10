@@ -364,11 +364,11 @@ function gameplanMoveOf(f: Readonly<Fighter>, option: number): GameplanMove {
 
 export const VARIETY_STARTS = 6;
 
-export const VARIETY_FRAMES = 600;
+const VARIETY_FRAMES = 600;
 
 const VARIETY_SCALE = 12;
 
-export const VARIETY_PASS_STARTS = 2;
+const VARIETY_PASS_STARTS = 2;
 
 
 function recentStarts(strategy: Readonly<BotStrategy>, option: number, frame: number): number {

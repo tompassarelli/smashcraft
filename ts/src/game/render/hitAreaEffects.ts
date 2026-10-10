@@ -7,7 +7,7 @@ import { DISJOINT_MODELS, disjointNormals, fanKnifePose, hitAreaPose, specialAre
 import { type ParkedFlags, type WorldOrigin, facingYaw, parkCue } from "./effects";
 
 
-export const HIT_AREA_EFFECT_CAPACITY = 12;
+const HIT_AREA_EFFECT_CAPACITY = 12;
 
 
 export class HitAreaEffects {

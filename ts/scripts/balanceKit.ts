@@ -84,7 +84,7 @@ export function currentKit(character: Character): KitSnapshot {
   return { values: retained, play: JSON.stringify(gameplanOf(character)) };
 }
 
-export function currentRosterKits(): Record<string, KitSnapshot> {
+function currentRosterKits(): Record<string, KitSnapshot> {
   return Object.fromEntries(SELECTABLE_CHARACTERS.map(character => [fighterSlug(character), currentKit(character)]));
 }
 

@@ -251,7 +251,7 @@ const portraitImports = (assets: string) => Effect.forEach(
 );
 
 
-export const previewImport = (assets: string) => Effect.gen(function*() {
+const previewImport = (assets: string) => Effect.gen(function*() {
   const renders = join(assets, "fighter-renders");
   const blp = yield* tryMapSync("compose map preview", renders, () => encodePreview(composePreview((file) => readTga(readFileSync(join(renders, file))))));
   const source = join(PREVIEW_CACHE, `${new Bun.CryptoHasher("sha256").update(blp).digest("hex")}.blp`);

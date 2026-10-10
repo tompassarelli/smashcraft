@@ -1,8 +1,8 @@
 export type Direction = "top" | "side" | "bottom";
-export const DIRECTIONS: readonly Direction[] = ["top", "side", "bottom"];
+const DIRECTIONS: readonly Direction[] = ["top", "side", "bottom"];
 
-export interface StockLoss { readonly selfDestruct: boolean; readonly blast?: Direction; readonly percent?: number; readonly recovering?: boolean }
-export interface ProfileSide {
+interface StockLoss { readonly selfDestruct: boolean; readonly blast?: Direction; readonly percent?: number; readonly recovering?: boolean }
+interface ProfileSide {
   readonly fighter: string;
   readonly stocksPlayed: number;
   readonly stockLosses: readonly StockLoss[];
@@ -22,7 +22,7 @@ export interface Intent {
   readonly range: "close" | "mid" | "far";
 }
 
-export interface Profile {
+interface Profile {
   readonly fighter: string;
   readonly matches: number;
   readonly kos: number;
@@ -44,7 +44,7 @@ interface Tally {
 
 const emptyTally = (): Tally => ({ matches: 0, kos: 0, measuredKos: 0, koPercentSum: 0, koPercentCount: 0, directions: { top: 0, side: 0, bottom: 0 }, stocks: 0, offstageDeaths: 0, edgeGuardKills: 0, edgeGuardHits: 0, damage: 0, ranged: 0, distances: {}, distanceRecorded: false });
 
-export function medianBin(histogram: Readonly<Record<number, number>>, width: number): number | undefined {
+function medianBin(histogram: Readonly<Record<number, number>>, width: number): number | undefined {
   const bins = Object.entries(histogram).map(([bin, count]) => [Number(bin), count] as const).sort((a, b) => a[0] - b[0]);
   const total = bins.reduce((sum, [, count]) => sum + count, 0);
   if (total === 0) return undefined;
@@ -107,14 +107,14 @@ export function profiles(matches: readonly ProfileMatch[], moveDirection: (fight
   }).sort((a, b) => a.fighter.localeCompare(b.fighter));
 }
 
-export type Tercile = "low" | "middle" | "high";
-export function tercile(value: number, roster: readonly number[]): Tercile {
+type Tercile = "low" | "middle" | "high";
+function tercile(value: number, roster: readonly number[]): Tercile {
   const below = roster.filter((other) => other < value).length;
   const rank = roster.length <= 1 ? 0.5 : below / (roster.length - 1);
   return rank < 1 / 3 ? "low" : rank > 2 / 3 ? "high" : "middle";
 }
 
-export interface Contradiction { readonly fighter: string; readonly trait: string; readonly intent: string; readonly measured: string }
+interface Contradiction { readonly fighter: string; readonly trait: string; readonly intent: string; readonly measured: string }
 
 export function contradictions(measured: readonly Profile[], intents: readonly Intent[]): Contradiction[] {
   const found: Contradiction[] = [];

@@ -29,7 +29,7 @@ export function keyDown({ down }: Readonly<PlayerKeys>, key: number): boolean {
   return isKeyCode(key) && down[key] === true;
 }
 
-export function actionHeld({ heldFirst, heldSecond }: Readonly<PlayerKeys>, action: Action): boolean {
+function actionHeld({ heldFirst, heldSecond }: Readonly<PlayerKeys>, action: Action): boolean {
   return ((heldFirst | heldSecond) & (1 << action)) !== 0;
 }
 

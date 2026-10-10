@@ -26,7 +26,7 @@ export interface Roster {
   chips: readonly RosterChip[];
 }
 
-export interface SelectionDrag {
+interface SelectionDrag {
 
   held: number | undefined;
 

@@ -38,7 +38,7 @@ function summarizeDropField(records: readonly MatchRecord[]): DropFieldSummary {
 }
 
 /** Every unordered pair once; the side each fighter starts on alternates with the pair's index so neither slot is favoured. */
-export function fieldPairs(fighters: readonly Character[]): (readonly [Character, Character])[] {
+function fieldPairs(fighters: readonly Character[]): (readonly [Character, Character])[] {
   const pairs: (readonly [Character, Character])[] = [];
   for (const [first, a] of fighters.entries()) for (const b of fighters.slice(first + 1)) pairs.push(pairs.length % 2 === 0 ? [a, b] : [b, a]);
   return pairs;
