@@ -45,8 +45,9 @@ Wisp fidelity issue stands in for it. Product proofs a box asks for in the
 real game (60 fps on Tom's machine, the trailer, a listening clip) stay
 native. New Done-when boxes follow the same line.
 
-Native checks use one worker per available client (signed-in b, c, d for Definitive), sharing
-the visual queue; pairs are only for sync and EX checks. A TypeScript-only
+Native checks use one worker per available client (signed-in b, c, d for Definitive;
+clone-a only through its launch.sh), sharing the visual queue; pairs are only for
+sync, netplay and EX checks. A TypeScript-only
 change (presentation values, effects, menus, CPU tuning) hot-reloads into one
 running match with `bun wisp hot --data ... --watch` between captures; rebuild
 the map only for imports, object data or art. Each lane builds its own
