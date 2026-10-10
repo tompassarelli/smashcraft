@@ -364,9 +364,9 @@ export const MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
   "war3mapImported\\StageDeck-24aa1d52dd6b5b3b8bb4ccf0d65307dd2e8291efe49a25f2310cf45ed6d673d9.mdx": {"geosets":4,"triangles":128,"lights":0,"bounds":{"min":[-50,-60,-17],"max":[50,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-d454080f7b53b15a05b9c1c15187719c53f7cf852e1018fd7d7e74b41d1d879d.mdx": {"geosets":4,"triangles":560,"lights":0,"bounds":{"min":[-600,-60,-288],"max":[600,60,21]},"emitters":[]},
   "war3mapImported\\StageDeck-07971ee4eba41237fe7c3bbce9fe7a2ba7c56c25acd2382a7e5acdab01bd2da4.mdx": {"geosets":4,"triangles":128,"lights":0,"bounds":{"min":[-50,-60,-17],"max":[50,60,0]},"emitters":[]},
-  "war3mapImported\\StageMainDeck-27470b0ae0b98f411bebbed95483b1fd7845af900ab6682cb59f5d4392541306.mdx": {"geosets":4,"triangles":264,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
+  "war3mapImported\\StageMainDeck-513544f04e9c175a83952a339b5497ee5bfb5a722ace23c2ee525427b060548e.mdx": {"geosets":4,"triangles":488,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageDeck-8ad82e4800b62de2ef9da93ee09586c6cf9177cd41f234974006d6e7ba6780c0.mdx": {"geosets":4,"triangles":128,"lights":0,"bounds":{"min":[-50,-60,-17],"max":[50,60,0]},"emitters":[]},
   "war3mapImported\\StageMainDeck-2c25bb13ee2212293baaae6e1f7a0c97bf6dcd2fb335453342c2ce192dbd2d2e.mdx": {"geosets":4,"triangles":500,"lights":0,"bounds":{"min":[-600,-60,-300],"max":[600,60,0]},"emitters":[]},
   "war3mapImported\\StageTombWater-b29953859de912714ac825315b96e92d9c062cf85bdce20e1cfb98fec2f1a2ad.mdx": {"geosets":1,"triangles":2,"lights":0,"bounds":{"min":[-50,-60,0],"max":[50,60,0]},"emitters":[]},
-  "war3mapImported\\StageTombSea-c2c9dcc39d67341c633ad085aeb54b5d7b4867a5dd2c5ec664a90f33083cc075.mdx": {"geosets":1,"triangles":2,"lights":0,"bounds":{"min":[-50,-60,0],"max":[50,60,0]},"emitters":[]},
+  "war3mapImported\\StageTombSea-2c4b274d7156801e3fcf8819e895cad082ebf785b0baff4bca01d71bd7b1ec68.mdx": {"geosets":17,"triangles":34,"lights":0,"bounds":{"min":[-50,-60,0],"max":[50,60,0.03]},"emitters":[]},
 };
