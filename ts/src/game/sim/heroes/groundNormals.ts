@@ -12,14 +12,7 @@ import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import type { HurtPart, HurtPose } from "../hurtboxes";
 import type { HeroClip } from "./hero";
-import { ANGLES, type Angle } from "./authoring";
-
-
-
-export function groundHit(damage: number, angle: Angle, growth: number, base: number, element: HitElement, behind = false): Readonly<HitEffect> {
-  const direction = ANGLES[angle];
-  return { damage, growth, base, launchX: behind ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
-}
+import { type Angle, groundHit } from "./authoring";
 
 type Segment = readonly [number, number, number, number];
 const capsule = ([x1, z1, x2, z2]: Segment, radius: number): StrikeCapsule => ({ x1, z1, x2, z2, radius });

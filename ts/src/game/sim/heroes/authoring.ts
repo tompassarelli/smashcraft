@@ -50,6 +50,22 @@ export function makeHit<Kind extends string>(classes: { readonly [kind in Kind]:
   };
 }
 
+/** A launch `angle` degrees from facing; `behind` mirrors it. */
+export function groundHit(damage: number, angle: Angle, growth: number, base: number, element: HitElement, behind = false): Readonly<HitEffect> {
+  const direction = ANGLES[angle];
+  return { damage, growth, base, launchX: behind ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
+}
+
+interface GroundHitDefaults { readonly growth: number; readonly base: number; readonly element: HitElement; readonly growthScale?: number }
+type GroundHitMaker = (damage: number, angle: Angle, growth?: number, base?: number, behind?: boolean, element?: HitElement) => Readonly<HitEffect>;
+
+/** A hero's groundHit with its default growth, base and element; `growthScale` multiplies every growth. */
+export function groundHitWith(defaults: GroundHitDefaults): GroundHitMaker {
+  const scale = defaults.growthScale;
+  return (damage, angle, growth = defaults.growth, base = defaults.base, behind = false, element = defaults.element) =>
+    groundHit(damage, angle, scale === undefined ? growth : f32(growth * scale), base, element, behind);
+}
+
 type CapsuleMaker = (x1: number, z1: number, x2: number, z2: number, radius?: number) => StrikeCapsule;
 
 export function capsuleOf(defaultRadius: number): CapsuleMaker {

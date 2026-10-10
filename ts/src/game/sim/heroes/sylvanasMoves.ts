@@ -4,11 +4,10 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type AuthoredMove, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart, type HurtPart, type HurtPose } from "../hurtboxes";
-import { groundHit } from "./groundNormals";
+import { groundHitWith } from "./authoring";
 
 export const sylvanasStrike = (x1: number, z1: number, x2: number, z2: number, radius = 8.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
-export const sylvanasHit = (damage: number, angle: Parameters<typeof groundHit>[1], growth = 87.63500213623047, base = 22.0, behind = false): Readonly<HitEffect> =>
-  groundHit(damage, angle, growth, base, HitElement.dark, behind);
+export const sylvanasHit = groundHitWith({ growth: 87.63500213623047, base: 22.0, element: HitElement.dark });
 const bow = (first: number, active: number, recovery: number, landing: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): AuthoredMove =>
   heroMove(first, active, recovery, landing, [heroRegion(first, first + active - 1, strike, effect, groundedEffect)]);
 const frontTilt = (height: number): AuthoredMove => bow(9, 3, 18, 0, sylvanasStrike(22.0, 54.0, 104.0, height), sylvanasHit(8.748000144958496, 40));

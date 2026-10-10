@@ -2,10 +2,9 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart, type HurtPart, type HurtPose } from "../hurtboxes";
-import { groundHit } from "./groundNormals";
+import { groundHitWith } from "./authoring";
 
-export const peonHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 85 | 90, growth = 88.6500015258789, base = 22.0, behind = false) =>
-  groundHit(damage, angle, growth, base, HitElement.normal, behind);
+export const peonHit = groundHitWith({ growth: 88.6500015258789, base: 22.0, element: HitElement.normal });
 
 const blade = (x1: number, z1: number, x2: number, z2: number, radius = 8.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const swing = (first: number, points: readonly (readonly [number, number])[], damage: number, angle: 25 | 35 | 40 | 55 | 70 | 85 | 90, growth = 88.6500015258789, base = 22.0, behind = false): readonly MoveRegion[] =>

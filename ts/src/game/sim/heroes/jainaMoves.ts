@@ -3,10 +3,9 @@ import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, cleanLateMove } from "../heroMoves";
 import { hurtPart, hurtPose, type HurtPose } from "../hurtboxes";
-import { groundHit } from "./groundNormals";
+import { groundHitWith } from "./authoring";
 
-export const jainaHit = (damage: number, angle: 25 | 35 | 40 | 55 | 70 | 80 | 90, growth = 89.50499725341797, base = 24.0, behind = false) =>
-  groundHit(damage, angle, f32(growth * 1.125), base, HitElement.ice, behind);
+export const jainaHit = groundHitWith({ growth: 89.50499725341797, base: 24.0, element: HitElement.ice, growthScale: 1.125 });
 const path = (x1: number, z1: number, x2: number, z2: number, radius = 9.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const body = hurtCapsule(Character.jaina);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
