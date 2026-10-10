@@ -23,9 +23,11 @@ import { botChance, botChoice, useMatchSeed } from "./botRandom";
 import { type CpuSkill, cpuSkill, cpuReactionFloor, cpuReactionFrames, perceivedCpuSkill } from "./cpuSkill";
 import { FAST_BOT_HISTORY_FRAMES, BOT_HISTORY_FRAMES, type BotMemory, observeOpponents, perceivedOpponent, perceivedHeldFighter, commitBotDirection, samePerception } from "./botPerception";
 import { chooseDefense } from "./botDefense";
+import { burnedMove, keepClearOfBurn } from "./botBurn";
 import { choosePunish } from "./botPunish";
 import { TRAP_ATTACK, TRAP_NONE, chooseLedgeTrap } from "./botLedgeTrap";
 import { chooseRecoveryInput } from "./botRecovery";
+import { escapeCorner, pokeGoal, pressCorner, pressEdgeCancel, steerEdgeCancel } from "./botCorner";
 import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, pressKitOption, pressUltimate, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
 import { MATCH_TICKS_PER_SECOND, type MatchState, stageClock, computerActive } from "./rules";
@@ -145,7 +147,7 @@ export function dropContest(game: Readonly<MatchState>, fighter: Readonly<Fighte
   return botChance(drops.draws, slot * 29 + fighter.character, skill.contestTenths, 10) ? point : -1;
 }
 
-function approachPoint(f: Readonly<Fighter>, stage: number, x: number, z: number, frame: number, input: Controls): void {
+export function approachPoint(f: Readonly<Fighter>, stage: number, x: number, z: number, frame: number, input: Controls): void {
   const { motion } = f;
   const dx = f32(x - motion.x);
   const dz = f32(z - motion.z);
@@ -213,6 +215,7 @@ export function produceComputerInput(game: Readonly<MatchState>, world: Roster, 
     prepareBotRead(strategy, fighter, target, frame, reactionFrames, skill.decision);
   }
   decide(game, world, runtime, slot, frame, input, commands, skillOverride === undefined ? perceivedCpuSkill(opponent, tier) : { ...skill, reactionFrames: 0 }, target, reactionFrames);
+  if (!game.training) steerEdgeCancel(fighter, target, game.stageChoice, skill, input);
   const execution = executeBotTechnique(fighter, input, commands, frame, slot, skill.decision);
   upgradeThreatenedSpecial(fighter, target, input);
   if (fighter.launch.hitlag <= 0 && fighter.launch.hitstun > 0) chooseHitlagInput(fighter, slot, frame, skill, input);
@@ -333,8 +336,9 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
   if (chooseDefense(fighter, target, stage, input, skill, observationAge)) return;
+  const burned = burnedMove(runtime.botStrategies[slot], target, frame, observationAge);
   // An opponent that can't act yet is punished before any pause or idle stretch.
-  if (skill.basicMoves === undefined && choosePunish(fighter, target, stage, stageFrame, frame, skill, input, commands, observationAge)) {
+  if (skill.basicMoves === undefined && choosePunish(fighter, target, stage, stageFrame, frame, skill, input, commands, observationAge, burned)) {
 
     runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
     return;
@@ -345,8 +349,12 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   if (skill.basicMoves === undefined && pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
+  if (skill.basicMoves === undefined && keepClearOfBurn(runtime.botStrategies[slot], burned, fighter, target, stage, input)) return;
+  if (escapeCorner(fighter, target, stage, skill, slot, frame, input) || pressEdgeCancel(fighter, target, stage, skill, slot, frame, input, commands)) return;
+  // A cornered opponent is pressed, never left to an idle stretch or a keep-away plan.
+  const pressing = pressCorner(fighter, target, stage, skill);
   // An idle stretch stands where it is: no approach, no attack.
-  if (botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
+  if (!pressing && botChance(floorDiv(frame, IDLE_FRAMES), slot * 17 + fighter.character, skill.idle, 100)) return;
   if (skill.basicMoves === undefined && !game.ultimatesOff && pressUltimate(fighter, target, skill, frame, input)) return;
   if (skill.basicMoves === undefined && pressKitOption(fighter, target, stage, skill, frame, delay <= 0, input, commands)) {
     if (input.specialPressed || input.attackHeld) runtime.botAttackDelays[slot] = f32(f32(skill.attackPause + botChoice(frame, fighter.attack.serial, skill.attackSpread)) * TICK);
@@ -362,6 +370,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
       return;
     }
     if (drop >= 0) approachPoint(fighter, stage, meterDropPoint(stage, drop).x, meterDropPoint(stage, drop).z, frame, input);
+    else if (pressing) steerOnGround(fighter, stage, pokeGoal(target), input);
     else approach(fighter, target, stage, plan, frame, input);
     return;
   }
@@ -372,6 +381,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   if (drop >= 0) approachPoint(fighter, stage, meterDropPoint(stage, drop).x, meterDropPoint(stage, drop).z, frame, input);
+  else if (pressing) steerOnGround(fighter, stage, pokeGoal(target), input);
   else if (delay <= 0 && lastChoicePassedForVariety()) approach(fighter, target, stage, Plan.ground, frame, input);
   else approachByGameplan(fighter, target, stage, gameplan, slot, planIndex, frame, input, skill);
 }
