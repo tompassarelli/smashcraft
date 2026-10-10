@@ -1,0 +1,1 @@
+{"model":"Abilities\\Weapons\\PoisonSting\\PoisonStingTarget.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle03","whileShown":true,"onDeath":false,"visible":true,"rate":90,"lifespan":0.5,"reach":[{"min":[-238.349,-238.761,-223.02],"max":[237.464,237.052,252.792]}]}]}}

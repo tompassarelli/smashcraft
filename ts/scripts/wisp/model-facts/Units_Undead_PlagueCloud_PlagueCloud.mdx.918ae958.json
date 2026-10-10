@@ -1,0 +1,1 @@
+{"model":"Units\\Undead\\PlagueCloud\\PlagueCloud.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle01","whileShown":true,"onDeath":true,"visible":true,"rate":25,"lifespan":1.6,"reach":[{"min":[-195.086,-194.333,-153.172],"max":[195.056,195.809,236.97]}]}]}}

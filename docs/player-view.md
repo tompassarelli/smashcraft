@@ -7,7 +7,7 @@ classic Warcraft models. `--graphics definitive` draws Definitive Edition:
 Each player's look leaves the simulated match unchanged. `render.json` lists
 every attempted layer and the map or stock path selected for each asset.
 Asset paths come from this checkout's immutable
-`build-inputs.json`. Stock textures come from `WC3_TEXTURES`, or are extracted
+`build-inputs/`. Stock textures come from `WC3_TEXTURES`, or are extracted
 with `CASC_EXTRACTOR` and `WC3_STORAGE`. The extractor
 is built by `tools/animations/extract.sh`; DDS textures are converted with
 ImageMagick (`magick` on version 7, `convert` on version 6). Ubuntu CI
@@ -83,7 +83,7 @@ collapsed effect in view whose model keeps emitting particles, on a parked
 effect whose mesh or particles reach the arena camera's frame, and on an
 effect destroyed in view whose death animation emits. It reads:
 
-- **Model facts**: smashcraft:ts/scripts/wisp/modelFacts.ts, generated for
+- **Model facts**: smashcraft:ts/scripts/wisp/model-facts/ (one file per model, read by modelFacts.ts), generated for
   every model a kind names. Imported models are read from the build's
   `--assets` inputs, stock models from the game's archives in the classic
   graphics the clients draw: the smoke in the four-fighter recording is the

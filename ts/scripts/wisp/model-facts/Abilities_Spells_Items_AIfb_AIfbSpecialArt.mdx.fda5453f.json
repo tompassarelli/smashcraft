@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle02burst","whileShown":true,"onDeath":false,"visible":true,"rate":90,"lifespan":0.3,"reach":[{"min":[-137.677,-138.217,-136.773],"max":[135.323,134.783,136.227]}]}]}}

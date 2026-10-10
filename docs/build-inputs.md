@@ -5,8 +5,8 @@ asset container, the summon clips and the folders of `--assets` (fighter
 models, clip pools, stage and impact models, imported community models,
 selection art, fighter renders, stage-select pictures, hero models, model sounds). Each is a
 *family*, stored once under the hash of its contents and never changed.
-smashcraft:build-inputs.json names the hash of every family a revision builds
-with, so a commit fixes its art exactly as it fixes its code.
+smashcraft:build-inputs/ names the hash of every family a revision builds
+with, one file per family, so a commit fixes its art exactly as it fixes its code.
 
 ## How it works
 
@@ -17,8 +17,9 @@ with, so a commit fixes its art exactly as it fixes its code.
   source into a private staging folder, hashes the copy, makes it read-only
   and publishes it by one rename; a second writer of the same contents finds
   it there. Nothing writes into a published folder.
-- **Manifest.** smashcraft:build-inputs.json maps each family named in
-  smashcraft:ts/scripts/wisp/buildInputs.ts (`FAMILIES`) to its hash. There is
+- **Manifest.** smashcraft:build-inputs/FAMILY holds the hash of each family named in
+  smashcraft:ts/scripts/wisp/buildInputs.ts (`FAMILIES`), one file per family so
+  two lanes that store different families never edit the same file (#401). There is
   no global pointer: a lane's manifest is its own, and main's is main's.
 - **Resolve and verify.** `bun wisp map build` without `--base`, `--container`,
   `--assets` or `--summon` reads the checkout's manifest, rehashes every family
@@ -54,15 +55,16 @@ code:
    current one: `cp -rL "$(bun wisp inputs path assets)/original-clips-static-lights" NEW && chmod -R u+w NEW`,
    then `bun tools/animations/export-original-clips.ts --assets "$(bun wisp inputs path assets)" --out NEW --keep-unchanged`.
 2. `bun wisp inputs add FAMILY DIR` (from smashcraft:ts/) stores it and writes
-   its hash into your checkout's build-inputs.json.
+   its hash into your checkout's build-inputs/FAMILY.
 3. `bun wisp map build --profile playable --name NAME --out OUT.w3x` from the lane
-   checks the change; commit build-inputs.json with the code that needs it and
-   land it. Lanes that changed different families merge cleanly, even on
-   adjacent lines: smashcraft:.gitattributes merges build-inputs.json, the
-   anim-score tables, model facts and the move list per entry through
-   smashcraft:ts/scripts/mergeGenerated.ts, which `bun install` (from ts/)
-   registers in the repository's git config. Two lanes that changed the same
-   family or row conflict in Git for that entry only, never on disk.
+   checks the change; commit build-inputs/FAMILY with the code that needs it and
+   land it. Lanes that changed different families touch different files and
+   merge cleanly; two lanes that changed the same family conflict on that one
+   file. Model facts are one file per model (smashcraft:ts/scripts/wisp/model-facts/),
+   the move list and the anim-score tables are generated and untracked, and
+   smashcraft:.gitattributes merges the map size and test cost baselines per row
+   through smashcraft:ts/scripts/mergeGenerated.ts, which `bun install` (from ts/)
+   registers in the repository's git config (#401).
 
 `bun wisp inputs check` verifies every family of the checkout's manifest.
 Never edit a stored folder; a build reports an edit in place with the command

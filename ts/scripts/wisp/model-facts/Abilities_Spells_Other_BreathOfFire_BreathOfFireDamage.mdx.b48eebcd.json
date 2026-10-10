@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle05","whileShown":true,"onDeath":false,"visible":true,"rate":40,"lifespan":1.2,"reach":[{"min":[-158.995,-164.672,-167.735],"max":[170.161,164.484,161.42]}]}]}}

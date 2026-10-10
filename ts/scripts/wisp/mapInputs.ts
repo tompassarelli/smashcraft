@@ -322,7 +322,7 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
     `this assets folder's clip pool predates the checkout's clips. From the repository root, export a new pool from ${assets} ` +
     "with animation-assets and illidan-animation holding the packaged models fighterAssetInfo.ts and demonHunterAssetInfo.ts name: " +
     `cp -rL ${clipDirectory} NEW && chmod -R u+w NEW && bun tools/animations/export-original-clips.ts --assets ${assets} --out NEW --keep-unchanged; ` +
-    "then `bun wisp inputs add original-clips-static-lights NEW` and commit build-inputs.json (smashcraft:docs/build-inputs.md)");
+    "then `bun wisp inputs add original-clips-static-lights NEW` and commit build-inputs/original-clips-static-lights (smashcraft:docs/build-inputs.md)");
   const soundProblem = soundTableProblem(MODEL_SOUND_TABLE);
   if (soundProblem !== undefined) {
     return yield* new MapBuildFailure({ operation: "check model sounds", path: "ts/src/game/assets/modelSoundInfo.ts", cause: `${soundProblem}; export them with tools/animations/export-model-sounds.ts` });

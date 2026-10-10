@@ -107,7 +107,7 @@ Native assets first, in this order:
    without a new mesh (Battlefield's ice keel is decoration that "does not
    collide with anything", [SmashWiki](https://www.ssbwiki.com/Battlefield_(SSBU))).
    It counts as deck, not scenery; its facts go in
-   smashcraft:ts/scripts/wisp/modelFacts.ts like any model.
+   smashcraft:ts/scripts/wisp/model-facts/ like any model.
 
 Rule 10's value bands still hold: a texture is tinted (a static geoset
 colour) until the walking surface, body and underside meet the luma and ΔE00

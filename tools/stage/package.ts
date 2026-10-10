@@ -10,6 +10,8 @@ import { packageLiquids } from "./liquids";
 import { packageSkies } from "./skies";
 import { platformDeckFaces, texturedDeckMdl } from "../../ts/scripts/stageMaterials";
 import { modelFacts } from "../../ts/node_modules/wisp/scripts/wisp/models";
+import { MODEL_FACTS } from "../../ts/scripts/wisp/modelFacts";
+import { roundedFacts, writeModelFacts } from "../../ts/scripts/wisp/modelFactsTable";
 
 const output = join(import.meta.dir, "../../build/stage-assets");
 const { coordinate } = STAGE_PALETTE_TEXTURE;
@@ -116,14 +118,11 @@ export const STAGE_MAIN_DECK_MODEL = ${JSON.stringify(`war3mapImported\\${import
 console.log(`Stage decks: ${STAGE_DECK_PALETTES.length} palettes; slab bounds x=[-50,50], z=[-54,0]; main decks from each stage's collision outline`);
 
 
-const factsPath = join(import.meta.dir, "../../ts/scripts/wisp/modelFacts.ts");
-const factsSource = await Bun.file(factsPath).text();
-const deckFacts: string[] = [];
+const deckFacts = Object.fromEntries(Object.entries(MODEL_FACTS).filter(([model]) => !model.startsWith("war3mapImported\\StageDeck-") && !model.startsWith("war3mapImported\\StageMainDeck-")));
 for (const name of imports.filter(name => name.startsWith("StageDeck-") || name.startsWith("StageMainDeck-"))) {
-    const facts = modelFacts(await Bun.file(join(output, name)).bytes());
-    deckFacts.push(`  ${JSON.stringify(`war3mapImported\\${name}`)}: ${JSON.stringify(facts, (_key, value: unknown) => typeof value === "number" ? Math.round(value * 1000) / 1000 : value)},`);
+    deckFacts[`war3mapImported\\${name}`] = roundedFacts(modelFacts(await Bun.file(join(output, name)).bytes()));
 }
-await Bun.write(factsPath, factsSource.split("\n").filter(line => !line.includes('"war3mapImported\\\\StageDeck-') && !line.includes('"war3mapImported\\\\StageMainDeck-')).join("\n").replace(/\n};\s*$/, `\n${deckFacts.join("\n")}\n};\n`));
+writeModelFacts(deckFacts);
 
 
 const snowExtent = 'MinimumExtent { -1600, -200, -1500 }, MaximumExtent { 1600, 200, 2800 }, BoundsRadius 3500,';

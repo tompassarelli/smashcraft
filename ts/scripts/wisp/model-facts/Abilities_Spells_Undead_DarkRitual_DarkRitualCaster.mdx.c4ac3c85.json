@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualCaster.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle04cone01","whileShown":true,"onDeath":false,"visible":true,"rate":20,"lifespan":0.5,"reach":[{"min":[-380.736,-381.498,-280.627],"max":[383.664,382.902,483.773]}]}]}}

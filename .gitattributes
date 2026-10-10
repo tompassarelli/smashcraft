@@ -1,4 +1,6 @@
-build-inputs.json merge=smashcraft-generated
-tools/move-data/anim-score/*.tsv merge=smashcraft-generated
-ts/scripts/wisp/modelFacts.ts merge=smashcraft-generated
-docs/move-list.md merge=smashcraft-generated
+# Gate baselines: one row per entry, merged row by row (ts/scripts/mergeGenerated.ts, set up by `bun install`).
+ts/map-size-baseline.tsv merge=smashcraft-generated
+ts/test/cost-baseline.tsv merge=smashcraft-generated
+ts/test/lua/cost-baseline.tsv merge=smashcraft-generated
+# Append-only judgement log; `anim judge record` skips entries already stored, so order does not matter.
+tools/move-data/anim-score/judge.jsonl merge=union

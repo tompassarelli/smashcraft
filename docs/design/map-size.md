@@ -21,6 +21,9 @@ The default build (no `--profile`) compares the map with
 smashcraft:ts/map-size-baseline.tsv and fails when it is more than 10% larger,
 naming the five largest new or grown imports. After a justified import or a
 cut, rebuild with `MAP_SIZE_UPDATE=1` and commit the rewritten baseline.
+The baseline has one row per import and one `(outside imports)` row rounded
+up to a whole MB; its total is the rows' sum, so two lanes that change
+different imports never edit the same line (#401).
 
 Every build profile also holds the whole map to 120,000,000 bytes and Definitive
 fighter bodies to 60,000,000 compressed bytes (#334). The body budget counts

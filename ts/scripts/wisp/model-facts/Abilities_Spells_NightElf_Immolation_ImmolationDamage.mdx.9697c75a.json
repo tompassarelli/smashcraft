@@ -1,0 +1,1 @@
+{"model":"Abilities\\Spells\\NightElf\\Immolation\\ImmolationDamage.mdx","facts":{"geosets":0,"triangles":0,"lights":0,"emitters":[{"kind":"particle","name":"BlizParticle05","whileShown":true,"onDeath":false,"visible":true,"rate":55,"lifespan":0.5,"reach":[{"min":[-122.259,-127.936,-103.466],"max":[133.425,127.748,152.218]}]}]}}

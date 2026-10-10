@@ -230,7 +230,7 @@ captures, judged by an agent that did not author the bodies. Criterion 4 fails w
 the conversion leaves a gap of more than about 3 units where Classic is inside the
 region (`surfaceOverlapDistance`, first active frame). Criterion 1 is
 `bun wisp anim score --graphics definitive`
-(smashcraft:tools/move-data/anim-score/definitive.tsv): moves passing lines 1–4, and
+(build/anim-score/definitive.tsv from `bun wisp anim score --graphics definitive`): moves passing lines 1–4, and
 mean shortfall in Definitive and Classic. Line 5 has no judgement yet. No fighter
 passes criterion 1 in either look: the source animations are the limit, which
 [#180](https://github.com/tompassarelli/smashcraft/issues/180) tracks. Decision

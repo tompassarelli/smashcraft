@@ -696,7 +696,7 @@ From `ts/`:
 bun wisp map build [--profile NAME] --name NAME --out OUT.w3x
 ```
 
-builds with the private inputs the checkout's smashcraft:build-inputs.json
+builds with the private inputs the checkout's smashcraft:build-inputs/
 names, after checking each against its hash (smashcraft:docs/build-inputs.md).
 `--base BASE.w3m`, `--container ASSET_CONTAINER.w3x`, `--assets DIR` and
 `--summon DIR` override one input for an experiment.

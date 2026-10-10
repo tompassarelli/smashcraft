@@ -16,11 +16,13 @@ import { BUN_TEST_CEILING_FRAMES, addCost, cpuReport, readBaseline, type Costs }
 import { refuseUntagged } from "./oracleTags";
 import { refuseLiteralCopies } from "./literalCopies";
 import { platformLayer } from "wisp/scripts/platform/layer";
+import { ensureGenerated } from "./generated";
 
 /** The hang timeout per test; cost is bounded by BUN_TEST_CEILING_FRAMES. */
 const TEST_TIMEOUT_MS = 60_000;
 const project = resolve(import.meta.dir, "..");
 process.chdir(project);
+ensureGenerated();
 const files = [
   ...new Bun.Glob("**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}").scanSync(project),
   ...new Bun.Glob("scripts/**/*.tests.ts").scanSync(project),

@@ -1,7 +1,7 @@
 # Animation scorecard
 
 From `ts/`, `bun wisp anim score` samples the shipped Classic timeline bodies,
-writes `tools/move-data/anim-score/classic.tsv`, and prints the worst 40 moves
+writes `build/anim-score/classic.tsv` (a report, not tracked), and prints the worst 40 moves
 and a summary for every fighter. `--fighter F` limits a run to a fighter slug;
 `--graphics definitive` scores the Definitive bodies; `--assets PRIVATE_DIR`
 uses another packaged asset view. A limited run replaces that fighter's rows.
