@@ -7,7 +7,7 @@ import { clearAttackBuffer } from "../../game/input/attackBuffer";
 import { type InputRow, copyInput, emptyInput } from "../../game/input/inputRow";
 import { commitEdges, resetKeys } from "../../game/input/keyboardCapture";
 import { PARTICIPANT_SLOTS, isParticipantSlot } from "../../game/input/participants";
-import { type InputPacket, encodePacket, packetSizeInRange } from "../../game/input/wire";
+import { type InputPacket, TransportDecoder, encodePacket, packetSizeInRange } from "../../game/input/wire";
 import { startKeyUp } from "../../game/match/controls";
 import { captureNetworkFrame, resetMatchFrameInput } from "../../game/match/frameInput";
 import { Phase, humanActive } from "../../game/match/rules";
@@ -20,7 +20,6 @@ import { InputBatch } from "../../game/netcode/inputBatch";
 import { KeyboardMailbox } from "../../game/netcode/journal/keyboard";
 import { MatchLifecycle } from "../../game/netcode/journal/lifecycle";
 import { JournalInputSource } from "../../game/netcode/journal/source";
-import { decodeTransport } from "../../game/netcode/journal/transport";
 import { captureReplaySnapshot, restoreReplaySnapshot } from "../../game/replay/snapshot";
 import { pacedStop, resetPauseBarrier, settlePace, stopFrame } from "../../game/shell/pauseBarrier";
 import { confirmedBudget, repairBudget, speculativeBudget } from "../../game/shell/playback";
@@ -44,6 +43,8 @@ const STALL_NOTICE_CALLBACKS = 20;
 
 const START_NOTICE_CALLBACKS = 45;
 const NEUTRAL: Readonly<InputRow> = emptyInput();
+// Received packets are copied into the ledger before the next receive reuses these.
+const TRANSPORT = new TransportDecoder();
 
 const failControls = (s: ShellState) => setStatus(s, "Controls stopped responding. Restart the match.", LASTING);
 
@@ -392,11 +393,11 @@ export function receiveInput(s: ShellState): void {
   const wire = BlzGetTriggerSyncData();
   if (rollback.journal !== undefined && receiveLifecycle(s, rollback, rollback.journal, sender, wire)) return;
   if (!rollback.active || !humanActive(s.game, sender)) return;
-  const packets = decodeTransport(wire);
-  if (packets === undefined) {
+  const packets = TRANSPORT.decode(wire);
+  if (packets < 0) {
     setStatus(s, "The players could not stay connected. Restart the match.", LASTING);
     if (s.trace.active) s.trace.window.rejected++;
     return;
   }
-  for (const packet of packets) receivePacket(s, rollback, sender, packet);
+  for (let index = 0; index < packets; index++) receivePacket(s, rollback, sender, TRANSPORT.at(index));
 }

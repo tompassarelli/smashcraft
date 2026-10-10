@@ -6,7 +6,7 @@ import { floorMod } from "wisp/src/sim/intMath";
 import { ALL_ACTIONS, Action, bit, maskOf } from "../../input/actions";
 import { type InputRow, type RowFields, inputRow, sameInput } from "../../input/inputRow";
 import { PARTICIPANT_SLOTS, type ParticipantInputs, participantInputs } from "../../input/participants";
-import { type InputPacket, MESSAGE_MAX_BYTES, encodeInputMessage } from "../../input/wire";
+import { type InputPacket, MESSAGE_MAX_BYTES, TransportDecoder, encodeInputMessage, encodePacket, inputPacket } from "../../input/wire";
 import { createFrameControls } from "../../match/controls";
 import { type MatchFrameInput, captureNetworkFrame, createMatchFrameInput, executeMatchFrame } from "../../match/frameInput";
 import {
@@ -73,6 +73,55 @@ test("one message per batch drains a backlog of the largest rows within the size
     first = message.lastFrame + 1;
   }
   assertEquals(outgoing.ready(1), undefined);
+});
+
+
+// The Lua test runner stops the collector for each test, so the heap's growth is what the decodes allocated.
+declare const collectgarbage: (this: void, opt: "count") => number;
+
+function sameDecode(decoder: TransportDecoder, wire: string): number {
+  const expected = decodeTransport(wire);
+  const count = decoder.decode(wire);
+  if (expected === undefined) {
+    assertEquals(count, -1, wire);
+    return 0;
+  }
+  assertEquals(count, expected.length, wire);
+  expected.forEach((packet, index) => {
+    const got = decoder.at(index);
+    assertEquals(got.epoch, packet.epoch, wire);
+    assertEquals(got.firstFrame, packet.firstFrame, wire);
+    assertEquals(got.rows.length, packet.rows.length, wire);
+    packet.rows.forEach((each, slot) => assertTrue(sameInput(got.rows[slot] ?? NEUTRAL, each)));
+  });
+  return 1;
+}
+
+test("the receive decoder reuses its rows and agrees with decodeTransport on messages, packets and every one-character corruption [k2 property]", () => {
+  const decoder = new TransportDecoder();
+  const source = [NEUTRAL, WALK, WALKING, TAP_WHILE_WALKING, WALKING, TWO_BUTTONS, STOP, largestRow(false), largestRow(true), NEUTRAL];
+  const wires = [
+    encodeInputMessage(7, 300, 309, frame => source[frame - 300] ?? NEUTRAL).wire,
+    encodeInputMessage(1, 10, 15, () => NEUTRAL).wire,
+    encodeInputMessage(2147483647, 2000000000, 2000000004, frame => largestRow(floorMod(frame, 2) === 1)).wire,
+    encodePacket(assertDefined(inputPacket(3, 40, [WALK]))),
+    encodePacket(assertDefined(inputPacket(3, 41, [TWO_BUTTONS, STOP]))),
+  ];
+  let valid = 0;
+  for (const wire of wires) {
+    valid += sameDecode(decoder, wire);
+    for (let offset = 0; offset < wire.length; offset++) {
+      for (const replacement of ["0", "1", "W", "_"]) valid += sameDecode(decoder, `${wire.substring(0, offset)}${replacement}${wire.substring(offset + 1)}`);
+    }
+    valid += sameDecode(decoder, wire.substring(0, wire.length - 1));
+    valid += sameDecode(decoder, `${wire}0`);
+  }
+  assertGreaterThan(valid, wires.length);
+
+  if (typeof collectgarbage !== "function") return;
+  const before = collectgarbage("count");
+  for (let round = 0; round < 50; round++) for (const wire of wires) decoder.decode(wire);
+  assertEquals(collectgarbage("count") - before, 0, "KB allocated by 250 decodes");
 });
 
 

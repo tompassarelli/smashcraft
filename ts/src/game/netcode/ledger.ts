@@ -146,7 +146,7 @@ export class InputLedger {
       if (receipt !== "accepted") return receipt;
     }
     const ring = at(this.senders, sender);
-    rows.forEach((row, i) => ring.store(firstFrame + i, row));
+    for (let i = 0; i < rows.length; i++) ring.store(firstFrame + i, at(rows, i));
     let through = at(this.through, sender);
     while (through < INPUT_LAST_FRAME && ring.row(through + 1) !== undefined) through++;
     this.through[sender] = through;
