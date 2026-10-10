@@ -296,10 +296,10 @@ export const importedAssets = (assets: string, summon: string) => Effect.gen(fun
   const clipEvidencePath = join(clipDirectory, "original-clips-evidence.json");
   const clipEvidence = yield* readJson(OriginalClipEvidence, clipEvidencePath);
   const clipFiles = [...new Set(clipEvidence.records.flatMap((record) => [...record.clips.map(({ filename }) => filename), ...(record.light === null ? [] : [record.light.filename])]))].filter((file) => ORIGINAL_CLIP_MODELS.includes(`war3mapImported\\${file}`));
-  const definitiveBodies = DEFINITIVE_BODY_MODELS.flatMap((model) => {
+  const definitiveBodies = DEFINITIVE_BODY_MODELS.map((model) => {
     const entry = `_de.w3mod\\${model}`;
     const source = join(clipDirectory, "imports", ...entry.split("\\"));
-    return existsSync(source) ? [{ entry, source }] : [];
+    return { entry, source };
   });
 
   const whiteEntries = new Set(generated.flat().map(({ entry }) => entry));
