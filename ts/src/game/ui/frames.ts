@@ -8,9 +8,7 @@ import { f32 } from "wisp/src/sim/f32";
 
 export type MenuControls = "journal" | "keyboard";
 
-declare global {
-  var __smashcraftPlainFrameText: Map<framehandle, string> | undefined;
-}
+const plainFrameText = new Map<framehandle, string>();
 
 export function gameUi(): framehandle {
   return BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI, 0);
@@ -50,13 +48,12 @@ function releaseFocus(frame: framehandle, clicker: player): void {
 }
 
 export function setFrameText(frame: framehandle, text: string): void {
-  if (globalThis.__smashcraftPlainFrameText === undefined) globalThis.__smashcraftPlainFrameText = new Map();
-  globalThis.__smashcraftPlainFrameText.set(frame, text);
+  plainFrameText.set(frame, text);
   BlzFrameSetText(frame, text);
 }
 
 export function highlightText(frame: framehandle, highlighted: boolean): void {
-  const plain = globalThis.__smashcraftPlainFrameText?.get(frame) ?? "";
+  const plain = plainFrameText.get(frame) ?? "";
   const colored = highlighted && plain !== "" ? `|cffffcc00${plain}|r` : plain;
   BlzFrameSetText(frame, colored);
 }
