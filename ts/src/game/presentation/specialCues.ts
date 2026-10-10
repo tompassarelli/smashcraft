@@ -95,7 +95,7 @@ export interface MoveCues {
 
 const BIRTH_CUES = new Set([
   "StarfallTarget", "MoonWellCasterArt", "TauntCaster", "StarfallCaster", "GyroCopterImpact",
-  "FeralSpiritTarget", "FlakTarget", "FireLordDeathExplode", "SlowCaster", "BlizzardTarget",
+  "FeralSpiritTarget", "FlakTarget", "FireLordDeathExplode", "BlizzardTarget",
   "SteamTankImpact", "SpellBreakerAttack", "SilenceAreaBirth", "ImpaleHitTarget",
   "BreathOfFireMissile", "VolcanoDeath", "MirrorImageCaster", "MirrorImageDeathCaster",
   "MarkOfChaosTarget", "SpiritWalkerChange", "MirrorImageMissile", "ForkedLightningTarget",
@@ -132,6 +132,7 @@ const VAMPIRIC = cue("Abilities\\Spells\\Undead\\UnholyFrenzy\\UnholyFrenzyTarge
 const KAEL_PHOENIX_CHARGE: MoveCues = { spell: "Phoenix", startup: cue("Abilities\\Spells\\Human\\FlameStrike\\FlameStrikeEmbers.mdx", "body", 0.5), active: cue("Doodads\\Cinematic\\TownBurningFireEmitter\\TownBurningFireEmitter.mdx", "body", f32(0.6)) };
 // The flight is the phoenix itself: Kael's body is replaced by it until the flight ends.
 const KAEL_PHOENIX_FORM: MoveCues = { spell: "Phoenix", startup: KAEL_PHOENIX_CHARGE.active, active: { ...timed(cue("units\\human\\Phoenix\\Phoenix.mdx", "body", f32(0.55)), "stand", 0.0), replacesBody: true } };
+const FROST_TRAP = cue("Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx", "feet", f32(0.4));
 const DREADLORD_BITE_CUES: MoveCues = { spell: "Healing bite", startup: VAMPIRIC, active: cue("Abilities\\Weapons\\Blood\\BloodImpact.mdx", "ahead", 1.0) };
 const VOODOO = cue("Abilities\\Spells\\Orc\\TrollBerserk\\TrollBeserkerTarget.mdx", "hand", f32(0.7));
 const FEL = cue("Abilities\\Spells\\Undead\\DeathCoil\\DeathCoilSpecialArt.mdx", "hand", f32(0.7));
@@ -308,7 +309,7 @@ export const ORIGINAL_CUES: { readonly [action: number]: MoveCues } = {
   [SpecialAction.riflemanBlaster]: { spell: "Blaster", startup: drawn(RIFLEMAN_MODEL_FILE, "barrel"), active: cue("Abilities\\Weapons\\GyroCopter\\GyroCopterImpact.mdx", "barrel", 0.5) },
   [SpecialAction.riflemanBear]: { spell: "Summon Bear", startup: cue("Abilities\\Spells\\NightElf\\BattleRoar\\RoarTarget.mdx", "body", f32(0.7)), active: cue("Abilities\\Spells\\Other\\GeneralAuraTarget\\GeneralAuraTarget.mdl", "ahead", f32(0.8)) },
   [SpecialAction.riflemanRecovery]: { spell: "Recoil Shot", startup: cue("Abilities\\Spells\\Human\\FlakCannons\\FlakTarget.mdx", "feet", f32(0.8)), active: cue("Abilities\\Spells\\Other\\Incinerate\\FireLordDeathExplode.mdx", "feet", f32(0.4)) },
-  [SpecialAction.riflemanTrap]: { spell: "Frost Trap", startup: cue("Abilities\\Spells\\Human\\Slow\\SlowCaster.mdx", "body", f32(0.6)), active: cue("Abilities\\Spells\\Human\\Blizzard\\BlizzardTarget.mdx", "feet", f32(0.4)) },
+  [SpecialAction.riflemanTrap]: { spell: "Frost Trap", startup: FROST_TRAP, active: FROST_TRAP },
   [SpecialAction.demonHunterManaBurn]: { spell: "Mana Burn", startup: drawn(MANA_BURN_HAND, "hand"), active: cue("Abilities\\Spells\\Human\\Feedback\\SpellBreakerAttack.mdx", "hand", 1.0) },
 
   [SpecialAction.demonHunterFelRush]: { spell: "Fel Rush", startup: FEL_TELL, active: timed(cue("Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx", "body", 1.0), "stand", 0.0) },
@@ -367,7 +368,7 @@ export const HERO_BRANCH_CUES: { readonly [character: number]: { readonly [slot 
     side: { marked: branch("Shadow Pursuit", SHADOW, cue("Abilities\\Spells\\Undead\\Possession\\PossessionTarget.mdx", "body", f32(0.6))) },
   },
   [Character.lich]: {
-    neutral: { recall: branch("Frost Nova burst", FROST, cue("Abilities\\Spells\\Other\\BreathOfFrost\\BreathOfFrostTarget.mdx", "hand", f32(0.6))) },
+    neutral: { recall: branch("Frost Nova burst", FROST, timed(cue("Abilities\\Spells\\Other\\BreathOfFrost\\BreathOfFrostTarget.mdx", "hand", f32(0.6)), "death", 0.0)) },
     down: { recall: branch("Dark Ritual", FROST, cue("Abilities\\Spells\\Undead\\DarkRitual\\DarkRitualTarget.mdx", "body", 1.0)) },
   },
   [Character.shadowHunter]: {
