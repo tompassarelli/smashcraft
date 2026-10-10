@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
@@ -159,7 +159,7 @@ export const BEASTMASTER_MOVES: FighterMoves = {
       capsule(10.0, 50.0, f32(M - 26.0), 52.0, 18.0),
     ], hit(11.447999000549316, "LAUNCH", 45, -1.0, HitElement.normal)), f32(HERO_REFERENCE_HEIGHT * f32(0.5))),
 
-    [AttackStyle.forwardSmash]: tipperMove(heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(19.079998016357422, "KILL", 40))), 0.25),
+    [AttackStyle.forwardSmash]: heroMove(21, 4, 36, 0, chop(21, [120.0, 85.0, 50.0, 20.0], L, hit(19.079998016357422, "KILL", 40))),
 
     [AttackStyle.upSmash]: heroMove(18, 5, 33, 0, path(18, [
       capsule(30.0, 80.0, 55.0, f32(L - 10.0)),

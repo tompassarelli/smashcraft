@@ -7,9 +7,8 @@
 
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, HitElement } from "../codes";
-import { type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion, jabStep, tipper, tipperMove } from "../heroMoves";
+import { type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, heroHurtPose, heroMove, heroRegion, jabStep } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
-import { strongHit } from "../strongHits";
 import type { HurtPart, HurtPose } from "../hurtboxes";
 import type { HeroClip } from "./hero";
 
@@ -67,7 +66,7 @@ function tipped(first: number, segments: readonly Segment[], radius: number, tip
     const splitX = f32(x1 + f32(f32(x2 - x1) * t));
     const splitZ = f32(z1 + f32(f32(z2 - z1) * t));
     const frame = first + index;
-    regions.push(heroRegion(frame, frame, capsule([splitX, splitZ, x2, z2], radius), strongHit(tipEffect)));
+    regions.push(heroRegion(frame, frame, capsule([splitX, splitZ, x2, z2], radius), tipEffect));
     regions.push(heroRegion(frame, frame, capsule([x1, z1, splitX, splitZ], radius), inner));
   }
   return regions;
@@ -263,7 +262,7 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
     [AttackStyle.jab]: jabStep(heroMove(4, 2, 12, 0, swing(4, [[16.0, 44.0, 85.0, 44.0], [18.0, 46.0, 85.0, 46.0]], 7.0, groundHit(3.0, 35, 50.0, 16.0, HitElement.normal)))),
     [AttackStyle.jab2]: jabStep(heroMove(4, 2, 13, 0, swing(4, [[16.0, 48.0, 88.0, 48.0], [18.0, 48.0, 88.0, 44.0]], 7.0, groundHit(3.0, 60, 30.0, 26.0, HitElement.normal)))),
     [AttackStyle.jab3]: heroMove(6, 3, 18, 0, swing(6, [[18.0, 40.0, 100.0, 52.0], [18.0, 46.0, 104.0, 46.0], [18.0, 40.0, 100.0, 40.0]], 7.0, groundHit(5.0, 40, 90.0, 22.0, SH))),
-    [AttackStyle.forwardTilt]: tipperMove(heroMove(9, 2, 21, 0, thrust([[50.0, 151.0, 52.0], [50.0, 151.0, 48.0]], 35)), 0.30000001192092896),
+    [AttackStyle.forwardTilt]: heroMove(9, 2, 21, 0, thrust([[50.0, 151.0, 52.0], [50.0, 151.0, 48.0]], 35)),
     [AttackStyle.forwardTiltUp]: heroMove(9, 2, 21, 0, thrust([[56.0, 130.0, 120.0], [56.0, 138.0, 110.0]], 55)),
     [AttackStyle.forwardTiltDown]: heroMove(9, 2, 21, 0, thrust([[40.0, 145.0, -10.0], [38.0, 151.0, -20.0]], 15)),
     [AttackStyle.upTilt]: heroMove(7, 5, 19, 0, swing(7, [
@@ -287,7 +286,7 @@ export const SHADOW_HUNTER_GROUND: GroundKit = {
 
 const RIFLE = HitElement.normal;
 const bayonet = (ends: readonly (readonly [number, number, number])[], angle: Angle) =>
-  tipper(swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(9.300000190734863, angle, 100.44000244140625, 22.0, RIFLE)), 0.30000001192092896);
+  swing(7, ends.map(([z1, x, z]): Segment => [18.0, z1, x, z]), 10.0, groundHit(9.300000190734863, angle, 100.44000244140625, 22.0, RIFLE));
 export const RIFLEMAN_GROUND: GroundKit = {
   normals: {
     [AttackStyle.jab]: jabStep(heroMove(4, 3, 16, 0, swing(4, [[18.0, 50.0, 95.0, 52.0], [18.0, 50.0, 95.0, 50.0], [18.0, 50.0, 90.0, 48.0]], 10.0, groundHit(3.7200000286102295, 20, 41.85000228881836, 18.0, RIFLE)))),

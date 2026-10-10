@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { hurtCapsule } from "../../physics/contactGeometry";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
-import { type FighterMoves, type StrikeCapsule, heroMove, heroRegion, heroHurtPose, jabStep, cleanLateMove } from "../heroMoves";
+import { type FighterMoves, type StrikeCapsule, heroMove, heroRegion, heroHurtPose, jabStep } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -38,9 +38,9 @@ export const THRALL_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: normal(8, 4, 20, 0, capsule(-2.0, 178.0, -2.0, 189.0, 22.0), 8.0, 85, 70.0, 36.0),
     [AttackStyle.downTilt]: normal(6, 3, 19, 0, capsule(52.0, 34.0, 96.0, 34.0, 20.0), 8.75, 70, 65.0, 20.0),
     [AttackStyle.dashAttack]: heroMove(11, 4, 25, 0, [heroRegion(11, 14, capsule(24.0, 45.0, 65.0, 60.0, 28.0), thrallHit(12.5, 55, 90.0, 28.0))], 65.0, true),
-    [AttackStyle.forwardSmash]: cleanLateMove(heroMove(20, 3, 34, 0, [
+    [AttackStyle.forwardSmash]: heroMove(20, 3, 34, 0, [
       heroRegion(20, 22, capsule(34.0, 130.0, 39.0, 133.0, 23.0), thrallHit(18.0, 40, 110.0, 30.0)),
-    ]), 1),
+    ]),
     [AttackStyle.upSmash]: normal(17, 4, 29, 0, capsule(-2.0, 176.0, -2.0, 186.0, 23.0), 15.0, 85, 108.0, 30.0),
     [AttackStyle.downSmash]: heroMove(14, 6, 30, 0, [heroRegion(14, 16, capsule(52.0, 34.0, 96.0, 34.0, 20.0), thrallHit(16.25, 25, 105.0, 28.0)), heroRegion(17, 19, capsule(-52.0, 34.0, -96.0, 34.0, 20.0), thrallHit(16.25, 25, 105.0, 28.0, true))]),
     [AttackStyle.neutralAir]: normal(8, 5, 20, 14, capsule(42.0, 126.0, 57.0, 126.0, 25.0), 8.0, 50),

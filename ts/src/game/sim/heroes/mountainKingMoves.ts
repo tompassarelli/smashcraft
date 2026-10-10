@@ -6,7 +6,6 @@ import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type Fighter
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { MOUNTAIN_KING_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
-import { strongHit } from "../strongHits";
 
 
 
@@ -62,15 +61,15 @@ const UP_TILT = hit(9.944999694824219, "LAUNCH", 90);
 const DOWN_TILT = hit(7.734999656677246, "LINK", 70);
 const DASH = hit(13.25999927520752, "LAUNCH", 40);
 const FORWARD_SMASH_GROWTH = f32(CLASS_HYPOTHESES.KILL.growth * f32(0.8));
-const FORWARD_SMASH_HEAD = strongHit({ ...hit(23.204999923706055, "KILL", 40), growth: FORWARD_SMASH_GROWTH });
+const FORWARD_SMASH_HEAD = { ...hit(23.204999923706055, "KILL", 40), growth: FORWARD_SMASH_GROWTH };
 const FORWARD_SMASH_HANDLE = { ...hit(17.67999839782715, "KILL", 40), growth: FORWARD_SMASH_GROWTH };
 const UP_SMASH = hit(18.78499984741211, "KILL", 85);
 const DOWN_SMASH_FRONT = downSmashHit(hit(17.67999839782715, "EDGE", 25));
 const DOWN_SMASH_BACK = downSmashHit(hit(17.67999839782715, "EDGE", 25, true));
 const NEUTRAL_AIR_FRONT = hit(11.049999237060547, "POKE", 50);
 const NEUTRAL_AIR_BACK = hit(11.049999237060547, "POKE", 50, true);
-const FORWARD_AIR_HEAD = strongHit(hit(17.67999839782715, "SPIKE", 270));
-const FORWARD_AIR_GROUNDED_HEAD = strongHit(hit(17.67999839782715, "LAUNCH", 55));
+const FORWARD_AIR_HEAD = hit(17.67999839782715, "SPIKE", 270);
+const FORWARD_AIR_GROUNDED_HEAD = hit(17.67999839782715, "LAUNCH", 55);
 const FORWARD_AIR_HANDLE = hit(12.154999732971191, "LAUNCH", 45);
 const BACK_AIR = hit(14.364999771118164, "KILL", 35, true, HitElement.slash);
 const UP_AIR = hit(11.049999237060547, "LAUNCH", 85);

@@ -6,7 +6,6 @@ import { downSmashHit } from "./downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HitElement } from "./codes";
 import type { FighterMoves, StrikeCapsule } from "./heroMoves";
-import { strongHit, weakHit } from "./strongHits";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {
   DOWN_ATTACK_BASE_KNOCKBACK,
@@ -41,8 +40,6 @@ export interface HitEffect {
   manaSteal?: number | undefined;
 
   carry?: boolean | undefined;
-
-  strong?: boolean | undefined;
 }
 
 export interface HitRegion {
@@ -75,7 +72,6 @@ export function copyHitEffect(target: HitEffect, source: Readonly<HitEffect>): v
   target.manaDrain = source.manaDrain;
   target.manaSteal = source.manaSteal;
   target.carry = source.carry;
-  target.strong = source.strong;
 }
 
 export function copyHitRegion(target: HitRegion, source: Readonly<HitRegion>): void {
@@ -90,7 +86,6 @@ export function copyHitRegion(target: HitRegion, source: Readonly<HitRegion>): v
 }
 
 export const NO_HIT_REGION: Readonly<HitRegion> = emptyHitRegion();
-
 
 
 function region(
@@ -129,11 +124,8 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
 
 
 
-export const DEMON_HUNTER_NEUTRAL_AIR_CLEAN_FRAMES = 4;
 const FORWARD_AIR_LINK = region(0.0, 175.0, -55.0, 115.0, 2.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524);
 const FORWARD_AIR_LAUNCH = region(0.0, 150.0, -40.0, 110.0, 3.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2);
-const NEUTRAL_AIR_CLEAN = { ...DEMON_HUNTER_REGIONS[AttackStyle.neutralAir] ?? NO_HIT_REGION, effect: strongHit((DEMON_HUNTER_REGIONS[AttackStyle.neutralAir] ?? NO_HIT_REGION).effect) };
-const NEUTRAL_AIR_LATE = { ...NEUTRAL_AIR_CLEAN, effect: weakHit(NEUTRAL_AIR_CLEAN.effect) };
 const AZZINOTH_GLAIVES = { ...region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524), effect: downSmashHit(region(-190.0, 190.0, -60.0, 60.0, 14.0, 95.0, 22.0, 0.258819043636322, 0.9659258127212524).effect) };
 
 const AZZINOTH_FLAMES = { ...region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495), effect: downSmashHit(region(-190.0, 190.0, -30.0, 170.0, 3.0, 20.0, 30.0, 0.08715574443340302, 0.9961947202682495).effect) };
@@ -146,8 +138,6 @@ function demonHunterRegion(style: AttackStyle, activeFrame: number): Readonly<Hi
       return activeFrame <= 1 ? FORWARD_AIR_LINK : activeFrame >= 4 ? FORWARD_AIR_LAUNCH : NO_HIT_REGION;
     case AttackStyle.downSmash:
       return activeFrame <= 2 ? AZZINOTH_GLAIVES : AZZINOTH_FLAMES;
-    case AttackStyle.neutralAir:
-      return activeFrame < DEMON_HUNTER_NEUTRAL_AIR_CLEAN_FRAMES ? NEUTRAL_AIR_CLEAN : NEUTRAL_AIR_LATE;
     default:
       return DEMON_HUNTER_REGIONS[style] ?? NO_HIT_REGION;
   }

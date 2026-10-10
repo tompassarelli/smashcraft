@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { hurtPart, hurtPose, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -46,10 +46,10 @@ export const JAINA_MOVES: FighterMoves = {
       heroRegion(17, 19, path(25.0, 12.0, 130.0, 12.0, 10.0), jainaHit(13.0, 25, 105.0, 25.0)),
       heroRegion(20, 22, path(-25.0, 12.0, -130.0, 12.0, 10.0), jainaHit(13.0, 25, 105.0, 25.0, true)),
     ]),
-    [AttackStyle.neutralAir]: cleanLateMove(heroMove(8, 5, 24, 16, [
+    [AttackStyle.neutralAir]: heroMove(8, 5, 24, 16, [
       heroRegion(8, 12, path(28.0, 24.0, 66.0, 68.0, 14.0), jainaHit(8.0, 55, 80.0, 24.0)),
       heroRegion(8, 12, path(-28.0, 24.0, -66.0, 68.0, 14.0), jainaHit(8.0, 55, 80.0, 24.0, true)),
-    ]), 2),
+    ]),
     [AttackStyle.forwardAir]: heroMove(12, 3, 26, 18, [heroRegion(12, 14, path(28.0, 52.0, 125.0, 52.0, 9.0), jainaHit(12.0, 35, 105.0, 25.0))]),
     [AttackStyle.backAir]: heroMove(9, 3, 24, 16, [heroRegion(9, 11, path(-20.0, 52.0, -100.0, 52.0, 8.0), jainaHit(11.0, 35, 108.0, 23.0, true))]),
     [AttackStyle.upAir]: heroMove(10, 4, 25, 16, [heroRegion(10, 13, path(-24.0, 144.0, 24.0, 144.0, 20.0), jainaHit(11.0, 90, 108.0, 24.0))]),

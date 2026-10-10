@@ -182,7 +182,6 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   visuals.hitElectric = sourceVisuals.hitElectric;
   visuals.hitElement = sourceVisuals.hitElement;
   visuals.hitStrength = sourceVisuals.hitStrength;
-  visuals.hitStrong = sourceVisuals.hitStrong;
   visuals.hitHeight = sourceVisuals.hitHeight;
   visuals.hitPummel = sourceVisuals.hitPummel;
   visuals.shieldElectric = sourceVisuals.shieldElectric;
@@ -585,7 +584,6 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (visuals.hitElectric !== sourceVisuals.hitElectric) return false;
   if (visuals.hitElement !== sourceVisuals.hitElement || (visuals.hitElement === 0 && 1 / visuals.hitElement !== 1 / sourceVisuals.hitElement)) return false;
   if (visuals.hitStrength !== sourceVisuals.hitStrength || (visuals.hitStrength === 0 && 1 / visuals.hitStrength !== 1 / sourceVisuals.hitStrength)) return false;
-  if (visuals.hitStrong !== sourceVisuals.hitStrong) return false;
   if (visuals.hitHeight !== sourceVisuals.hitHeight || (visuals.hitHeight === 0 && 1 / visuals.hitHeight !== 1 / sourceVisuals.hitHeight)) return false;
   if (visuals.hitPummel !== sourceVisuals.hitPummel) return false;
   if (visuals.shieldElectric !== sourceVisuals.shieldElectric) return false;

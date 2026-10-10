@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { hurtPart, type HurtPose } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
 
@@ -46,7 +46,7 @@ export const CHEN_MOVES: FighterMoves = {
     [AttackStyle.forwardSmash]: heroMove(19, 4, 34, 0, [region(19, 22, 24.0, 66.0, 104.0, 48.0, 14.0, finish(18.0))]),
     [AttackStyle.upSmash]: heroMove(15, 4, 31, 0, [region(15, 18, 12.0, 62.0, 8.0, 122.0, 24.0, chenHit(16.0, 108.0, 30.0, 0.0, 1.0))]),
     [AttackStyle.downSmash]: heroMove(15, 6, 32, 0, [region(15, 17, 18.0, 24.0, 88.0, 18.0, 13.0, finish(14.0)), region(18, 20, -18.0, 24.0, -88.0, 18.0, 13.0, finish(14.0, true))]),
-    [AttackStyle.neutralAir]: cleanLateMove(heroMove(7, 5, 22, 14, [region(7, 11, -55.0, 42.0, 58.0, 48.0, 15.0, poke(8.0))]), 2),
+    [AttackStyle.neutralAir]: heroMove(7, 5, 22, 14, [region(7, 11, -55.0, 42.0, 58.0, 48.0, 15.0, poke(8.0))]),
     [AttackStyle.forwardAir]: heroMove(11, 4, 27, 17, [region(11, 14, 16.0, 45.0, 78.0, 50.0, 13.0, finish(12.0))]),
     [AttackStyle.backAir]: heroMove(8, 3, 23, 14, [region(8, 10, -18.0, 42.0, -76.0, 45.0, 13.0, finish(11.0, true))]),
     [AttackStyle.upAir]: heroMove(7, 4, 22, 14, [region(7, 10, -22.0, 102.0, 28.0, 110.0, 13.0, lift(8.0))]),

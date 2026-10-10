@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type AuthoredMove, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type AuthoredMove, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart, type HurtPart, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
@@ -25,7 +25,7 @@ const NORMALS: FighterMoves["normals"] = {
   [AttackStyle.upTilt]: bow(8, 4, 19, 0, sylvanasStrike(8.0, 68.0, 14.0, 132.0), sylvanasHit(7.0, 85, 65.0, 38.0)),
   [AttackStyle.downTilt]: bow(7, 3, 17, 0, sylvanasStrike(18.0, 18.0, 84.0, 10.0), sylvanasHit(7.0, 75, 60.0, 38.0)),
   [AttackStyle.dashAttack]: heroMove(10, 3, 22, 0, [heroRegion(10, 12, sylvanasStrike(18.0, 55.0, 102.0, 48.0), sylvanasHit(10.0, 50, 90.0, 24.0))], 55.0, true),
-  [AttackStyle.forwardSmash]: tipperMove(bow(16, 3, 29, 0, sylvanasStrike(22.0, 60.0, 134.0, 58.0), sylvanasHit(16.5, 40, 110.0, 28.0)), 0.25),
+  [AttackStyle.forwardSmash]: bow(16, 3, 29, 0, sylvanasStrike(22.0, 60.0, 134.0, 58.0), sylvanasHit(16.5, 40, 110.0, 28.0)),
   [AttackStyle.upSmash]: bow(15, 4, 29, 0, sylvanasStrike(0.0, 82.0, 0.0, 158.0, 12.0), sylvanasHit(13.0, 90, 110.0, 28.0)),
   [AttackStyle.downSmash]: heroMove(14, 6, 28, 0, [
     heroRegion(14, 16, sylvanasStrike(18.0, 24.0, 100.0, 10.0), sylvanasHit(12.0, 25, 100.0, 25.0)),
@@ -50,13 +50,12 @@ for (const key in NORMALS) {
   const style = Number(key);
   const move = NORMALS[style];
   if (move === undefined) continue;
-  const shaped = move.regions.filter((region, index) => index === 0 || move.regions[index - 1]?.firstFrame !== region.firstFrame);
-  limbPoses[style] = shaped.map((region, index) => {
+  limbPoses[style] = move.regions.map((region, index) => {
     const strike = region.hit.strike;
     if (strike === undefined) return heroHurtPose(1, move.totalFrames, SYLVANAS_STAND);
     const x = f32(Math.max(-48.0, Math.min(48.0, strike.x2)));
     const z = f32(Math.max(20.0, Math.min(112.0, strike.z2)));
-    const next = shaped[index + 1];
+    const next = move.regions[index + 1];
     const last = Math.min(move.totalFrames, region.lastFrame + 3, next === undefined ? move.totalFrames : Math.max(1, next.firstFrame - 1) - 1);
     return heroHurtPose(Math.max(1, region.firstFrame - 1), last, sylvanasReach(x, z));
   });

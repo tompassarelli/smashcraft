@@ -18,7 +18,6 @@ import {
   hitContextKnockback,
   installDamageLaunch,
   ordinaryHitlagFrames,
-  STRONG_HIT_EXTRA_HITLAG,
   ordinaryHitstunFrames,
   victimHitlagFrames,
 } from "./knockback";
@@ -54,7 +53,7 @@ interface DamageContact {
   facing: number;
   kind: ContactKind;
   direct: boolean;
-  strongHitlag: number;
+  hammerHitlag: number;
   hitlagDamage: number;
   blocked: boolean;
   crouching: boolean;
@@ -79,7 +78,7 @@ interface DamageContact {
 
 function emptyContact(): DamageContact {
   return {
-    source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, strongHitlag: 0, hitlagDamage: 0.0, blocked: false,
+    source: 0, target: 0, effect: emptyHitEffect(), facing: 0, kind: ContactKind.launch, direct: false, hammerHitlag: 0, hitlagDamage: 0.0, blocked: false,
     crouching: false, grounded: false, sourceGrounded: false, sourceAerial: false, sourceDeltaX: 0.0, sourceDeltaZ: 0.0, sourceVelocityX: 0.0, sourceVelocityZ: 0.0, targetDeltaX: 0.0,
     targetDeltaZ: 0.0, down: false, smashCharging: false, throwInput: undefined, status: undefined,
     height: 1,
@@ -139,7 +138,7 @@ export function collectDamageContact(
   contact.facing = facing;
   contact.kind = kind;
   contact.direct = direct;
-  contact.strongHitlag = kind === ContactKind.launch && (effect.strong === true || forsakenPaladinHammerContact(source, effect.damage, direct)) ? STRONG_HIT_EXTRA_HITLAG : 0;
+  contact.hammerHitlag = kind === ContactKind.launch && forsakenPaladinHammerContact(source, effect.damage, direct) ? 3 : 0;
   contact.blocked = !unblockable && shieldContact;
   contact.crouching = target.motion.crouching;
   contact.grounded = target.motion.grounded;
@@ -224,7 +223,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
   let shieldElectric = false;
   let hitlagDamage = 0.0;
   let armorDamage = 0.0;
-  let strongHitlag = 0;
+  let hammerHitlag = 0;
   let shieldPushback = 0.0;
   let shieldDirection = 1;
   const perfectShield = shield.perfectFrames > 0;
@@ -245,11 +244,11 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.target !== slot) continue;
     const source = fighterAt(world, contact.source);
     const { damage } = contact.effect;
-    if (contact.direct) source.launch.hitlag = max(source.launch.hitlag, ordinaryHitlagFrames(contact.hitlagDamage) + contact.strongHitlag);
+    if (contact.direct) source.launch.hitlag = max(source.launch.hitlag, ordinaryHitlagFrames(contact.hitlagDamage) + contact.hammerHitlag);
     if (contact.blocked) {
       if (contact.kind === ContactKind.damageOnly) continue;
       if (!perfectShield) shield.stun = max(shield.stun, shieldstunFrames(damage, shield.strength, contact.sourceAerial));
-      launch.hitlag = max(launch.hitlag, ordinaryHitlagFrames(contact.hitlagDamage) + contact.strongHitlag);
+      launch.hitlag = max(launch.hitlag, ordinaryHitlagFrames(contact.hitlagDamage) + contact.hammerHitlag);
       const pushback = shieldContactPushback(damage, shield.strength, perfectShield);
       shieldPushback = max(shieldPushback, pushback);
       if (pushback === shieldPushback) shieldDirection = contact.facing;
@@ -278,7 +277,7 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     if (contact.kind !== ContactKind.damageOnly && contact.kind !== ContactKind.throw) {
       hitlagDamage = max(hitlagDamage, contact.hitlagDamage);
       armorDamage = max(armorDamage, damage);
-      strongHitlag = max(strongHitlag, contact.strongHitlag);
+      hammerHitlag = max(hammerHitlag, contact.hammerHitlag);
       hurtContact ??= index;
     }
     if (contact.kind === ContactKind.flinch) flinch ??= index;
@@ -297,14 +296,13 @@ function resolveDamageContacts(world: Roster, slot: number): void {
     target.visuals.hit++;
     target.visuals.hitElectric = effectContact.effect.electric;
     target.visuals.hitElement = effectContact.effect.element ?? (effectContact.effect.electric ? HitElement.electric : HitElement.normal);
-    target.visuals.hitStrong = effectContact.strongHitlag > 0;
-    target.visuals.hitStrength = target.visuals.hitStrong || strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
+    target.visuals.hitStrength = effectContact.hammerHitlag > 0 || strongest >= 180.0 ? 2 : strongest >= 80.0 ? 1 : 0;
     target.visuals.hitHeight = effectContact.height;
     target.visuals.hitPummel = effectContact.kind === ContactKind.pummel;
 
     if (hurtContact !== undefined) {
       launch.sdiFollowup = launch.hitlag === 0 && launch.hitlagEndAge <= 15;
-      launch.hitlagFrames = victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching) + strongHitlag;
+      launch.hitlagFrames = victimHitlagFrames(hitlagDamage, effectContact.effect.electric, effectContact.crouching) + hammerHitlag;
       launch.hitlag = max(launch.hitlag, launch.hitlagFrames);
     }
   }

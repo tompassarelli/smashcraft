@@ -3,7 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -48,7 +48,7 @@ export const MURLOC_MOVES: FighterMoves = {
       heroRegion(12, 15, claw(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0)),
       heroRegion(12, 15, claw(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0, true)),
     ]),
-    [AttackStyle.neutralAir]: cleanLateMove(heroMove(5, 6, 20, 12, [heroRegion(5, 10, claw(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(8.0, 55))]), 2),
+    [AttackStyle.neutralAir]: heroMove(5, 6, 20, 12, [heroRegion(5, 10, claw(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(8.0, 55))]),
     [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, claw(18.0, 44.0, 70.0, 40.0), ordinary(10.0, 40, 90.0, 22.0))]),
     [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, claw(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(12.0, 35, 110.0, 26.0, true))]),
     [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, claw(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(9.0, 90, 90.0, 22.0))]),

@@ -64,7 +64,7 @@ test("an idle fighter on the ledge lets go once the hang limit passes [repro #41
 });
 
 test("the Expert computer covers a ledge getup and hits the climber within 45 frames of the press [repro #411]", () => {
-  const press = 340;
+  const press = 330;
   const rows = play("ledge-getup.in", 460);
   const before = rows.find((row) => row.frame === press)?.percent ?? 0;
   expect(rows.find((row) => row.frame === press)?.state).toBe("ledge-hang");

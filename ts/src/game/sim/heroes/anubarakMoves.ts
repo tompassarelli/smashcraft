@@ -1,5 +1,5 @@
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { heroHurtPose } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
@@ -26,7 +26,7 @@ export const ANUBARAK_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: heroMove(9, 5, 23, 0, [heroRegion(9, 13, claw(20.0, 85.0, 12.0, 155.0, 20.0), anubarakHit(10.0, 90, 72.0, 42.0))]),
     [AttackStyle.downTilt]: heroMove(8, 4, 20, 0, [heroRegion(8, 11, claw(30.0, 12.0, 120.0, 12.0), anubarakHit(8.0, 70, 65.0, 36.0))]),
     [AttackStyle.dashAttack]: heroMove(12, 5, 28, 0, [heroRegion(12, 16, claw(32.0, 44.0, 115.0, 50.0, 21.0), anubarakHit(12.0, 55))], 42.0, true),
-    [AttackStyle.forwardSmash]: tipperMove(heroMove(20, 4, 34, 0, [heroRegion(20, 23, claw(32.0, 65.0, 153.0, 65.0, 18.0), anubarakHit(20.0, 40, 60.0, 36.0))]), 0.25),
+    [AttackStyle.forwardSmash]: heroMove(20, 4, 34, 0, [heroRegion(20, 23, claw(32.0, 65.0, 153.0, 65.0, 18.0), anubarakHit(20.0, 40, 60.0, 36.0))]),
     [AttackStyle.upSmash]: heroMove(17, 5, 31, 0, [heroRegion(17, 21, claw(-22.0, 104.0, 25.0, 172.0, 27.0), anubarakHit(18.0, 90, 110.0, 32.0))]),
     [AttackStyle.downSmash]: heroMove(16, 6, 32, 0, [
       heroRegion(16, 18, claw(28.0, 14.0, 134.0, 14.0, 18.0), anubarakHit(16.0, 25, 105.0, 32.0)),

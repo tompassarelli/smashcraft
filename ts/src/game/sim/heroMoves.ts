@@ -1,7 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import type { AttackStyle } from "./codes";
 import type { HitEffect, HitRegion } from "./hitRegions";
-import { strongHit, weakHit } from "./strongHits";
 import { hurtCapsule } from "../physics/contactGeometry";
 import { Character } from "./codes";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPose } from "./hurtboxes";
@@ -115,57 +114,6 @@ export function heroRegion(firstActive: number, lastActive: number, strike: Stri
       effect, window, strike, groundedEffect,
     },
   };
-}
-
-
-export function strongRegion(region: MoveRegion): MoveRegion {
-  const { effect, groundedEffect } = region.hit;
-  return { ...region, hit: { ...region.hit, effect: strongHit(effect), groundedEffect: groundedEffect === undefined ? undefined : strongHit(groundedEffect) } };
-}
-
-
-export function tipper(regions: readonly MoveRegion[], tipFraction: number): readonly MoveRegion[] {
-  const split: MoveRegion[] = [];
-  for (const region of regions) {
-    const { strike, effect, groundedEffect, window } = region.hit;
-    if (strike === undefined) {
-      split.push(region);
-      continue;
-    }
-    const x = f32(strike.x2 - f32(f32(strike.x2 - strike.x1) * tipFraction));
-    const z = f32(strike.z2 - f32(f32(strike.z2 - strike.z1) * tipFraction));
-    split.push(heroRegion(region.firstFrame + 1, region.lastFrame + 1, { ...strike, x1: x, z1: z }, strongHit(effect),
-      groundedEffect === undefined ? undefined : strongHit(groundedEffect), window));
-    split.push(heroRegion(region.firstFrame + 1, region.lastFrame + 1, { ...strike, x2: x, z2: z }, weakHit(effect),
-      groundedEffect === undefined ? undefined : weakHit(groundedEffect), window));
-  }
-  return split;
-}
-
-
-export function cleanLate(regions: readonly MoveRegion[], cleanFrames: number): readonly MoveRegion[] {
-  let first = regions[0]?.firstFrame ?? 0;
-  for (const region of regions) first = Math.min(first, region.firstFrame);
-  const lastClean = first + cleanFrames - 1;
-  const split: MoveRegion[] = [];
-  for (const region of regions) {
-    const { effect, groundedEffect } = region.hit;
-    if (region.firstFrame <= lastClean) split.push({ firstFrame: region.firstFrame, lastFrame: Math.min(region.lastFrame, lastClean),
-      hit: { ...region.hit, effect: strongHit(effect), groundedEffect: groundedEffect === undefined ? undefined : strongHit(groundedEffect) } });
-    if (region.lastFrame > lastClean) split.push({ firstFrame: Math.max(region.firstFrame, lastClean + 1), lastFrame: region.lastFrame,
-      hit: { ...region.hit, effect: weakHit(effect), groundedEffect: groundedEffect === undefined ? undefined : weakHit(groundedEffect) } });
-  }
-  return split;
-}
-
-
-export function tipperMove(move: AuthoredMove, tipFraction: number): AuthoredMove {
-  return { ...move, regions: tipper(move.regions, tipFraction) };
-}
-
-
-export function cleanLateMove(move: AuthoredMove, cleanFrames: number): AuthoredMove {
-  return { ...move, regions: cleanLate(move.regions, cleanFrames) };
 }
 
 

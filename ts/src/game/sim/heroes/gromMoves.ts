@@ -1,5 +1,5 @@
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule } from "../heroMoves";
 import { groundHit } from "./groundNormals";
 import { hurtPart } from "../hurtboxes";
 
@@ -25,7 +25,7 @@ export const GROM_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: move(8, 4, 26, 0, [heroRegion(8, 11, axe(14.0, 60.0, 6.0, 144.0, 14.0), gromHit(8.100000381469727, 90, 76.5, 23.399999618530273))]),
     [AttackStyle.downTilt]: move(7, 3, 24, 0, [heroRegion(7, 9, axe(18.0, 12.0, 96.0, 12.0), gromHit(7.199999809265137, 80, 63.0, 30.600000381469727))]),
     [AttackStyle.dashAttack]: move(9, 5, 32, 0, [heroRegion(9, 13, axe(16.0, 46.0, 84.0, 46.0, 18.0), gromHit(9.899999618530273, 55))], 52.0, true),
-    [AttackStyle.forwardSmash]: tipperMove(move(18, 4, 46, 0, [heroRegion(18, 21, axe(24.0, 90.0, 132.0, 40.0), gromHit(18.0, 35, 100.80000305175781, 25.200000762939453))]), 0.30000001192092896),
+    [AttackStyle.forwardSmash]: move(18, 4, 46, 0, [heroRegion(18, 21, axe(24.0, 90.0, 132.0, 40.0), gromHit(18.0, 35, 100.80000305175781, 25.200000762939453))]),
     [AttackStyle.upSmash]: move(14, 4, 42, 0, [heroRegion(14, 17, axe(0.0, 60.0, 0.0, 160.0, 16.0), gromHit(15.300000190734863, 90, 97.19999694824219, 25.200000762939453))]),
     [AttackStyle.downSmash]: move(15, 6, 44, 0, [heroRegion(15, 17, axe(18.0, 12.0, 112.0, 12.0), gromHit(14.399999618530273, 25, 97.19999694824219, 25.200000762939453)), heroRegion(18, 20, axe(-18.0, 12.0, -112.0, 12.0), gromHit(14.399999618530273, 25, 97.19999694824219, 25.200000762939453, true))]),
     [AttackStyle.neutralAir]: move(8, 6, 28, 16, [heroRegion(8, 13, axe(-62.0, 54.0, 62.0, 54.0, 24.0), gromHit(9.0, 55))]),

@@ -1,7 +1,7 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { DREADLORD_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
@@ -102,12 +102,12 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       ] },
     ])),
     [AttackStyle.forwardAir]: heroMove(10, 4, 24, 10, rake(10, [64.0, 52.0, 40.0, 28.0], L, dreadlordHit(12.670000076293945, "EDGE", 40))),
-    [AttackStyle.backAir]: cleanLateMove(heroMove(9, 4, 25, 10, path(9, [
+    [AttackStyle.backAir]: heroMove(9, 4, 25, 10, path(9, [
       capsule(-16.0, 54.0, -f32(L - WING_RADIUS), 68.0, WING_RADIUS),
       capsule(-16.0, 46.0, -f32(L - WING_RADIUS), 52.0, WING_RADIUS),
       capsule(-16.0, 38.0, -f32(L - WING_RADIUS), 36.0, WING_RADIUS),
       capsule(-16.0, 30.0, -f32(L - WING_RADIUS), 20.0, WING_RADIUS),
-    ], dreadlordHit(13.575000762939453, "KILL", 35, -1.0))), 1),
+    ], dreadlordHit(13.575000762939453, "KILL", 35, -1.0))),
     [AttackStyle.upAir]: heroMove(7, 3, 21, 12, path(7, [
       capsule(0.0, 68.0, 8.0, f32(M - 12.0), 12.0),
       capsule(0.0, 68.0, 0.0, f32(M - 12.0), 12.0),

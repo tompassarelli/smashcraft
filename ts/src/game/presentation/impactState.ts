@@ -4,7 +4,7 @@ import { idiv, imod } from "wisp/src/sim/intMath";
 import { type Character, SurfaceContact } from "../sim/codes";
 import { HitElement } from "../sim/hitRegions";
 import { DodgeCue, type ImpactEvents, ImpactLanding, JumpCue } from "./impactEvents";
-import { STRONG_SPARK_SCALE, TIER_SPARK_SCALE } from "./moveTiers";
+import { TIER_SPARK_SCALE } from "./moveTiers";
 
 
 export const IMPACT_HIT = 0;
@@ -274,7 +274,7 @@ export function emitImpacts(state: ImpactState, events: Readonly<ImpactEvents>, 
     const kind = events.pummel ? IMPACT_PUMMEL : events.element === HitElement.fire ? IMPACT_FIRE_HIT
       : events.element === HitElement.slash ? IMPACT_SLASH_HIT : events.element === HitElement.ice ? IMPACT_ICE_HIT
       : events.electric || events.element === HitElement.electric ? IMPACT_ELECTRIC_HIT : IMPACT_HIT;
-    spawn(state, kind, x, f32(z + 50.0), 0, events.strong && !events.pummel ? STRONG_SPARK_SCALE : TIER_SPARK_SCALE[events.tier] ?? 1.0);
+    spawn(state, kind, x, f32(z + 50.0), 0, TIER_SPARK_SCALE[events.tier] ?? 1.0);
   }
   if (events.shieldHit || events.shieldReflect) spawn(state, events.shieldElectric ? IMPACT_ELECTRIC_SHIELD : IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, events.shieldReflect ? 1.5 : 1.0);
   if (events.shieldBreak) spawn(state, IMPACT_SHIELD_HIT, x, f32(z + 50.0), 0, 2.0);

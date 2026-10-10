@@ -3,7 +3,6 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
 import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
-import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 
 
@@ -161,12 +160,12 @@ export const LICH_KING_MOVES: FighterMoves = {
 
     [AttackStyle.forwardSmash]: { ...heroMove(22, 4, 38, 0, [
       ...[130.0, 96.0, 60.0, 16.0].map((z, index) => heroRegion(22 + index, 22 + index,
-        capsule(f32(XL - 46.0), z, f32(XL - 12.0), f32(z - 10.0), 14.0), strongHit(hit(21.0, "KILL", 40)))),
+        capsule(f32(XL - 46.0), z, f32(XL - 12.0), f32(z - 10.0), 14.0), hit(21.0, "KILL", 40))),
       ...sweep(22, [130.0, 96.0, 60.0, 16.0], f32(XL - 40.0), hit(17.0, "KILL", 40)),
     ]), inspiredBy: "Frostmourne's overhead strike (Warcraft III cinematic)" },
 
     [AttackStyle.upSmash]: { ...heroMove(18, 8, 38, 0, [
-      heroRegion(18, 21, capsule(0.0, 90.0, 0.0, f32(L + 10.0), f32(M - 10.0)), strongHit(hit(15.0, "KILL", 85))),
+      heroRegion(18, 21, capsule(0.0, 90.0, 0.0, f32(L + 10.0), f32(M - 10.0)), hit(15.0, "KILL", 85)),
       heroRegion(22, 25, capsule(0.0, 90.0, 0.0, f32(L + 10.0), f32(M - 20.0)), hit(10.0, "LAUNCH", 80)),
     ]), inspiredBy: "Remorseless Winter (Icecrown Citadel)" },
 

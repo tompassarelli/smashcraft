@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart } from "../hurtboxes";
 
@@ -48,7 +48,7 @@ export const TINKER_MOVES: FighterMoves = {
     [AttackStyle.upTilt]: heroMove(7, 4, 22, 0, [region(7, 10, claw(-28.0, 86.0, 30.0, 134.0, 15.0), tinkerHit(7.0, "launch", 85))]),
     [AttackStyle.downTilt]: heroMove(6, 3, 19, 0, [region(6, 8, claw(20.0, 14.0, 87.0, 8.0), tinkerHit(6.0, "launch", 70))]),
     [AttackStyle.dashAttack]: heroMove(10, 4, 26, 0, [region(10, 13, claw(15.0, 36.0, 70.0, 44.0, 17.0), tinkerHit(10.0, "launch", 55))], 38.0, true),
-    [AttackStyle.forwardSmash]: tipperMove(heroMove(20, 4, 34, 0, [region(20, 23, claw(28.0, 68.0, 124.0, 42.0, 17.0), tinkerHit(17.0, "kill", 35))]), 0.30000001192092896),
+    [AttackStyle.forwardSmash]: heroMove(20, 4, 34, 0, [region(20, 23, claw(28.0, 68.0, 124.0, 42.0, 17.0), tinkerHit(17.0, "kill", 35))]),
     [AttackStyle.upSmash]: heroMove(17, 5, 32, 0, [region(17, 21, claw(0.0, 65.0, 0.0, 160.0, 22.0), tinkerHit(16.0, "kill", 85, 1.0, HitElement.fire))]),
     [AttackStyle.downSmash]: heroMove(16, 6, 32, 0, [
       region(16, 18, claw(20.0, 14.0, 107.0, 10.0, 13.0), tinkerHit(13.0, "edge", 25)),
