@@ -5,7 +5,8 @@ import { FIGHTER_RIGS } from "./hd-rigs";
 import { JUMP_CLIPS } from "../../ts/src/game/presentation/jumpClipInfo";
 import { clipFor } from "../../ts/src/game/presentation/fighterClips";
 import type { HeroClipTable } from "../../ts/src/game/sim/heroes/hero";
-import { generateMDX, model as mdx } from "war3-model";
+import { model as mdx } from "war3-model";
+import { generateModelMDX as generateMDX } from "../../ts/scripts/mdxCodec";
 import { DrawnModel, sheet } from "../../ts/scripts/wisp/hurtboxView";
 import { characterModelScale } from "../../ts/src/game/presentation/modelScale";
 import { AttackPhase, Character } from "../../ts/src/game/sim/codes";
@@ -36,6 +37,10 @@ const repairs = [
   { character: Character.pitLord, poses: ["doubleJump"], flip: false, style: "heave" },
   { character: Character.peon, poses: ["doubleJump"], flip: false, style: "scramble" },
   { character: Character.sylvanas, poses: ["doubleJump"], flip: true, style: "back flip" },
+  { character: Character.shadowHunter, poses: ["doubleJump"], flip: false, style: "twist" },
+  { character: Character.dreadlord, poses: ["doubleJump"], flip: false, style: "wing beat" },
+  { character: Character.mountainKing, poses: ["doubleJump"], flip: false, style: "cannonball" },
+  { character: Character.forsakenPaladin, poses: ["doubleJump"], flip: false, style: "knee lift" },
 ] as const;
 const gestures: readonly { character: number; poses: readonly ("jump" | "doubleJump")[]; flip: boolean; style?: string }[] = selected ? repairs.filter(g => g.character === only) : legacy;
 ensure(gestures.length > 0, "Select an authored double-jump fighter");
@@ -68,10 +73,29 @@ function jointPitch(joint: string, style: string, t: number): number {
     if (joint.startsWith("knee")) return (left ? 135 : 85) * coil;
     if (joint.startsWith("ankle")) return -35 * coil;
   }
-  if (style === "back flip") {
+  if (style === "wing beat") {
+    const beat = Math.sin(2 * Math.PI * t);
+    if (joint.startsWith("shoulder")) return (-35 - 105 * beat) * coil;
+    if (joint.startsWith("elbow")) return (35 + 40 * beat) * coil;
+    if (joint.startsWith("wrist")) return (-20 - 35 * beat) * coil;
+    if (joint === "chest") return -35 * coil;
+    if (joint === "head") return 25 * coil;
+    if (joint.startsWith("hip")) return -55 * coil;
+    if (joint.startsWith("knee")) return 75 * coil;
+  }
+  if (style === "twist") {
+    if (joint === "chest") return -35 * coil;
+    if (joint === "head") return 25 * coil;
+    if (joint.startsWith("shoulder")) return (left ? -125 : -65) * coil;
+    if (joint.startsWith("elbow")) return (left ? 105 : 50) * coil;
+    if (joint.startsWith("hip")) return (left ? -100 : 45) * coil;
+    if (joint.startsWith("knee")) return (left ? 135 : 65) * coil;
+    if (joint.startsWith("ankle")) return -35 * coil;
+  }
+  if (style === "cannonball" || style === "back flip") {
     if (joint === "chest") return 45 * coil;
     if (joint === "head") return 30 * coil;
-    if (joint.startsWith("shoulder")) return (left ? -95 : -65) * coil;
+    if (joint.startsWith("shoulder")) return (style === "cannonball" ? -105 : left ? -95 : -65) * coil;
     if (joint.startsWith("elbow")) return 85 * coil;
     if (joint.startsWith("hip")) return -110 * coil;
     if (joint.startsWith("knee")) return 140 * coil;
@@ -135,24 +159,28 @@ for (const gesture of gestures) {
       const node = match ? source[match[1] as "Bones" | "Helpers"][Number(match[2])] : undefined;
       const rig = FIGHTER_RIGS.get(gesture.character);
       const joint = node && rig ? Object.entries(rig.classic).find(([, name]) => name === node.Name)?.[0] : undefined;
-      const amount = gesture.style ? jointPitch(joint ?? "", gesture.style, 0.5) : node ? tuck(node.Name) : 0;
+      const secondary = gesture.style === "wing beat" && node?.Name === "New Wings" ? 90 : 0;
+      const amount = gesture.style ? secondary || jointPitch(joint ?? "", gesture.style, 0.5) : node ? tuck(node.Name) : 0;
       if (amount) articulated++;
       if (previous >= 0) track.Keys = track.Keys.filter(k => k.Frame < start || k.Frame > end);
       for (let frame = 0; frame <= frames; frame++) {
         const t = frame / frames;
         const coil = Math.sin(Math.PI * Math.min(1, t / 0.85));
-        const turn = gesture.style ? jointPitch(joint ?? "", gesture.style, t) : amount * coil;
+        const turn = gesture.style ? secondary ? secondary * Math.sin(2 * Math.PI * t) * coil : jointPitch(joint ?? "", gesture.style, t) : amount * coil;
         const Vector = amount ? pitch(key.Vector, turn) : key.Vector.slice();
         track.Keys.push({ ...key, Frame: start + Math.round(frame * 1000 / 60), Vector,
           ...(key.InTan ? { InTan: Vector.slice(), OutTan: Vector.slice() } : {}) });
       }
+      track.Keys.sort((a, b) => a.Frame - b.Frame);
     });
+    if (previous >= 0 && helper.Rotation) helper.Rotation.Keys = helper.Rotation.Keys.filter(k => k.Frame < start || k.Frame > end);
     for (let frame = 0; frame <= frames; frame++) {
       const t = frame / frames;
       const progress = Math.max(0, Math.min(1, (t - 0.1) / 0.8));
       const turn = gesture.flip ? (gesture.style === "back flip" ? -360 : 360) * progress * progress * (3 - 2 * progress) : -18 * Math.sin(Math.PI * t);
-      helper.Rotation?.Keys.push({ Frame: start + Math.round(frame * 1000 / 60), Vector: pitch(new Float32Array([0, 0, 0, 1]), turn) });
+      helper.Rotation?.Keys.push({ Frame: start + Math.round(frame * 1000 / 60), Vector: gesture.style === "twist" ? new Float32Array([0, 0, Math.sin(360 * progress * progress * (3 - 2 * progress) * Math.PI / 360), Math.cos(360 * progress * progress * (3 - 2 * progress) * Math.PI / 360)]) : pitch(new Float32Array([0, 0, 0, 1]), turn) });
     }
+    helper.Rotation?.Keys.sort((a, b) => a.Frame - b.Frame);
     ensure(articulated >= 2, `${fighter.name}: missing jump articulation`);
     authored[pose] = { index, seconds: Math.fround((end - start) / 1000) };
     bindings.push(`    ${pose}: { index: ${index}, seconds: ${seconds(Math.fround((end - start) / 1000))} },`);
