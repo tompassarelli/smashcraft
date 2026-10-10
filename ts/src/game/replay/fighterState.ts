@@ -451,9 +451,9 @@ export function sameFighterState(target: Readonly<Fighter>, source: Readonly<Fig
   if (ground.turnRunFacingCommandLatched !== sourceGround.turnRunFacingCommandLatched) return false;
   if (ground.turnRunPausePending !== sourceGround.turnRunPausePending) return false;
   if (ground.pivotEligible !== sourceGround.pivotEligible) return false;
-  if (ground.pivotGraceFrames !== sourceGround.pivotGraceFrames) return false;
-  if (ground.pivotDashFrame !== sourceGround.pivotDashFrame) return false;
-  if (ground.pivotDashActionFrame !== sourceGround.pivotDashActionFrame) return false;
+  if (ground.pivotGraceFrames !== sourceGround.pivotGraceFrames || (ground.pivotGraceFrames === 0 && 1 / ground.pivotGraceFrames !== 1 / sourceGround.pivotGraceFrames)) return false;
+  if (ground.pivotDashFrame !== sourceGround.pivotDashFrame || (ground.pivotDashFrame === 0 && 1 / ground.pivotDashFrame !== 1 / sourceGround.pivotDashFrame)) return false;
+  if (ground.pivotDashActionFrame !== sourceGround.pivotDashActionFrame || (ground.pivotDashActionFrame === 0 && 1 / ground.pivotDashActionFrame !== 1 / sourceGround.pivotDashActionFrame)) return false;
   if (ground.dashGrabWindow !== sourceGround.dashGrabWindow || (ground.dashGrabWindow === 0 && 1 / ground.dashGrabWindow !== 1 / sourceGround.dashGrabWindow)) return false;
 
   const jump = target.jump;
