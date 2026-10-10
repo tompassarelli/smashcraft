@@ -1551,6 +1551,11 @@ Basic gameplan: Keep shots simple, poke nearby targets and recover with up speci
 
 Expert gameplan: Place and recall the bear, trap routes and cover jumps while varying shot pressure. Use the full authored kit and gameplan at the same CPU skill.
 
+#### Signature strong/weak move (#389)
+
+Forward tilt, split by position: strong hit sweetspot, frames 7-9, 9.3%; weak hit sourspot, frames 7-9, 6.5%. The bayonet's point: he keeps foes at the end of the barrel, so a thrust spaced to the tip pays.
+The roster table is in [gameplay-design.md](../gameplay-design.md#strong-and-weak-hits-389) and every split in the [move list](../move-list.md).
+
 
 ### Illidan
 
