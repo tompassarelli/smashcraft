@@ -3,15 +3,13 @@
 
 
 
-import { at } from "wisp/src/runtime/lookup";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, ProjectileKind } from "./codes";
 import { mutableProjectile } from "./fighterProjectiles";
 import { inGrabContext } from "./conditions";
 import { staggerCompanion } from "./companions";
 import { type Fighter, type PlacedObject, placedObject } from "./fighter";
-import { HERO_PROJECTILE_CAP, runningHeroSpecial, runningTableSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
-import { HitField, MoveField, hitField, moveField } from "./moveTable";
+import { HERO_PROJECTILE_CAP, runningHeroSpecial, spawnHeroProjectileAt } from "./heroSpecialRules";
 import { CompanionMode, type SpecialPlacement } from "./heroSpecials";
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion } from "./hitRegions";
 import { projectileDamage } from "./projectiles";
@@ -56,26 +54,10 @@ function normalStrike(placed: PlacedObject, sourceSlot: number, source: Readonly
 
 function specialStrike(placed: PlacedObject, sourceSlot: number, source: Readonly<Fighter>): number {
   const bit = 1 << sourceSlot;
-  const id = runningTableSpecial(source);
-  const table = source.tuning.specials?.table;
-  const move = id >= 0 ? undefined : runningHeroSpecial(source);
-  const running = id >= 0 || move !== undefined;
-  if (!running || source.special.frame <= 1) placed.specialStruck &= ~bit;
-  if (!running || (placed.specialStruck & bit) !== 0) return 0.0;
+  const move = runningHeroSpecial(source);
+  if (move === undefined || source.special.frame <= 1) placed.specialStruck &= ~bit;
+  if (move === undefined || (placed.specialStruck & bit) !== 0) return 0.0;
   const frame = source.special.frame - 1;
-  if (id >= 0 && table !== undefined) {
-    const first = moveField(table, id, MoveField.hitFirst);
-    for (let row = first; row < first + moveField(table, id, MoveField.hitCount); row++) {
-      const region = at(table.regions, row);
-      if (frame < hitField(table, row, HitField.first) || frame > hitField(table, row, HitField.last) || region.strike === undefined) continue;
-      placeCapsule(strike, region.strike, source.motion.x, source.motion.z, source.facing);
-      if (!capsulesIntersect(strike, body)) continue;
-      placed.specialStruck |= bit;
-      return region.effect.damage;
-    }
-    return 0.0;
-  }
-  if (move === undefined) return 0.0;
   for (const path of move.regions ?? []) {
     if (frame < path.firstFrame || frame > path.lastFrame || path.hit.strike === undefined) continue;
     placeCapsule(strike, path.hit.strike, source.motion.x, source.motion.z, source.facing);

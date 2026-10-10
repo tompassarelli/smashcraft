@@ -8,7 +8,7 @@ import { ContactKind } from "./codes";
 import { canBeGrabbed, inGrabContext, isIntangible } from "./conditions";
 import { queueDamageContact } from "./contacts";
 import type { Fighter } from "./fighter";
-import { runningHeroSpecial, runningTableSpecial } from "./heroSpecialRules";
+import { runningHeroSpecial } from "./heroSpecialRules";
 import { applyHeroStatus } from "./heroStatus";
 import { grabTouchesBody } from "./hurtboxes";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
@@ -71,7 +71,7 @@ function latch(world: Roster, slot: number, targetSlot: number, holdFrames: numb
 
 export function advanceHeroCommandGrab(world: Roster, slot: number): void {
   const owner = fighterAt(world, slot);
-  const grab = runningTableSpecial(owner) >= 0 ? undefined : runningHeroSpecial(owner)?.commandGrab;
+  const grab = runningHeroSpecial(owner)?.commandGrab;
   if (grab === undefined) return;
   const { special } = owner;
   const frame = special.frame;

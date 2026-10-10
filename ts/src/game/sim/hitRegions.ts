@@ -7,8 +7,6 @@ import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, HitElement } from "./codes";
 import type { FighterMoves, StrikeCapsule } from "./heroMoves";
 import { strongHit, weakHit } from "./strongHits";
-import { at } from "wisp/src/runtime/lookup";
-import { MoveField, activeHitRow, hasNormal, moveField } from "./moveTable";
 import { DIAGONAL_UNIT, ORDINARY_HIT_BASE_KNOCKBACK, ORDINARY_HIT_GROWTH_PERCENT } from "./knockback";
 import {
   DOWN_ATTACK_BASE_KNOCKBACK,
@@ -210,14 +208,9 @@ const DOWN_AIR = downAir(-95.0, 95.0, attackDamage(AttackStyle.downAir));
 const SHARED_UP_SMASH = reachRegion(AttackStyle.upSmash);
 
 export function authoredHitRegionCount(style: AttackStyle | undefined, moves?: FighterMoves): number {
+  const authored = style === undefined ? undefined : moves?.normals[style];
   if (style === AttackStyle.grab) return 1;
-  const table = moves?.table;
-  if (table !== undefined) {
-    if (style !== undefined && hasNormal(table, style)) return moveField(table, style, MoveField.hitCount);
-  } else {
-    const authored = style === undefined ? undefined : moves?.normals[style];
-    if (authored !== undefined) return authored.regions.length;
-  }
+  if (authored !== undefined) return authored.regions.length;
   return style === AttackStyle.forwardTilt ? 2 : 1;
 }
 
@@ -265,14 +258,7 @@ export function authoredHitRegion(out: HitRegion, character: Character, style: A
     copyHitRegion(out, index === 0 && frame >= startup && frame < startup + 3 ? SHARED_GRAB_REGION : NO_HIT_REGION);
     return out;
   }
-  const table = moves?.table;
-  if (table !== undefined && style !== undefined && hasNormal(table, style)) {
-    const row = activeHitRow(table, style, frame, index);
-    copyHitRegion(out, row < 0 ? NO_HIT_REGION : at(table.regions, row));
-    if (isSmashAttack(style)) out.effect.damage = f32(out.effect.damage * smashDamageMultiplier(chargeFrames, moves));
-    return out;
-  }
-  const authored = style === undefined || table !== undefined ? undefined : moves?.normals[style];
+  const authored = style === undefined ? undefined : moves?.normals[style];
   if (authored !== undefined) {
     const region = authored.regions[index];
     copyHitRegion(out, region !== undefined && frame >= region.firstFrame && frame <= region.lastFrame ? region.hit : NO_HIT_REGION);

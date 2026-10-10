@@ -8,7 +8,6 @@ import { finishDamageContacts, openDamageContacts, queueDamageContact } from "./
 import type { FighterMoves } from "./heroMoves";
 import { copyHitEffect, emptyHitEffect, type HitEffect } from "./hitRegions";
 import { advanceMash, clearMash } from "./mash";
-import { MoveField, moveField, throwMove } from "./moveTable";
 import { GRAB_HOLD_DISTANCE, GRAB_HOLD_MINIMUM_FRAMES, PUMMEL_DAMAGE, grabActionDuration, grabContactFrame, pummelLimit } from "./moves";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import type { Fighter } from "./fighter";
@@ -83,17 +82,9 @@ export function authoredThrowEffect(action: GrabAction, moves?: FighterMoves): R
   throwHit.electric = false;
   throwHit.manaDrain = undefined;
   throwHit.manaSteal = undefined;
-  const effect = authoredThrow(action, moves);
-  if (effect !== undefined) copyHitEffect(throwHit, effect);
+  const authored = moves?.throws[action];
+  if (authored !== undefined) copyHitEffect(throwHit, authored.effect);
   return throwHit;
-}
-
-
-function authoredThrow(action: GrabAction, moves?: FighterMoves): Readonly<HitEffect> | undefined {
-  const table = moves?.table;
-  if (table === undefined) return moves?.throws[action]?.effect;
-  const id = throwMove(table, action);
-  return id < 0 ? undefined : at(table.hitEffects, moveField(table, id, MoveField.throwEffect));
 }
 
 function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targetInput: Readonly<Controls>): void {
@@ -104,7 +95,7 @@ function releaseThrow(world: Roster, ownerSlot: number, targetSlot: number, targ
   target.grab.owner = undefined;
   target.grab.grabbedFrames = 0;
   clearMash(target.grab);
-  const authored = authoredThrow(action, owner.tuning.moves);
+  const authored = owner.tuning.moves?.throws[action];
   const effect = authoredThrowEffect(action, owner.tuning.moves);
   const direction = authored !== undefined ? owner.facing : action === GrabAction.throwBack ? -owner.facing : owner.facing;
   queueDamageContact(world, ownerSlot, targetSlot, effect, direction, ContactKind.throw, false, targetInput);
@@ -197,7 +188,7 @@ function advanceGrab(world: Roster, ownerSlot: number, ownerInput: Readonly<Cont
     resolveHeldTarget(world, ownerSlot);
 
     if (grab.action === GrabAction.pummel) {
-      const hit = authoredThrow(GrabAction.pummel, owner.tuning.moves) ?? PUMMEL_HIT;
+      const hit = owner.tuning.moves?.throws[GrabAction.pummel]?.effect ?? PUMMEL_HIT;
       queueDamageContact(world, ownerSlot, targetSlot, hit, owner.facing, ContactKind.pummel, true, undefined);
     }
     else releaseThrow(world, ownerSlot, targetSlot, targetInput);

@@ -50,7 +50,7 @@ import { AIR_DODGE_ANIMATION_FRAMES, AIR_DODGE_DECAY, beginAirDodge, beginGround
 import { ageKnockback, applyDirectionalInfluence, decayKnockback } from "./knockback";
 import { advanceLedge } from "./ledge";
 import { EdgePass, passThroughEdge, rideWall } from "./edgeRecovery";
-import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackFall, attackStartupFrames, attackStartupTravelOf, felLungeStep, isSmashAttack } from "./moves";
+import { DOWN_ATTACK_FRAMES, EARLY_ASCENT_GRAB_FRAMES, SMASH_MAX_CHARGE_FRAMES, attackFall, attackStartupFrames, felLungeStep, isSmashAttack } from "./moves";
 import {
   addMeleeWorldValues,
   airDriftVelocity,
@@ -112,7 +112,7 @@ const STEERING_BITS = 16399;
 
 function attackStartupTravel(world: Roster, slot: number): number {
   const f = fighterAt(world, slot);
-  const move = attackStartupTravelOf(f.attack.style, f.tuning.moves);
+  const move = f.attack.style === undefined ? undefined : f.tuning.moves?.normals[f.attack.style];
   const lunge = felLungeStep(f.character, f.attack.style, f.attack.frame, f.attack.smashCharging, f.attack.smashChargeFrames);
   if (lunge > 0.0 && f.motion.grounded) return f32(travelBeforeBodies(world, slot, lunge, true) * f.facing);
   if (move?.startupTravelX === undefined || !f.motion.grounded || f.attack.frame <= 0 || f.attack.frame > move.startupFrames) return 0.0;
