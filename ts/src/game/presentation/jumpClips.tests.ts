@@ -10,7 +10,7 @@ const ATTACK_POSES: readonly HeroPose[] = [
   "pummel", "throwForward", "throwBack", "throwUp", "throwDown", "getUpAttack", "ledgeAttack",
   "neutralSpecial", "sideSpecial", "upSpecial", "downSpecial", "neutralSpecialAir", "sideSpecialAir", "upSpecialAir", "downSpecialAir",
   "neutralSpecialFollowUp", "sideSpecialFollowUp", "upSpecialFollowUp", "downSpecialFollowUp",
-  "neutralSpecialFollowUpAir", "sideSpecialFollowUpAir", "upSpecialFollowUpAir", "downSpecialFollowUpAir",
+  "neutralSpecialFollowUpAir", "sideSpecialFollowUpAir", "upSpecialFollowUpAir", "downSpecialFollowUpAir", "ultimate",
 ];
 test("roster jumps and falls never share an attack or special sequence [spec #230]", () => {
   for (const character of SELECTABLE_CHARACTERS) {

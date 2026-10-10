@@ -340,7 +340,7 @@ const ULTIMATE_POSES: { readonly [character: number]: HeroPose | undefined } = {
 function ultimateClip(character: number, grounded: boolean): HeroClip {
   if (character === Character.rifleman) return RIFLEMAN_BEAR;
   if (character === Character.demonHunter) return byGrounding(IMMOLATE, grounded);
-  return clipFor(character, ULTIMATE_POSES[character] ?? "neutralSpecial");
+  return characterClips(character).ultimate ?? clipFor(character, ULTIMATE_POSES[character] ?? "neutralSpecial");
 }
 
 const FOLLOW_UP_POSES: readonly (readonly [grounded: HeroFollowUpPose, air: HeroFollowUpPose])[] = [

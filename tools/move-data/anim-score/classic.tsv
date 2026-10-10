@@ -495,24 +495,24 @@ thrall	ultimate	special	1/4	3.96	FAIL	0.00	0.00	foreleg L	pass	0.01	0.01	0.25	FA
 thrall	up-air	aerial	2/4	1.96	FAIL	0.00	0.06	arm R	FAIL	0.01	0.01	0.00	pass	5	8	28	0.90	7	10	30	pass	0.26	0.67	0.74	unjudged	0							bowser uair	22	47
 thrall	up-smash	smash	1/4	2.27	FAIL	0.03	0.10	arm R	FAIL	0.02	0.02	0.00	pass	5	19	46	0.93	16	19	48	FAIL	0.31	0.61	0.69	unjudged	0							bowser usmash	16	59
 thrall	up-tilt	tilt	1/4	2.79	FAIL	0.05	0.10	arm R	FAIL	0.02	0.02	0.00	FAIL	1	10	29	0.95	7	10	30	pass	0.29	0.62	0.71	unjudged	0							bowser utilt	7	54
-warden	back-air	aerial	2/4	3.07	FAIL	0.13	-0.03	arm R	FAIL	0.01	0.01	0.12	pass	4	9	30	1.00	6	8	30	pass	0.59	0.31	0.41	unjudged	0							sheik bair	4	37
-warden	dash-attack	tilt	2/4	1.63	pass	1.00	0.21	body	FAIL	0.01	0.01	0.01	FAIL	2	5	23	0.94	4	6	24	pass	0.46	0.46	0.54	unjudged	0							sheik dattack	6	37
+warden	back-air	aerial	2/4	3.06	FAIL	0.13	-0.03	arm R	FAIL	0.01	0.01	0.12	pass	4	9	30	1.00	6	8	30	pass	0.59	0.31	0.41	unjudged	0							sheik bair	4	37
+warden	dash-attack	tilt	4/4	0.00	pass	1.00	0.52	arm R	pass	0.03	0.05	0.11	pass	2	6	24	1.00	4	6	24	pass	0.63	0.03	0.37	unjudged	0							sheik dattack	6	37
 warden	down-air	aerial	0/4	9.48	FAIL	0.17	0.01	arm L	FAIL	0.00	0.13	0.17	FAIL	0	9	25	0.93	6	12	26	FAIL	0.22	0.64	0.78	unjudged	0							sheik dair	15	48
 warden	down-smash	smash	2/4	3.21	FAIL	0.34	-0.11	arm L	FAIL	0.01	0.01	0.03	pass	9	14	42	0.96	11	15	43	pass	0.45	0.42	0.55	unjudged	0							sheik dsmash	5	49
 warden	down-special	special	1/4	3.81	FAIL	1.00	0.05	body	FAIL	0.00	0.01	0.00	FAIL	0	11	30	0.77	8	10	36	pass	0.55	0.42	0.45	unjudged	0							sheik down_b	27	62
-warden	down-tilt	tilt	1/4	3.00	FAIL	0.00	0.19	arm R	FAIL	0.02	0.02	0.00	FAIL	1	5	12	1.00	2	3	12	pass	0.42	0.47	0.58	unjudged	0							sheik dtilt	5	29
+warden	down-tilt	tilt	3/4	0.16	pass	0.91	0.32	arm R	FAIL	0.05	0.06	0.08	pass	1	4	12	1.00	2	3	12	pass	0.55	0.15	0.45	unjudged	0							sheik dtilt	5	29
 warden	forward-air	aerial	1/4	3.29	FAIL	1.00	-0.01	body	FAIL	0.01	0.01	0.07	FAIL	0	7	29	1.00	7	9	29	pass	0.42	0.51	0.58	unjudged	0							sheik fair	5	33
-warden	forward-smash	smash	2/4	21.07	FAIL	1.00	-0.22	body	FAIL	0.03	0.25	0.20	pass	6	13	46	1.00	14	16	46	pass	0.92	0.08	0.06	unjudged	0							sheik fsmash	12	50
-warden	forward-tilt	tilt	1/4	4.11	FAIL	0.31	0.35	arm R	FAIL	0.04	0.15	0.00	FAIL	2	4	9	0.18	4	6	23	pass	0.70	0.28	0.30	unjudged	0							sheik ftilt	5	29
-warden	forward-tilt-down	tilt	2/4	1.72	FAIL	0.00	0.20	arm R	FAIL	0.01	0.01	0.01	pass	2	5	23	1.00	4	6	23	pass	0.46	0.46	0.54	unjudged	0							sheik ftilt	5	29
-warden	forward-tilt-up	tilt	2/4	1.71	pass	1.00	0.10	body	FAIL	0.01	0.02	0.01	FAIL	2	7	23	1.00	4	6	23	pass	0.37	0.54	0.63	unjudged	0							sheik ftilt	5	29
-warden	jab	jab	1/4	8.25	FAIL	0.19	-0.11	arm R	FAIL	0.02	0.16	0.00	FAIL	0	1	8	0.55	1	2	13	pass	0.57	0.00	0.43	unjudged	0							sheik jab1	2	17
-warden	jab2	jab	1/4	8.04	FAIL	0.16	-0.07	arm R	FAIL	0.02	0.16	0.00	FAIL	0	1	9	0.58	1	2	14	pass	0.57	0.00	0.43	unjudged	0							sheik jab2	2	17
-warden	jab3	jab	2/4	1.96	pass	1.00	0.18	body	FAIL	0.01	0.01	0.00	FAIL	0	5	20	0.94	3	5	21	pass	0.44	0.53	0.56	unjudged	0							sheik jab2	2	17
-warden	neutral-air	aerial	1/4	2.47	FAIL	0.02	0.06	arm R	FAIL	0.01	0.01	0.14	FAIL	2	9	26	1.00	4	8	26	pass	0.52	0.42	0.48	unjudged	0							sheik nair	3	48
-warden	neutral-special	special	2/4	3.55	FAIL	0.23	0.03	arm R	pass	0.00	0.03	0.20	FAIL	0	15	16	0.05	15	15	35	pass	0.49	0.51	0.34	unjudged	0							sheik neutral_b	4	40
-warden	side-special	special	1/4	7.76	FAIL	0.00	-0.15	leg L	FAIL	0.13	0.13	0.77	FAIL	1	7	38	1.00	10	13	38	pass	0.61	0.39	0.30	unjudged	0							sheik side_b	22	75
-warden	ultimate	special	1/4	5.23	FAIL	0.00	-0.05	arm L	pass	0.00	0.03	0.49	FAIL	0	23	22	0.06	21	21	38	FAIL	0.46	0.54	0.37	unjudged	0									
-warden	up-air	aerial	1/4	2.88	FAIL	0.06	0.24	arm R	FAIL	0.01	0.02	0.00	FAIL	2	7	26	0.93	4	12	27	pass	0.45	0.39	0.55	unjudged	0							sheik uair	5	39
-warden	up-smash	smash	0/4	3.02	FAIL	0.00	0.20	leg R	FAIL	0.01	0.01	0.00	FAIL	8	13	41	0.96	12	15	42	FAIL	0.42	0.38	0.58	unjudged	0							sheik usmash	12	47
-warden	up-tilt	tilt	1/4	5.52	FAIL	0.00	-0.04	arm L	FAIL	0.01	0.02	0.00	FAIL	0	0	21	0.94	3	6	22	pass	0.28	0.49	0.72	unjudged	0							sheik utilt	5	33
+warden	forward-smash	smash	3/4	1.38	pass	1.00	0.55	arm R	FAIL	0.02	0.03	0.11	pass	11	16	46	1.00	14	16	46	pass	0.81	0.05	0.19	unjudged	0							sheik fsmash	12	50
+warden	forward-tilt	tilt	3/4	0.49	FAIL	0.46	0.55	arm R	pass	0.03	0.05	0.08	pass	2	6	23	1.00	4	6	23	pass	0.67	0.04	0.33	unjudged	0							sheik ftilt	5	29
+warden	forward-tilt-down	tilt	3/4	0.04	FAIL	0.86	0.38	arm R	pass	0.03	0.04	0.09	pass	2	6	23	1.00	4	6	23	pass	0.65	0.06	0.35	unjudged	0							sheik ftilt	5	29
+warden	forward-tilt-up	tilt	3/4	0.04	pass	1.00	0.93	leg L	FAIL	0.04	0.06	0.11	pass	2	6	23	1.00	4	6	23	pass	0.70	0.00	0.30	unjudged	0							sheik ftilt	5	29
+warden	jab	jab	2/4	1.16	FAIL	1.00	0.14	leg L	FAIL	0.04	0.06	0.11	pass	0	2	13	1.00	1	2	13	pass	0.48	0.32	0.52	unjudged	0							sheik jab1	2	17
+warden	jab2	jab	2/4	1.29	FAIL	1.00	0.09	leg L	FAIL	0.04	0.05	0.10	pass	0	2	14	1.00	1	2	14	pass	0.53	0.25	0.47	unjudged	0							sheik jab2	2	17
+warden	jab3	jab	3/4	0.68	pass	1.00	0.55	arm R	FAIL	0.03	0.05	0.09	pass	1	4	21	1.00	3	5	21	pass	0.69	0.03	0.31	unjudged	0							sheik jab2	2	17
+warden	neutral-air	aerial	1/4	2.46	FAIL	0.02	0.06	arm R	FAIL	0.01	0.01	0.14	FAIL	2	9	26	1.00	4	8	26	pass	0.52	0.42	0.48	unjudged	0							sheik nair	3	48
+warden	neutral-special	special	2/4	0.65	FAIL	1.00	0.11	arm R	FAIL	0.04	0.07	0.07	pass	11	16	35	1.00	15	15	35	pass	0.51	0.45	0.49	unjudged	0							sheik neutral_b	4	40
+warden	side-special	special	2/4	1.42	FAIL	0.52	0.74	arm R	pass	0.04	0.04	0.43	FAIL	3	6	38	1.00	10	13	38	pass	0.88	0.02	0.12	unjudged	0							sheik side_b	22	75
+warden	ultimate	special	1/4	3.65	FAIL	0.00	-0.04	arm R	FAIL	0.04	0.13	0.29	pass	19	21	38	1.00	21	21	38	FAIL	0.47	0.53	0.37	unjudged	0									
+warden	up-air	aerial	2/4	2.05	FAIL	0.17	0.10	arm R	FAIL	0.01	0.02	0.02	pass	2	7	27	1.00	4	12	27	pass	0.55	0.37	0.45	unjudged	0							sheik uair	5	39
+warden	up-smash	smash	3/4	0.48	pass	0.62	0.22	leg L	FAIL	0.01	0.02	0.07	pass	8	14	41	0.96	12	15	42	pass	0.60	0.25	0.40	unjudged	0							sheik usmash	12	47
+warden	up-tilt	tilt	3/4	0.13	FAIL	0.79	0.30	arm L	pass	0.02	0.03	0.11	pass	1	5	22	1.00	3	6	22	pass	0.51	0.16	0.49	unjudged	0							sheik utilt	5	33

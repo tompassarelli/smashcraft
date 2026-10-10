@@ -40,7 +40,8 @@ for (const [id, bindings] of Object.entries(ROSTER_ATTACK_CLIPS)) {
   const character = Number(id);
   test(`${fighterName(character)} plays each attack gesture from the sequence named for its move [repro #151]`, () => {
     for (const [pose, binding] of Object.entries(bindings) as [HeroPose, { index: number }][]) {
-      const name = `attack gesture ${pose.startsWith("downSpecial") ? "downSpecial" : pose}`.toLowerCase();
+      const special = ["neutralSpecial", "sideSpecial", "upSpecial", "downSpecial"].find((name) => pose.startsWith(name));
+      const name = `attack gesture ${special ?? pose}`.toLowerCase();
       assertEquals(`${pose} #${originalClipNamed(character, name)}`, `${pose} #${binding.index}`);
       if (STOCK_CLIP_SWAPS[character]?.[pose] === undefined) assertEquals(`${pose} #${clipFor(character, pose).index}`, `${pose} #${binding.index}`);
     }

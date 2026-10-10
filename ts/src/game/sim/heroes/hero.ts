@@ -74,7 +74,7 @@ export type HeroPose =
   | "pummel" | "throwForward" | "throwBack" | "throwUp" | "throwDown"
   | "victimPummel" | "victimThrowForward" | "victimThrowBack" | "victimThrowUp" | "victimThrowDown"
   | "neutralSpecial" | "sideSpecial" | "upSpecial" | "downSpecial"
-  | "neutralSpecialAir" | "sideSpecialAir" | "upSpecialAir" | "downSpecialAir"
+  | "neutralSpecialAir" | "sideSpecialAir" | "upSpecialAir" | "downSpecialAir" | "ultimate"
   | HeroFollowUpPose;
 
 
