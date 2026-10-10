@@ -1,4 +1,4 @@
-import { createPlacedObject, placedObject } from "../sim/fighter";
+import { createPlacedObject, packSpares, placedObject } from "../sim/fighter";
 import { PARTICIPANT_CAPACITY } from "../input/participants";
 import type { Fighter } from "../sim/fighter";
 import { HERO_STATUS_GROUPS } from "../sim/codes";
@@ -369,8 +369,10 @@ export function copyFighterState(target: Fighter, source: Readonly<Fighter>, act
   mana.points = sourceMana.points;
 
 
-  while (target.pack.length < source.pack.length) target.pack.push(createPlacedObject());
-  target.pack.length = source.pack.length;
+  const pack = target.pack;
+  const spares = packSpares(target);
+  while (pack.length < source.pack.length) pack[pack.length] = spares?.[pack.length] ?? createPlacedObject();
+  pack.length = source.pack.length;
   for (let animal = 0; animal <= source.pack.length; animal++) {
     const placed = placedObject(target, animal);
     const sourcePlaced = placedObject(source, animal);

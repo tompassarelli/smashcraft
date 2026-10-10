@@ -122,7 +122,7 @@ src/game/replay/history.tests.ts	15	986671000	853920
 src/game/replay/matchReplay.tests.ts	2	116673000	35499
 src/game/replay/moment.tests.ts	4	208188000	68381
 src/game/replay/shadowPlayback.tests.ts	8	133925000	403691
-src/game/replay/snapshot.tests.ts	3	126644000	30520
+src/game/replay/snapshot.tests.ts	4	131769000	45411
 src/game/replay/state.tests.ts	12	45583000	11822
 src/game/shell/journalFiles.tests.ts	1	1000	25
 src/game/shell/localInput.tests.ts	1	4105000	19500

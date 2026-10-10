@@ -6,13 +6,14 @@ import { captureNetworkFrame, createMatchFrameInput, resetMatchFrameInput } from
 import { participantInputs } from "../input/participants";
 import { matchSpawnX } from "../match/step";
 import { Character, ProjectileKind } from "../sim/codes";
-import { type Projectile, createFighter } from "../sim/fighter";
+import { type Fighter, PACK_CAPACITY, type PlacedObject, type Projectile, createFighter, packSpares } from "../sim/fighter";
 import { spawnProjectileMotion } from "../sim/projectiles";
 import { createRoster, fighterAt } from "../sim/roster";
 import { canonicalState, stateChecksum, stateHash } from "./canonical";
 import { sameReplayState } from "./difference";
+import { copyFighterState } from "./fighterState";
 import { ReplayHistory } from "./history";
-import { REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
+import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
@@ -154,4 +155,42 @@ test("#400 the state hash tells apart states that hashed equal: seeds a modulus 
   copyReplayState(second, played.live);
   second.runtime.poses[0].clipTime += 1.5;
   assertEquals(stateHash(first), stateHash(second));
+});
+
+/** Every placed object a fighter holds or may grow its pack into. */
+function heldPlacedObjects(fighter: Readonly<Fighter>, into: Set<Readonly<PlacedObject>>): void {
+  into.add(fighter.placed);
+  for (const animal of fighter.pack) into.add(animal);
+  for (const spare of packSpares(fighter) ?? []) into.add(spare);
+}
+
+test("snapshot copies fill a cold ring with Beastmasters and follow a rematch that swaps them out and back in, creating no pack table and allocating nothing for fighters [invariant]", () => {
+  const ring: ReplayState[] = [];
+  for (let index = 0; index < REPLAY_HISTORY_CAPACITY; index++) ring.push(createReplaySnapshot());
+  const held = new Set<Readonly<PlacedObject>>();
+  for (const snapshot of ring) for (const slot of SLOTS) heldPlacedObjects(fighterAt(snapshot.world, slot), held);
+  const live = fourRiflemen().live;
+  const lua = typeof collectgarbage === "function";
+  let fighterKb = 0.0;
+  let frame = 0;
+  let animals = 0;
+  // A cold ring fills with Beastmasters; a rematch swaps them for Riflemen through the whole ring, then back.
+  for (const character of [Character.beastmaster, Character.rifleman, Character.beastmaster]) {
+    for (const slot of SLOTS) live.world.fighters[slot] = createFighter(character, matchSpawnX(slot), floorMod(slot, 2) === 0 ? 1 : -1);
+    for (let index = 0; index < REPLAY_HISTORY_CAPACITY; index++) {
+      frame++;
+      const snapshot = at(ring, floorMod(frame, REPLAY_HISTORY_CAPACITY));
+      // The fighter copies copyReplayState makes, measured apart from the rest of the state's.
+      const kb = lua ? collectgarbage("count") : 0.0;
+      for (const slot of SLOTS) copyFighterState(fighterAt(snapshot.world, slot), fighterAt(live.world, slot), live.world.mask);
+      fighterKb += (lua ? collectgarbage("count") : 0.0) - kb;
+      copyReplayState(snapshot, live);
+    }
+    for (const snapshot of ring) for (const slot of SLOTS) animals += fighterAt(snapshot.world, slot).pack.length;
+  }
+  let created = 0;
+  for (const snapshot of ring) for (const slot of SLOTS) for (const animal of fighterAt(snapshot.world, slot).pack) if (!held.has(animal)) created++;
+  assertEquals(animals, 2 * SLOTS.length * REPLAY_HISTORY_CAPACITY * PACK_CAPACITY);
+  assertEquals(created, 0);
+  assertEquals(fighterKb, 0.0);
 });

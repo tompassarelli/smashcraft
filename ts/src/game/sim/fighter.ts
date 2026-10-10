@@ -551,6 +551,9 @@ export interface Fighter {
 }
 
 const repeat = <T>(count: number, make: () => T): T[] => Array.from({ length: count }, () => make());
+// One empty entry per participant (PARTICIPANT_CAPACITY), written out so Lua
+// sizes the array part: a copy's first writes into it allocate nothing (#400).
+const noSlots = (): (number | undefined)[] => [undefined, undefined, undefined, undefined];
 
 function emptyProjectile(): Projectile {
   return {
@@ -575,6 +578,7 @@ function emptyProjectile(): Projectile {
 
 export function createFighter(character: Character, startX: number, facing: number): Fighter {
   const tuning = authoredTuning(character);
+  const spares = [createPlacedObject(), createPlacedObject()];
   const fighter: Fighter = {
     character,
     tuning,
@@ -713,7 +717,7 @@ export function createFighter(character: Character, startX: number, facing: numb
       cooldowns: repeat(SPECIAL_ACTION_CAPACITY, () => 0),
       direction: 0,
       hit: false,
-      hitTargets: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined),
+      hitTargets: noSlots(),
       form: 0,
       aimX: 0,
       aimZ: 0,
@@ -758,14 +762,37 @@ export function createFighter(character: Character, startX: number, facing: numb
     status: { offscreenFrames: 0, damage: 0.0, stocks: STARTING_STOCKS, respawn: 0, out: false, invincible: 0, frozenFrames: 0, freezeImmunityFrames: 0, armorFrames: 0, armorMaxDamage: 0.0, armorChills: false, condition: 0, conditionFrames: 0, conditionGroup: 0, conditionImmunityFrames: 0, conditionImmunity: [0, 0, 0], divineFrames: 0, poisonFrames: 0, poisonEvery: 0, poisonDamage: 0.0, buff: 0, buffFrames: 0 },
     mana: { points: 0 },
     placed: createPlacedObject(),
-    pack: character === Character.beastmaster ? [createPlacedObject(), createPlacedObject()] : [],
+    pack: packFrom(spares, character === Character.beastmaster ? PACK_CAPACITY : 0),
   };
+  PACK_SPARES.set(fighter, spares);
   initializeInfluenceOperands(fighter);
   return fighter;
 }
 
+/** Animals a pack holds at most: a Beastmaster's quilbeast and hawk. */
+export const PACK_CAPACITY = 2;
+
+// Every fighter keeps PACK_CAPACITY placed objects for its pack, kept out of
+// its fields so saved records and the copy stay as they are: a copy grows the
+// pack from them and never creates a table, into a cold snapshot or a rematch
+// that brings a Beastmaster back (#400).
+const PACK_SPARES = new WeakMap<Readonly<Fighter>, readonly PlacedObject[]>();
+
+// The pack's table starts with every spare, so Lua sizes its array part once and growing it never allocates.
+function packFrom(spares: readonly PlacedObject[], length: number): PlacedObject[] {
+  const pack = [at(spares, 0), at(spares, 1)];
+  pack.length = length;
+  return pack;
+}
+
+/** The objects a fighter's pack grows into; a fighter not made by createFighter has none. */
+export function packSpares(fighter: Readonly<Fighter>): readonly PlacedObject[] | undefined {
+  return PACK_SPARES.get(fighter);
+}
+
+
 export function createPlacedObject(): PlacedObject {
-  return { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: repeat<number | undefined>(PARTICIPANT_CAPACITY, () => undefined), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined };
+  return { life: 0, age: 0, x: 0.0, z: 0.0, direction: 1, durability: 0.0, serial: 0, spec: undefined, struck: noSlots(), specialStruck: 0, mode: 0, modeFrame: 0, apart: 0, bitten: 0, surface: undefined };
 }
 
 export function placedObject(fighter: Readonly<Fighter>, slot = 0): PlacedObject {
