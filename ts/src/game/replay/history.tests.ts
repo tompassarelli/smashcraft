@@ -7,8 +7,8 @@ import { participantInputs } from "../input/participants";
 import { Action, bit } from "../input/actions";
 import { type ImpactEvents } from "../presentation/impactEvents";
 import { type Controls, createRoster, fighterAt, neutralControls } from "../sim/roster";
-import { firstPoseDifference, firstStateDifference } from "./difference";
-import { stateChecksum, stateHash } from "./canonical";
+import { firstPoseDifference, firstStateDifference, sameReplayState } from "./difference";
+import { stateChecksum } from "./canonical";
 import { ReplayCorrections, ReplayHistory } from "./history";
 import { REPLAY_HISTORY_CAPACITY, REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
 import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
@@ -31,12 +31,12 @@ function execute(tape: TapeWorld, row: MatchFrameInput): void {
 
 /**
  * How a confirmed state differs from the straight run's. The #168 sync tests
- * compare the per-frame full-state hash, as clients would (#400), and name
- * the first differing field only when the hashes disagree.
+ * compare states exactly with the comparator repair trusts, never by hash:
+ * unequal states can hash equal (#400).
  */
 function syncDifference(expected: Readonly<ReplayState>, actual: Readonly<ReplayState>): string | undefined {
-  if (stateHash(expected) === stateHash(actual)) return undefined;
-  return firstStateDifference(expected, actual) ?? "full-state hash";
+  if (sameReplayState(expected, actual)) return undefined;
+  return firstStateDifference(expected, actual) ?? firstPoseDifference(expected, actual) ?? "sameReplayState";
 }
 
 /** The first difference between two tapes' live states. */
