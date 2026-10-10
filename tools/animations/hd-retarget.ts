@@ -82,6 +82,7 @@ export interface RetargetOptions {
     readonly alignRoot?: boolean;
     /** Definitive props parented to the body root that the hands carry: each hangs from its Classic parent's joint, as a parentless prop does. */
     readonly heldProps?: readonly string[];
+    readonly stockRestJoints?: readonly string[];
 }
 
 const rotationOf = (matrix: mat4) => quat.normalize(quat.create(), mat4.getRotation(quat.create(), matrix));
@@ -249,6 +250,7 @@ export function registerRig(source: mdx.Model, hd: mdx.Model, pairs: readonly (r
         // A foot keeps its own flat stance; a hand or head keeps its rest angle to its limb.
         else if (classicRest.get(id)![2] <= floorBand || parent === undefined) alignment.set(id, quat.create());
         else alignment.set(id, quat.clone(alignment.get(parent)!));
+        if (options.stockRestJoints?.includes(source.Nodes[id].Name)) alignment.set(id, quat.create());
         // A long rigid prop (a weapon, staff or gun) points along its Classic counterpart: its strike direction is the move.
         if (aimed.has(id) || classicRest.get(id)![2] <= floorBand) continue;
         const classicAxis = propAxis(source, sourceReference, ownedVertices(source, id, group));
