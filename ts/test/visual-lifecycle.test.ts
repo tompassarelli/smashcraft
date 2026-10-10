@@ -138,7 +138,7 @@ test("Ahn'Qiraj keeps neutral fighter colours, the hit pulse and scenery at stoc
   expect(client.errors).toEqual([]);
 });
 
-test("Immolation's loop is made with its presenter, stopped on match reset and released on destruction [invariant]", () => {
+test("Immolation loops are released on match reset and presentation destruction [invariant]", () => {
   const clients = headless.clients({ start, install });
   clients.start();
   clients.frames(30);
@@ -150,20 +150,16 @@ test("Immolation's loop is made with its presenter, stopped on match reset and r
     fighter.character = Character.demonHunter;
     fighter.special.action = SpecialAction.demonHunterImmolate;
     fighter.special.frame = 0;
-    for (const [index, finish] of [() => renderer.clear(), () => renderer.clear(), () => renderer.destroy()].entries()) {
+    for (const finish of [() => renderer.clear(), () => renderer.clear(), () => renderer.destroy()]) {
       const before = client.log.length;
-      const cues = client.soundLog.length;
       renderer.presentConfirmedAnimated(0, fighter, 0);
-      expect(client.log.slice(before).filter(call => call.name.startsWith("CreateSound"))).toEqual([]);
-      const loop = client.soundLog.slice(cues).find(cue => cue.event === "start" && cue.label === IMMOLATE_SOUNDS.loop)?.handle;
-      expect(loop).toBeDefined();
-      const mark = client.log.length;
+      const made = client.log.slice(before).find(call => call.name === "CreateSoundFromLabel" && call.args[0] === IMMOLATE_SOUNDS.loop);
+      expect(made).toBeDefined();
       finish();
-      const stops = client.log.slice(mark).filter(call => call.name === "StopSound");
-      expect(stops.map(call => call.args[0])).toContainEqual(loop);
-      const releases = client.log.slice(mark).filter(call => call.name === "KillSoundWhenDone").map(call => call.args[0]);
-      if (index === 2) expect(releases).toContainEqual(loop);
-      else expect(releases).toEqual([]);
+      const stops = client.log.slice(before).filter(call => call.name === "StopSound");
+      const releases = client.log.slice(before).filter(call => call.name === "KillSoundWhenDone");
+      expect(stops).toHaveLength(1);
+      expect(releases.some(call => call.args[0] === stops[0]?.args[0])).toBe(true);
     }
   });
 });
@@ -176,9 +172,9 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
   clients.frames(1);
   const commandClient = clients.clients[0];
   if (commandClient === undefined) throw new Error("missing host client");
-  const commandStart = commandClient.soundLog.length;
+  const commandStart = commandClient.log.length;
   clients.chat(0, "-dev effects 3");
-  expect(commandClient.soundLog.slice(commandStart).some(cue => cue.event === "start" && cue.label === "Fireball")).toBe(true);
+  expect(commandClient.log.slice(commandStart).some(call => call.name === "CreateSoundFromLabel" && call.args[0] === "Fireball")).toBe(true);
   const client = clients.clients[0];
   if (client === undefined) throw new Error("missing host client");
   client.run(() => {
@@ -191,13 +187,13 @@ test("hit event language: 26 event cases reach stock effects and confirmed sound
       const impacts = createImpactState();
       emitImpacts(impacts, events, 8);
       const before = client.log.length;
-      const cues = client.soundLog.length;
       renderer.presentConfirmed(index + 1, 0, events);
       renderer.present(impacts, 0, impacts, true);
       const calls = client.log.slice(before);
-      expect(calls.filter(call => call.name.startsWith("CreateSound"))).toEqual([]);
-      expect(client.soundLog.slice(cues).filter(cue => cue.event === "start")
-        .map(cue => (cue.label ?? cue.source ?? "").split("\\").pop()?.replace(/\.flac$/, ""))).toEqual([sound]);
+
+      expect(calls.filter(call => call.name === "CreateSoundFromLabel" || call.name === "CreateSound")
+        .map(call => String(call.args[0]).split("\\").pop()?.replace(/\.flac$/, ""))).toEqual([sound]);
+      expect(calls.filter(call => call.name === "StartSound")).toHaveLength(1);
       expect(client.effectPoses().some(pose => pose.model.includes(model) && pose.scale > 0)).toBe(true);
       shownScale[index] = Math.max(...client.effectPoses().filter(pose => pose.model.includes(model)).map(pose => pose.scale));
       const after = client.log.length;

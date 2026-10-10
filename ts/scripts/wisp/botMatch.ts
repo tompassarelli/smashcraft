@@ -9,7 +9,6 @@ import type { HeadlessClient } from "wisp/src/headless/client";
 import type { Lockstep } from "wisp/src/headless/lockstep";
 import type { PerfMeasure } from "wisp/src/headless/luaPerf";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-import { at } from "wisp/src/runtime/lookup";
 import { Action, bit } from "../../src/game/input/actions";
 import { type InputRow, inputRow } from "../../src/game/input/inputRow";
 import { Phase } from "../../src/game/match/rules";
@@ -145,25 +144,9 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
       held[index] = hold;
     });
   };
-  // Confirmed frames reach clients at different turns, so a handle made or freed during play desyncs Warcraft even when every client makes the same calls.
-  const handleCalls: string[] = [];
-  const scanned = clients.clients.map(() => 0);
-  const scanHandles = () => {
-    clients.clients.forEach((client, index) => {
-      const from = Math.max(at(scanned, index), client.forgotten);
-      for (let call = from; call < client.forgotten + client.log.length; call++) {
-        const name = client.log[call - client.forgotten]?.name ?? "";
-        if (handleCalls.length < 8 && (name.startsWith("Create") || name.startsWith("Destroy") || name.startsWith("Remove") || name === "AddSpecialEffect" || name === "AddSpecialEffectTarget" || name === "AddLightning" || name === "AddLightningEx")) {
-          handleCalls.push(`p${client.slot} call ${call}: ${name}`);
-        }
-      }
-      scanned[index] = client.forgotten + client.log.length;
-    });
-  };
   const frame = () => {
     pressBeat();
     clients.frames(1);
-    if (beating) scanHandles();
     clients.clients.forEach((player, index) => {
       const tap = tapped[index] ?? 0;
       if (tap === 0) return;
@@ -205,13 +188,11 @@ export function playBotMatch(clients: Lockstep, match: BotMatch, frames: number,
   clients.press(0, Key.y);
   until("the match", () => gameOf(host).phase === Phase.match);
   measure.begin();
-  clients.clients.forEach((client, index) => { scanned[index] = client.forgotten + client.log.length; });
   beating = true;
   for (let index = 0; index < frames && gameOf(host).phase === Phase.match; index++) frame();
   const lines: string[] = [];
   const divergence = clients.firstDivergence();
   if (divergence !== undefined) lines.push(`desync: ${divergence}`);
-  for (const call of handleCalls) lines.push(`handle made or freed during play: ${call}`);
   for (const client of clients.clients) for (const error of client.errors) lines.push(`p${client.slot}: ${error}`);
   return { problems: lines.length, lines };
 }

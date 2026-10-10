@@ -24,7 +24,6 @@ import { type ParkedFlags, STOCK_MODELS, type WorldOrigin, facingYaw, parkOnce, 
 import { characterModelScale } from "../presentation/modelScale";
 import { IMMOLATE_SOUNDS } from "../presentation/elementLooks";
 import { SummonPresentation } from "./summonPresentation";
-import { SoundBank, SoundKind } from "./soundBank";
 import { bindPrototype } from "../../platform/rebind";
 
 interface SpecialSlot {
@@ -45,7 +44,7 @@ interface SpecialSlot {
   previousSpecial: SpecialAction;
   previousSpecialFrame: number;
 
-  readonly immolationLoop: sound;
+  immolationLoop?: sound | undefined;
 }
 
 
@@ -63,14 +62,12 @@ const SIPHON_LIGHTNING = "DRAM";
 export class SpecialEffects {
   private readonly slots: readonly SpecialSlot[];
   private parked: ParkedFlags | undefined;
-  private readonly sounds = new SoundBank();
 
   private readonly front: number;
 
   constructor(private readonly origin: WorldOrigin) {
     const { x, y } = origin;
     this.front = y - 8.0;
-    this.sounds.prepare(SoundKind.label, [IMMOLATE_SOUNDS.start, IMMOLATE_SOUNDS.end]);
     this.slots = PARTICIPANT_SLOTS.map((participant) => {
       const cursor = createImpactPresentationCursor();
       const bear = new SummonPresentation(SUMMON_BEAR, origin);
@@ -87,9 +84,8 @@ export class SpecialEffects {
       BlzSetSpecialEffectTimeScale(aura, 0.0);
       BlzSetSpecialEffectTimeScale(wingTrail, 0.0);
       BlzSetSpecialEffectTimeScale(drainFlash, 0.0);
-      const immolationLoop = CreateSoundFromLabel(IMMOLATE_SOUNDS.loop, true, true, true, 10000, 10000);
       return {
-        bear, aura, felFlames, manaHand, wingTrail, drainFlash, silence, siphon, siphonShown: false, lastX: 0.0, lastZ: 0.0, eyeBlast, cursor, immolationLoop,
+        bear, aura, felFlames, manaHand, wingTrail, drainFlash, silence, siphon, siphonShown: false, lastX: 0.0, lastZ: 0.0, eyeBlast, cursor,
         previousSpecial: SpecialAction.none, previousSpecialFrame: 0,
       };
     });
@@ -147,7 +143,10 @@ export class SpecialEffects {
   }
 
   private releaseImmolationLoop(slot: SpecialSlot): void {
+    if (slot.immolationLoop === undefined) return;
     StopSound(slot.immolationLoop, false, false);
+    KillSoundWhenDone(slot.immolationLoop);
+    slot.immolationLoop = undefined;
   }
 
   private placed(slot: number, effect: number): void {
@@ -184,16 +183,20 @@ export class SpecialEffects {
     const x = this.origin.x + fighter.motion.x;
     const z = this.origin.z + fighter.motion.z;
     const play = (label: string): void => {
-      this.sounds.playAt(SoundKind.label, label, x, this.origin.y, z);
+      const cue = CreateSoundFromLabel(label, false, true, true, 10000, 10000);
+      SetSoundPosition(cue, x, this.origin.y, z);
+      StartSound(cue);
+      KillSoundWhenDone(cue);
     };
     if (lit) {
       play(IMMOLATE_SOUNDS.start);
-      SetSoundPosition(slot.immolationLoop, x, this.origin.y, z);
-      StartSound(slot.immolationLoop);
+      const loop = (slot.immolationLoop ??= CreateSoundFromLabel(IMMOLATE_SOUNDS.loop, true, true, true, 10000, 10000));
+      SetSoundPosition(loop, x, this.origin.y, z);
+      StartSound(loop);
     } else if (out) {
-      StopSound(slot.immolationLoop, false, true);
+      if (slot.immolationLoop !== undefined) StopSound(slot.immolationLoop, false, true);
       play(IMMOLATE_SOUNDS.end);
-    } else if (fighter.special.action === SpecialAction.demonHunterImmolate) {
+    } else if (slot.immolationLoop !== undefined && fighter.special.action === SpecialAction.demonHunterImmolate) {
       SetSoundPosition(slot.immolationLoop, x, this.origin.y, z);
     }
   }
@@ -297,7 +300,6 @@ export class SpecialEffects {
   destroy(): void {
     for (const slot of this.slots) {
       this.releaseImmolationLoop(slot);
-      KillSoundWhenDone(slot.immolationLoop);
       slot.bear.destroy();
       for (const model of [slot.aura, slot.felFlames, slot.manaHand, slot.wingTrail, slot.drainFlash, slot.silence, ...slot.eyeBlast]) DestroyEffect(model);
       DestroyLightning(slot.siphon);

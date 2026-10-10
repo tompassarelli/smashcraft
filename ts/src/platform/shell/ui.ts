@@ -112,7 +112,6 @@ function menuControls(s: Readonly<ShellState>): MenuControls {
 // Create shared panels, HUD plates and effect pools in the same order on every client.
 export function createUi(s: ShellState, actions: PanelActions): UiObjects {
   const controls = menuControls(s);
-  let combat: CombatEffects;
   const ui: UiObjects = {
     pause: new PauseMenu(),
     items: new ItemPresentation(s.origin),
@@ -126,12 +125,12 @@ export function createUi(s: ShellState, actions: PanelActions): UiObjects {
     stage: new StagePanel(actions.stage, controls),
     selections: each(slot => new SelectionPanel(actions.selection, slot, controls)),
     settings: each(slot => new SettingsPanel(s.participants[slot].bindings, actions.settings, slot)),
-    combat: combat = new CombatEffects(s.origin),
+    combat: new CombatEffects(s.origin),
     frost: new FrostEffects(s.origin),
     placed: new PlacedObjectEffects(s.origin),
     special: new SpecialEffects(s.origin),
     fighters: [undefined, undefined, undefined, undefined],
-    sounds: modelSoundPresentation(s.origin, combat.sounds),
+    sounds: modelSoundPresentation(s.origin),
     match: new MatchPresentation(s.origin),
     elements: new ElementEffects(s.origin),
     classic: new ClassicPresentation(s.origin),
@@ -154,21 +153,11 @@ function endFighterRenderers(renderers: FighterRenderers | undefined): void {
 
 
 
-function sharedPlay(): boolean {
-  let humans = 0;
-  for (const slot of PARTICIPANT_SLOTS) {
-    const player = Player(slot);
-    if (GetPlayerController(player) === MAP_CONTROL_USER && GetPlayerSlotState(player) === PLAYER_SLOT_STATE_PLAYING) humans++;
-  }
-  return humans > 1;
-}
-
 export function beginFighterRenderers(s: ShellState, slot: ParticipantSlot, character: Character, pooled: boolean): boolean {
   const ui = views(s);
   endFighterRenderers(ui.fighters[slot]);
   const pool = pooled ? new FighterPoolPresentation(character, slot, s.origin) : undefined;
-  ui.placed.prepareFighter(slot, character);
-  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin, sharedPlay()), pool, agency: new AgencyMarker(s.origin), flash: new BodyFlash(character, s.origin),
+  ui.fighters[slot] = { character, shield: new ShieldPresentation(slot, s.origin), projectiles: new ProjectilePresentation(character, s.origin), cues: new SpecialCueEffects(character, s.origin), pool, agency: new AgencyMarker(s.origin), flash: new BodyFlash(character, s.origin),
     hitAreas: s.game.training && s.game.trainer.showHitAreas ? new HitAreaPresentation(s.origin) : undefined,
   };
   return pool?.admitted() === true;
@@ -225,7 +214,7 @@ export function recreateUi(s: ShellState, actions: PanelActions): void {
   ui.placed.bindNestedCode();
   bindPrototype(ui.special, SpecialEffects.prototype);
   ui.special.bindNestedCode();
-  ui.sounds = modelSoundPresentation(s.origin, ui.combat.sounds);
+  ui.sounds = modelSoundPresentation(s.origin);
   const retainedBars: { readonly manaBars?: Slots<ManaBars> } = ui;
   if (retainedBars.manaBars === undefined) ui.manaBars = each(createManaBars);
   else for (const slot of PARTICIPANT_SLOTS) {

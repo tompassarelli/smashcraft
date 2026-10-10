@@ -27,16 +27,15 @@ import {
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-import { impactAnimation, impactModel, impactModelScale, impactSoundNames, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
+import { impactAnimation, impactModel, impactModelScale, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
 import { VOICE_CAP, admitVoice, createVoiceBudget, resetVoiceBudget } from "../presentation/voiceBudget";
-import { SoundBank, SoundKind } from "./soundBank";
-import { tierSoundPaths } from "../presentation/moveTiers";
 import type { ImpactEvents } from "../presentation/impactEvents";
 import { Character } from "../sim/codes";
 import { SELECTABLE_CHARACTERS, heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, hideEffect, parkOnce, placeEffect } from "./effects";
 import { characterModelScale } from "../presentation/modelScale";
 import { originalClip, originalClipNamed } from "../assets/fighterOriginalClipInfo";
+import { tierSoundPaths } from "../presentation/moveTiers";
 import { KO_BLUR_DISTANCE, type KoFlash, createKoFlash, endKoFlash, koFlashLevels, noteKoFlash } from "../presentation/koFlash";
 import type { Fighter } from "../sim/fighter";
 
@@ -61,7 +60,6 @@ export function fighterModel(character: number): string {
 export class CombatEffects {
   private readonly impacts: effect[] = [];
   private readonly koBodies: effect[] = [];
-  readonly sounds = new SoundBank();
 
   private soundFrames: number[] = [];
 
@@ -102,10 +100,7 @@ export class CombatEffects {
     this.z = origin.z;
     const parked: ParkedFlags = [];
     this.parked = parked;
-    const names = impactSoundNames(SELECTABLE_CHARACTERS);
     for (const path of tierSoundPaths()) Preload(path);
-    this.sounds.prepare(SoundKind.combatFile, names.files);
-    this.sounds.prepare(SoundKind.combatLabel, names.labels);
     for (let i = 0; i < IMPACT_COUNT; i++) {
       const model = AddSpecialEffect(impactModel(floorDiv(i, IMPACTS_PER_KIND)), origin.x, origin.y);
       if (floorDiv(i, IMPACTS_PER_KIND) === IMPACT_FIRE_HIT) BlzSetSpecialEffectColor(model, 255, 100, 25);
@@ -216,9 +211,19 @@ export class CombatEffects {
       const admitted = admitVoice(this.voices, frame, cls, sound);
       if (!admitted.play) return;
       const evicted = this.voiceHandles[admitted.slot];
-      if (admitted.replaced && evicted !== undefined) StopSound(evicted, false, false);
-      this.voiceHandles[admitted.slot] = this.sounds.playAt(file ? SoundKind.combatFile : SoundKind.combatLabel, sound, this.x + x, this.y, this.z + z, floorDiv(volume * admitted.percent, 100), pitch);
+      if (admitted.replaced && evicted !== undefined) StopSound(evicted, true, false);
+      const cue = file ? CreateSound(sound, false, true, true, 10, 10, "CombatSoundsEAX") : CreateSoundFromLabel(sound, false, true, true, 10000, 10000);
+      this.voiceHandles[admitted.slot] = cue;
+      if (file) {
+        SetSoundDistances(cue, 600.0, 3500.0);
+        SetSoundDistanceCutoff(cue, 3000.0);
+      }
+      SetSoundPosition(cue, this.x + x, this.y, this.z + z);
+      SetSoundVolume(cue, floorDiv(volume * admitted.percent, 100));
+      SetSoundPitch(cue, pitch);
+      StartSound(cue);
       soundPlayed?.(sound, volume, pitch);
+      KillSoundWhenDone(cue);
     });
   }
 

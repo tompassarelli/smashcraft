@@ -5,9 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { idiv } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type Fighter, type PlacedObject, placedObject } from "../sim/fighter";
-import { type AuthoredSpecial, CompanionMode } from "../sim/heroSpecials";
-import type { Character } from "../sim/codes";
-import { authoredTuning } from "../sim/tuning";
+import { CompanionMode } from "../sim/heroSpecials";
 import { heroDefinition } from "../sim/heroes/registry";
 import { type ParkedFlags, type WorldOrigin, parkOnce, placeEffect } from "./effects";
 import { bearState } from "../presentation/bearFeedback";
@@ -19,27 +17,6 @@ const PLACED_OBJECT_MODEL = "Units\\Orc\\SerpentWard\\SerpentWard.mdx";
 const MODEL_HEIGHT = 300.0;
 const DEFAULT_LOOK = { path: PLACED_OBJECT_MODEL, height: MODEL_HEIGHT, alpha: 255 };
 
-function placementPaths(character: Character): string[] {
-  const paths = [heroDefinition(character)?.presentation.placedModel?.path ?? PLACED_OBJECT_MODEL];
-  const visit = (special: AuthoredSpecial | undefined): void => {
-    if (special === undefined) return;
-    visit(special.ex);
-    const path = special.placement?.model?.path;
-    if (path !== undefined && !paths.includes(path)) paths.push(path);
-    for (const followUp of special.followUps ?? []) visit(followUp.special);
-  };
-  const tuning = authoredTuning(character);
-  const specials = tuning.specials;
-  if (specials !== undefined) for (const kit of [specials.neutral, specials.side, specials.up, specials.down]) {
-    visit(kit.ground);
-    visit(kit.air);
-    visit(kit.recall);
-    visit(kit.marked?.special);
-  }
-  visit(tuning.ultimate);
-  return paths;
-}
-
 export class PlacedObjectEffects {
   private readonly models: effect[];
   private readonly paths: string[];
@@ -49,7 +26,6 @@ export class PlacedObjectEffects {
   private readonly lastX: number[] = [];
   private parked: ParkedFlags | undefined;
   private feedback: BearFeedback;
-  private prepared: ({ [path: string]: effect | undefined } | undefined)[] | undefined;
 
   constructor(private readonly origin: WorldOrigin) {
     this.feedback = new BearFeedback(origin);
@@ -63,40 +39,16 @@ export class PlacedObjectEffects {
   }
 
 
-  // A match start is synchronized, so every client makes each fighter's placed-object looks there rather than on a confirmed frame.
-  prepareFighter(slot: number, character: Character): void {
-    const prepared = (this.prepared ??= []);
-    const parked = (this.parked ??= []);
-    const paths = placementPaths(character);
-    for (let animal = 0; animal < 3; animal++) {
-      const index = slot * 3 + animal;
-      const current = this.models[index];
-      for (const model of Object.values(prepared[index] ?? {})) if (model !== undefined && model !== current) DestroyEffect(model);
-      const looks: { [path: string]: effect | undefined } = {};
-      if (current !== undefined) looks[this.paths[index] ?? PLACED_OBJECT_MODEL] = current;
-      for (const path of paths) {
-        if (looks[path] !== undefined) continue;
-        const model = AddSpecialEffect(path, this.origin.x, this.origin.y);
-        BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
-        parkOnce(model, this.origin, [], 0);
-        looks[path] = model;
-      }
-      prepared[index] = looks;
-      parked[index] = false;
-      if (current !== undefined) parkOnce(current, this.origin, parked, index);
-    }
-  }
-
   private modelFor(slot: number, path: string): effect | undefined {
     const current = this.models[slot];
     if (current === undefined || this.paths[slot] === path) return current;
-    const model = this.prepared?.[slot]?.[path];
-    if (model === undefined) return current;
-    const parked = (this.parked ??= []);
-    parked[slot] = false;
-    parkOnce(current, this.origin, parked, slot);
+    DestroyEffect(current);
+    const model = AddSpecialEffect(path, this.origin.x, this.origin.y);
+    BlzSetSpecialEffectAnimationBlendTime(model, 0.0);
     this.models[slot] = model;
     this.paths[slot] = path;
+
+    if (this.parked !== undefined) this.parked[slot] = false;
     return model;
   }
 
@@ -209,7 +161,6 @@ export class PlacedObjectEffects {
 
   destroy(): void {
     for (const model of this.models) DestroyEffect(model);
-    for (let index = 0; index < this.models.length; index++) for (const model of Object.values(this.prepared?.[index] ?? {})) if (model !== undefined && model !== this.models[index]) DestroyEffect(model);
     this.feedback.destroy();
   }
 }

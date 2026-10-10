@@ -66,8 +66,6 @@ const PREDICTED_PRESENTATION: LocalNatives = {
   ].map((name) => [name, "poses an existing effect from this client's prediction"])),
   MoveLightningEx: "places training's existing hit-area outlines from this client's prediction",
   SetLightningColor: "shows or hides training's existing hit-area outlines from this client's prediction",
-  ...Object.fromEntries(["SetSoundPitch", "SetSoundPosition", "SetSoundVolume", "StartSound", "StopSound"]
-    .map((name) => [name, "replays a sound handle made at shared startup when this client presents a cue"])),
 };
 
 
