@@ -20,7 +20,10 @@ import { fighterPoseFacing, isIntangible } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type WorldOrigin, facingYaw, hideEffect, placeEffect } from "./effects";
 import { damageTint } from "../presentation/hitPresentation";
-import { specialCueState } from "../presentation/specialCues";
+import { heroCueWindows, specialCueState } from "../presentation/specialCues";
+import { runningHeroSpecial } from "../sim/heroSpecialRules";
+import { specialClip } from "../presentation/fighterClips";
+import { definitiveCues } from "./specialCueEffects";
 import { characterModelScale } from "../presentation/modelScale";
 import { fitFighterPlacement } from "../presentation/fighterPlacement";
 import { outgoingPoseAlpha, poseBlendFrames } from "../presentation/damageBlend";
@@ -108,7 +111,10 @@ export class FighterPoolPresentation {
   /** `frame` is the presented simulation frame, which times pose blends. */
   present(fighter: Readonly<Fighter>, pose: Readonly<FighterPose>, stage: number, frame: number): void {
     if (this.clips.length === 0) return;
-    const index = pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
+    const special = specialCueState(fighter);
+    const startup = special.phase === "startup" && !definitiveCues()
+      ? specialClip(this.character, fighter.special.action, fighter.motion.grounded, false).classicStartup : undefined;
+    const index = startup?.index ?? pose.clipIndex ?? originalClipNamed(this.character, pose.clipName);
     const model = index === undefined ? undefined : this.clips[index];
     const clip = index === undefined ? undefined : originalClip(this.character, index);
     if (fighter.status.out || index === undefined || model === undefined || clip === undefined) {
@@ -133,7 +139,9 @@ export class FighterPoolPresentation {
       this.visible = index;
     }
     const duration = clip.endSeconds - clip.startSeconds;
-    let seconds = pose.clipTime > 0.0 ? pose.clipTime : 0.0;
+    const move = startup === undefined ? undefined : runningHeroSpecial(fighter);
+    let seconds = startup === undefined ? Math.max(0.0, pose.clipTime)
+      : startup.seconds * Math.max(0, fighter.special.frame - 1) / Math.max(1, move === undefined ? 1 : heroCueWindows(move).startup.last - 1);
     if (duration <= 0.0) seconds = 0.0;
     else if (clip.looping) seconds -= I2R(R2I(seconds / duration)) * duration;
     else if (seconds > duration) seconds = duration;
