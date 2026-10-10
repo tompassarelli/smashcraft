@@ -14,6 +14,7 @@ import { HitAreaEffects } from "./hitAreaEffects";
 import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
 import { modelFailed } from "wisp/src/platform/modelFailures";
 import { fighterName } from "../sim/heroes/registry";
+import { f32 } from "wisp/src/sim/f32";
 
 declare global { var __smashcraftCueDefinitive: boolean | undefined; }
 
@@ -199,7 +200,9 @@ export class SpecialCueEffects {
       }
       BlzSetSpecialEffectYaw(model, facingYaw(fighter.facing));
       BlzSetSpecialEffectPitch(model, entry.cue.pitch ?? 0.0);
-      BlzSetSpecialEffectScale(model, entry.cue.scale * this.scale);
+      const progress = entry.cue.scaleFrames === undefined ? 0.0 : f32(Math.min(1.0, Math.max(0.0, f32((fighter.special.frame - 1) / Math.max(1, entry.cue.scaleFrames - 1)))));
+      const scale = entry.cue.scaleEnd === undefined ? entry.cue.scale : f32(entry.cue.scale + f32(f32(entry.cue.scaleEnd - entry.cue.scale) * progress));
+      BlzSetSpecialEffectScale(model, scale * this.scale);
       BlzSetSpecialEffectAlpha(model, entry.cue.alpha ?? 255);
       BlzSetSpecialEffectTimeScale(model, paused || fighter.launch.hitlag > 0 ? 0.0 : entry.cue.timeScale ?? 1.0);
     }
