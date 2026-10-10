@@ -303,12 +303,12 @@ export class SelectionPanel {
     art(root, `MeleeConfirmArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.071), f32(0.043), f32(0.235), f32(0.037));
     this.confirm = label(root, `MeleeConfirmLabel${suffix}`, f32(0.079), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
     this.clicks.add(hotspot(root, f32(0.071), f32(0.043), f32(0.235), f32(0.037)), { kind: "start" });
-    art(root, `MeleeSettingsArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.51), f32(0.043), f32(0.235), f32(0.037));
+    art(root, `MeleeSettingsArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.055), f32(0.52), f32(0.235), f32(0.037));
     const settingsButton = BlzCreateFrameByType("BUTTON", `MeleeSettingsButton${suffix}`, root, "", 0);
-    placeTopLeft(settingsButton, f32(0.51), f32(0.043));
+    placeTopLeft(settingsButton, f32(0.055), f32(0.52));
     BlzFrameSetSize(settingsButton, f32(0.235), f32(0.037));
     this.clicks.add(settingsButton, { kind: "settings" });
-    const settingsLabel = label(settingsButton, `MeleeSettingsLabel${suffix}`, f32(0.518), f32(0.039), f32(0.219), f32(0.028), f32(0.011));
+    const settingsLabel = label(settingsButton, `MeleeSettingsLabel${suffix}`, f32(0.063), f32(0.516), f32(0.219), f32(0.028), f32(0.011));
     this.settingsLabel = settingsLabel;
     setFrameText(settingsLabel, "Controls (F1)");
     this.delayLine = label(root, `MeleeDelayLine${suffix}`, f32(0.36), f32(0.6), f32(0.42), f32(0.03), f32(0.010));
