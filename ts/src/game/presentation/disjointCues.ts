@@ -5,6 +5,7 @@ import type { Fighter } from "../sim/fighter";
 import { type HitRegion, authoredHitRegion, authoredHitRegionCount, emptyHitRegion, NO_HIT_REGION } from "../sim/hitRegions";
 import { fighterHurtParts } from "../sim/hurtboxes";
 import { runningHeroSpecial } from "../sim/heroSpecialRules";
+import { FAN_KNIFE_CUE, type CueBirth } from "./specialCues";
 import { attackDurationFramesForGrounding } from "../sim/moves";
 import { DEMONHUNTER_GLIDE_SLASH_FIRST, DEMONHUNTER_GLIDE_SLASH_LAST, DEMONHUNTER_GLIDE_SLASH_FORM, DEMONHUNTER_IMMOLATE_ACTIVE, DEMONHUNTER_IMMOLATE_STARTUP, felRushRegion, flameCrashRegion, immolationRegion, glideSlashRegion } from "../sim/specials";
 
@@ -14,7 +15,7 @@ export const DISJOINT_MODELS: { readonly [character: number]: string } = {
   [Character.demonHunter]: "Abilities\\Weapons\\DemonHunterMissile\\DemonHunterMissile.mdx",
   [Character.blademaster]: "Abilities\\Weapons\\SentinelMissile\\SentinelMissile.mdx",
   [Character.mountainKing]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
-  [Character.warden]: "Abilities\\Spells\\NightElf\\FanOfKnives\\FanOfKnivesMissile.mdx",
+  [Character.warden]: FAN_KNIFE_CUE.model,
   [Character.lich]: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
   [Character.forsakenPaladin]: "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdx",
   [Character.dreadlord]: "Abilities\\Weapons\\BansheeMissile\\BansheeMissile.mdx",
@@ -122,23 +123,22 @@ export function specialAreaRegion(fighter: Readonly<Fighter>, index: number): Re
 
 export interface HitAreaPose { visible: boolean; x: number; z: number; scale: number; }
 
-export interface FanKnifePose extends HitAreaPose { yaw: number; pitch: number; alpha: number; }
+export interface FanKnifePose extends HitAreaPose { yaw: number; pitch: number; alpha: number; birth?: CueBirth | undefined; }
 
 
 export function fanKnifePose(fighter: Readonly<Fighter>, index: number, out: FanKnifePose): FanKnifePose {
-  const frame = fighter.special.frame;
-  const ray = runningHeroSpecial(fighter)?.regions?.[index]?.hit.strike;
+  const ray = specialAreaRegion(fighter, index).strike;
   out.visible = fighter.character === Character.warden && fighter.special.action === SpecialAction.heroDown
-    && !fighter.status.out && frame >= 9 && frame <= 14 && ray !== undefined;
+    && !fighter.status.out && ray !== undefined;
   if (!out.visible || ray === undefined) return out;
-  const travel = f32(Math.min(1.0, f32(f32(frame - 8.0) / 3.0)));
-  out.x = f32(fighter.motion.x + f32(fighter.facing * f32(ray.x2 * travel)));
-  out.z = f32(fighter.motion.z + f32(48.0 + f32(f32(ray.z2 - 48.0) * travel)));
+  out.x = f32(fighter.motion.x + f32(fighter.facing * ray.x2));
+  out.z = f32(fighter.motion.z + ray.z2);
   out.yaw = ray.x2 * fighter.facing < 0.0 ? f32(Math.PI) : 0.0;
   const tilt = ray.x2 === 0.0 ? f32(Math.PI * 0.5) : f32(Math.PI * 0.25);
   out.pitch = ray.z2 === 48.0 ? 0.0 : ray.z2 > 48.0 ? -tilt : tilt;
-  out.scale = f32(0.6);
-  out.alpha = frame <= 11 ? 255 : (15 - frame) * 64;
+  out.scale = FAN_KNIFE_CUE.scale;
+  out.alpha = 255;
+  out.birth = FAN_KNIFE_CUE.birth;
   return out;
 }
 
