@@ -24,7 +24,6 @@ run-name: ${{ github.event_name == 'push' && format('Autoland {0} (push)', githu
 permissions:
   contents: write
   actions: write
-  issues: write
   statuses: write
 
 # Two test slots of one farm run each (8 jobs) and one train at a time, so Autoland holds at most 3 of the account's 20 jobs' farm runs.
@@ -90,13 +89,11 @@ jobs:
           out() { echo "$1=$2" >> "$GITHUB_OUTPUT"; }
           status() { gh api "repos/$GH_REPO/statuses/$1" -f state="$2" -f context=autoland -f description="${3:0:139}" -f target_url="$RUN_URL" > /dev/null; }
           refuse() {
-            local branch="$1" tip="$2" issues
+            local branch="$1" tip="$2"
             status "$tip" failure "$3"
-            issues=$(git log --format=%B "origin/main..$tip" | grep -ioE '(refs|fixes|closes) (smashcraft)?#[0-9]+' | grep -oE '[0-9]+$' | sort -un)
             { echo "Autoland didn't land \`$branch\` (${tip:0:10}): $3"; echo; printf '%s\n' "$4" | head -60
-              echo; echo "Run: $RUN_URL. The branch stays; push a fix to it and it tries again."; } > comment.md
-            cat comment.md >> "$GITHUB_STEP_SUMMARY"
-            for issue in $issues; do gh issue comment "$issue" --body-file comment.md; done
+              echo; echo "The branch stays; push a fix to it and it tries again."; } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Autoland didn't land::$branch (${tip:0:10}): $3"
           }
           git config user.name "github-actions[bot]"
           git config user.email "41898183+github-actions[bot]@users.noreply.github.com"
@@ -244,11 +241,8 @@ jobs:
             tip=${tips[0]}
             status "$tip" failure "${SHA:+on ${SHA:0:10}: }$why"
             { echo "Autoland didn't land \`${branches[0]}\`${SHA:+ (${SHA:0:10}, rebased onto main ${BASE:0:10})}: $why:"; echo; printf '%s\n' "$failed" | head -60
-              echo; echo "Run: $RUN_URL. The branch stays; push a fix to it and it tries again."; } > comment.md
-            cat comment.md >> "$GITHUB_STEP_SUMMARY"
-            for issue in $(git log --format=%B "origin/main..$tip" | grep -ioE '(refs|fixes|closes) (smashcraft)?#[0-9]+' | grep -oE '[0-9]+$' | sort -un); do
-              gh issue comment "$issue" --body-file comment.md
-            done
+              echo; echo "The branch stays; push a fix to it and it tries again."; } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Autoland didn't land::${branches[0]}${SHA:+ (${SHA:0:10})}: $why"
             exit 1
           fi
           git fetch -q origin main

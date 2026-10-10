@@ -4,6 +4,7 @@
 
 
 
+import { appendFileSync } from "node:fs";
 import { Console, Effect, Schema } from "effect";
 import { captureProcess } from "wisp/scripts/wisp/mapBuild";
 
@@ -79,6 +80,10 @@ const gh = (...args: string[]) => captureProcess("gh", args.join(" "), ["gh", ..
   Effect.flatMap(({ exitCode, stdout, stderr }) => exitCode === 0 ? Effect.succeed(stdout) : Effect.fail(new MainRedFailure({ command: `gh ${args.join(" ")}`, problem: stderr.trim() }))),
 );
 
+const summary = (line: string) => Effect.sync(() => {
+  if (process.env.GITHUB_STEP_SUMMARY !== undefined) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Main is red: ${line}\n`);
+}).pipe(Effect.andThen(Console.log(`::notice title=Main is red::${line}`)));
+
 const decode = <S extends Schema.Top>(schema: S, command: string) => (text: string) =>
   Schema.decodeEffect(Schema.fromJsonString(schema))(text).pipe(Effect.mapError((cause) => new MainRedFailure({ command, problem: String(cause) })));
 
@@ -100,8 +105,10 @@ export const reportRun = (runId: string) => Effect.gen(function*() {
   const open = (yield* gh("issue", "list", "--state", "open", "--search", `"${title}" in:title`, "--json", "number,title").pipe(Effect.flatMap(decode(Issues, "gh issue list"))))
     .filter((issue) => issue.title === title);
   if (run.conclusion === "success") {
-    for (const { number } of open) yield* gh("issue", "close", String(number), "--comment", `Green again at run ${runId}.`);
-    return yield* Console.log(open.length === 0 ? `${run.headBranch} is green` : `${run.headBranch} is green: closed #${open.map(({ number }) => number).join(", #")}`);
+    for (const { number } of open) yield* gh("issue", "close", String(number));
+    const line = open.length === 0 ? `${run.headBranch} is green` : `${run.headBranch} is green again: closed #${open.map(({ number }) => number).join(", #")}`;
+    yield* summary(line);
+    return yield* Console.log(line);
   }
   const { nameWithOwner } = yield* gh("repo", "view", "--json", "nameWithOwner").pipe(Effect.flatMap(decode(Repository, "gh repo view")));
   const tests = failingTests(yield* gh("run", "view", runId, "--log-failed"));
@@ -109,9 +116,11 @@ export const reportRun = (runId: string) => Effect.gen(function*() {
   const [issue] = open;
   if (issue === undefined) {
     const url = yield* gh("issue", "create", "--title", title, "--body", body);
+    yield* summary(`${run.headBranch} is red: opened ${url.trim()}, ${tests.length} failing`);
     return yield* Console.log(`opened ${url.trim()}: ${tests.length} failing`);
   }
   yield* gh("issue", "edit", String(issue.number), "--body", body);
+  yield* summary(`${run.headBranch} is still red: updated #${issue.number}, ${tests.length} failing`);
   yield* Console.log(`updated #${issue.number}: ${tests.length} failing`);
 });
 

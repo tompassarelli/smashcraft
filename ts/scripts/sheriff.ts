@@ -92,7 +92,7 @@ const viewRun = (id: string) =>
 
 const output = (line: string) => Effect.sync(() => {
   if (process.env.GITHUB_STEP_SUMMARY !== undefined) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Sheriff: ${line}\n`);
-});
+}).pipe(Effect.andThen(Console.log(`::notice title=Sheriff::${line}`)));
 const setOutput = (key: string, value: string) => Effect.sync(() => {
   if (process.env.GITHUB_OUTPUT !== undefined) appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
 });
@@ -147,14 +147,11 @@ export const sheriffRun = (runId: string) => Effect.gen(function*() {
   // Pushes made with the workflow token start no workflows: start main's CI (main-red follows it).
   yield* gh("workflow", "run", "ci.yml", "--ref", "main").pipe(Effect.catch((error) => Console.warn(`couldn't start main's CI: ${error.message}`)));
   const shorts = verdict.shas.map((sha) => sha.slice(0, 10)).join(", ");
-  const body = [`Main's CI went red after a green parent, so the sheriff reverted ${shorts} as ${revert.slice(0, 10)}.`, "",
-    `- Failing step: \`${verdict.step}\``, `- Run: ${ci.url}`, "", "Fix it and land it again."].join("\n");
   for (const issue of issues) {
     const { state } = yield* gh("issue", "view", String(issue), "--json", "state").pipe(Effect.flatMap(decode(IssueState, "gh issue view")));
     if (state !== "OPEN") yield* gh("issue", "reopen", String(issue));
-    yield* gh("issue", "comment", String(issue), "--body", body);
   }
-  yield* output(`reverted ${shorts} as ${revert.slice(0, 10)}: ${verdict.why} (${ci.url})${issues.length === 0 ? "; no referenced issue" : `; commented on #${issues.join(", #")}`}`);
+  yield* output(`reverted ${shorts} as ${revert.slice(0, 10)} at failing step \`${verdict.step}\`: ${verdict.why} (${ci.url})${issues.length === 0 ? "; no referenced issue" : `; reopened any closed of #${issues.join(", #")}`}`);
   yield* Console.log(`reverted ${shorts} as ${revert}`);
 });
 

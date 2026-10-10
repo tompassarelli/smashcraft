@@ -51,12 +51,13 @@ A push to main then needs a green farm suite (`bun wisp farm test`) on the exact
 Main stays green. Each CI run on main opens, updates or closes the one
 "main is red" issue (smashcraft:.github/workflows/main-red.yml), which lists the
 failing tests and the first failing commit; the pre-push gate prints that list
-on every push. A red main is not "already failing": before landing, check
+on every push. Its runs post no issue comments; each run's summary and
+annotation say red, still red or green again (`gh run view RUN_ID`). A red main is not "already failing": before landing, check
 whether your change touches a listed test, and if your commit broke main, fix
 it first.
 A push to a `claude/**` branch (a cloud worker's) lands on main by itself
-when its full suite adds no failure to main's, and otherwise comments on the
-referenced issue (smashcraft:docs/ci.md, "Autoland").
+when its full suite adds no failure to main's, and otherwise its run fails
+with the reason in its job summary and annotation (smashcraft:docs/ci.md, "Autoland").
 
 Keep proprietary game assets and base maps privately outside repository trees.
 Always identify the current playable artifact separately from an experimental

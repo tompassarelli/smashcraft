@@ -24,7 +24,7 @@ landing restarts another's suites.
    (smashcraft:ts/scripts/prePush.ts) on a scratch `farm/autoland-SHA`
    branch and the farm test workflow, which runs every check main's CI runs.
    Tests run in two slots of one farm run each, outside the landing queue, so
-   a red tip gets its failed status and issue comment within minutes. A
+   a red tip gets its failed status and run summary within minutes. A
    conflicting tip, or one that changes `.github/workflows/` (the workflow
    token can't push those), is refused. A green tip becomes "passed alone on
    MAIN as tree TREE".
@@ -37,9 +37,11 @@ landing restarts another's suites.
    status becomes "landed as SHA" and its branch is deleted. Pushes made with
    the workflow token start no workflows, so the run dispatches main's CI,
    which runs only its smoke job for a landed commit.
-5. **Red.** A red lone tip gets a failed status and every issue its commits
-   reference (`Refs smashcraft#N`) gets a comment naming the files or tests
-   and linking the run. The branch stays; push a fix to it and it queues
+5. **Red.** A red lone tip gets a failed status, and its run fails with a
+   job summary and annotation saying "Autoland didn't land" and naming the
+   files or tests. Autoland posts no issue comments: read outcomes with
+   `gh run list --workflow autoland.yml` and `gh run view RUN_ID`, or the
+   tip's `autoland` commit status. The branch stays; push a fix to it and it queues
    again. A red train of several tips sends each back to testing alone; the
    first to pass again on main leads the next train and lands without a
    suite.
@@ -75,9 +77,10 @@ Main's last landing doesn't stay on main red. After each CI run on main,
   commit to the run's commit (the landing, or the whole train) is reverted as
   one `github-actions[bot]` commit on main, carrying `Sheriff-Reverts: SHA...`
   and the commits' `Refs smashcraft#N`. The sheriff dispatches main's CI for
-  it and reopens and comments on every issue the commits reference
-  (`Refs smashcraft#N` or a subject's `(#N)`) with the failing step and the
-  run. No "main is red" issue opens for the reverted run; the revert's own
+  it and reopens every closed issue the commits reference
+  (`Refs smashcraft#N` or a subject's `(#N)`). It posts no issue comments:
+  the job summary and a `Sheriff` annotation (`gh run view RUN_ID`) name the
+  reverted commits, the failing step and the run. No "main is red" issue opens for the reverted run; the revert's own
   CI run reports.
 - **Report only.** A cancelled or timed-out run or job, a job without a
   failing step (runner lost), a failing setup step (checkout, Bun, install),
