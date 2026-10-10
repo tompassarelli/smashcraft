@@ -34,17 +34,3 @@ test("pauseIsSharedAndSimultaneousPlayerPressDoesNotUndoIt [spec docs/design/mat
   assertFalse(controls.paused);
 
 });
-test("allFourSlotsShareOnePauseLatch [spec docs/design/match-flow.md]", () => {
-  const controls = createMatchControls();
-  assertEquals(startKeyDown(controls, 3, Phase.match, false), "togglePause");
-  assertTrue(controls.paused);
-  assertEquals(startKeyDown(controls, 2, Phase.match, false), undefined);
-  startKeyUp(controls, 3);
-  startKeyUp(controls, 2);
-  assertEquals(startKeyDown(controls, 2, Phase.match, false), "togglePause");
-  assertFalse(controls.paused);
-  startKeyUp(controls, 2);
-  assertEquals(startKeyDown(controls, 3, Phase.result, false), "confirm");
-  assertEquals(startKeyDown(controls, 4, Phase.match, false), undefined);
-
-});

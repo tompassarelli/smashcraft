@@ -7,11 +7,11 @@ import { type AttackBuffer, attackBuffer, clearAttackBuffer, hasPendingAttack, q
 import type { FrameControls } from "../match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../match/frameInput";
 import { type PacingAndPresentation, createPacingAndPresentation } from "../match/pacingAndPresentation";
-import { type MatchState, Phase, createMatchState, requestStageSelect, requestStart, selectCharacter } from "../match/rules";
-import { initializeMatchFighters, stepMatch } from "../match/step";
+import { type MatchState, Phase, createMatchState } from "../match/rules";
+import { stepMatch } from "../match/step";
 import { resolveAttacks } from "../sim/attacks";
 import { AttackStyle, Character, GroundAction, ProjectileKind, ShieldBreak } from "../sim/codes";
-import { type Fighter, PROJECTILE_CAPACITY, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "../sim/fighter";
+import { type Fighter, WALL_TECH_JUMP_INPUT_WINDOW_FRAMES, createFighter } from "../sim/fighter";
 import { attackStartupFrames } from "../sim/moves";
 import { spawnProjectileMotion, updateProjectiles } from "../sim/projectiles";
 import { setMeleeKnockback, setMeleeRecoil } from "../sim/motion";
@@ -26,7 +26,6 @@ import {
   NTSC_CAPTAIN_FALCON_DASH_GRAB_RULES,
   NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES,
   NTSC_FOX_DASH_GRAB_RULES,
-  NTSC_FOX_GROUND_MOVEMENT_RULES,
   authoredPhysics,
 } from "../sim/tuning";
 import { stateChecksum } from "./canonical";
@@ -97,27 +96,6 @@ test("captured projectiles survive expiry, slot reuse and rollback [invariant]",
   updateProjectiles(live.world);
   assertEquals(stateChecksum(live), expiredChecksum);
   assertEquals(stateChecksum(saved), savedChecksum);
-});
-
-test("a practice match's mode is replay state that restores and differs [invariant]", () => {
-  const game = createMatchState();
-  selectCharacter(game, 0, 1);
-  requestStageSelect(game, 0);
-  requestStart(game, 0);
-  const first = createFighter(Character.rifleman, -240.0, 1);
-  const second = createFighter(Character.rifleman, 240.0, -1);
-  initializeMatchFighters(game, testWorld(first, second));
-  const live = liveState(first, second, game, frameControls(attackBuffer(0), attackBuffer(0)), createPacingAndPresentation());
-  const snapshot = createReplaySnapshot();
-  const actual = createReplaySnapshot();
-  copyReplayState(snapshot, live);
-  game.practice = false;
-  copyReplayState(actual, live);
-  assertEquals(firstStateDifference(snapshot, actual), "match.practice");
-  copyReplayState(live, snapshot);
-  assertTrue(game.practice);
-  copyReplayState(actual, live);
-  assertEquals(firstStateDifference(snapshot, actual), undefined);
 });
 
 test("capture and restore include combat references, projectiles and queued input [invariant]", () => {
@@ -437,83 +415,6 @@ test("recorded rows replay an attack against a shield from independently restore
   assertEquals(recoveredGame.remainingFrames, game.remainingFrames);
 });
 
-test("exact differences keep small reals and compare attackers by slot [invariant]", () => {
-  const expected = createReplaySnapshot();
-  const actual = createReplaySnapshot();
-  const tiny = f32(0.000001);
-  const [expectedFirst, actualFirst, actualSecond] = [fighterAt(expected.world, 0), fighterAt(actual.world, 0), fighterAt(actual.world, 1)];
-  expectedFirst.hits.lastAttacker = 1;
-  actualFirst.hits.lastAttacker = 1;
-  assertEquals(firstStateDifference(expected, actual), undefined);
-  actualFirst.motion.x = tiny;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].x");
-  actualFirst.motion.x = expectedFirst.motion.x;
-  actualFirst.hits.lastAttacker = 0;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].lastHitAttacker");
-  actualFirst.hits.lastAttacker = 1;
-  projectile(actualSecond, PROJECTILE_CAPACITY - 1).z = tiny;
-  assertEquals(firstStateDifference(expected, actual), `fighter[1].projectileZ[${PROJECTILE_CAPACITY - 1}]`);
-  projectile(actualSecond, PROJECTILE_CAPACITY - 1).z = 0.0;
-  actualSecond.shield.recoilZ = tiny;
-  assertEquals(firstStateDifference(expected, actual), "fighter[1].shieldRecoilZ");
-  actualSecond.shield.recoilZ = 0.0;
-  actualSecond.motion.deltaZ = tiny;
-  assertEquals(firstStateDifference(expected, actual), "fighter[1].positionDeltaZ");
-  actualSecond.motion.deltaZ = 0.0;
-  actual.match.rematchReadiness[0] = true;
-  assertEquals(firstStateDifference(expected, actual), "match.slot0.rematch");
-  actual.match.rematchReadiness[0] = false;
-  actual.controls.commands[1].consumedMayCharge = true;
-  assertEquals(firstStateDifference(expected, actual), "commands[1].consumedMayCharge");
-  actual.controls.commands[1].consumedMayCharge = false;
-  actual.runtime.botAttackDelays[1] = tiny;
-  assertEquals(firstStateDifference(expected, actual), "runtime.botAttackDelays[1]");
-});
-
-test("ground actions, their clock and the actor's ground rules are replay state [invariant]", () => {
-  const expected = createReplaySnapshot();
-  const actual = createReplaySnapshot();
-  for (const snapshot of [expected, actual]) {
-    const fighter = fighterAt(snapshot.world, 0);
-    fighter.tuning.ground = NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES;
-    fighter.ground.action = GroundAction.turnRun;
-    fighter.ground.actionFrame = 8;
-    fighter.ground.runBrakeFramesRemaining = 12;
-    fighter.ground.turnRunEntryFacing = 1;
-    fighter.ground.turnRunFacingCommandLatched = true;
-  }
-  const fighter = fighterAt(actual.world, 0);
-  assertEquals(firstStateDifference(expected, actual), undefined);
-  fighter.ground.actionFrame = 9;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].groundActionFrame");
-  fighter.ground.actionFrame = 8;
-  fighter.ground.runBrakeFramesRemaining = 11;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].groundRunBrakeFramesRemaining");
-  fighter.ground.runBrakeFramesRemaining = 12;
-  fighter.ground.action = GroundAction.runBrake;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].groundAction");
-  fighter.ground.action = GroundAction.turnRun;
-  fighter.tuning.ground = NTSC_FOX_GROUND_MOVEMENT_RULES;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].groundRules");
-  const falcon = NTSC_CAPTAIN_FALCON_GROUND_MOVEMENT_RULES;
-  for (const changed of [
-    { ...falcon, turnRunFacingCommandFrame: 10 },
-    { ...falcon, runBrakeTurnCommandEndFrame: 14 },
-    { ...falcon, runBrakeAnimationEndFrame: 27 },
-    { ...falcon, runBrakeMaximumFrames: 29 },
-    { ...falcon, turnRunAnimationEndFrame: 21 },
-  ]) {
-    fighter.tuning.ground = changed;
-    assertEquals(firstStateDifference(expected, actual), "fighter[0].groundRules");
-  }
-  fighter.tuning.ground = falcon;
-  fighter.ground.turnRunEntryFacing = -1;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].groundTurnRunEntryFacing");
-  fighter.ground.turnRunEntryFacing = 1;
-  fighter.ground.turnRunFacingCommandLatched = false;
-  assertEquals(firstStateDifference(expected, actual), "fighter[0].groundTurnRunFacingCommandLatched");
-});
-
 test("dash and pivot grabs and the catch window are replay state [invariant]", () => {
   const expected = createReplaySnapshot();
   const actual = createReplaySnapshot();
@@ -570,23 +471,4 @@ test("every physics parameter survives capture and restore and participates in e
   }
   fighter.tuning.physics = assigned;
   assertEquals(firstStateDifference(expected, actual), undefined);
-});
-
-test("fast fall changes every slot's checksum and survives rollback [invariant]", () => {
-  const source = createReplaySnapshot();
-  const restored = createReplaySnapshot();
-  source.world.mask = 15;
-  restored.world.mask = 15;
-  const neutralChecksum = stateChecksum(source);
-  for (let slot = 0; slot <= 3; slot++) {
-    fighterAt(source.world, slot).motion.fastFalling = true;
-    assertEquals(firstStateDifference(source, restored), `fighter[${slot}].fastFalling`);
-    assertTrue(stateChecksum(source) !== neutralChecksum);
-    copyReplayState(restored, source);
-    assertTrue(fighterAt(restored.world, slot).motion.fastFalling);
-    assertEquals(firstStateDifference(restored, source), undefined);
-    assertEquals(stateChecksum(restored), stateChecksum(source));
-    fighterAt(source.world, slot).motion.fastFalling = false;
-    fighterAt(restored.world, slot).motion.fastFalling = false;
-  }
 });

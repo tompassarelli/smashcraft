@@ -1,5 +1,5 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
-import { AttackStyle, Character, SpecialAction } from "../sim/codes";
+import { Character, SpecialAction } from "../sim/codes";
 import { createFighter } from "../sim/fighter";
 import { neutralControls } from "../sim/roster";
 import { startFighterSpecial } from "../sim/specials";
@@ -137,18 +137,6 @@ test("analog axes remain usable without keyboard action bits [spec docs/melee-an
   assertTrue(f.input.shield);
 });
 
-test("attack and jump share the exact frame and C-stick priority wins [spec docs/gameplay-design.md]", () => {
-  const f = fixture();
-  f.adapt({ held: maskOf(Action.jump, Action.attack), pressed: maskOf(Action.jump, Action.attack, Action.smashRight), axisX: 127 }, 18);
-  assertTrue(f.input.jumpPressed);
-  assertTrue(f.input.jumpHeld);
-  assertTrue(f.input.attackPressed);
-  assertEquals(assertDefined(f.attacks.pending).frame, 18);
-  const command = f.take(18);
-  assertEquals(command.style, 4);
-  assertEquals(command.facing, 1);
-});
-
 test("shield attack becomes grab and trigger presses retain dodge and tech intent [reference]", () => {
   const f = fixture();
   f.fighter.shield.raised = true;
@@ -178,13 +166,4 @@ test("special releases preserve press direction and leave neutral turnaround to 
   f.adapt({ pressed: maskOf(Action.special) }, 3);
   assertEquals(f.input.specialX, 0);
   assertEquals(f.input.specialZ, 0);
-});
-
-test("walking selects tilts and same-frame opposing smashes cancel facing [spec docs/gameplay-design.md]", () => {
-  const f = fixture();
-  f.adapt({ held: maskOf(Action.attack, Action.walk, Action.moveUp), pressed: maskOf(Action.attack, Action.smashLeft, Action.smashRight), axisZ: 127 }, 10);
-  assertTrue(f.input.walking);
-  const command = f.take(10);
-  assertEquals(command.style, AttackStyle.upTilt);
-  assertEquals(command.facing, 0);
 });

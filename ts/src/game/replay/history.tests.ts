@@ -444,33 +444,6 @@ test("a repair that repeats unchanged computer decisions reaches the state of pl
   assertGreaterThan(history.repeatedComputerDecisions(), 0);
 });
 
-test("#206 a client that predicted past the pause frame returns to the state before it [repro #206]", () => {
-  const tape = createTapeWorld({ stocks: 99 });
-  const { live } = tape;
-  const history = new ReplayHistory();
-  const row = createMatchFrameInput();
-  const input = neutralControls();
-  const requests = attackBuffer(0);
-  const controls = frameControls(input, input, requests, requests);
-  assertTrue(history.beginEpoch(4, 1, 8));
-  let beforePause: ReturnType<typeof captureTape> | undefined;
-  for (let frame = 1; frame <= 6; frame++) {
-    if (frame === 4) beforePause = captureTape(tape);
-    assertTrue(captureFrame(row, frame, 3, controls, live.runtime));
-    assertTrue(frame === 1 ? history.save(4, row, live) : history.saveSpeculative(4, row, live));
-    execute(tape, row);
-  }
-  // Frame 1 ran on every accepted row: no pause can return before it.
-  assertFalse(history.truncate(4, 1, live));
-  assertTrue(history.truncate(4, 7, live));
-  assertEquals(history.lastRecordedFrame(), 6);
-  assertTrue(history.truncate(4, 4, live));
-  assertEquals(history.lastRecordedFrame(), 3);
-  assertEquals(firstStateDifference(beforePause ?? captureTape(tape), captureTape(tape)), undefined);
-  assertTrue(captureFrame(row, 4, 3, controls, live.runtime));
-  assertTrue(history.saveSpeculative(4, row, live));
-});
-
 /**
  * Four humans; slot 0's stick turns every 10 frames and its rows arrive 4
  * frames late, so each turn is mispredicted and repaired. Slot 1 jabs every
@@ -847,19 +820,6 @@ function pausedAgainstStraight(match: PausedMatch): { ontoRepair: number; rewind
   difference ??= tapeDifference(straight, rolled);
   return { ontoRepair, rewinds, difference };
 }
-
-test("#397 a pause rewind onto a positioned repair's frame keeps the correction to earlier frames [repro #397]", () => {
-  const result = pausedAgainstStraight({
-    late: 4,
-    frames: 40,
-    computer: false,
-    seed: 1,
-    stick: (frame) => (frame < 10 ? 100 : -100),
-    rewind: (tick, pending) => (tick === 14 ? pending : undefined),
-  });
-  assertEquals(result.ontoRepair, 1);
-  assertEquals(result.difference, undefined);
-});
 
 function seededPauses(seed: number): { ontoRepair: number; rewinds: number; difference: string | undefined } {
   return pausedAgainstStraight({

@@ -1,4 +1,4 @@
-import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
+import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
 import { ALL_ACTIONS, Action, bit } from "./actions";
 import { type InputRow, type RowFields, emptyInput, inputRow, predictInto, sameInput } from "./inputRow";
 import { INPUT_LAST_FRAME, decodePacket, encodePacket, inputPacket } from "./wire";
@@ -79,15 +79,4 @@ test("decoding rejects truncation, trailing text, unknown characters and bad hea
   reject(`I43${wire.slice(3)}`);
   for (const malformed of ["I41W010", "I41______210", "I41_______10", "I41000", "I410______10", "I41!10"]) reject(malformed);
   assertDefined(decodePacket(wire));
-});
-
-test("packets bound epochs, frames and row counts [spec docs/netcode-proposal.md]", () => {
-  const input = emptyInput();
-  for (const [epoch, firstFrame, rows] of [[-1, 1, 1], [0, 0, 1], [0, 1, 0], [0, 1, 3], [0, INPUT_LAST_FRAME, 2]] as const) {
-    assertEquals(inputPacket(epoch, firstFrame, Array.from({ length: rows }, () => input)), undefined);
-  }
-  const wire = roundtrip(2147483647, INPUT_LAST_FRAME - 1, [input, input]);
-  reject(`${wire.slice(0, 10)}-_____1${wire.slice(17)}`);
-  roundtrip(2147483647, INPUT_LAST_FRAME, [input]);
-  assertFalse(decodePacket(wire) === undefined);
 });

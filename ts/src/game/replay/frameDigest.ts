@@ -196,7 +196,7 @@ function scaled(significand: number, exponent: number): number {
 }
 
 
-export const significandUnit = (value: number) => (measurable(value) ? scaled(1, binaryExponent(value)) : 0);
+const significandUnit = (value: number) => (measurable(value) ? scaled(1, binaryExponent(value)) : 0);
 
 
 function stepsBetween(replayed: number | boolean, native: number | boolean): number {

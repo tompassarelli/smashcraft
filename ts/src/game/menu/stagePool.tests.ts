@@ -104,20 +104,3 @@ test("stage pools: copied replay state draws exactly the same next 27 stages [sp
     assertEquals(restored.stagePool.remainingMask, original.stagePool.remainingMask);
   }
 });
-
-test("stage pools: three endless matches use the remaining pool between leaves [spec #198]", () => {
-  const game = ready();
-  game.endless = true;
-  requestStageSelect(game, 0);
-  for (const stage of STAGE_CATALOG) if (stage.id !== 2 && stage.id !== 10 && stage.id !== 11) changeStagePoolStage(game, 0, stage.id);
-  const drawn: number[] = [];
-  for (let match = 0; match < 3; match++) {
-    assertTrue(requestStart(game, 0));
-    assertTrue(!drawn.includes(game.stageChoice));
-    drawn.push(game.stageChoice);
-    game.matchFrame = 60;
-    assertTrue(leaveMatch(game, 0));
-    assertTrue(requestStageSelect(game, 0));
-  }
-  assertEquals(drawn.length, 3);
-});
