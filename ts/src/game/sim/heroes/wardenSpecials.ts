@@ -22,7 +22,7 @@ const SHADOW_STRIKE: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\NightElf\\ShadowStrike\\ShadowStrikeMissile.mdx",
     spawnFrame: 16, offsetX: 30.0, offsetZ: 50.0, velocityX: f32(H * f32(0.11)), velocityZ: 0.0,
-    life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(5.0, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 1, status: POISON,
+    life: 30, radius: f32(H * f32(0.13)), effect: wardenHit(4.565000057220459, "POKE", 35, 1.0, HitElement.poison), reflectable: true, limit: 1, status: POISON,
   }],
 };
 
@@ -30,7 +30,7 @@ const SHADOW_STRIKE: AuthoredSpecial = {
 
 const LUNGE_TRAVEL_FRAMES = 10;
 const LUNGE_SPEED = f32(H / f32(LUNGE_TRAVEL_FRAMES));
-const lungeRegions = (): readonly MoveRegion[] => [heroRegion(11, 14, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))];
+const lungeRegions = (): readonly MoveRegion[] => [heroRegion(11, 14, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(9.130000114440918, "EDGE", 35))];
 const PURSUIT_LUNGE: AuthoredSpecial = {
   name: "Pursuit Lunge", endFrame: 40, regions: lungeRegions(),
   motion: [{ ...frames(5, 14), velocityX: LUNGE_SPEED, velocityZ: 0.0 }, { ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0 }],
@@ -42,7 +42,7 @@ const PURSUIT_REACH = f32(H * f32(2.5));
 const SHADOW_PURSUIT: AuthoredSpecial = {
   endFrame: 40,
   motion: [{ ...frames(15, 15), velocityX: 0.0, velocityZ: 0.0, relocate: Relocation.behindMark, relocateReach: PURSUIT_REACH }],
-  regions: [heroRegion(18, 20, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(10.0, "EDGE", 35))],
+  regions: [heroRegion(18, 20, blade(16.0, 48.0, f32(f32(H * f32(0.80)) - KNIFE_RADIUS), 44.0), wardenHit(9.130000114440918, "EDGE", 35))],
 };
 
 
@@ -73,8 +73,8 @@ const FAN = f32(WARDEN_FAN_REACH - KNIFE_RADIUS);
 const FAN_DIAGONAL = f32(FAN * f32(0.707106781));
 const FAN_CENTER = 48.0;
 const fanRegions = (scale = 1.0): readonly MoveRegion[] => {
-  const front = wardenHit(7.0, "POKE", 45);
-  const back = wardenHit(7.0, "POKE", 45, -1.0);
+  const front = wardenHit(6.390999794006348, "POKE", 45);
+  const back = wardenHit(6.390999794006348, "POKE", 45, -1.0);
   const regions = [
     heroRegion(9, 11, blade(16.0, FAN_CENTER, FAN, FAN_CENTER), front),
     heroRegion(9, 11, blade(12.0, f32(FAN_CENTER + 12.0), FAN_DIAGONAL, f32(FAN_CENTER + FAN_DIAGONAL)), front),

@@ -8,23 +8,23 @@ const wick = (air: boolean): AuthoredSpecial => ({
   endFrame: 36, landingLag: air ? 18 : undefined,
   projectiles: [{ model: "Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdx",
     spawnFrame: 12, offsetX: 30.0, offsetZ: 32.0, velocityX: 8.0, velocityZ: 0.0,
-    life: 30, radius: 14.0, effect: koboldHit(4.0, 35, 65.0, 18.0, false, HitElement.fire), reflectable: true, limit: 1 }],
+    life: 30, radius: 14.0, effect: koboldHit(4.484000205993652, 35, 60.31999969482422, 18.0, false, HitElement.fire), reflectable: true, limit: 1 }],
 });
 const dig = (air: boolean): AuthoredSpecial => ({
   endFrame: 32, landingLag: air ? 20 : undefined,
   motion: [{ ...frames(8, 22), velocityX: 11.0, velocityZ: 0.0, stopsAtShield: true }],
-  regions: [heroRegion(8, 22, { x1: 10.0, z1: 18.0, x2: 50.0, z2: 18.0, radius: 16.0 }, koboldHit(8.0, 40, 80.0, 22.0))],
+  regions: [heroRegion(8, 22, { x1: 10.0, z1: 18.0, x2: 50.0, z2: 18.0, radius: 16.0 }, koboldHit(8.968000411987305, 40, 74.23999786376953, 22.0))],
 });
 const escape: AuthoredSpecial = {
   endFrame: 34, oncePerAirtime: true, helpless: true, facesStick: true,
   motion: [{ ...frames(1, 5), velocityX: 0.0, velocityZ: 0.0 }, { ...frames(6, 25), velocityX: 0.0, velocityZ: 16.0, driftSpeed: 5.0 }],
-  regions: [heroRegion(6, 14, { x1: 0.0, z1: 18.0, x2: 0.0, z2: 74.0, radius: 22.0 }, koboldHit(5.0, 80, 70.0, 30.0))],
+  regions: [heroRegion(6, 14, { x1: 0.0, z1: 18.0, x2: 0.0, z2: 74.0, radius: 22.0 }, koboldHit(5.605000019073486, 80, 64.95999908447266, 30.0))],
 };
 const mine = (air: boolean): AuthoredSpecial => ({
   endFrame: 34, landingLag: air ? 18 : undefined,
   regions: [
-    heroRegion(10, 13, { x1: 10.0, z1: 12.0, x2: 64.0, z2: 12.0, radius: 14.0 }, koboldHit(7.0, 70, 80.0, 24.0)),
-    heroRegion(10, 13, { x1: -10.0, z1: 12.0, x2: -64.0, z2: 12.0, radius: 14.0 }, koboldHit(7.0, 70, 80.0, 24.0, true)),
+    heroRegion(10, 13, { x1: 10.0, z1: 12.0, x2: 64.0, z2: 12.0, radius: 14.0 }, koboldHit(7.8470001220703125, 70, 74.23999786376953, 24.0)),
+    heroRegion(10, 13, { x1: -10.0, z1: 12.0, x2: -64.0, z2: 12.0, radius: 14.0 }, koboldHit(7.8470001220703125, 70, 74.23999786376953, 24.0, true)),
   ],
 });
 

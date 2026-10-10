@@ -342,6 +342,52 @@ cpuField `--json` files: `bun scripts/cpuField.ts --merge FIELD_SHARDS
 --probe-fighter SLUG --from FIELD.json --per-pair 40 --seeds 100 --json
 OUT.json`.
 
+## Roster retune (#414)
+
+10 Oct 2026. Measured on main 38ee916d7 with the Balance workflow's field
+(Wren Expert both sides, 48 matches a pair, seed offset 0, 1,200 matches a
+fighter), 8 of 26 fighters were inside 45–55%. Each fighter outside 47–53% had
+every damage literal in its moves and specials scaled by one factor, about
+0.6% of damage for each point it sat from 50%. Its knockback growth was scaled
+the other way so kill percents stay close to their baseline: ×(1 + 1.1 × the
+cut) for a nerf and ×(1 − 0.6 × the buff) for a buff. Down smashes keep their
+damage, because their growth is the roster's fixed 40. Rifleman keeps his
+values: his normals are the reference attacker the physics and input
+reference tests measure against. Dreadlord's forward and back air land in 11
+frames instead of 10, so their shield advantage stays −1 with the extra
+damage. Literals stay exact float32 values. Each fighter's design doc keeps its pre-#414 move rows;
+the live value is that row times the factor below.
+
+| Fighter | Damage | Growth |
+| --- | ---: | ---: |
+| blademaster | ×0.929 | ×1.078 |
+| mountain-king | ×0.978 | ×1.025 |
+| warden | ×0.913 | ×1.096 |
+| lich | ×1.067 | ×0.960 |
+| forsaken-paladin | ×1.072 | ×0.957 |
+| dreadlord | ×1.109 | ×0.935 |
+| shadow-hunter | ×0.951 | ×1.054 |
+| pit-lord | ×1.055 | ×0.967 |
+| beastmaster | ×0.881 | ×1.131 |
+| thrall | ×1.024 | ×0.986 |
+| jaina-proudmoore | ×0.952 | ×1.053 |
+| sylvanas-windrunner | ×0.972 | ×1.031 |
+| cairne-bloodhoof | ×0.973 | ×1.030 |
+| chen-stormstout | ×0.966 | ×1.038 |
+| peon | ×1.024 | ×0.985 |
+| goblin-tinker | ×0.923 | ×1.084 |
+| kael'thas-sunstrider | ×1.035 | ×0.979 |
+| murloc | ×1.073 | ×0.956 |
+| grom-hellscream | ×0.904 | ×1.105 |
+| kobold | ×1.121 | ×0.928 |
+| medivh | ×1.057 | ×0.966 |
+| anub'arak | ×1.116 | ×0.930 |
+
+The same field on this retune puts 12 of 26 inside 45–55%. The low end moved
+up (Kobold 29.9→35.3%, Anub'arak 30.7→37.0%, Dreadlord 31.8→39.6%) and the
+high end down (Goblin Tinker 62.7→54.9%, Grom 65.9→61.4%), but 14 fighters
+are still outside the band; Rifleman rose to 77.3%.
+
 ## Player panel and equal skill ceilings (#358)
 
 Every fighter targets a 45–55% mean over all six Expert personalities, with

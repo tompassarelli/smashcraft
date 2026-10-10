@@ -18,15 +18,15 @@ const GRAB = f32(HERO_REFERENCE_HEIGHT * 0.5);
 
 
 const CLASS_HYPOTHESES = {
-  LINK: { growth: 71.82499694824219, base: 12.0 },
-  POKE: { growth: 88.39999389648438, base: 16.0 },
-  LAUNCH: { growth: 104.9749984741211, base: 22.0 },
-  EDGE: { growth: 110.5, base: 25.0 },
-  KILL: { growth: 121.54999542236328, base: 30.0 },
-  SPIKE: { growth: 110.5, base: 24.0 },
+  LINK: { growth: 73.62062072753906, base: 12.0 },
+  POKE: { growth: 90.60999298095703, base: 16.0 },
+  LAUNCH: { growth: 107.59937286376953, base: 22.0 },
+  EDGE: { growth: 113.26249694824219, base: 25.0 },
+  KILL: { growth: 124.5887451171875, base: 30.0 },
+  SPIKE: { growth: 113.26249694824219, base: 24.0 },
 
-  JUGGLE: { growth: 60.77499771118164, base: 50.0 },
-  CHASE: { growth: 44.19999694824219, base: 75.0 },
+  JUGGLE: { growth: 62.29437255859375, base: 50.0 },
+  CHASE: { growth: 45.304996490478516, base: 75.0 },
 } as const;
 type LaunchClass = keyof typeof CLASS_HYPOTHESES;
 
@@ -56,26 +56,26 @@ export const capsule = (x1: number, z1: number, x2: number, z2: number, radius: 
 const circle = (x: number, z: number, radius: number): StrikeCapsule => capsule(x, z, x, z, radius);
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
-const JAB = hit(4.419999599456787, "POKE", 35);
-const FORWARD_TILT = hit(11.049999237060547, "EDGE", 35, false, HitElement.slash);
-const UP_TILT = hit(9.944999694824219, "LAUNCH", 90);
-const DOWN_TILT = hit(7.734999656677246, "LINK", 70);
-const DASH = hit(13.25999927520752, "LAUNCH", 40);
+const JAB = hit(4.322759628295898, "POKE", 35);
+const FORWARD_TILT = hit(10.806899070739746, "EDGE", 35, false, HitElement.slash);
+const UP_TILT = hit(9.72620964050293, "LAUNCH", 90);
+const DOWN_TILT = hit(7.5648298263549805, "LINK", 70);
+const DASH = hit(12.968278884887695, "LAUNCH", 40);
 const FORWARD_SMASH_GROWTH = f32(CLASS_HYPOTHESES.KILL.growth * f32(0.8));
-const FORWARD_SMASH_HEAD = strongHit({ ...hit(23.204999923706055, "KILL", 40), growth: FORWARD_SMASH_GROWTH });
-const FORWARD_SMASH_HANDLE = { ...hit(17.67999839782715, "KILL", 40), growth: FORWARD_SMASH_GROWTH };
-const UP_SMASH = hit(18.78499984741211, "KILL", 85);
+const FORWARD_SMASH_HEAD = strongHit({ ...hit(22.694490432739258, "KILL", 40), growth: FORWARD_SMASH_GROWTH });
+const FORWARD_SMASH_HANDLE = { ...hit(17.291038513183594, "KILL", 40), growth: FORWARD_SMASH_GROWTH };
+const UP_SMASH = hit(18.37173080444336, "KILL", 85);
 const DOWN_SMASH_FRONT = downSmashHit(hit(17.67999839782715, "EDGE", 25));
 const DOWN_SMASH_BACK = downSmashHit(hit(17.67999839782715, "EDGE", 25, true));
-const NEUTRAL_AIR_FRONT = hit(11.049999237060547, "POKE", 50);
-const NEUTRAL_AIR_BACK = hit(11.049999237060547, "POKE", 50, true);
-const FORWARD_AIR_HEAD = strongHit(hit(17.67999839782715, "SPIKE", 270));
-const FORWARD_AIR_GROUNDED_HEAD = strongHit(hit(17.67999839782715, "LAUNCH", 55));
-const FORWARD_AIR_HANDLE = hit(12.154999732971191, "LAUNCH", 45);
-const BACK_AIR = hit(14.364999771118164, "KILL", 35, true, HitElement.slash);
-const UP_AIR = hit(11.049999237060547, "LAUNCH", 85);
-const DOWN_AIR = hit(14.364999771118164, "SPIKE", 270);
-const DOWN_AIR_GROUNDED = hit(14.364999771118164, "LAUNCH", 55);
+const NEUTRAL_AIR_FRONT = hit(10.806899070739746, "POKE", 50);
+const NEUTRAL_AIR_BACK = hit(10.806899070739746, "POKE", 50, true);
+const FORWARD_AIR_HEAD = strongHit(hit(17.291038513183594, "SPIKE", 270));
+const FORWARD_AIR_GROUNDED_HEAD = strongHit(hit(17.291038513183594, "LAUNCH", 55));
+const FORWARD_AIR_HANDLE = hit(11.887589454650879, "LAUNCH", 45);
+const BACK_AIR = hit(14.048970222473145, "KILL", 35, true, HitElement.slash);
+const UP_AIR = hit(10.806899070739746, "LAUNCH", 85);
+const DOWN_AIR = hit(14.048970222473145, "SPIKE", 270);
+const DOWN_AIR_GROUNDED = hit(14.048970222473145, "LAUNCH", 55);
 const GRAB_CONTACT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
 
@@ -166,9 +166,9 @@ export const MOUNTAIN_KING_MOVES: FighterMoves = {
   },
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.31499981880188, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.944999694824219, "EDGE", 35) },
-    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(11.049999237060547, "KILL", 40, true) },
-    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.839999198913574, "JUGGLE", 90) },
-    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.734999656677246, "CHASE", 70) },
+    [GrabAction.throwForward]: { contactFrame: 14, totalFrames: 36, effect: hit(9.72620964050293, "EDGE", 35) },
+    [GrabAction.throwBack]: { contactFrame: 18, totalFrames: 45, effect: hit(10.806899070739746, "KILL", 40, true) },
+    [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 29, effect: hit(8.645519256591797, "JUGGLE", 90) },
+    [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(7.5648298263549805, "CHASE", 70) },
   },
 };

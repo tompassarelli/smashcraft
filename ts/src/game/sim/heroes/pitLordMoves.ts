@@ -19,15 +19,15 @@ const BLADE_RADIUS = 10.0;
 
 
 export const hit = makeHit({
-  LINK: { growth: 55.0, base: 12.0 },
-  POKE: { growth: 75.0, base: 18.0 },
-  LAUNCH: { growth: 95.0, base: 20.0 },
-  EDGE: { growth: 95.0, base: 22.0 },
-  KILL: { growth: 105.0, base: 24.0 },
-  SPIKE: { growth: 100.0, base: 22.0 },
+  LINK: { growth: 53.185001373291016, base: 12.0 },
+  POKE: { growth: 72.5250015258789, base: 18.0 },
+  LAUNCH: { growth: 91.86499786376953, base: 20.0 },
+  EDGE: { growth: 91.86499786376953, base: 22.0 },
+  KILL: { growth: 101.53500366210938, base: 24.0 },
+  SPIKE: { growth: 96.69999694824219, base: 22.0 },
 
-  JUGGLE: { growth: 55.0, base: 50.0 },
-  CHASE: { growth: 40.0, base: 75.0 },
+  JUGGLE: { growth: 53.185001373291016, base: 50.0 },
+  CHASE: { growth: 38.68000030517578, base: 75.0 },
 }, HitElement.slash);
 
 
@@ -96,7 +96,7 @@ const PIT_LORD_BODY: FighterHurtboxes = {
 
 const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-const CLEAVING_SWEEP = heroMove(13, 4, 35, 0, cleave(13, [150.0, 100.0, 50.0, 10.0], XL, hit(12.0, "EDGE", 35)));
+const CLEAVING_SWEEP = heroMove(13, 4, 35, 0, cleave(13, [150.0, 100.0, 50.0, 10.0], XL, hit(12.65999984741211, "EDGE", 35)));
 
 export const PIT_LORD_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack,
@@ -110,13 +110,13 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(30.0, 64.0, f32(M - 12.0), 64.0, 12.0),
       capsule(30.0, 60.0, f32(M - 12.0), 58.0, 12.0),
       capsule(30.0, 56.0, f32(M - 16.0), 52.0, 12.0),
-    ], hit(6.0, "LINK", 35, 1.0, HitElement.normal)))),
+    ], hit(6.329999923706055, "LINK", 35, 1.0, HitElement.normal)))),
 
     [AttackStyle.jab2]: heroMove(8, 3, 22, 0, path(8, [
       capsule(30.0, 90.0, f32(M - 4.0), 70.0),
       capsule(30.0, 70.0, f32(M - 4.0), 50.0),
       capsule(30.0, 56.0, f32(M - 8.0), 36.0),
-    ], hit(7.0, "POKE", 40))),
+    ], hit(7.385000228881836, "POKE", 40))),
 
 
 
@@ -130,13 +130,13 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(0.0, 120.0, 0.0, f32(L + 50.0)),
       capsule(-30.0, 120.0, -50.0, f32(L + 40.0)),
       capsule(-50.0, 110.0, -100.0, 150.0),
-    ], hit(12.0, "LAUNCH", 85))),
+    ], hit(12.65999984741211, "LAUNCH", 85))),
     [AttackStyle.downTilt]: heroMove(10, 3, 24, 0, path(10, [
       capsule(30.0, 22.0, f32(M - 14.0), 14.0, 14.0),
       capsule(30.0, 18.0, f32(M - 14.0), 8.0, 14.0),
       capsule(30.0, 14.0, f32(M - 14.0), 4.0, 14.0),
 
-    ], hit(10.0, "EDGE", 340, 1.0, HitElement.normal))),
+    ], hit(10.550000190734863, "EDGE", 340, 1.0, HitElement.normal))),
 
     [AttackStyle.dashAttack]: heroMove(15, 6, 34, 0, path(15, [
       capsule(20.0, 60.0, f32(L - 30.0), 60.0, 30.0),
@@ -145,12 +145,12 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(20.0, 56.0, f32(L - 32.0), 54.0, 28.0),
       capsule(20.0, 54.0, f32(L - 34.0), 52.0, 26.0),
       capsule(20.0, 52.0, f32(L - 36.0), 50.0, 24.0),
-    ], hit(16.0, "KILL", 40, 1.0, HitElement.normal)), 40.0),
+    ], hit(16.8799991607666, "KILL", 40, 1.0, HitElement.normal)), 40.0),
 
     [AttackStyle.forwardSmash]: heroMove(27, 4, 43, 0, [
       ...[150.0, 100.0, 50.0, 10.0].map((z, index) => heroRegion(27 + index, 27 + index,
-        capsule(f32(XL - 55.0), z, f32(XL - 14.0), f32(z - 10.0), 14.0), strongHit(hit(25.0, "KILL", 40)))),
-      ...cleave(27, [150.0, 100.0, 50.0, 10.0], f32(XL - 50.0), hit(19.0, "KILL", 40)),
+        capsule(f32(XL - 55.0), z, f32(XL - 14.0), f32(z - 10.0), 14.0), strongHit(hit(26.375, "KILL", 40)))),
+      ...cleave(27, [150.0, 100.0, 50.0, 10.0], f32(XL - 50.0), hit(20.045000076293945, "KILL", 40)),
     ]),
 
     [AttackStyle.upSmash]: heroMove(24, 5, 39, 0, path(24, [
@@ -159,7 +159,7 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(0.0, 100.0, 0.0, f32(XL + 30.0)),
       capsule(-20.0, 100.0, -30.0, f32(XL + 20.0)),
       capsule(-40.0, 90.0, -70.0, f32(XL - 10.0)),
-    ], hit(22.0, "KILL", 85))),
+    ], hit(23.209999084472656, "KILL", 85))),
 
     [AttackStyle.downSmash]: heroMove(22, 7, 28, 0, [
       ...path(22, [
@@ -180,29 +180,29 @@ export const PIT_LORD_MOVES: FighterMoves = {
         capsule(30.0, 90.0, f32(L - 20.0), 120.0),
         capsule(20.0, 110.0, 30.0, f32(L + 30.0)),
         capsule(0.0, 110.0, -20.0, f32(L + 30.0)),
-      ], hit(13.0, "POKE", 50)),
+      ], hit(13.71500015258789, "POKE", 50)),
       ...path(16, [
         capsule(-30.0, 90.0, -f32(L - 20.0), 120.0),
         capsule(-30.0, 60.0, -f32(L - BLADE_RADIUS), 70.0),
         capsule(-30.0, 40.0, -f32(L - BLADE_RADIUS), 30.0),
-      ], hit(13.0, "POKE", 50, -1.0)),
+      ], hit(13.71500015258789, "POKE", 50, -1.0)),
     ]),
 
-    [AttackStyle.forwardAir]: heroMove(19, 4, 36, 25, cleave(19, [130.0, 90.0, 50.0, 15.0], XL, hit(19.0, "KILL", 40))),
+    [AttackStyle.forwardAir]: heroMove(19, 4, 36, 25, cleave(19, [130.0, 90.0, 50.0, 15.0], XL, hit(20.045000076293945, "KILL", 40))),
 
     [AttackStyle.backAir]: heroMove(14, 4, 31, 20, path(14, [
       capsule(-30.0, 30.0, -f32(L - 14.0), 24.0, 14.0),
       capsule(-30.0, 34.0, -f32(L - 14.0), 34.0, 14.0),
       capsule(-30.0, 38.0, -f32(L - 14.0), 46.0, 14.0),
       capsule(-30.0, 40.0, -f32(L - 14.0), 56.0, 14.0),
-    ], hit(15.0, "EDGE", 35, -1.0, HitElement.normal))),
+    ], hit(15.824999809265137, "EDGE", 35, -1.0, HitElement.normal))),
 
     [AttackStyle.upAir]: heroMove(11, 4, 28, 18, path(11, [
       capsule(10.0, 130.0, 14.0, f32(M + 70.0), 18.0),
       capsule(5.0, 130.0, 7.0, f32(M + 75.0), 18.0),
       capsule(0.0, 130.0, 0.0, f32(M + 75.0), 18.0),
       capsule(-5.0, 130.0, -7.0, f32(M + 70.0), 18.0),
-    ], hit(12.0, "LAUNCH", 85, 1.0, HitElement.normal))),
+    ], hit(12.65999984741211, "LAUNCH", 85, 1.0, HitElement.normal))),
 
     [AttackStyle.downAir]: heroMove(20, 5, 38, 28, path(20, [
       capsule(-20.0, 10.0, -20.0, -62.0, 18.0),
@@ -210,7 +210,7 @@ export const PIT_LORD_MOVES: FighterMoves = {
       capsule(0.0, 10.0, 0.0, -62.0, 18.0),
       capsule(10.0, 10.0, 10.0, -62.0, 18.0),
       capsule(20.0, 10.0, 20.0, -62.0, 18.0),
-    ], hit(18.0, "SPIKE", 270, 1.0, HitElement.normal), hit(18.0, "SPIKE", 55, 1.0, HitElement.normal))),
+    ], hit(18.989999771118164, "SPIKE", 270, 1.0, HitElement.normal), hit(18.989999771118164, "SPIKE", 55, 1.0, HitElement.normal))),
 
     [AttackStyle.grab]: heroMove(10, 3, 32, 0, [heroRegion(10, 12,
       capsule(30.0, 58.0, f32(M - 12.0), 56.0, 12.0),
@@ -219,9 +219,9 @@ export const PIT_LORD_MOVES: FighterMoves = {
   throws: {
 
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, ...NO_LAUNCH } },
-    [GrabAction.throwForward]: { contactFrame: 17, totalFrames: 44, effect: hit(11.0, "EDGE", 35, 1.0, HitElement.normal) },
-    [GrabAction.throwBack]: { contactFrame: 22, totalFrames: 54, effect: hit(12.0, "KILL", 40, -1.0, HitElement.normal) },
-    [GrabAction.throwUp]: { contactFrame: 20, totalFrames: 30, effect: hit(10.0, "JUGGLE", 85, 1.0, HitElement.normal) },
-    [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.0, "CHASE", 70, 1.0, HitElement.normal) },
+    [GrabAction.throwForward]: { contactFrame: 17, totalFrames: 44, effect: hit(11.604999542236328, "EDGE", 35, 1.0, HitElement.normal) },
+    [GrabAction.throwBack]: { contactFrame: 22, totalFrames: 54, effect: hit(12.65999984741211, "KILL", 40, -1.0, HitElement.normal) },
+    [GrabAction.throwUp]: { contactFrame: 20, totalFrames: 30, effect: hit(10.550000190734863, "JUGGLE", 85, 1.0, HitElement.normal) },
+    [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.4399995803833, "CHASE", 70, 1.0, HitElement.normal) },
   },
 };

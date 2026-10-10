@@ -8,16 +8,16 @@ import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
 type Angle = 25 | 35 | 40 | 55 | 70 | 80 | 90;
-export const koboldHit = (damage: number, angle: Angle, growth = 70.0, base = 18.0, behind = false, element: HitElement = HitElement.normal) =>
+export const koboldHit = (damage: number, angle: Angle, growth = 64.95999908447266, base = 18.0, behind = false, element: HitElement = HitElement.normal) =>
   groundHit(damage, angle, growth, base, element, behind);
-const ordinary = (damage: number, angle: Angle, growth = 70.0, base = 18.0, behind = false) =>
+const ordinary = (damage: number, angle: Angle, growth = 64.95999908447266, base = 18.0, behind = false) =>
   koboldHit(damage, angle, growth, base, behind);
 const pick = (x1: number, z1: number, x2: number, z2: number, radius = 10.0): StrikeCapsule => ({ x1: f32(x1 * f32(0.94)), z1: f32(z1 * f32(0.9)), x2: f32(x2 * f32(0.94)), z2: f32(z2 * f32(0.9)), radius });
 const body = hurtCapsule(Character.kobold);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
 const arm = (x: number, z: number) => hurtPart(8.0, 40.0, x, z, 8.0);
 const reach = (first: number, last: number, x: number, z: number) => [heroHurtPose(first, last, [torso, arm(x, z)])];
-const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, pick(20.0, 40.0, 66.0, z), ordinary(8.0, angle))]);
+const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, pick(20.0, 40.0, 66.0, z), ordinary(8.968000411987305, angle))]);
 
 export const KOBOLD_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
@@ -36,32 +36,32 @@ export const KOBOLD_MOVES: FighterMoves = {
     },
   },
   normals: {
-    [AttackStyle.jab]: jabStep(heroMove(3, 2, 11, 0, [heroRegion(3, 4, pick(16.0, 40.0, 40.0, 40.0, 8.0), ordinary(2.0, 25, 50.0, 14.0))])),
-    [AttackStyle.jab2]: heroMove(5, 2, 15, 0, [heroRegion(5, 6, pick(18.0, 40.0, 46.0, 42.0), ordinary(4.0, 35))]),
+    [AttackStyle.jab]: jabStep(heroMove(3, 2, 11, 0, [heroRegion(3, 4, pick(16.0, 40.0, 40.0, 40.0, 8.0), ordinary(2.242000102996826, 25, 46.400001525878906, 14.0))])),
+    [AttackStyle.jab2]: heroMove(5, 2, 15, 0, [heroRegion(5, 6, pick(18.0, 40.0, 46.0, 42.0), ordinary(4.484000205993652, 35))]),
     [AttackStyle.forwardTilt]: tilt(40.0, 35), [AttackStyle.forwardTiltUp]: tilt(64.0, 55), [AttackStyle.forwardTiltDown]: tilt(14.0, 25),
-    [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, pick(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(7.0, 90, 90.0, 22.0))]),
-    [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, pick(18.0, 8.0, 60.0, 8.0), ordinary(6.0, 80, 90.0, 22.0))]),
-    [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, pick(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(9.0, 55))], 48.0, true),
-    [AttackStyle.forwardSmash]: tipperMove(heroMove(14, 3, 36, 0, [heroRegion(14, 16, pick(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(16.0, 35, 112.0, 26.0))]), 0.30000001192092896),
-    [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, pick(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(15.0, 90, 105.0, 26.0))]),
+    [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, pick(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(7.8470001220703125, 90, 83.5199966430664, 22.0))]),
+    [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, pick(18.0, 8.0, 60.0, 8.0), ordinary(6.72599983215332, 80, 83.5199966430664, 22.0))]),
+    [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, pick(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(10.08899974822998, 55))], 48.0, true),
+    [AttackStyle.forwardSmash]: tipperMove(heroMove(14, 3, 36, 0, [heroRegion(14, 16, pick(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(17.93600082397461, 35, 103.93599700927734, 26.0))]), 0.30000001192092896),
+    [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, pick(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(16.815000534057617, 90, 97.44000244140625, 26.0))]),
     [AttackStyle.downSmash]: heroMove(12, 4, 34, 0, [
-      heroRegion(12, 15, pick(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0)),
-      heroRegion(12, 15, pick(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(13.0, 25, 105.0, 26.0, true)),
+      heroRegion(12, 15, pick(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(14.572999954223633, 25, 97.44000244140625, 26.0)),
+      heroRegion(12, 15, pick(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(14.572999954223633, 25, 97.44000244140625, 26.0, true)),
     ]),
-    [AttackStyle.neutralAir]: heroMove(5, 6, 20, 12, [heroRegion(5, 10, pick(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(8.0, 55))]),
-    [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, pick(18.0, 44.0, 70.0, 40.0), ordinary(10.0, 40, 90.0, 22.0))]),
-    [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, pick(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(12.0, 35, 110.0, 26.0, true))]),
-    [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, pick(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(9.0, 90, 90.0, 22.0))]),
-    [AttackStyle.downAir]: heroMove(12, 3, 28, 18, [heroRegion(12, 14, pick(0.0, 10.0, 0.0, -46.0, 12.0), { ...ordinary(11.0, 90, 90.0, 22.0), launchZ: -1.0 }, ordinary(11.0, 70, 90.0, 22.0))]),
+    [AttackStyle.neutralAir]: heroMove(5, 6, 20, 12, [heroRegion(5, 10, pick(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(8.968000411987305, 55))]),
+    [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, pick(18.0, 44.0, 70.0, 40.0), ordinary(11.210000038146973, 40, 83.5199966430664, 22.0))]),
+    [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, pick(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(13.45199966430664, 35, 102.08000183105469, 26.0, true))]),
+    [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, pick(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(10.08899974822998, 90, 83.5199966430664, 22.0))]),
+    [AttackStyle.downAir]: heroMove(12, 3, 28, 18, [heroRegion(12, 14, pick(0.0, 10.0, 0.0, -46.0, 12.0), { ...ordinary(12.331000328063965, 90, 83.5199966430664, 22.0), launchZ: -1.0 }, ordinary(12.331000328063965, 70, 83.5199966430664, 22.0))]),
     [AttackStyle.grab]: heroMove(7, 2, 24, 0, [heroRegion(7, 8, pick(16.0, 38.0, 44.0, 38.0), koboldHit(0.0, 35, 0.0, 0.0))]),
-    [AttackStyle.getupAttack]: heroMove(17, 3, 30, 0, [heroRegion(17, 19, pick(-56.0, 14.0, 56.0, 14.0, 14.0), ordinary(6.0, 35))]),
-    [AttackStyle.ledgeAttack]: heroMove(17, 3, 21, 0, [heroRegion(17, 19, pick(16.0, 36.0, 70.0, 36.0), ordinary(6.0, 35))]),
+    [AttackStyle.getupAttack]: heroMove(17, 3, 30, 0, [heroRegion(17, 19, pick(-56.0, 14.0, 56.0, 14.0, 14.0), ordinary(6.72599983215332, 35))]),
+    [AttackStyle.ledgeAttack]: heroMove(17, 3, 21, 0, [heroRegion(17, 19, pick(16.0, 36.0, 70.0, 36.0), ordinary(6.72599983215332, 35))]),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 1, totalFrames: 1, effect: ordinary(2.0, 35, 0.0, 0.0) },
-    [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: ordinary(7.0, 40, 90.0, 22.0) },
-    [GrabAction.throwBack]: { contactFrame: 14, totalFrames: 36, effect: ordinary(9.0, 40, 105.0, 26.0, true) },
-    [GrabAction.throwUp]: { contactFrame: 12, totalFrames: 26, effect: ordinary(6.0, 90, 55.0, 50.0) },
-    [GrabAction.throwDown]: { contactFrame: 16, totalFrames: 38, effect: ordinary(5.0, 25, 40.0, 75.0) },
+    [GrabAction.pummel]: { contactFrame: 1, totalFrames: 1, effect: ordinary(2.242000102996826, 35, 0.0, 0.0) },
+    [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: ordinary(7.8470001220703125, 40, 83.5199966430664, 22.0) },
+    [GrabAction.throwBack]: { contactFrame: 14, totalFrames: 36, effect: ordinary(10.08899974822998, 40, 97.44000244140625, 26.0, true) },
+    [GrabAction.throwUp]: { contactFrame: 12, totalFrames: 26, effect: ordinary(6.72599983215332, 90, 51.040000915527344, 50.0) },
+    [GrabAction.throwDown]: { contactFrame: 16, totalFrames: 38, effect: ordinary(5.605000019073486, 25, 37.119998931884766, 75.0) },
   },
 };
