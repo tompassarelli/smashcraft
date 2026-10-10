@@ -4,6 +4,7 @@ import { hurtCapsule } from "../../physics/contactGeometry";
 import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart } from "../hurtboxes";
+import { ANGLES, type Angle, capsuleOf } from "./authoring";
 
 const STRENGTH = {
   link: { growth: 50.0, base: 12.0 }, poke: { growth: 75.0, base: 20.0 },
@@ -11,19 +12,14 @@ const STRENGTH = {
   kill: { growth: 118.0, base: 28.0 }, spike: { growth: 95.0, base: 22.0 },
   juggle: { growth: 55.0, base: 50.0 }, chase: { growth: 40.0, base: 75.0 },
 } as const;
-const ANGLES = {
-  25: [f32(0.906307787), f32(0.422618262)], 35: [f32(0.819152044), f32(0.573576436)],
-  45: [f32(0.707106781), f32(0.707106781)], 55: [f32(0.573576436), f32(0.819152044)],
-  70: [f32(0.342020143), f32(0.939692621)], 85: [f32(0.087155743), f32(0.996194698)], 270: [0.0, -1.0],
-} as const;
-export function tinkerHit(damage: number, kind: keyof typeof STRENGTH, angle: keyof typeof ANGLES, facing = 1.0, element: HitElement = HitElement.normal): Readonly<HitEffect> {
+export function tinkerHit(damage: number, kind: keyof typeof STRENGTH, angle: Angle, facing = 1.0, element: HitElement = HitElement.normal): Readonly<HitEffect> {
   const direction = ANGLES[angle];
   const strength = STRENGTH[kind];
   const growth = kind === "link" || kind === "juggle" || kind === "chase" ? strength.growth
     : f32(strength.growth * (kind === "kill" ? f32(0.8) : f32(0.65)));
-  return { damage, ...strength, growth, launchX: f32(direction[0] * facing), launchZ: direction[1], electric: false, element };
+  return { damage, ...strength, growth, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element };
 }
-export const claw = (x1: number, z1: number, x2: number, z2: number, radius = 10.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
+export const claw = capsuleOf(10.0);
 const region = (first: number, last: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, grounded?: Readonly<HitEffect>): MoveRegion => heroRegion(first, last, strike, effect, grounded);
 const poke = (first: number, last: number, reach: number, height: number, effect: Readonly<HitEffect>) => [region(first, last, claw(18.0, 48.0, reach, height), effect)];
 const body = hurtCapsule(Character.tinker);

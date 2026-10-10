@@ -7,6 +7,7 @@ import { LICH_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, linkAt, multiHit } from "./multiHit";
+import { type Angle, capsuleOf, makeHit } from "./authoring";
 
 
 
@@ -18,7 +19,7 @@ const GRAB = f32(HERO_REFERENCE_HEIGHT * f32(0.70));
 
 
 
-const CLASS = {
+const facingHit = makeHit({
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
   LAUNCH: { growth: 105.0, base: 20.0 },
@@ -28,30 +29,13 @@ const CLASS = {
 
   JUGGLE: { growth: 70.0, base: 45.0 },
   CHASE: { growth: 40.0, base: 75.0 },
-} as const;
-const ANGLE = {
-  25: { x: f32(0.906307787), z: f32(0.422618262) },
-  35: { x: f32(0.819152044), z: f32(0.573576436) },
-  40: { x: f32(0.766044443), z: f32(0.642787610) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  55: { x: f32(0.573576436), z: f32(0.819152044) },
-  60: { x: f32(0.5), z: f32(0.866025404) },
-  65: { x: f32(0.422618262), z: f32(0.906307787) },
-  70: { x: f32(0.342020143), z: f32(0.939692621) },
-  75: { x: f32(0.258819045), z: f32(0.965925826) },
-  80: { x: f32(0.173648178), z: f32(0.984807753) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  90: { x: 0.0, z: 1.0 },
-  270: { x: 0.0, z: -1.0 },
-} as const;
+}, HitElement.ice);
 
-export function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, backwards = false, element: HitElement = HitElement.ice): Readonly<HitEffect> {
-  const strength = CLASS[kind];
-  const direction = ANGLE[angle];
-  return { damage, growth: strength.growth, base: strength.base, launchX: backwards ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
+export function hit(damage: number, kind: Parameters<typeof facingHit>[1], angle: Angle, backwards = false, element: HitElement = HitElement.ice): Readonly<HitEffect> {
+  return facingHit(damage, kind, angle, backwards ? -1.0 : 1.0, element);
 }
 
-const capsule = (x1: number, z1: number, x2: number, z2: number, radius = 8.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
+const capsule = capsuleOf(8.0);
 const circle = (x: number, z: number, radius: number): StrikeCapsule => capsule(x, z, x, z, radius);
 const frame = (active: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>) => heroRegion(active, active, strike, effect, groundedEffect);
 
@@ -95,7 +79,7 @@ function fan(): readonly MoveRegion[] {
   return regions;
 }
 
-function throwMove(release: number, recovery: number, damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, backwards = false): AuthoredThrow {
+function throwMove(release: number, recovery: number, damage: number, kind: Parameters<typeof facingHit>[1], angle: Angle, backwards = false): AuthoredThrow {
   return { contactFrame: release, totalFrames: release + recovery, effect: hit(damage, kind, angle, backwards) };
 }
 

@@ -1,10 +1,11 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
-import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
+import { type FighterHurtboxes, hurtPart } from "../hurtboxes";
+import { capsuleOf, limbOf, makeHit, path, reaching } from "./authoring";
 
 
 
@@ -17,7 +18,7 @@ const BLADE_RADIUS = 10.0;
 
 
 
-const CLASS = {
+export const hit = makeHit({
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
   LAUNCH: { growth: 95.0, base: 20.0 },
@@ -27,36 +28,11 @@ const CLASS = {
 
   JUGGLE: { growth: 55.0, base: 50.0 },
   CHASE: { growth: 40.0, base: 75.0 },
-} as const;
-const ANGLE = {
-  25: { x: f32(0.906307787), z: f32(0.422618262) },
-  35: { x: f32(0.819152044), z: f32(0.573576436) },
-  40: { x: f32(0.766044443), z: f32(0.642787610) },
-  45: { x: f32(0.707106781), z: f32(0.707106781) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  55: { x: f32(0.573576436), z: f32(0.819152044) },
-  65: { x: f32(0.422618262), z: f32(0.906307787) },
-  70: { x: f32(0.342020143), z: f32(0.939692621) },
-  80: { x: f32(0.173648178), z: f32(0.984807753) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  270: { x: 0.0, z: -1.0 },
+}, HitElement.slash);
 
-  340: { x: f32(0.939692621), z: f32(-0.342020143) },
-} as const;
 
-export function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
-  const strength = CLASS[kind];
-  const direction = ANGLE[angle];
-  return { damage, growth: strength.growth, base: strength.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element };
-}
+export const capsule = capsuleOf(BLADE_RADIUS);
 
-export function capsule(x1: number, z1: number, x2: number, z2: number, radius = BLADE_RADIUS): StrikeCapsule {
-  return { x1, z1, x2, z2, radius };
-}
-
-function path(first: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): readonly MoveRegion[] {
-  return strikes.map((strike, index) => heroRegion(first + index, first + index, strike, effect, groundedEffect));
-}
 
 
 function cleave(first: number, heights: readonly number[], reach: number, effect: Readonly<HitEffect>): readonly MoveRegion[] {
@@ -71,9 +47,8 @@ const BODY_RADIUS = f32(24.0 * f32(1.65));
 const BODY_TOP = f32(f32(4.0 + f32(HERO_REFERENCE_HEIGHT * f32(1.35))) - f32(2.0 * BODY_RADIUS));
 const BODY = hurtPart(0.0, 4.0, 0.0, BODY_TOP, BODY_RADIUS);
 const LIMB_RADIUS = 12.0;
-const limb = (x1: number, z1: number, x2: number, z2: number, radius = LIMB_RADIUS): readonly HurtPart[] => [BODY, hurtPart(x1, z1, x2, z2, radius)];
+const limb = limbOf(BODY, LIMB_RADIUS);
 
-const reaching = (first: number, active: number, parts: readonly HurtPart[]) => [heroHurtPose(first - 2, first + active + 1, parts)];
 const FORWARD_ARMS = limb(20.0, 80.0, 75.0, 72.0);
 const RAISED_ARMS = limb(10.0, 120.0, 20.0, 175.0);
 const HOOF = limb(20.0, 30.0, 80.0, 18.0, 14.0);

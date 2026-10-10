@@ -1,11 +1,12 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroMove, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, cleanLateMove } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { DREADLORD_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { type Strike, linkAt, multiHit } from "./multiHit";
+import { capsuleOf, makeHit, path } from "./authoring";
 
 
 
@@ -18,7 +19,7 @@ const WING_RADIUS = 12.0;
 
 
 
-const CLASS = {
+export const dreadlordHit = makeHit({
   LINK: { growth: 49.775001525878906, base: 12.0 },
   POKE: { growth: 67.875, base: 18.0 },
   LAUNCH: { growth: 95.0250015258789, base: 20.0 },
@@ -28,18 +29,9 @@ const CLASS = {
 
   JUGGLE: { growth: 56.11000061035156, base: 50.0 },
   CHASE: { growth: 36.20000076293945, base: 75.0 },
-} as const;
-const DIRECTION = {
-  25: { x: f32(0.906307787), z: f32(0.422618262) },
-  35: { x: f32(0.819152044), z: f32(0.573576436) },
-  40: { x: f32(0.766044443), z: f32(0.642787610) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  55: { x: f32(0.573576436), z: f32(0.819152044) },
-  65: { x: f32(0.422618262), z: f32(0.906307787) },
-  70: { x: f32(0.342020143), z: f32(0.939692621) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  270: { x: 0.0, z: -1.0 },
-} as const;
+}, HitElement.slash);
+
+const capsule = capsuleOf(CLAW_RADIUS);
 
 const BATWING_DRAG: readonly Strike[] = [
   [capsule(16.0, 30.0, f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(3.0, 28.0, 100)],
@@ -47,20 +39,9 @@ const BATWING_DRAG: readonly Strike[] = [
   [capsule(-16.0, 30.0, -f32(M - WING_RADIUS), 50.0, WING_RADIUS), linkAt(3.0, 28.0, 80)],
 ];
 
-export function dreadlordHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof DIRECTION, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
-  const tuning = CLASS[kind];
-  const direction = DIRECTION[angle];
-  return { damage, growth: tuning.growth, base: tuning.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element };
-}
-
-function capsule(x1: number, z1: number, x2: number, z2: number, radius = CLAW_RADIUS): StrikeCapsule {
-  return { x1, z1, x2, z2, radius };
-}
 
 
-function path(first: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): readonly MoveRegion[] {
-  return strikes.map((strike, index) => heroRegion(first + index, first + index, strike, effect, groundedEffect));
-}
+
 
 function rake(first: number, heights: readonly number[], reach: number, effect: Readonly<HitEffect>, facing = 1.0): readonly MoveRegion[] {
   return path(first, heights.map(height => capsule(f32(18.0 * facing), 46.0, f32(f32(reach - CLAW_RADIUS) * facing), height)), effect);

@@ -5,7 +5,8 @@ import { withExKit } from "../exSpecialAuthoring";
 import { f32 } from "wisp/src/sim/f32";
 import { type AuthoredSpecial, type FighterSpecials, type SpecialPlacement, CHARGED_AIM_FRAMES, FollowUpInput, Relocation, chargedAngleMotion, frames } from "../heroSpecials";
 import { hurtPose } from "../hurtboxes";
-import { BLADE_RADIUS, L, M, capsule, cut, hit, length, path, reach } from "./blademasterMoves";
+import { BLADE_RADIUS, L, M, capsule, cut, hit, length, reach } from "./blademasterMoves";
+import { path } from "./authoring";
 
 
 

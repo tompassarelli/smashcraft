@@ -1,12 +1,13 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, type StrikeCapsule, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
+import { type AuthoredMove, type AuthoredThrow, type FighterMoves, type MoveRegion, HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, hurtPart } from "../hurtboxes";
 import { BLADEMASTER_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import { drillStrikes, linkAt, multiHit } from "./multiHit";
+import { type Angle, capsuleOf, makeHit, path } from "./authoring";
 
 
 export const H = HERO_REFERENCE_HEIGHT;
@@ -20,7 +21,7 @@ export const BLADE_RADIUS = 6.0;
 
 
 
-const CLASS = {
+export const hit = makeHit({
   LINK: { growth: 52.525001525878906, base: 12.0 },
   POKE: { growth: 71.625, base: 18.0 },
   LAUNCH: { growth: 90.72500610351562, base: 20.0 },
@@ -30,36 +31,12 @@ const CLASS = {
 
   JUGGLE: { growth: 52.525001525878906, base: 50.0 },
   CHASE: { growth: 38.20000076293945, base: 75.0 },
-} as const;
-const ANGLE = {
-  25: { x: f32(0.906307787), z: f32(0.422618262) },
-  35: { x: f32(0.819152044), z: f32(0.573576436) },
-  40: { x: f32(0.766044443), z: f32(0.642787610) },
-  45: { x: f32(0.707106781), z: f32(0.707106781) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  55: { x: f32(0.573576436), z: f32(0.819152044) },
-  65: { x: f32(0.422618262), z: f32(0.906307787) },
-  75: { x: f32(0.258819045), z: f32(0.965925826) },
-  80: { x: f32(0.173648178), z: f32(0.984807753) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  90: { x: 0.0, z: 1.0 },
-  270: { x: 0.0, z: -1.0 },
-} as const;
-
-export function hit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0): Readonly<HitEffect> {
-  const tuning = CLASS[kind];
-  const direction = ANGLE[angle];
-  return { damage, growth: tuning.growth, base: tuning.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element: HitElement.slash };
-}
-
-export function capsule(x1: number, z1: number, x2: number, z2: number, radius = BLADE_RADIUS): StrikeCapsule {
-  return { x1, z1, x2, z2, radius };
-}
+}, HitElement.slash);
 
 
-export function path(firstFrame: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>): readonly MoveRegion[] {
-  return strikes.map((strike, index) => heroRegion(firstFrame + index, firstFrame + index, strike, effect));
-}
+export const capsule = capsuleOf(BLADE_RADIUS);
+
+
 
 
 export function cut(firstFrame: number, tipHeights: readonly number[], reach: number, inner: Readonly<HitEffect>, tip?: Readonly<HitEffect>, facing = 1.0): readonly MoveRegion[] {
@@ -122,7 +99,7 @@ const bladestorm: AuthoredMove = {
   landingHit: { firstFrame: BLADESTORM_TOTAL, totalFrames: BLADESTORM_TOTAL + 12 },
 };
 
-function authoredThrow(releaseFrame: number, recovery: number, damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLE, facing = 1.0): AuthoredThrow {
+function authoredThrow(releaseFrame: number, recovery: number, damage: number, kind: Parameters<typeof hit>[1], angle: Angle, facing = 1.0): AuthoredThrow {
   return { contactFrame: releaseFrame, totalFrames: releaseFrame + recovery, effect: hit(damage, kind, angle, facing) };
 }
 

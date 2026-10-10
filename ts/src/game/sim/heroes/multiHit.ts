@@ -7,6 +7,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { HitElement } from "../codes";
 import { type AuthoredMove, type MoveRegion, type StrikeCapsule, heroRegion } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
+import { ANGLES, type Angle } from "./authoring";
 
 
 
@@ -18,31 +19,10 @@ function linkHit(damage: number, base: number, x: number, z: number, element: Hi
 }
 
 
-const DIRECTION = {
-  0: { x: 1.0, z: 0.0 },
-  20: { x: f32(0.939692621), z: f32(0.342020143) },
-  45: { x: f32(0.707106781), z: f32(0.707106781) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  70: { x: f32(0.342020143), z: f32(0.939692621) },
-  80: { x: f32(0.173648178), z: f32(0.984807753) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  90: { x: 0.0, z: 1.0 },
-  95: { x: f32(-0.087155743), z: f32(0.996194698) },
-  100: { x: f32(-0.173648178), z: f32(0.984807753) },
-  160: { x: f32(-0.939692621), z: f32(0.342020143) },
-  200: { x: f32(-0.939692621), z: f32(-0.342020143) },
-  225: { x: f32(-0.707106781), z: f32(-0.707106781) },
-  250: { x: f32(-0.342020143), z: f32(-0.939692621) },
-  270: { x: 0.0, z: -1.0 },
-  290: { x: f32(0.342020143), z: f32(-0.939692621) },
-  315: { x: f32(0.707106781), z: f32(-0.707106781) },
-  340: { x: f32(0.939692621), z: f32(-0.342020143) },
-} as const;
-type Degrees = keyof typeof DIRECTION;
 
 
-export function linkAt(damage: number, base: number, degrees: Degrees, element: HitElement = HitElement.slash): Readonly<HitEffect> {
-  const d = DIRECTION[degrees];
+export function linkAt(damage: number, base: number, degrees: Angle, element: HitElement = HitElement.slash): Readonly<HitEffect> {
+  const d = ANGLES[degrees];
   return linkHit(damage, base, d.x, d.z, element);
 }
 

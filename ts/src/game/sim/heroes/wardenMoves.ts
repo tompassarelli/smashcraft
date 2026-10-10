@@ -8,6 +8,7 @@ import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { type Strike, drillStrikes, linkAt, multiHit } from "./multiHit";
+import { type Angle, capsuleOf, makeHit, path } from "./authoring";
 
 
 const S = f32(HERO_REFERENCE_HEIGHT * f32(0.55));
@@ -18,7 +19,7 @@ const BLADE_RADIUS = 6.0;
 
 
 
-const CLASS = {
+export const wardenHit = makeHit({
   LINK: { growth: 55.0, base: 12.0 },
   POKE: { growth: 75.0, base: 18.0 },
   LAUNCH: { growth: 95.0, base: 20.0 },
@@ -28,31 +29,10 @@ const CLASS = {
 
   JUGGLE: { growth: 55.0, base: 45.0 },
   CHASE: { growth: 40.0, base: 75.0 },
-} as const;
-const ANGLES = {
-  25: { x: f32(0.906307787), z: f32(0.422618262) },
-  35: { x: f32(0.819152044), z: f32(0.573576436) },
-  40: { x: f32(0.766044443), z: f32(0.642787610) },
-  45: { x: f32(0.707106781), z: f32(0.707106781) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  55: { x: f32(0.573576436), z: f32(0.819152044) },
-  60: { x: 0.5, z: f32(0.866025404) },
-  70: { x: f32(0.342020143), z: f32(0.939692621) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  90: { x: 0.0, z: 1.0 },
-  270: { x: 0.0, z: -1.0 },
-} as const;
+}, HitElement.slash);
 
-export function wardenHit(damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0, element: HitElement = HitElement.slash): Readonly<HitEffect> {
-  const strength = CLASS[kind];
-  const direction = ANGLES[angle];
-  return { damage, growth: strength.growth, base: strength.base, launchX: f32(direction.x * facing), launchZ: direction.z, electric: false, element };
-}
 
-const blade = (x1: number, z1: number, x2: number, z2: number, radius = BLADE_RADIUS): StrikeCapsule => ({ x1, z1, x2, z2, radius });
-function path(first: number, strikes: readonly StrikeCapsule[], effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): readonly MoveRegion[] {
-  return strikes.map((strike, index) => heroRegion(first + index, first + index, strike, effect, groundedEffect));
-}
+const blade = capsuleOf(BLADE_RADIUS);
 
 
 function cut(first: number, heights: readonly number[], reach: number, inner: Readonly<HitEffect>, tip?: Readonly<HitEffect>, facing = 1.0): readonly MoveRegion[] {
@@ -75,7 +55,7 @@ function cut(first: number, heights: readonly number[], reach: number, inner: Re
   return regions;
 }
 
-function throwMove(release: number, recovery: number, damage: number, kind: keyof typeof CLASS, angle: keyof typeof ANGLES, facing = 1.0) {
+function throwMove(release: number, recovery: number, damage: number, kind: Parameters<typeof wardenHit>[1], angle: Angle, facing = 1.0) {
   return { contactFrame: release, totalFrames: release + recovery, effect: wardenHit(damage, kind, angle, facing) };
 }
 

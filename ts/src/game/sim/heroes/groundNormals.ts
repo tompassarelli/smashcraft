@@ -12,35 +12,12 @@ import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import type { HurtPart, HurtPose } from "../hurtboxes";
 import type { HeroClip } from "./hero";
+import { ANGLES, type Angle } from "./authoring";
 
-/** Launch directions by degrees from facing; literals so every runtime reads the same floats. */
-const DIRECTION = {
-  0: { x: 1.0, z: 0.0 },
-  10: { x: f32(0.984807753), z: f32(0.173648178) },
-  15: { x: f32(0.965925826), z: f32(0.258819045) },
-  20: { x: f32(0.939692621), z: f32(0.342020143) },
-  25: { x: f32(0.906307787), z: f32(0.422618262) },
-  30: { x: f32(0.866025404), z: 0.5 },
-  35: { x: f32(0.819152044), z: f32(0.573576436) },
-  40: { x: f32(0.766044443), z: f32(0.642787610) },
-  45: { x: f32(0.707106781), z: f32(0.707106781) },
-  50: { x: f32(0.642787610), z: f32(0.766044443) },
-  55: { x: f32(0.573576436), z: f32(0.819152044) },
-  60: { x: 0.5, z: f32(0.866025404) },
-  65: { x: f32(0.422618262), z: f32(0.906307787) },
-  70: { x: f32(0.342020143), z: f32(0.939692621) },
-  75: { x: f32(0.258819045), z: f32(0.965925826) },
-  80: { x: f32(0.173648178), z: f32(0.984807753) },
-  85: { x: f32(0.087155743), z: f32(0.996194698) },
-  90: { x: 0.0, z: 1.0 },
-
-  180: { x: -1.0, z: 0.0 },
-} as const;
-type Angle = keyof typeof DIRECTION;
 
 
 export function groundHit(damage: number, angle: Angle, growth: number, base: number, element: HitElement, behind = false): Readonly<HitEffect> {
-  const direction = DIRECTION[angle];
+  const direction = ANGLES[angle];
   return { damage, growth, base, launchX: behind ? -direction.x : direction.x, launchZ: direction.z, electric: false, element };
 }
 
