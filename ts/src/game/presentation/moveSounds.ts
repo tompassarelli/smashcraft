@@ -53,7 +53,7 @@ const s = (perform: string, hit: string): SpecialSound => ({ perform, hit });
 export const FIGHTER_SOUNDS: { readonly [character: number]: FighterSound | undefined } = {
   [Character.rifleman]: {
     weapon: Weapon.blunt, strong: "FlakCannonHit",
-    specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("DruidOfTheClawMorph", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack"), s("WardBirth", "FrostNova")],
+    specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("BattleRoar", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack"), s("WardBirth", "FrostNova")],
   },
   [Character.demonHunter]: {
     weapon: Weapon.blade, strong: "DemonHunterMissileHit",
