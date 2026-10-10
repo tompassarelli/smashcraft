@@ -26,7 +26,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.blademaster]: { ...body(f32(0.96), f32(1.08), f32(1.00), f32(1.00), f32(1.05)), runSpeed: f32(13.74), dashSpeed: f32(11.892) },
   [Character.mountainKing]: body(f32(1.12), f32(0.88), f32(0.82), f32(1.10), f32(0.85)),
   [Character.warden]: { ...body(f32(0.80), f32(1.14), f32(1.10), f32(0.90), f32(1.00)), runSpeed: 13.799999237060547, dashSpeed: 12.0 },
-  [Character.lich]: body(f32(0.97), f32(0.90), f32(0.95), f32(0.90), f32(1.28)),
+  [Character.lich]: body(f32(1.04), f32(0.90), f32(0.95), f32(0.90), f32(1.28)),
   [Character.forsakenPaladin]: body(f32(1.22), f32(0.92), f32(0.88), f32(1.08), f32(1.02)),
   [Character.dreadlord]: { ...body(f32(1.27), f32(1.10), f32(1.22), f32(1.10), f32(1.15)), runSpeed: f32(13.76), dashSpeed: f32(11.928) },
   [Character.shadowHunter]: body(f32(0.94), f32(1.04), f32(1.00), f32(0.92), f32(1.08)),
@@ -45,7 +45,7 @@ const HERO_BODIES: { readonly [character: number]: HeroBody | undefined } = {
   [Character.medivh]: body(f32(0.90), f32(0.98), f32(1.20), f32(0.90), f32(1.10)),
   [Character.murloc]: { ...body(f32(0.94), f32(1.12), f32(1.06), f32(0.90), f32(0.72)), runSpeed: 13.79999828338623, dashSpeed: 11.999999046325684 },
   [Character.kobold]: { ...body(f32(1.00), f32(1.10), f32(1.02), f32(0.78), f32(0.66)), runSpeed: f32(13.78), dashSpeed: f32(11.95) },
-  [Character.grom]: body(f32(1.06), f32(1.04), f32(0.92), f32(1.12), f32(1.10)),
+  [Character.grom]: body(f32(0.98), f32(1.04), f32(0.92), f32(1.12), f32(1.10)),
   [Character.tinker]: body(f32(106.0 / 75.0), f32(f32(1.725) / f32(2.2)), f32(1.134), f32(1.12), f32(0.95)),
 };
 
