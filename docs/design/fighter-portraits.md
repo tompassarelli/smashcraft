@@ -105,11 +105,7 @@ wider crop shifted toward the staff. Classic uses zoom 0.85 and Definitive
 Definitive Illidan's Combat Idle at 18.809 s raised a glaive vertically across
 his face, and the 1.5x crop emphasized his topknot. His portrait instead uses
 the existing Stand 4 frame at 139.173 s, turn 45 degrees, a level camera and
-zoom 0.8 with the crop lowered by 0.4 head sizes. These are source candidates
-pending the #363 render judge; model projections alone cannot accept the
-portraits. If a full glaive and a readable face cannot share the crop, retain
-the clear face and record the weapon framing limitation in the 26-fighter
-judge table. Jaina's staff must remain visible and held.
+zoom 0.8 with the crop lowered by 0.4 head sizes. 
 
 It writes `PRIVATE_OUTPUT/fighter-renders/` (Classic) with its `de/` folder
 (Definitive); store that folder with `bun wisp inputs add fighter-renders`.
