@@ -1,0 +1,38 @@
+# #436 boxes 3-4: Mountain King a holds a forward smash 40 frames, then releases; strip every 2 frames, every frame 74-86 for the charge flash.
+#! chat -dev quick hero mountain king
+60 a stick 1 0
+60 a press A
+60 a capture
+61 a stick 0 0
+62 a capture
+64 a capture
+66 a capture
+68 a capture
+70 a capture
+72 a capture
+74 a capture
+75 a capture
+76 a capture
+77 a capture
+78 a capture
+79 a capture
+80 a capture
+81 a capture
+82 a capture
+83 a capture
+84 a capture
+85 a capture
+86 a capture
+88 a capture
+90 a capture
+92 a capture
+94 a capture
+96 a capture
+98 a capture
+100 a release A
+100 a capture
+102 a capture
+104 a capture
+106 a capture
+108 a capture
+110 a capture
