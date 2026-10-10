@@ -193,6 +193,8 @@ export interface Rollback {
 
 
   knownBefore: number;
+
+  repairedFrames: number;
 }
 
 export interface StatusFrames {
@@ -370,7 +372,7 @@ function rollback(mode: ShadowInputMode, playback: RollbackPlayback, editbox: Ed
       }
       : undefined,
     journal: mode.kind === "journal" ? journal(mode.ingress, editbox) : undefined,
-    stalled: 0, waitingFor: 0, predictionHeld: false, knownBefore: 0,
+    stalled: 0, waitingFor: 0, predictionHeld: false, knownBefore: 0, repairedFrames: 0,
   };
 }
 

@@ -325,7 +325,10 @@ function presentedMatch(s: ShellState): PresentedMatch {
 
 
 const agencyMarks: Slots<FighterAgency> = ["act", "act", "act", "act"];
+const forecastHits: Slots<number> = [-1, -1, -1, -1];
 const FORECAST_STEPS_PER_CALLBACK = 8;
+// A callback that re-simulated frames already spent its budget; spread the forecast over later callbacks (#168).
+const FORECAST_STEPS_AFTER_REPAIR = 1;
 
 
 
@@ -333,10 +336,15 @@ const FORECAST_STEPS_PER_CALLBACK = 8;
 
 
 
-function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, matchFrame: number, controls: Readonly<FrameControls>): void {
+function pendingMark(world: Readonly<Roster>, slot: number): FighterAgency {
+  const { launch } = fighterAt(world, slot);
+  return launch.hitlag > 0 && launch.diPending ? "di" : "none";
+}
+
+function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, matchFrame: number, controls: Readonly<FrameControls>, repaired: boolean): void {
   let stalest = -1;
   let stalestAge = -1;
-  let budget = FORECAST_STEPS_PER_CALLBACK;
+  let budget = repaired ? FORECAST_STEPS_AFTER_REPAIR : FORECAST_STEPS_PER_CALLBACK;
   for (const slot of PARTICIPANT_SLOTS) {
     const forecast = ui.fighters[slot]?.agency.forecast;
     if (forecast === undefined || !isActive(world, slot)) continue;
@@ -348,8 +356,12 @@ function markAgency(ui: UiObjects, world: Readonly<Roster>, stage: number, match
     }
     if (forecast.pendingFor(world, slot)) continue;
     const age = forecast.reuseAge(world, slot, matchFrame);
-    if (age === undefined) forecast.begin(world, slot, stage, matchFrame, controls.commands[slot].graceFrames);
-    else {
+    if (age === undefined) {
+      forecast.begin(world, slot, stage, matchFrame, controls.commands[slot].graceFrames);
+      const hit = fighterAt(world, slot).visuals.hit;
+      if (forecastHits[slot] !== hit) agencyMarks[slot] = pendingMark(world, slot);
+      forecastHits[slot] = hit;
+    } else {
       forecast.cancel();
       agencyMarks[slot] = forecast.reused(world, slot);
       if (age > stalestAge) {
@@ -426,7 +438,7 @@ export function renderPersistentPresentation(s: ShellState): void {
     BlzSetSpecialEffectTimeScale(crest, 0.0);
   }
   const ui = views(s);
-  if (playing) markAgency(ui, world, stage, matchFrame, s.controls);
+  if (playing) markAgency(ui, world, stage, matchFrame, s.controls, (activeRollback(s)?.repairedFrames ?? 0) > 0);
   ui.classic?.present(game);
   ui.combat.present(runtime.impacts, runtime.simulationFrame, s.runtime.impacts, playing);
   for (const slot of PARTICIPANT_SLOTS) {

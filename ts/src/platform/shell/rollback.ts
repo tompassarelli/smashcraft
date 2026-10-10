@@ -71,6 +71,7 @@ export function beginRollbackEpoch(s: ShellState, rollback: Rollback): boolean {
   rollback.waitingFor = 0;
   rollback.predictionHeld = false;
   rollback.knownBefore = 0;
+  rollback.repairedFrames = 0;
   speculative.world.mask = s.world.mask;
   captureReplaySnapshot(rollback.seed, s.world, s.game, s.controls, s.runtime);
   restoreReplaySnapshot(rollback.seed, speculative.world, speculative.game, speculative.controls, speculative.runtime);
@@ -260,6 +261,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
   const { trace, probe } = s;
   const known = rollback.knownBefore;
   rollback.knownBefore = schedule.knownThrough();
+  rollback.repairedFrames = 0;
   if (s.game.phase !== Phase.match) {
     if (keyboard !== undefined) sendBatch(s, rollback, keyboard);
     noteWaiting(rollback, 0, 0);
@@ -310,6 +312,7 @@ export function rollbackTick(s: ShellState, rollback: Rollback): void {
     setStatus(s, "The match could not catch up. Restart the match.", LASTING);
     return;
   }
+  rollback.repairedFrames = repaired;
   let steps = 0;
   while (s.game.phase === Phase.match && schedule.mayAdvanceConfirmed() && schedule.nextConfirmedFrame() <= known && steps < confirmSteps && (stopAt === undefined || schedule.nextConfirmedFrame() < stopAt)) {
     if (!stepConfirmed(s, rollback)) {
