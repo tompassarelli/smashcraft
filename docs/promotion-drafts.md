@@ -14,7 +14,7 @@ This is the first public version; it's early, expect rough edges, tell us what f
 
 **Install:** requires Warcraft III 3.0. Download the attached `Smashcraft 0.1.0.w3x`, put it in your Warcraft III Maps folder, and open it through Custom Games. Start with Training to learn the controls, or select computer opponents for a match. [Release downloads](https://github.com/tompassarelli/smashcraft/releases).
 
-**How to use a controller:** install and start the optional [Smashcraft controller helper](https://github.com/tompassarelli/wc3-controller), connect your pad, and open the map through Custom Games. Before a match, press F1, choose **QWERTY** and Save so the helper's keys match the map, including both triggers. Keep the Warcraft window focused. The helper starts with **Melee**; choose **Tom** on the companion's Controller page if you prefer that layout. These are Xbox button labels, with no custom remaps:
+**How to use a controller:** install and start the optional [Smashcraft controller helper](https://github.com/tompassarelli/wc3-controller), connect your pad, and open the map through Custom Games. The default controls already match the helper; if you saved Custom controls earlier, press F1, choose QWERTY and Save. Keep the Warcraft window focused. The helper starts with **Melee**; choose **Tom** on the companion's Controller page if you prefer that layout. These are Xbox button labels, with no custom remaps:
 
 | Control | Melee (default) | Tom |
 | --- | --- | --- |

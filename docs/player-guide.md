@@ -5,13 +5,14 @@ map in the Warcraft III Maps folder and open it from Custom Games. Fighters
 look Classic or Definitive by your Graphics setting; after changing it,
 restart Warcraft III, because the new look applies only when the game starts. A
 controller is optional: the Smashcraft controller helper turns its buttons
-and sticks into the same keys. Before using it, open F1 Controls, choose
-QWERTY and Save so both triggers shield. The default Melee layout uses A to
+and sticks into the same keys. The default controls already match the helper;
+if you saved Custom controls earlier, press F1, choose QWERTY and Save.
+The default Melee layout uses A to
 attack, B for specials, X/Y to jump and RB to grab; Tom's layout uses A to
 attack, X for specials, Y to jump, B to grab, LB to short hop and RB + X for
 an EX special. In both layouts, either trigger shields or air-dodges and
 Start pauses. The current prototype includes character and stage
-selection, three fighters, a bot opponent, floating platforms, blast zones,
+selection, 26 fighters, a bot opponent, floating platforms, blast zones,
 stocks, rematches, and configurable controls.
 
 For solo practice, place only your own fighter chip and press Y, then choose
