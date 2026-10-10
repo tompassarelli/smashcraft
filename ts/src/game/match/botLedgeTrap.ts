@@ -8,6 +8,7 @@ import { steerOnGround } from "./botFooting";
 
 export const LEDGE_TRAP_GAP = 60.0;
 const ARRIVED = 30.0;
+const LEDGE_ATTACK_REACH = 210.0;
 
 /** Whether a ledge attack from `target` is still to swing, observed this many frames ago. */
 function getupAttackAhead(target: Readonly<Fighter>, age: number): boolean {
@@ -29,12 +30,14 @@ export function chooseLedgeTrap(f: Readonly<Fighter>, target: Readonly<Fighter>,
   const edge = side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
   const spot = f32(edge - side * LEDGE_TRAP_GAP);
   const arrived = Math.abs(f32(f.motion.x - spot)) <= ARRIVED;
-  if (!arrived) {
+  const ahead = getupAttackAhead(target, observationAge);
+  const inward = f32(f32(edge - f.motion.x) * side);
+  if (!arrived && !(ahead && inward > LEDGE_TRAP_GAP && inward <= LEDGE_ATTACK_REACH)) {
     steerOnGround(f, stage, spot, input);
     return true;
   }
-  input.direction = f.facing !== side ? side : 0;
-  input.walking = true;
-  input.shield = getupAttackAhead(target, observationAge);
+  input.direction = arrived && f.facing !== side ? side : 0;
+  input.walking = arrived;
+  input.shield = ahead;
   return true;
 }

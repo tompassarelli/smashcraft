@@ -22,16 +22,11 @@ import { aimsLedge, gameplanOf, upSpecialFirst } from "./botGameplan";
 
 const TECH_LEAD_FRAMES = 6;
 
-const LEDGE_ATTACK_NEAR = 30.0;
-const LEDGE_ATTACK_FAR = 210.0;
-
 const LEDGE_LINE_NEAR = 25.0;
 const LEDGE_LINE_FAR = 50.0;
 const LEDGE_LINE_REACH = 60.0;
 
 const LEDGE_MISSED = 110.0;
-
-const LEDGE_WAIT_FRAMES = 90;
 
 const SPECIAL_FIRST_REACH = 200.0;
 
@@ -39,44 +34,14 @@ const GETUP_WAIT_FRAMES = 60;
 
 const GETUP_ATTACK_REACH = 150.0;
 
-const LedgeOption = { hang: 0, climb: 1, roll: 2, jump: 3, attack: 4 } as const;
-type LedgeOption = (typeof LedgeOption)[keyof typeof LedgeOption];
-
-function ledgeOption(f: Readonly<Fighter>, stage: number, target: Readonly<Fighter> | undefined): LedgeOption {
-  if (target === undefined) return LedgeOption.climb;
-  const { side } = f.ledge;
-  const edge = side < 0 ? mainDeckLeft(stage) : mainDeckRight(stage);
-  const inward = f32(f32(edge - target.motion.x) * side);
-  const near = !target.status.out && inward >= LEDGE_ATTACK_NEAR && inward <= LEDGE_ATTACK_FAR && Math.abs(f32(target.motion.z - mainDeckZ(stage))) <= 90;
-  const choice = botChoice(f.ledge.serial + toInt(f.status.damage), f.visuals.hit * 3 + f.character, 6);
-  if (near && choice < 5) return LedgeOption.attack;
-
-  if (choice < 5 && f.ledge.frame < LEDGE_WAIT_FRAMES) return LedgeOption.hang;
-  return choice === 3 ? LedgeOption.roll : choice === 4 ? LedgeOption.jump : choice === 5 ? LedgeOption.attack : LedgeOption.climb;
-}
-
-
-function chooseLedgeOption(f: Readonly<Fighter>, stage: number, input: Controls, target: Readonly<Fighter> | undefined, mixesUp: boolean): void {
+function chooseLedgeOption(f: Readonly<Fighter>, input: Controls, target: Readonly<Fighter> | undefined, mixesUp: boolean): void {
   const { ledge } = f;
   input.direction = -ledge.side;
   if (ledge.state !== LedgeState.hang) return;
-  switch (mixesUp ? ledgeOption(f, stage, target) : LedgeOption.climb) {
-    case LedgeOption.hang:
-      return;
-    case LedgeOption.climb:
-      input.ledgeVerticalPressed = 1;
-      return;
-    case LedgeOption.roll:
-      input.airDodgePressed = true;
-      return;
-    case LedgeOption.jump:
-      input.jumpPressed = true;
-      input.jumpHeld = true;
-      return;
-    case LedgeOption.attack:
-      input.getupAttackPressed = true;
-      return;
-  }
+  const roll = mixesUp && target !== undefined
+    && botChoice(ledge.serial + toInt(f.status.damage), f.visuals.hit * 3 + f.character, 2) === 1;
+  if (roll) input.airDodgePressed = true;
+  else input.ledgeVerticalPressed = 1;
 }
 
 
@@ -249,7 +214,7 @@ export function chooseRecoveryInput(fighter: Readonly<Fighter>, stage: number, m
   input.ledgeVerticalPressed = 0;
   if (fighter.status.out) return false;
   if (fighter.ledge.state !== LedgeState.none) {
-    chooseLedgeOption(fighter, stage, input, target, skill.mixesUp);
+    chooseLedgeOption(fighter, input, target, skill.mixesUp);
     return true;
   }
   if (fighter.platform.move === PlatformMove.ascent) {
