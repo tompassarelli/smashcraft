@@ -6,7 +6,16 @@ import { startAtGo } from "../src/game/match/testMatch";
 import { IMPACT_DUST, IMPACTS_PER_KIND } from "../src/game/presentation/impactState";
 import { FLOOR_HEIGHT } from "../src/game/presentation/arenaCamera";
 import { ReplayCorrections, ReplayHistory } from "../src/game/replay/history";
-import { Character } from "../src/game/sim/codes";
+import { AttackStyle, Character } from "../src/game/sim/codes";
+import { SELECTABLE_CHARACTERS } from "../src/game/sim/heroes/registry";
+import { createFighter } from "../src/game/sim/fighter";
+import { soloWorld } from "../src/game/sim/testWorld";
+import { neutralControls } from "../src/game/sim/roster";
+import { beginFighterAttack } from "../src/game/sim/attacks";
+import { advanceFighter } from "../src/game/sim/step";
+import { advanceFighterPose, createFighterPose } from "../src/game/presentation/fighterPose";
+import { FighterPoolPresentation } from "../src/game/render/fighterPool";
+import { originalLightPath } from "../src/game/assets/fighterOriginalClipInfo";
 import { fighterAt } from "../src/game/sim/roster";
 import { install, start } from "../src/platform/main";
 import { applyFrame } from "../src/platform/shell/frame";
@@ -41,6 +50,49 @@ function hiddenInView(client: HeadlessClient): unknown[] {
   const ground = shell().origin.z - FLOOR_HEIGHT;
   return [...effectPoses(client)].filter(([, pose]) => hidden(pose) && pose.z > ground).map(([handle]) => handle);
 }
+
+test("every fighter's charged smashes hold their drawn pose and start one swing on release (#436) [k2 property]", () => {
+  const client = headless.clients({ start: () => {}, install: () => {} }, [0]).client(0);
+  client.run(() => {
+    for (const character of SELECTABLE_CHARACTERS) for (const style of [AttackStyle.forwardSmash, AttackStyle.upSmash, AttackStyle.downSmash]) {
+      const fighter = createFighter(character, 0, 1);
+      const world = soloWorld(fighter), input = neutralControls(), pose = createFighterPose();
+      const pool = new FighterPoolPresentation(character, 0, { x: 0, y: 0, z: 0 });
+      beginFighterAttack(world, 0, style, true);
+      let held: EffectPose | undefined, released: EffectPose | undefined;
+      let chargeSelection = 0, releaseSelection = 0;
+      for (let frame = 0; frame < 140; frame++) {
+        input.attackHeld = frame < 40;
+        if (frame > 0) advanceFighter(world, 0, 0, input, 0, frame);
+        advanceFighterPose(pose, fighter, world, input, false, false, frame === 0, false);
+        pool.present(fighter, pose, 0, frame);
+        const body = client.effectPoses({ visibleOnly: true }).find(effect => effect.destroyed === undefined && effect.model !== originalLightPath(character));
+        expect(body, `${character}/${style}/${frame}: drawn body`).toBeDefined();
+        if (body === undefined) throw new Error("missing drawn body");
+        if (frame === 0) { held = body; chargeSelection = pose.selectionSerial; }
+        if (frame < 40) {
+          expect(body.handle).toBe(held?.handle);
+          expect(body.animationElapsed).toBe(held?.animationElapsed);
+          expect(body.timeScale).toBe(0);
+          expect(pose.selectionSerial).toBe(chargeSelection);
+        } else if (frame === 40) {
+          expect(pose.selectionSerial).toBe(chargeSelection + 1);
+          releaseSelection = pose.selectionSerial;
+          released = body;
+        } else if (fighter.attack.style !== undefined) {
+          expect(pose.selectionSerial).toBe(releaseSelection);
+          expect(body.handle).toBe(released?.handle);
+          expect(body.animationElapsed).toBeGreaterThanOrEqual(released?.animationElapsed ?? 0);
+          if (frame === 41) expect(body.animationElapsed, `${character}/${style}: release clock`).toBeGreaterThan(released?.animationElapsed ?? 0);
+          released = body;
+        } else break;
+      }
+      expect(pool.missingSelections).toBe(0);
+      pool.destroy();
+    }
+  });
+  expect(client.errors).toEqual([]);
+});
 
 test("combat effects: rollback, pause/resume and rematch neither replay nor retain effects [k1 scenario]", () => {
   const clients = headless.clients({ start, install });
