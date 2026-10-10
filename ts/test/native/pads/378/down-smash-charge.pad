@@ -1,0 +1,34 @@
+# #378: Illidan holds a down smash charge; every frame of two 12-frame white blinks.
+#! chat -dev quick hero illidan
+150 a stick 0 -1
+151 a press A
+153 a stick 0 0
+154 a capture
+155 a capture
+156 a capture
+157 a capture
+158 a capture
+159 a capture
+160 a capture
+161 a capture
+162 a capture
+163 a capture
+164 a capture
+165 a capture
+166 a capture
+167 a capture
+168 a capture
+169 a capture
+170 a capture
+171 a capture
+172 a capture
+173 a capture
+174 a capture
+175 a capture
+176 a capture
+177 a capture
+178 a capture
+179 a capture
+200 a release A
+250 a press VIEW
+320 a release VIEW
