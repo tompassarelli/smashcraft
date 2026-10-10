@@ -7,7 +7,7 @@ import { CAIRNE_SPECIALS } from "./cairneSpecials";
 import { CAIRNE_CLIPS, CAIRNE_DAMAGE_CLIPS, CAIRNE_FALLBACK } from "../../presentation/heroes/cairneClips";
 import { f32 } from "wisp/src/sim/f32";
 
-const shockwaveStartup = { index: 9, seconds: f32(0.4) };
+const shockwaveStartup = { index: 9, startSeconds: f32(0.1599999964237213), seconds: f32(0.23999999463558197) };
 
 export const CAIRNE_HERO: HeroDefinition = {
   character: Character.cairne, name: "Cairne Bloodhoof", purpose: "Super-heavyweight with sweeping totem strikes",
