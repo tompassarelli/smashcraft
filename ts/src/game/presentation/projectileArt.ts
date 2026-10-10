@@ -9,6 +9,7 @@ import type { Projectile } from "../sim/fighter";
 import { HERO_ROSTER, heroDefinition } from "../sim/heroes/registry";
 import { FIGHTER_ULTIMATES } from "../sim/ultimates";
 import type { AuthoredSpecial, FighterSpecials, SpecialProjectile } from "../sim/heroSpecials";
+import type { CueBirth } from "./specialCues";
 
 
 export const ORIGINAL_PROJECTILE_MODELS = {
@@ -93,20 +94,23 @@ export function allProjectileModels(): readonly string[] {
   return models;
 }
 
-export const PROJECTILE_DRAW_SCALES: { readonly [model: string]: number | undefined } = {
-  "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx": f32(0.3),
-  "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx": f32(1.2),
-  "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx": 1.5,
-  "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx": 1.5,
-  "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": 0.5,
-  "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx": f32(0.85),
-  "Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx": f32(0.6),
-  "Abilities\\Spells\\Other\\Consecration\\Consecration.mdx": 0.25,
-  "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx": 0.5,
-  "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl": f32(0.6),
-  "Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx": f32(0.7),
-  "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx": f32(0.7),
-  "Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx": 0.5,
+export const PROJECTILE_DRAW_CUES: { readonly [model: string]: { readonly scale: number; readonly birth?: CueBirth | undefined } | undefined } = {
+  "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx": { scale: f32(0.3) },
+  "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx": { scale: f32(1.2) },
+  "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx": { scale: 1.5 },
+  "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx": { scale: 1.5 },
+  "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": { scale: 0.5 },
+  "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdx": { scale: f32(0.85) },
+  "Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdx": { scale: f32(0.6) },
+  "Abilities\\Spells\\Other\\Consecration\\Consecration.mdx": { scale: 0.25 },
+  "Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdx": { scale: 0.5 },
+  "units\\creeps\\PandarenBrewmaster\\PandarenBrewmaster.mdl": { scale: f32(0.6) },
+  "Abilities\\Spells\\Other\\Monsoon\\MonsoonBoltTarget.mdx": { scale: f32(0.7) },
+  "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx": { scale: f32(0.7) },
+  "Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx": { scale: 0.5 },
+  "Abilities\\Spells\\NightElf\\ShadowStrike\\ShadowStrikeMissile.mdx": { scale: 1.0, birth: { eachFrame: true } },
+  "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx": { scale: 1.0, birth: { eachFrame: false } },
+  "Abilities\\Weapons\\FlyingMachine\\FlyingMachineMissile.mdx": { scale: 1.0, birth: { eachFrame: false } },
 };
 
 export const PROJECTILE_DRAW_OFFSETS: { readonly [model: string]: { readonly x: number; readonly z: number; readonly sequence?: string | undefined; readonly seconds?: number | undefined; readonly width?: number | undefined; readonly height?: number | undefined } | undefined } = {

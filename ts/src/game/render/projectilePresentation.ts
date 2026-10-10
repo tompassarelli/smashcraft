@@ -8,7 +8,7 @@ import { heroDefinition } from "../sim/heroes/registry";
 import { HERO_PROJECTILE_CAP } from "../sim/heroSpecialRules";
 import { f32 } from "wisp/src/sim/f32";
 import { PARKED_CUE_TIME_SCALE, type ParkedFlags, type WorldOrigin, parkCue } from "./effects";
-import { DEFINITIVE_ULTIMATE_MODELS, PROJECTILE_DRAW_SCALES, PROJECTILE_DRAW_OFFSETS, fighterProjectileModels, projectileModelOf, ultimateProjectiles } from "../presentation/projectileArt";
+import { DEFINITIVE_ULTIMATE_MODELS, PROJECTILE_DRAW_CUES, PROJECTILE_DRAW_OFFSETS, fighterProjectileModels, projectileModelOf, ultimateProjectiles } from "../presentation/projectileArt";
 import { projectedProjectile } from "../presentation/projectilePose";
 import { IMPACT_DEFILE_MODEL } from "../assets/impactAssetInfo";
 import { heroProjectileArt } from "../presentation/projectileArt";
@@ -33,6 +33,7 @@ export class ProjectilePresentation {
   private readonly taken: boolean[] = [];
   private readonly serials: number[] = [];
   private readonly specs: (Fighter["projectiles"][number]["spec"])[] = [];
+  private readonly lives: number[] = [];
   private parked: ParkedFlags | undefined;
 
   constructor(
@@ -128,17 +129,22 @@ export class ProjectilePresentation {
       parked[slot] = false;
       const projectile = fighter?.projectiles[index];
       const draw = pool === undefined ? undefined : PROJECTILE_DRAW_OFFSETS[pool.drawn];
-      if (projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot])) {
+      const cue = pool === undefined ? undefined : PROJECTILE_DRAW_CUES[pool.drawn];
+      const starts = projectile !== undefined && (this.serials[slot] !== projectile.serial || this.specs[slot] !== projectile.spec || !this.visible[slot]);
+      const rebirth = projectile !== undefined && cue?.birth !== undefined && !paused && (starts || (cue.birth.eachFrame && this.lives[slot] !== projectile.life));
+      if (starts && projectile !== undefined) {
         const birth = pool?.path.includes("FreezingBreathMissile") === true || pool?.path.includes("WaterElementalMissile") === true || pool?.path.includes("FrostWyrmMissile") === true;
-        if (draw?.seconds === undefined) BlzSetSpecialEffectAnimation(model, draw?.sequence ?? pose.animationSequence ?? (birth ? "birth" : "stand"));
-        BlzSetSpecialEffectTime(model, draw?.seconds ?? 0.0);
+        if (cue?.birth === undefined) {
+          if (draw?.seconds === undefined) BlzSetSpecialEffectAnimation(model, draw?.sequence ?? pose.animationSequence ?? (birth ? "birth" : "stand"));
+          BlzSetSpecialEffectTime(model, draw?.seconds ?? 0.0);
+        }
         this.serials[slot] = projectile.serial;
         this.specs[slot] = projectile.spec;
       }
       BlzSetSpecialEffectYaw(model, pose.yaw);
       BlzSetSpecialEffectPitch(model, pose.pitch);
       BlzSetSpecialEffectPosition(model, this.origin.x + pose.x + (pose.yaw === 0.0 ? 1 : -1) * (draw?.x ?? 0.0), this.origin.y, this.origin.z + pose.z + (draw?.z ?? 0.0));
-      BlzSetSpecialEffectScale(model, pose.modelScale * (pool === undefined ? 1.0 : PROJECTILE_DRAW_SCALES[pool.drawn] ?? 1.0));
+      BlzSetSpecialEffectScale(model, pose.modelScale * (cue?.scale ?? 1.0));
       if (draw?.width !== undefined || draw?.height !== undefined) BlzSetSpecialEffectMatrixScale(model, draw.width ?? 1.0, 1.0, draw.height ?? 1.0);
       BlzSetSpecialEffectAlpha(model, 255);
       BlzSetSpecialEffectTimeScale(model, paused ? 0.0 : 1.0);
@@ -146,11 +152,16 @@ export class ProjectilePresentation {
         BlzSetSpecialEffectTime(model, draw.seconds);
         BlzSetSpecialEffectTimeScale(model, 0.0);
       }
-      if (pose.animationSeconds !== undefined) {
+      if (rebirth) {
+        BlzSpecialEffectClearSubAnimations(model);
+        BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+      }
+      if (!paused && projectile !== undefined) this.lives[slot] = projectile.life;
+      if (cue?.birth === undefined && pose.animationSeconds !== undefined) {
         if (!this.visible[slot] && pose.animationSequence !== undefined) BlzSetSpecialEffectAnimation(model, pose.animationSequence);
         BlzSetSpecialEffectTime(model, pose.animationSeconds);
         BlzSetSpecialEffectTimeScale(model, 0.0);
-      } else if (projectile?.spec !== undefined && projectile.velocityX === 0.0 && projectile.velocityZ === 0.0) {
+      } else if (cue?.birth === undefined && projectile?.spec !== undefined && projectile.velocityX === 0.0 && projectile.velocityZ === 0.0) {
 
         BlzSetSpecialEffectTime(model, f32(0.3));
         BlzSetSpecialEffectTimeScale(model, 0.0);
