@@ -208,20 +208,20 @@ function pipeTable(text: string): Record<string, string>[] {
   return lines.slice(1).map(line => Object.fromEntries(line.split("|").map((value, index) => [header[index] ?? "", value])));
 }
 
-export function installedBuild(buildInfo: string): { readonly build: string; readonly branch: string } {
+function installedBuild(buildInfo: string): { readonly build: string; readonly branch: string } {
   const rows = pipeTable(buildInfo);
   const row = rows.find(entry => entry.Active === "1") ?? rows[0];
   if (row?.Version === undefined || row.Version === "") fail(".build.info names no Version");
   return { build: row!.Version!, branch: row!.Branch || "us" };
 }
 
-export function liveBuild(versions: string, region: string): string {
+function liveBuild(versions: string, region: string): string {
   const rows = pipeTable(versions);
   const row = rows.find(entry => entry.Region === region) ?? fail(`w3/versions has no ${region} row`);
   return row.VersionsName || fail(`w3/versions ${region} row names no build`);
 }
 
-export function bindBuild(installed: string, live: string, freeBytes: number, updateBytes: number | undefined) {
+function bindBuild(installed: string, live: string, freeBytes: number, updateBytes: number | undefined) {
   const binding = { installed, live, equal: installed === live, freeBytes, ...(updateBytes === undefined ? {} : { updateBytes, updateFits: updateBytes <= freeBytes }) };
   if (!binding.equal) fail(`installed ${installed} isn't the live ${live}: captures bind to the live build. Before Battle.net updates, compare free space (${freeBytes} bytes) with the update's size${updateBytes === undefined ? " (pass --update-bytes N)" : `: ${updateBytes} bytes ${binding.updateFits ? "fit" : "don't fit"}`}`);
   return binding;
