@@ -277,10 +277,11 @@ export class SelectionPanel {
       const x = cardX(slot);
       const name = `${suffix}_${I2S(slot)}`;
       const card = art(root, `MeleeCard${name}`, "war3mapImported\\SelectionCardGray.tga", x, f32(0.275), f32(0.16), f32(0.22));
-      const tag = label(root, `MeleeTag${name}`, x + f32(0.014), f32(0.267), f32(0.132), f32(0.019), f32(0.01));
-      const mode = this.clicks.add(hotspot(root, x + f32(0.014), f32(0.27), f32(0.132), f32(0.027)), { kind: "mode", slot });
-      BlzFrameSetLevel(mode, 1);
-      BlzFrameSetLevel(tag, 2);
+      const mode = BlzCreateFrameByType("BUTTON", `MeleeModeButton${name}`, root, "", 0);
+      placeTopLeft(mode, x + f32(0.014), f32(0.27));
+      BlzFrameSetSize(mode, f32(0.132), f32(0.027));
+      this.clicks.add(mode, { kind: "mode", slot });
+      const tag = label(mode, `MeleeTag${name}`, x + f32(0.014), f32(0.267), f32(0.132), f32(0.019), f32(0.01));
       const portrait = art(root, `MeleePortrait${name}`, portraitTexture(Character.demonHunter, false, slot), x + f32(0.029), f32(0.245), f32(0.102), f32(0.102));
       const name_ = label(root, `MeleeName${name}`, x + f32(0.008), f32(0.102), f32(0.144), f32(0.019), f32(0.011));
       const status = label(root, `MeleeStatus${name}`, x + f32(0.014), f32(0.077), f32(0.132), f32(0.014), f32(0.011));
