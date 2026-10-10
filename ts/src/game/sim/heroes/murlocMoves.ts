@@ -8,16 +8,16 @@ import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
 type Angle = 25 | 35 | 40 | 55 | 70 | 80 | 90;
-export const murlocHit = (damage: number, angle: Angle, growth = 64.31011962890625, base = 18.0, behind = false, element: HitElement = HitElement.normal) =>
+export const murlocHit = (damage: number, angle: Angle, growth = 63.15253829956055, base = 18.0, behind = false, element: HitElement = HitElement.normal) =>
   groundHit(damage, angle, growth, base, element, behind);
-const ordinary = (damage: number, angle: Angle, growth = 64.31011962890625, base = 18.0, behind = false) =>
+const ordinary = (damage: number, angle: Angle, growth = 63.15253829956055, base = 18.0, behind = false) =>
   murlocHit(damage, angle, growth, base, behind);
 const claw = (x1: number, z1: number, x2: number, z2: number, radius = 10.0): StrikeCapsule => ({ x1, z1, x2, z2, radius });
 const body = hurtCapsule(Character.murloc);
 const torso = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
 const arm = (x: number, z: number) => hurtPart(8.0, 40.0, x, z, 8.0);
 const reach = (first: number, last: number, x: number, z: number) => [heroHurtPose(first, last, [torso, arm(x, z)])];
-const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, claw(20.0, 40.0, 66.0, z), ordinary(9.699919700622559, angle))]);
+const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, claw(20.0, 40.0, 66.0, z), ordinary(9.990917205810547, angle))]);
 
 export const MURLOC_MOVES: FighterMoves = {
   dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
@@ -36,32 +36,32 @@ export const MURLOC_MOVES: FighterMoves = {
     },
   },
   normals: {
-    [AttackStyle.jab]: jabStep(heroMove(3, 2, 11, 0, [heroRegion(3, 4, claw(16.0, 40.0, 40.0, 40.0, 8.0), ordinary(2.4249799251556396, 25, 45.93579864501953, 14.0))])),
-    [AttackStyle.jab2]: heroMove(5, 2, 15, 0, [heroRegion(5, 6, claw(18.0, 40.0, 46.0, 42.0), ordinary(4.849959850311279, 35))]),
+    [AttackStyle.jab]: jabStep(heroMove(3, 2, 11, 0, [heroRegion(3, 4, claw(16.0, 40.0, 40.0, 40.0, 8.0), ordinary(2.4977293014526367, 25, 45.10895538330078, 14.0))])),
+    [AttackStyle.jab2]: heroMove(5, 2, 15, 0, [heroRegion(5, 6, claw(18.0, 40.0, 46.0, 42.0), ordinary(4.995458602905273, 35))]),
     [AttackStyle.forwardTilt]: tilt(40.0, 35), [AttackStyle.forwardTiltUp]: tilt(64.0, 55), [AttackStyle.forwardTiltDown]: tilt(14.0, 25),
-    [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, claw(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(8.487430572509766, 90, 82.68444061279297, 22.0))]),
-    [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, claw(18.0, 8.0, 60.0, 8.0), ordinary(7.274940013885498, 80, 82.68444061279297, 22.0))]),
-    [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, claw(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(10.912409782409668, 55))], 48.0, true),
+    [AttackStyle.upTilt]: heroMove(5, 4, 18, 0, [heroRegion(5, 8, claw(14.0, 50.0, 6.0, 90.0, 14.0), ordinary(8.742053031921387, 90, 81.19612121582031, 22.0))]),
+    [AttackStyle.downTilt]: heroMove(5, 3, 16, 0, [heroRegion(5, 7, claw(18.0, 8.0, 60.0, 8.0), ordinary(7.493188381195068, 80, 81.19612121582031, 22.0))]),
+    [AttackStyle.dashAttack]: heroMove(7, 5, 26, 0, [heroRegion(7, 11, claw(16.0, 26.0, 64.0, 26.0, 14.0), ordinary(11.239782333374023, 55))], 48.0, true),
     [AttackStyle.forwardSmash]: heroMove(14, 3, 36, 0, [heroRegion(14, 16, claw(24.0, 40.0, 86.0, 40.0, 12.0), ordinary(17.167999267578125, 35, 107.0719985961914, 26.0))]),
-    [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, claw(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(18.187349319458008, 90, 96.46517944335938, 26.0))]),
+    [AttackStyle.upSmash]: heroMove(11, 4, 34, 0, [heroRegion(11, 14, claw(0.0, 40.0, 0.0, 114.0, 16.0), ordinary(18.732969284057617, 90, 94.72880554199219, 26.0))]),
     [AttackStyle.downSmash]: heroMove(12, 4, 34, 0, [
-      heroRegion(12, 15, claw(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(15.762370109558105, 25, 96.46517944335938, 26.0)),
-      heroRegion(12, 15, claw(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(15.762370109558105, 25, 96.46517944335938, 26.0, true)),
+      heroRegion(12, 15, claw(18.0, 10.0, 74.0, 10.0, 12.0), ordinary(16.235240936279297, 25, 94.72880554199219, 26.0)),
+      heroRegion(12, 15, claw(-18.0, 10.0, -74.0, 10.0, 12.0), ordinary(16.235240936279297, 25, 94.72880554199219, 26.0, true)),
     ]),
-    [AttackStyle.neutralAir]: cleanLateMove(heroMove(5, 6, 20, 12, [heroRegion(5, 10, claw(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(9.699919700622559, 55))]), 2),
-    [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, claw(18.0, 44.0, 70.0, 40.0), ordinary(12.124899864196777, 40, 82.68444061279297, 22.0))]),
-    [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, claw(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(14.549880027770996, 35, 101.05876159667969, 26.0, true))]),
-    [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, claw(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(10.912409782409668, 90, 82.68444061279297, 22.0))]),
-    [AttackStyle.downAir]: heroMove(12, 3, 28, 18, [heroRegion(12, 14, claw(0.0, 10.0, 0.0, -46.0, 12.0), { ...ordinary(13.337390899658203, 90, 82.68444061279297, 22.0), launchZ: -1.0 }, ordinary(13.337390899658203, 70, 82.68444061279297, 22.0))]),
+    [AttackStyle.neutralAir]: cleanLateMove(heroMove(5, 6, 20, 12, [heroRegion(5, 10, claw(-28.0, 40.0, 28.0, 40.0, 20.0), ordinary(9.990917205810547, 55))]), 2),
+    [AttackStyle.forwardAir]: heroMove(7, 3, 24, 14, [heroRegion(7, 9, claw(18.0, 44.0, 70.0, 40.0), ordinary(12.488646507263184, 40, 81.19612121582031, 22.0))]),
+    [AttackStyle.backAir]: heroMove(8, 3, 24, 14, [heroRegion(8, 10, claw(-18.0, 40.0, -72.0, 40.0, 12.0), ordinary(14.986376762390137, 35, 99.23970031738281, 26.0, true))]),
+    [AttackStyle.upAir]: heroMove(6, 4, 20, 12, [heroRegion(6, 9, claw(-18.0, 92.0, 18.0, 92.0, 16.0), ordinary(11.239782333374023, 90, 81.19612121582031, 22.0))]),
+    [AttackStyle.downAir]: heroMove(12, 3, 28, 18, [heroRegion(12, 14, claw(0.0, 10.0, 0.0, -46.0, 12.0), { ...ordinary(13.737512588500977, 90, 81.19612121582031, 22.0), launchZ: -1.0 }, ordinary(13.737512588500977, 70, 81.19612121582031, 22.0))]),
     [AttackStyle.grab]: heroMove(7, 2, 24, 0, [heroRegion(7, 8, claw(16.0, 38.0, 44.0, 38.0), murlocHit(0.0, 35, 0.0, 0.0))]),
-    [AttackStyle.getupAttack]: heroMove(17, 3, 30, 0, [heroRegion(17, 19, claw(-56.0, 14.0, 56.0, 14.0, 14.0), ordinary(7.274940013885498, 35))]),
-    [AttackStyle.ledgeAttack]: heroMove(17, 3, 21, 0, [heroRegion(17, 19, claw(16.0, 36.0, 70.0, 36.0), ordinary(7.274940013885498, 35))]),
+    [AttackStyle.getupAttack]: heroMove(17, 3, 30, 0, [heroRegion(17, 19, claw(-56.0, 14.0, 56.0, 14.0, 14.0), ordinary(7.493188381195068, 35))]),
+    [AttackStyle.ledgeAttack]: heroMove(17, 3, 21, 0, [heroRegion(17, 19, claw(16.0, 36.0, 70.0, 36.0), ordinary(7.493188381195068, 35))]),
   },
   throws: {
-    [GrabAction.pummel]: { contactFrame: 1, totalFrames: 1, effect: ordinary(2.4249799251556396, 35, 0.0, 0.0) },
-    [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: ordinary(8.487430572509766, 40, 82.68444061279297, 22.0) },
-    [GrabAction.throwBack]: { contactFrame: 14, totalFrames: 36, effect: ordinary(10.912409782409668, 40, 96.46517944335938, 26.0, true) },
-    [GrabAction.throwUp]: { contactFrame: 12, totalFrames: 26, effect: ordinary(7.274940013885498, 90, 50.529380798339844, 50.0) },
-    [GrabAction.throwDown]: { contactFrame: 16, totalFrames: 38, effect: ordinary(6.062449932098389, 25, 36.74864196777344, 75.0) },
+    [GrabAction.pummel]: { contactFrame: 1, totalFrames: 1, effect: ordinary(2.4977293014526367, 35, 0.0, 0.0) },
+    [GrabAction.throwForward]: { contactFrame: 12, totalFrames: 32, effect: ordinary(8.742053031921387, 40, 81.19612121582031, 22.0) },
+    [GrabAction.throwBack]: { contactFrame: 14, totalFrames: 36, effect: ordinary(11.239782333374023, 40, 94.72880554199219, 26.0, true) },
+    [GrabAction.throwUp]: { contactFrame: 12, totalFrames: 26, effect: ordinary(7.493188381195068, 90, 49.619850158691406, 50.0) },
+    [GrabAction.throwDown]: { contactFrame: 16, totalFrames: 38, effect: ordinary(6.244323253631592, 25, 36.08716583251953, 75.0) },
   },
 };

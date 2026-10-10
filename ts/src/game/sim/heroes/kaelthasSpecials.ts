@@ -11,7 +11,7 @@ const AIR_LANDING_LAG = 20;
 export const KAEL_PILLAR: SpecialProjectile = {
   model: "Doodads\\Cinematic\\FirePillarMedium\\FirePillarMedium.mdx", modelRadius: 40.0,
   spawnFrame: 0, offsetX: 0.0, offsetZ: 0.0, velocityX: 0.0, velocityZ: 0.0,
-  life: 12, activeFrom: 13, radius: 40.0, effect: kaelHit(12.420000076293945, 80, 93.00499725341797, 30.0),
+  life: 12, activeFrom: 13, radius: 40.0, effect: kaelHit(13.016160011291504, 80, 90.30785369873047, 30.0),
   reflectable: false, limit: 1,
 };
 export const KAEL_FLAME_BOLT: SpecialProjectile = {
@@ -27,14 +27,14 @@ const flamestrike = (landingLag: number | undefined): AuthoredSpecial => ({
 const DRAIN_BEAM: StrikeCapsule = { x1: 30.0, z1: 60.0, x2: 120.0, z2: 60.0, radius: 18.0 };
 const drainMana = (landingLag: number | undefined): AuthoredSpecial => ({
   endFrame: 38, landingLag, hurt: kaelCastBody(6, 20, 46.0, 60.0),
-  commandGrab: { ...frames(10, 13), strike: DRAIN_BEAM, holdFrames: 18, effect: { ...kaelHit(4.139999866485596, 40, 39.15999984741211, 40.0), manaSteal: 30 }, recovery: 16 },
+  commandGrab: { ...frames(10, 13), strike: DRAIN_BEAM, holdFrames: 18, effect: { ...kaelHit(4.338719844818115, 40, 38.02436065673828, 40.0), manaSteal: 30 }, recovery: 16 },
 });
 
 export const BANISH: AppliedStatus = { kind: HeroStatusKind.banish, frames: 90, group: HeroStatusGroup.silence, immunityFrames: 240 };
 const CURSE: StrikeCapsule = { x1: 25.0, z1: 62.0, x2: 110.0, z2: 62.0, radius: 20.0 };
 const banish = (landingLag: number | undefined): AuthoredSpecial => ({
   endFrame: 36, landingLag, hurt: kaelCastBody(8, 22, 46.0, 62.0),
-  regions: [heroRegion(12, 14, CURSE, kaelHit(3.1050000190734863, 35, 0.0, 30.0))], strikeStatus: BANISH,
+  regions: [heroRegion(12, 14, CURSE, kaelHit(3.254040002822876, 35, 0.0, 30.0))], strikeStatus: BANISH,
 });
 
 export const PHOENIX_CHARGE_FRAMES = 42;
@@ -43,7 +43,7 @@ export const PHOENIX_FLIGHT_FRAMES = 30;
 export const PHOENIX_SPEED = 16.0;
 const SWIRL: StrikeCapsule = { x1: -20.0, z1: 55.0, x2: 20.0, z2: 55.0, radius: 42.0 };
 const BIRD: StrikeCapsule = { x1: -24.0, z1: 55.0, x2: 24.0, z2: 55.0, radius: 32.0 };
-const swirl = kaelHit(2.069999933242798, 80, 0.0, 30.0);
+const swirl = kaelHit(2.1693599224090576, 80, 0.0, 30.0);
 const phoenix = (speed: number): AuthoredSpecial => ({
   endFrame: 84, aimFrames: PHOENIX_AIM_FRAMES, rehits: [25, 31, 37, PHOENIX_CHARGE_FRAMES], oncePerAirtime: true, helpless: true, landingLag: 18,
   motion: [
@@ -53,19 +53,19 @@ const phoenix = (speed: number): AuthoredSpecial => ({
   ],
   regions: [
     heroRegion(20, 21, SWIRL, swirl), heroRegion(26, 27, SWIRL, swirl), heroRegion(32, 33, SWIRL, swirl), heroRegion(38, 39, SWIRL, swirl),
-    heroRegion(43, 52, BIRD, kaelHit(12.420000076293945, 55, 78.31999969482422, 40.0)), heroRegion(53, 72, BIRD, kaelHit(6.210000038146973, 70, 58.7400016784668, 30.0)),
+    heroRegion(43, 52, BIRD, kaelHit(13.016160011291504, 55, 76.04872131347656, 40.0)), heroRegion(53, 72, BIRD, kaelHit(6.508080005645752, 70, 57.03654098510742, 30.0)),
   ],
 });
 
 const PHOENIX_AURA: SpecialProjectile = {
   model: "Abilities\\Spells\\Other\\ImmolationRed\\ImmolationRedDamage.mdx",
   spawnFrame: 0, offsetX: 0.0, offsetZ: 0.0, velocityX: 0.0, velocityZ: 0.0,
-  life: 6, radius: 70.0, effect: kaelHit(4.139999866485596, 70, 39.15999984741211, 30.0), reflectable: false, limit: 3,
+  life: 6, radius: 70.0, effect: kaelHit(4.338719844818115, 70, 38.02436065673828, 30.0), reflectable: false, limit: 3,
 };
 const SUMMONED_PHOENIX: SpecialCompanion = {
   behavior: "flying", followSpeed: 9.0, followBehind: -60.0, followHeight: 110.0, returnSpeed: 12.0,
   lungeStartup: 6, lungeActive: 6, lungeRecovery: 20, lungeTravel: 0.0,
-  bite: { x1: -20.0, z1: 0.0, x2: 20.0, z2: 0.0, radius: 30.0 }, biteEffect: kaelHit(4.139999866485596, 70, 39.15999984741211, 30.0),
+  bite: { x1: -20.0, z1: 0.0, x2: 20.0, z2: 0.0, radius: 30.0 }, biteEffect: kaelHit(4.338719844818115, 70, 38.02436065673828, 30.0),
   stunFrames: 30, leash: 600.0, leashFrames: 60,
 };
 export const SUMMON_PHOENIX: SpecialPlacement = {

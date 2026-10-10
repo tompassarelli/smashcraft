@@ -29,7 +29,7 @@ export const BEAR: SpecialCompanion = {
 };
 export const BEAR_PLACEMENT: SpecialPlacement = {
   frame: 24, offsetX: h(f32(0.6)), radius: h(f32(0.3)), height: h(f32(0.8)),
-  durability: 30.0, life: 600, fireAges: [], companion: BEAR,
+  durability: 30.0, life: 480, fireAges: [], companion: BEAR,
 };
 const stampede = (spawnFrame: number): SpecialProjectile => ({
   spawnFrame, offsetX: h(f32(0.4)), offsetZ: h(f32(0.15)),
@@ -52,7 +52,7 @@ const QUILBEAST: SpecialCompanion = {
 };
 export const QUILBEAST_PLACEMENT: SpecialPlacement = {
   slot: 1, frame: 18, offsetX: h(f32(0.65)), radius: h(f32(0.2)), height: h(f32(0.5)),
-  durability: 18.0, life: 600, fireAges: [18, 108, 198, 288, 378, 468, 558], shot: QUILL, companion: QUILBEAST,
+  durability: 18.0, life: 480, fireAges: [18, 108, 198, 288, 378, 468, 558], shot: QUILL, companion: QUILBEAST,
   model: { path: "units\\creeps\\QuillBeast\\QuillBeast.mdl", height: 120.0, alpha: 255 },
 };
 const SUMMON_QUILBEAST: AuthoredSpecial = { endFrame: 32, groundOnly: true, placement: QUILBEAST_PLACEMENT };

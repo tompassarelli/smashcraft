@@ -12,8 +12,8 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZAt, surfaceZAt } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
 
-export const RIFLEMAN_BEAR_LIFETIME = 100;
-const RIFLEMAN_BEAR_SWIPE_INTERVAL = 18;
+export const RIFLEMAN_BEAR_LIFETIME = 60;
+const RIFLEMAN_BEAR_SWIPE_INTERVAL = 20;
 const FREEZE_TRAP_ARMING_FRAMES = 20;
 const FREEZE_TRAP_LIFETIME_FRAMES = 480;
 
@@ -21,7 +21,7 @@ export const FREEZE_TRAP_FREEZE_FRAMES = 300;
 const FREEZE_TRAP_COOLDOWN_FRAMES = 90;
 const FREEZE_TRAP_TRIGGER_RADIUS = 42.0;
 
-export const BEAR_SWIPE = { damage: 7.90500020980835, growth: 97.51050567626953, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
+export const BEAR_SWIPE = { damage: 7.0, growth: 104.0, base: 18.0, launchX: DIAGONAL_UNIT, launchZ: 0.3499999940395355, electric: false } as const;
 export const BEAR_SWIPE_EX = { ...BEAR_SWIPE, damage: f32(BEAR_SWIPE.damage * 1.25) } as const;
 
 export function specialAlreadyHit(owner: Fighter, targetSlot: number): boolean {
