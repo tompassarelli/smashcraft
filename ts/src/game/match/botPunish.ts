@@ -17,7 +17,7 @@ import { DOWN_BOUND_FRAMES, TECH_IN_PLACE_FRAMES, TECH_ROLL_FRAMES } from "../si
 import { heroStatusBlocksActions } from "../sim/heroStatus";
 import type { Fighter } from "../sim/fighter";
 import { heroSpecialEndFrame, runningHeroSpecial } from "../sim/heroSpecialRules";
-import { attackLandingLag, attackRecoveryFrames, attackStartupFrames, characterAttackActiveFrames, landsIntoAttack } from "../sim/moves";
+import { attackLandingLag, attackStartupFrames, characterAttackActiveFrames, landsIntoAttack } from "../sim/moves";
 import type { Controls } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import type { FighterGameplan } from "../sim/gameplan";
@@ -208,7 +208,7 @@ function spacingTool(plan: Readonly<FighterGameplan>, move: AttackStyle): boolea
 
 
 function swing(f: Readonly<Fighter>, style: AttackStyle, moves: Fighter["tuning"]["moves"]): number {
-  return characterAttackActiveFrames(f.character, style, moves) + attackRecoveryFrames(f.character, style, true, moves);
+  return characterAttackActiveFrames(f.character, style, moves);
 }
 
 export function choosePunish(f: Readonly<Fighter>, target: Readonly<Fighter>, stage: number, matchFrame: number, frame: number, skill: CpuSkill, input: Controls, commands: AttackBuffer, observationAge = 0, burned?: AttackStyle): boolean {

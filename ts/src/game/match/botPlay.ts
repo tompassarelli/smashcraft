@@ -349,7 +349,7 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   if (skill.basicMoves === undefined && pressBotRead(runtime.botStrategies[slot], fighter, target, stage, stageFrame, frame, input, commands)) return;
-  if (skill.basicMoves === undefined && keepClearOfBurn(runtime.botStrategies[slot], burned, fighter, target, stage, input)) return;
+  if (skill.basicMoves === undefined && keepClearOfBurn(runtime.botStrategies[slot], burned, fighter, target, stage, frame, observationAge, stageFrame, input)) return;
   if (escapeCorner(fighter, target, stage, skill, slot, frame, input) || pressEdgeCancel(fighter, target, stage, skill, slot, frame, input, commands)) return;
   // A cornered opponent is pressed, never left to an idle stretch or a keep-away plan.
   const pressing = pressCorner(fighter, target, stage, skill);
