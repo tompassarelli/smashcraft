@@ -59,9 +59,14 @@ const FROZEN_THRONE: StageScenery = {
   sky: STAGE_SKY_MODELS[2] ?? "",
 
   fog: { start: 5000.0, end: 11000.0, red: 0.375, green: 0.625, blue: 0.875 },
+  floor: { model: STAGE_SEA_MODEL, z: -1300.0, color: [176, 208, 232] },
   pieces: [
-
     { model: "Doodads\\Cinematic\\FrozenThrone\\FrozenThrone.mdx", x: 1900.0, y: 6500.0, z: -2620.0, scale: 0.5, yaw: 250.0, matrixScale: [1.0, 1.0, f32(1.763)] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: -3300.0, y: 2200.0, z: -1300.0, scale: 2.5, yaw: 185.0, matrixScale: [2.5, 1.0, 0.875] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: -1700.0, y: 2300.0, z: -1300.0, scale: 2.5, yaw: 170.0, matrixScale: [2.5, 1.0, 1.75] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: -100.0, y: 2200.0, z: -1300.0, scale: 2.5, yaw: 200.0, matrixScale: [2.5, 1.0, 0.875] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: 1500.0, y: 2350.0, z: -1300.0, scale: 2.25, yaw: 165.0, matrixScale: [2.5, 1.0, 1.0] },
+    { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 3100.0, y: 2250.0, z: -1300.0, scale: 2.5, yaw: 190.0, matrixScale: [2.5, 1.0, 1.75] },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier0.mdx", x: -1900.0, y: 3700.0, z: -2560.0, scale: 3.5, yaw: 20.0, matrixScale: [1.0, 1.0, f32(1.788)] },
     { model: "Doodads\\Icecrown\\Rocks\\Glacier\\Glacier5.mdx", x: 2300.0, y: 2900.0, z: -2300.0, scale: 2.25, yaw: 140.0, matrixScale: [1.0, 1.0, f32(3.206)] },
     { model: "Doodads\\Icecrown\\Rocks\\Icecrown_Crystal\\Icecrown_Crystal0.mdx", x: -1750.0, y: 2700.0, z: -2290.0, scale: 1.5, yaw: 300.0, matrixScale: [1.0, 1.0, f32(3.187)] },
