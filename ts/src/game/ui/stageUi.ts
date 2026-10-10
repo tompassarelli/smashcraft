@@ -129,7 +129,7 @@ export class StagePanel {
     BlzFrameSetEnable(this.chip, false);
     const help = journal
       ? "Click a stage or move the stick.\nAny player can choose.\nA or Start: start · X: back"
-      : "Click a stage or move the chip.\nAny player can choose.\nLeft/Right: change stage · Y: start";
+      : "Click a stage or move the chip.\nAny player can choose.\nMovement controls: change stage · Y: start";
     stageText(root, "MeleeStageHelp", f32(0.454), f32(0.119), f32(0.3), f32(0.025), f32(0.008), help);
     this.clicks.add(stageButton(root, f32(0.545), f32(0.092), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), { kind: "start" });
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK [X]" : "BACK TO FIGHTERS"), { kind: "back" });

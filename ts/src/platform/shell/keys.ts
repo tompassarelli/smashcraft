@@ -1,6 +1,5 @@
 import { cameraKey, returnPauseMenu, PAUSE_CAMERA_KEYS, pauseCameraKey } from "./pauseCamera";
 import { HIT_PRESENTATION_CASES } from "../../game/shell/hitPresentationCases";
-import { warcraftChatOpen } from "../editboxJournal";
 import { createImpactEvents } from "../../game/presentation/impactEvents";
 import { emitImpacts } from "../../game/presentation/impactState";
 
@@ -131,7 +130,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
   const { keys, bindings } = participant;
   const settings = views(s).settings[slot];
   if (key < 0 || key > 255 || keyDown(keys, key)) return;
-  if (s.pauseMenu?.title && (key === Key.enter || key === Key.n || key === Key.y)) {
+  if (s.pauseMenu?.title && (key === Key.n || key === Key.y)) {
     s.pauseMenu.title = false;
     return;
   }
@@ -141,7 +140,6 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     return;
   }
   if (s.game.phase === Phase.match && s.session.paused) {
-    if (key === Key.enter && warcraftChatOpen()) return;
     if (GetTriggerPlayer() === GetLocalPlayer() && pauseCameraKey(key)) {
       if (s.rollback?.journal?.editbox === undefined || playsOnKeyboard(s.rollback.journal, slot)) cameraKey(s, key, true);
       return;
@@ -152,7 +150,7 @@ function participantKeyDown(s: ShellState, slot: ParticipantSlot): void {
     else if (key === 0x26 || key === 32) menu.choice = menu.choice === 0 ? 2 : menu.choice - 1;
     else if (key === 0x28 || key === 69) menu.choice = menu.choice === 2 ? 0 : menu.choice + 1;
     else if (key === Key.escape || key === Key.u) exitPausedMatch(s, false);
-    else if (key === Key.enter || key === Key.n) {
+    else if (key === Key.n) {
       if (menu.choice === 0) {
         startDown(s, slot);
         startKeyUp(s.session, slot);
