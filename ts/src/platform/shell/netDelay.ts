@@ -46,7 +46,7 @@ function humans(game: Readonly<MatchState>): number {
 
 const isOnline = (game: Readonly<MatchState>): boolean => humans(game) > 1;
 
-function requestFor(net: Readonly<NetDelay>, game: Readonly<MatchState>, slot: number, choice: number): number {
+export function requestFor(net: Readonly<NetDelay>, game: Readonly<MatchState>, slot: number, choice: number): number {
   return requestedDelay(choice, isOnline(game) ? at(net.proposals, slot) : DEFAULT_DELAY);
 }
 
