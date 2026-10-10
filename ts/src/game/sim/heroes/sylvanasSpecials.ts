@@ -11,13 +11,13 @@ const BLACK_ARROW: AuthoredSpecial = {
   projectiles: [{
     model: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl",
     spawnFrame: 16, offsetX: 44.0, offsetZ: 60.0, velocityX: 17.0, velocityZ: 0.0, upVelocityZ: 5.0,
-    life: 36, radius: 10.0, effect: sylvanasHit(9.0, 35, 70.0, 16.0), reflectable: true, limit: 1,
+    life: 36, radius: 10.0, effect: sylvanasHit(8.748000144958496, 35, 72.16999816894531, 16.0), reflectable: true, limit: 1,
   }],
   hurt: [hurtPose(12, 22, sylvanasReach(44.0, 60.0))],
 };
 const SILENCE: AuthoredSpecial = {
   endFrame: 48,
-  regions: [heroRegion(18, 20, sylvanasStrike(28.0, 68.0, 143.0, 68.0, 12.0), sylvanasHit(4.0, 60, 45.0, 20.0))],
+  regions: [heroRegion(18, 20, sylvanasStrike(28.0, 68.0, 143.0, 68.0, 12.0), sylvanasHit(3.888000011444092, 60, 46.39500045776367, 20.0))],
   strikeStatus: { kind: HeroStatusKind.silence, frames: 90, group: HeroStatusGroup.silence, immunityFrames: 180 },
   hurt: [hurtPose(14, 24, sylvanasReach(48.0, 68.0))],
 };
@@ -28,7 +28,7 @@ const flight = (rise: number, across: number): AuthoredSpecial => ({
 });
 const LIFE_DRAIN: AuthoredSpecial = {
   endFrame: 52, groundOnly: true,
-  commandGrab: { ...frames(16, 18), strike: sylvanasStrike(18.0, 54.0, 68.0, 54.0, 12.0), holdFrames: 16, effect: sylvanasHit(9.0, 50, 90.0, 24.0), recovery: 28, heal: { heal: 3.0 } },
+  commandGrab: { ...frames(16, 18), strike: sylvanasStrike(18.0, 54.0, 68.0, 54.0, 12.0), holdFrames: 16, effect: sylvanasHit(8.748000144958496, 50, 92.79000091552734, 24.0), recovery: 28, heal: { heal: 3.0 } },
   hurt: [hurtPose(13, 35, sylvanasReach(48.0, 54.0))],
 };
 

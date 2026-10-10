@@ -20,15 +20,15 @@ const BLADE_RADIUS = 6.0;
 
 
 export const wardenHit = makeHit({
-  LINK: { growth: 55.0, base: 12.0 },
-  POKE: { growth: 75.0, base: 18.0 },
-  LAUNCH: { growth: 95.0, base: 20.0 },
-  EDGE: { growth: 100.0, base: 22.0 },
-  KILL: { growth: 110.0, base: 26.0 },
-  SPIKE: { growth: 100.0, base: 22.0 },
+  LINK: { growth: 60.279998779296875, base: 12.0 },
+  POKE: { growth: 82.19999694824219, base: 18.0 },
+  LAUNCH: { growth: 104.12000274658203, base: 20.0 },
+  EDGE: { growth: 109.5999984741211, base: 22.0 },
+  KILL: { growth: 120.55999755859375, base: 26.0 },
+  SPIKE: { growth: 109.5999984741211, base: 22.0 },
 
-  JUGGLE: { growth: 55.0, base: 45.0 },
-  CHASE: { growth: 40.0, base: 75.0 },
+  JUGGLE: { growth: 60.279998779296875, base: 45.0 },
+  CHASE: { growth: 43.84000015258789, base: 75.0 },
 }, HitElement.slash);
 
 
@@ -59,7 +59,7 @@ function throwMove(release: number, recovery: number, damage: number, kind: Para
   return { contactFrame: release, totalFrames: release + recovery, effect: wardenHit(damage, kind, angle, facing) };
 }
 
-const BACK_AIR = wardenHit(11.0, "KILL", 35, -1.0);
+const BACK_AIR = wardenHit(10.043000221252441, "KILL", 35, -1.0);
 
 const SKY_LIFT: readonly Strike[] = [
   [blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), linkAt(2.0, 8.0, 90, HitElement.normal)],
@@ -77,10 +77,10 @@ const fallingKnives = (damage: number, base: number) => drillStrikes(-4.0, -70.0
   { centre: linkAt(damage, base, 270), front: linkAt(damage, base, 250), back: linkAt(damage, base, 290) });
 const FALLING_KNIVES: AuthoredMove = {
   ...heroMove(7, 7, 14, 10, multiHit([
-    { first: 7, last: 7, strikes: fallingKnives(2.0, 25.0) },
-    { first: 9, last: 9, strikes: fallingKnives(2.0, 25.0) },
-    { first: 11, last: 11, strikes: fallingKnives(2.0, 25.0) },
-    { first: 13, last: 13, strikes: fallingKnives(3.0, 40.0) },
+    { first: 7, last: 7, strikes: fallingKnives(1.8259999752044678, 25.0) },
+    { first: 9, last: 9, strikes: fallingKnives(1.8259999752044678, 25.0) },
+    { first: 11, last: 11, strikes: fallingKnives(1.8259999752044678, 25.0) },
+    { first: 13, last: 13, strikes: fallingKnives(2.739000082015991, 40.0) },
   ])),
   fall: [{ firstFrame: 6, lastFrame: 12, speedZ: -9.0 }],
 };
@@ -88,13 +88,13 @@ const GRAB_EFFECT = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ
 
 const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     ...WARDEN_GROUND.normals,
-    [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, wardenHit(12.0, "KILL", 40), wardenHit(16.0, "KILL", 40))),
+    [AttackStyle.forwardSmash]: heroMove(15, 3, 30, 0, cut(15, [64.0, 45.0, 26.0], L, wardenHit(10.956000328063965, "KILL", 40), wardenHit(14.607999801635742, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(13, 4, 27, 0, path(13, [
       blade(12.0, 46.0, 24.0, f32(M - BLADE_RADIUS)),
       blade(8.0, 46.0, 10.0, f32(M - BLADE_RADIUS)),
       blade(0.0, 46.0, -10.0, f32(M - BLADE_RADIUS)),
       blade(-8.0, 46.0, -24.0, f32(M - BLADE_RADIUS)),
-    ], wardenHit(14.0, "KILL", 90))),
+    ], wardenHit(12.781999588012695, "KILL", 90))),
     [AttackStyle.downSmash]: heroMove(12, 5, 28, 0, [
       ...path(12, [
         blade(18.0, 16.0, f32(M - BLADE_RADIUS), 16.0),
@@ -112,8 +112,8 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
       blade(0.0, 52.0, 0.0, f32(M - BLADE_RADIUS)),
       blade(-12.0, 50.0, -62.0, 85.0),
       blade(-18.0, 35.0, -f32(M - BLADE_RADIUS), 35.0),
-    ], wardenHit(6.0, "POKE", 50))),
-    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(10.0, "EDGE", 40))),
+    ], wardenHit(5.478000164031982, "POKE", 50))),
+    [AttackStyle.forwardAir]: heroMove(8, 3, 20, 12, cut(8, [64.0, 45.0, 26.0], M, wardenHit(9.130000114440918, "EDGE", 40))),
 
     [AttackStyle.backAir]: heroMove(7, 3, 22, 12, [
       ...cut(7, [54.0, 45.0, 36.0], M, BACK_AIR, undefined, -1.0),
@@ -124,7 +124,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
     [AttackStyle.upAir]: heroMove(5, 9, 15, 10, multiHit([
       { first: 5, last: 6, strikes: SKY_LIFT },
       { first: 8, last: 9, strikes: SKY_LIFT },
-      { first: 11, last: 13, strikes: [[blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), wardenHit(5.0, "LAUNCH", 85, 1.0, HitElement.normal)]] },
+      { first: 11, last: 13, strikes: [[blade(0.0, 48.0, 0.0, f32(M - BLADE_RADIUS), 10.0), wardenHit(4.565000057220459, "LAUNCH", 85, 1.0, HitElement.normal)]] },
     ])),
     [AttackStyle.downAir]: FALLING_KNIVES,
     [AttackStyle.grab]: heroMove(6, 2, 22, 0, [heroRegion(6, 7,
@@ -215,9 +215,9 @@ export const WARDEN_MOVES: FighterMoves = {
   hurtboxes: wardenHurtboxes(),
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 3.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: throwMove(10, 18, 6.0, "EDGE", 35),
-    [GrabAction.throwBack]: throwMove(14, 21, 7.0, "EDGE", 40, -1.0),
-    [GrabAction.throwUp]: throwMove(11, 9, 5.0, "JUGGLE", 85),
-    [GrabAction.throwDown]: throwMove(14, 20, 4.0, "CHASE", 25),
+    [GrabAction.throwForward]: throwMove(10, 18, 5.478000164031982, "EDGE", 35),
+    [GrabAction.throwBack]: throwMove(14, 21, 6.390999794006348, "EDGE", 40, -1.0),
+    [GrabAction.throwUp]: throwMove(11, 9, 4.565000057220459, "JUGGLE", 85),
+    [GrabAction.throwDown]: throwMove(14, 20, 3.6519999504089355, "CHASE", 25),
   },
 };

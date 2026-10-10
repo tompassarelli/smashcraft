@@ -15,7 +15,7 @@ const H = HERO_REFERENCE_HEIGHT;
 const heights = (multiple: number): number => f32(H * f32(multiple));
 const perFrame = (distance: number, first: number, last: number): number => f32(distance / (last - first + 1));
 
-const JUSTICE = { ...hit(13.0, "LAUNCH", 80, false, HitElement.holy), growth: 70.0, base: 42.0 };
+const JUSTICE = { ...hit(13.935999870300293, "LAUNCH", 80, false, HitElement.holy), growth: 66.98999786376953, base: 42.0 };
 const cleansingHammer = (landingLag: number | undefined): AuthoredSpecial => ({
   endFrame: 38,
   cleanseFrame: 14,
@@ -29,7 +29,7 @@ const cleansingHammer = (landingLag: number | undefined): AuthoredSpecial => ({
 });
 
 const FURY_SPEED = perFrame(heights(f32(0.75)), 15, 20);
-const FURY = hit(14.0, "EDGE", 40, false, HitElement.holy);
+const FURY = hit(15.008000373840332, "EDGE", 40, false, HitElement.holy);
 const furyRegions = [heroRegion(15, 20, capsule(20.0, 58.0, 128.0, 48.0, 18.0), FURY)];
 const RIGHTEOUS_FURY: AuthoredSpecial = {
   endFrame: 49,
@@ -60,7 +60,7 @@ const ASCENT_FIRST = 8;
 const ASCENT_LAST = 29;
 const ascension = (rise: number): AuthoredSpecial => ({
   endFrame: ASCENT_LAST,
-  regions: [heroRegion(10, 15, capsule(10.0, 70.0, 24.0, f32(MEDIUM + 20.0), 16.0), hit(8.0, "LAUNCH", 80, false, HitElement.holy))],
+  regions: [heroRegion(10, 15, capsule(10.0, 70.0, 24.0, f32(MEDIUM + 20.0), 16.0), hit(8.576000213623047, "LAUNCH", 80, false, HitElement.holy))],
   motion: [
     { ...frames(ASCENT_FIRST, ASCENT_LAST - 1), velocityX: perFrame(heights(f32(0.2)), ASCENT_FIRST, ASCENT_LAST - 1), velocityZ: perFrame(heights(rise), ASCENT_FIRST, ASCENT_LAST - 1), driftSpeed: perFrame(heights(f32(1.6)), ASCENT_FIRST, ASCENT_LAST - 1) },
     { ...frames(ASCENT_LAST, ASCENT_LAST), velocityX: 0.0, velocityZ: 0.0 },
@@ -79,7 +79,7 @@ const CONSECRATION: AuthoredSpecial = {
     modelRadius: 1202.0,
     spawnFrame: 16, offsetX: 70.0, offsetZ: 6.0,
     velocityX: 0.0, velocityZ: 0.0, life: 120, radius: 60.0,
-    effect: { damage: 2.0, growth: 30.0, base: 30.0, launchX: f32(0.173648178), launchZ: f32(0.984807753), electric: false, element: HitElement.holy },
+    effect: { damage: 2.0, growth: 28.709999084472656, base: 30.0, launchX: f32(0.173648178), launchZ: f32(0.984807753), electric: false, element: HitElement.holy },
     reflectable: false, limit: 1, needsLineOfSight: true,
     pool: { every: 45, growth: 0.0, maxRadius: 60.0 },
   }],

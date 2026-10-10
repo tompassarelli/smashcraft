@@ -19,14 +19,14 @@ const AIR_LANDING_LAG = 20;
 const FROST_NOVA_ORB: SpecialProjectile = {
   model: "Abilities\\Spells\\Other\\FrostBolt\\FrostBoltMissile.mdx",
   spawnFrame: 18, offsetX: h(f32(0.40)), offsetZ: CHEST, velocityX: h(f32(0.09)), velocityZ: 0.0,
-  life: 80, radius: h(f32(0.16)), effect: hit(9.0, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
+  life: 80, radius: h(f32(0.16)), effect: hit(9.602999687194824, "POKE", 35), reflectable: true, limit: 1, status: CHILL,
 };
 
 
 const FROST_NOVA_BURST: SpecialProjectile = {
   model: "Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdx",
   spawnFrame: 0, offsetX: 0.0, offsetZ: 0.0, velocityX: 0.0, velocityZ: 0.0,
-  life: 9, activeFrom: 7, radius: h(f32(0.7)), effect: hit(10.0, "LAUNCH", 70), reflectable: false, limit: 1, status: CHILL,
+  life: 9, activeFrom: 7, radius: h(f32(0.7)), effect: hit(10.670000076293945, "LAUNCH", 70), reflectable: false, limit: 1, status: CHILL,
 };
 
 const frostNova = (landingLag: number | undefined): AuthoredSpecial => ({
@@ -61,7 +61,7 @@ const DEATH_AND_DECAY: AuthoredSpecial = {
   endFrame: 50,
   landingLag: AIR_LANDING_LAG,
   hurt: lichCastBody(5, 14, 28.0, f32(CHEST + 12.0)),
-  projectiles: [decayStrike(23, 62, 5.0, "POKE", 80), decayStrike(63, 90, 9.0, "LAUNCH", 70)],
+  projectiles: [decayStrike(23, 62, 5.335000038146973, "POKE", 80), decayStrike(63, 90, 9.602999687194824, "LAUNCH", 70)],
 };
 
 const ASCENT_FRAMES = 25;
@@ -89,7 +89,7 @@ const DARK_RITUAL: AuthoredSpecial = {
 
   endFrame: 24,
   landingLag: AIR_LANDING_LAG,
-  regions: [heroRegion(6, 8, { x1: -1.0, z1: CHEST, x2: 1.0, z2: CHEST, radius: h(f32(0.6)) }, hit(5.0, "POKE", 60))],
+  regions: [heroRegion(6, 8, { x1: -1.0, z1: CHEST, x2: 1.0, z2: CHEST, radius: h(f32(0.6)) }, hit(5.335000038146973, "POKE", 60))],
   ritual: { frame: 6, mana: 30 },
 };
 

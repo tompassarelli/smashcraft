@@ -22,15 +22,15 @@ export const BLADE_RADIUS = 6.0;
 
 
 export const hit = makeHit({
-  LINK: { growth: 52.525001525878906, base: 12.0 },
-  POKE: { growth: 71.625, base: 18.0 },
-  LAUNCH: { growth: 90.72500610351562, base: 20.0 },
-  EDGE: { growth: 95.5, base: 22.0 },
-  KILL: { growth: 105.05000305175781, base: 26.0 },
-  SPIKE: { growth: 95.5, base: 22.0 },
+  LINK: { growth: 56.621952056884766, base: 12.0 },
+  POKE: { growth: 77.21174621582031, base: 18.0 },
+  LAUNCH: { growth: 97.80155944824219, base: 20.0 },
+  EDGE: { growth: 102.9489974975586, base: 22.0 },
+  KILL: { growth: 113.24390411376953, base: 26.0 },
+  SPIKE: { growth: 102.9489974975586, base: 22.0 },
 
-  JUGGLE: { growth: 52.525001525878906, base: 50.0 },
-  CHASE: { growth: 38.20000076293945, base: 75.0 },
+  JUGGLE: { growth: 56.621952056884766, base: 50.0 },
+  CHASE: { growth: 41.17959976196289, base: 75.0 },
 }, HitElement.slash);
 
 
@@ -136,13 +136,13 @@ const BODY: FighterHurtboxes = {
 export const BLADEMASTER_MOVES: FighterMoves = {
   normals: {
     ...BLADEMASTER_GROUND.normals,
-    [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(14.325000762939453, "KILL", 40), hit(18.145000457763672, "KILL", 40))),
+    [AttackStyle.forwardSmash]: heroMove(17, 3, 32, 0, cut(17, [58.0, 45.0, 32.0], XL, hit(13.307926177978516, "KILL", 40), hit(16.856704711914062, "KILL", 40))),
     [AttackStyle.upSmash]: heroMove(15, 4, 30, 0, path(15, [
       capsule(16.0, 38.0, 24.0, f32(L - BLADE_RADIUS)),
       capsule(8.0, 38.0, 12.0, f32(L - BLADE_RADIUS)),
       capsule(0.0, 38.0, 0.0, f32(L - BLADE_RADIUS)),
       capsule(-8.0, 38.0, -12.0, f32(L - BLADE_RADIUS)),
-    ], hit(15.280000686645508, "KILL", 90))),
+    ], hit(14.195120811462402, "KILL", 90))),
     [AttackStyle.downSmash]: heroMove(14, 6, 19, 0, [...lowSweep(14, 1.0), ...lowSweep(17, -1.0)]),
 
 
@@ -154,18 +154,18 @@ export const BLADEMASTER_MOVES: FighterMoves = {
         [capsule(-20.0, 35.0, -f32(M - BLADE_RADIUS), 50.0), linkAt(3.0, 30.0, 80)],
       ] },
       { first: 13, last: 15, strikes: [
-        [capsule(20.0, 45.0, BLADE_WHEEL_INNER, 45.0, 10.0), hit(5.730000019073486, "POKE", 50)],
-        [capsule(0.0, 55.0, 0.0, f32(BLADE_WHEEL_INNER + 45.0), 10.0), hit(5.730000019073486, "POKE", 50)],
-        [capsule(-20.0, 45.0, -BLADE_WHEEL_INNER, 45.0, 10.0), hit(5.730000019073486, "POKE", 50, -1.0)],
+        [capsule(20.0, 45.0, BLADE_WHEEL_INNER, 45.0, 10.0), hit(5.323170185089111, "POKE", 50)],
+        [capsule(0.0, 55.0, 0.0, f32(BLADE_WHEEL_INNER + 45.0), 10.0), hit(5.323170185089111, "POKE", 50)],
+        [capsule(-20.0, 45.0, -BLADE_WHEEL_INNER, 45.0, 10.0), hit(5.323170185089111, "POKE", 50, -1.0)],
       ] },
     ])),
-    [AttackStyle.forwardAir]: heroMove(10, 3, 22, 14, cut(10, [60.0, 45.0, 30.0], L, hit(10.505000114440918, "EDGE", 40), hit(13.370000839233398, "EDGE", 40))),
-    [AttackStyle.backAir]: heroMove(8, 3, 23, 13, cut(8, [34.0, 45.0, 56.0], L, hit(11.460000038146973, "KILL", 35, -1.0), undefined, -1.0)),
+    [AttackStyle.forwardAir]: heroMove(10, 3, 22, 14, cut(10, [60.0, 45.0, 30.0], L, hit(9.75914478302002, "EDGE", 40), hit(12.420730590820312, "EDGE", 40))),
+    [AttackStyle.backAir]: heroMove(8, 3, 23, 13, cut(8, [34.0, 45.0, 56.0], L, hit(10.646340370178223, "KILL", 35, -1.0), undefined, -1.0)),
     [AttackStyle.upAir]: heroMove(6, 3, 19, 11, path(6, [
       capsule(0.0, 45.0, 0.0, f32(M - BLADE_RADIUS)),
       capsule(3.0, 45.0, 3.0, f32(M - BLADE_RADIUS)),
       capsule(6.0, 45.0, 6.0, f32(M - BLADE_RADIUS)),
-    ], hit(7.640000343322754, "LAUNCH", 85))),
+    ], hit(7.097560405731201, "LAUNCH", 85))),
     [AttackStyle.downAir]: bladestorm,
     [AttackStyle.grab]: heroMove(7, 2, 22, 0, path(7, [
       capsule(18.0, 45.0, f32(S - 10.0), 45.0, 10.0),
@@ -174,10 +174,10 @@ export const BLADEMASTER_MOVES: FighterMoves = {
   },
   throws: {
     [GrabAction.pummel]: { contactFrame: 5, totalFrames: 12, effect: { damage: 2.865000009536743, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } },
-    [GrabAction.throwForward]: authoredThrow(12, 18, 6.685000419616699, "EDGE", 35),
-    [GrabAction.throwBack]: authoredThrow(15, 22, 7.640000343322754, "EDGE", 40, -1.0),
-    [GrabAction.throwUp]: authoredThrow(13, 10, 5.730000019073486, "JUGGLE", 85),
-    [GrabAction.throwDown]: authoredThrow(16, 20, 4.775000095367432, "CHASE", 25),
+    [GrabAction.throwForward]: authoredThrow(12, 18, 6.210365295410156, "EDGE", 35),
+    [GrabAction.throwBack]: authoredThrow(15, 22, 7.097560405731201, "EDGE", 40, -1.0),
+    [GrabAction.throwUp]: authoredThrow(13, 10, 5.323170185089111, "JUGGLE", 85),
+    [GrabAction.throwDown]: authoredThrow(16, 20, 4.435975074768066, "CHASE", 25),
   },
   dashAttack: AttackStyle.dashAttack,
   smashMaxChargeFrames: 45,

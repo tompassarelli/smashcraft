@@ -7,7 +7,7 @@ const lumberToss = (air: boolean): AuthoredSpecial => ({
   projectiles: [{
     model: "Abilities\\Weapons\\AncientProtectorMissile\\AncientProtectorMissile.mdl",
     spawnFrame: 14, offsetX: 34.0, offsetZ: 48.0, velocityX: 9.0, velocityZ: 0.0,
-    life: 70, radius: 18.0, effect: peonHit(8.0, 35, 75.0, 18.0), reflectable: true, limit: 1,
+    life: 70, radius: 18.0, effect: peonHit(8.192000389099121, 35, 73.875, 18.0), reflectable: true, limit: 1,
   }],
 });
 
@@ -19,7 +19,7 @@ const BURROW: AuthoredSpecial = {
     shot: {
       model: "Abilities\\Weapons\\HunterMissile\\HunterMissile.mdl",
       spawnFrame: 0, offsetX: 28.0, offsetZ: 48.0, velocityX: 12.0, velocityZ: 0.0,
-      life: 36, radius: 12.0, effect: peonHit(5.0, 35, 75.0, 18.0), reflectable: true, limit: 3,
+      life: 36, radius: 12.0, effect: peonHit(5.119999885559082, 35, 73.875, 18.0), reflectable: true, limit: 3,
     },
   },
 };
