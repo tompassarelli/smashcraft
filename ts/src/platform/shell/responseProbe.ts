@@ -18,7 +18,9 @@ const PAGE_ROWS = 150;
 const EDGE_PAIR_LIMIT = 64;
 
 const TRANSPORT_LIMIT = 8192;
-const INTEGRITY_LIMIT = 8192;
+const INTEGRITY_LIMIT = 32768;
+export const EPOCH_CALLBACKS = 6000;
+export const CHECKSUM_FRAMES = 600;
 export const PROBE_EXPORT = "probe.exportPage";
 
 
@@ -97,6 +99,9 @@ export interface ResponseProbe {
   waitingOwnCallbacks: number;
   readonly transport: TransportStamp[];
   readonly transportOrder: number[];
+  epoch: number | undefined;
+  seenEpoch: number | undefined;
+  readonly incomplete: number[];
 }
 
 function serviceRow(): ServiceRow {
@@ -128,6 +133,7 @@ export function createResponseProbe(build: string): ResponseProbe {
     transportSent: 0, transportReceived: 0, transportUnmatched: 0, transportDropped: 0,
     waitingCallbacks: 0, waitingOwnCallbacks: 0,
     transport: Array.from({ length: TRANSPORT_LIMIT }, () => vacantStamp()), transportOrder: [],
+    epoch: undefined, seenEpoch: undefined, incomplete: [],
   };
 }
 
@@ -151,8 +157,9 @@ export function probeInput(probe: ResponseProbe | undefined, stage: string, epoc
   if (pressed !== 0 || released !== 0) probeIntegrity(probe, `${stage} ${epoch} ${slot} ${frame} ${held} ${pressed} ${released} ${frontier}`);
 }
 
-export function startProbe(probe: ResponseProbe, edgeStamps: boolean): void {
+export function startProbe(probe: ResponseProbe, edgeStamps: boolean, epoch?: number): void {
   if (probe.exporting) return;
+  probe.epoch = epoch;
   probe.integrity.length = 0;
   probe.integrityDropped = 0;
   probe.serviceSerial = 0;
@@ -385,6 +392,7 @@ export function exportProbePage(probe: ResponseProbe): void {
   const lines = [
     `RS v=3 build=${probe.build} local=${slot} run=${probe.run} page=${probe.page} rows=${probe.rows} mode=${probe.edgeStamps ? "edge-stamp" : "clean"} edge_pairs=${probe.edgePairs} edge_limit=${EDGE_PAIR_LIMIT} edge_dropped=${probe.edgeDropped}`,
     `integrity retained=${probe.integrity.length} dropped=${probe.integrityDropped}`,
+    `epoch recorded=${probe.epoch ?? -1} incomplete=${probe.incomplete.length === 0 ? "none" : probe.incomplete.join(",")}`,
     `counts poll=${probe.polls} capture_attempt=${probe.captures} advance=${probe.advances} present=${probe.presentations}`,
     `waiting callbacks=${probe.waitingCallbacks} own_callbacks=${probe.waitingOwnCallbacks}`,
     `transport sent_frames=${probe.transportSent} received_frames=${probe.transportReceived} unmatched_receipts=${probe.transportUnmatched} dropped_from_export=${probe.transportDropped} retained=${probe.transportOrder.length}`,
@@ -431,4 +439,19 @@ export function exportProbe(probe: ResponseProbe): void {
   probe.exporting = true;
   probe.page = 0;
   TimerStart(probe.exportTimer, f32(0.1), true, trampoline(PROBE_EXPORT));
+}
+
+
+export const epochChecksumDue = (probe: ResponseProbe | undefined, frame: number): boolean => probeRecording(probe) && probe.epoch !== undefined && floorMod(frame, CHECKSUM_FRAMES) === 0;
+
+
+export function serviceEpochProbe(probe: ResponseProbe, epoch: number | undefined, checksum: () => string): void {
+  if (probe.recording && probe.epoch !== undefined && (epoch !== probe.epoch || probe.rows >= EPOCH_CALLBACKS)) {
+    probeIntegrity(probe, checksum());
+    exportProbe(probe);
+  }
+  if (epoch === undefined || epoch === probe.seenEpoch) return;
+  probe.seenEpoch = epoch;
+  if (probe.exporting || probe.recording) probe.incomplete.push(epoch);
+  else startProbe(probe, false, epoch);
 }

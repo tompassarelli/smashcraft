@@ -30,7 +30,8 @@ import { applyFrame } from "./frame";
 import { ownConfirmedState } from "./confirmedState";
 import { pollLocalKeys } from "./inputs";
 import { INPUT_PREFIX, failJournal, flushTransport, receiveLifecycle, serviceJournalInput } from "./journal";
-import { probeAdvance, probeCapture, probeClockMs, probeInput, probeIntegrity, probePoll, probeRecording, probeSendFinished, probeTransportReceive, probeTransportSend } from "./responseProbe";
+import { epochChecksumDue, probeAdvance, probeCapture, probeClockMs, probeInput, probeIntegrity, probePoll, probeRecording, probeSendFinished, probeTransportReceive, probeTransportSend } from "./responseProbe";
+import { confirmedChecksum } from "./diagnostics";
 import { type KeyboardRollback, type Rollback, type ShellState, localSlot, shell } from "./state";
 import { recordBatchWait, recordEcho, recordSend, resetEchoRing, traceSeconds } from "./trace";
 import { LASTING, resumePresentationHeld, setStatus } from "./view";
@@ -225,6 +226,7 @@ function stepConfirmed(s: ShellState, rollback: Rollback): boolean {
   if (!schedule.readConfirmed(epoch, accepted)) return false;
   if (!captureNetworkFrame(s.frameInput, frame, accepted, s.world, s.game.humanMask)) return false;
   applyFrame(s);
+  if (s.build.epochProbe === true && epochChecksumDue(s.probe, frame)) probeIntegrity(s.probe, `checksum ${epoch} ${frame} ${confirmedChecksum(s)} ${s.game.phase}`);
   if (probeRecording(s.probe)) {
     for (const slot of PARTICIPANT_SLOTS) {
       if (!humanActive(s.game, slot)) continue;
