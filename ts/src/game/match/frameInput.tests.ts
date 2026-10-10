@@ -1,5 +1,6 @@
 import { assertDefined, assertEquals, assertFalse, assertTrue, test } from "wisp/src/runtime/testing";
 import { at } from "wisp/src/runtime/lookup";
+import { floorMod } from "wisp/src/sim/intMath";
 import { Action, maskOf } from "../input/actions";
 import { queueAttack } from "../input/attackBuffer";
 import { type InputRow, inputRow } from "../input/inputRow";
@@ -100,11 +101,11 @@ test("a frame handed an earlier run's camera reaches the state recomputing the c
   for (let frame = 1; frame <= frames; frame++) {
     for (const slot of [0, 1, 2, 3] as const) {
       const input = earlier.inputs.inputs[slot];
-      const phase = (frame + slot * 37) % 120;
+      const phase = floorMod(frame + slot * 37, 120);
       input.direction = phase < 30 ? 1 : phase >= 60 && phase < 90 ? -1 : 0;
       input.jumpPressed = phase === 45;
       input.jumpHeld = phase >= 45 && phase < 55;
-      if (phase % 20 === 10) queueAttack(earlier.inputs.commands[slot], { style: phase % 3, facing: 0, frame, mayCharge: false });
+      if (floorMod(phase, 20) === 10) queueAttack(earlier.inputs.commands[slot], { style: floorMod(phase, 3), facing: 0, frame, mayCharge: false });
     }
     assertTrue(captureFrame(at(rows, frame), frame, 15, earlier.inputs, earlier.runtime));
     assertTrue(executeMatchFrame(at(rows, frame), earlier.game, earlier.world, earlier.inputs, earlier.runtime, frame));
