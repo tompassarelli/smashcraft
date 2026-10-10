@@ -315,10 +315,10 @@ const METER_DROPS: MatchScript = {
   characters: [Character.rifleman, Character.demonHunter], stage: 0, stocks: 5, minutes: 0, frames: 2700, computer: true, dropPickups: 2,
   holds: [[
     [100, 2, ATTACK], [300, 20, SHIELD_LEFT], [500, 2, SPECIAL], [700, 3, JUMP], [704, 2, ATTACK], [880, 2, GRAB],
-    [1100, 2, ATTACK], [1400, 24, SHIELD_RIGHT], [1700, 2, SPECIAL], [2000, 3, JUMP], [2004, 2, ATTACK], [2300, 2, GRAB],
+    [1100, 2, ATTACK], [1205, 20, RIGHT], [1400, 24, SHIELD_RIGHT], [1700, 2, SPECIAL], [2000, 3, JUMP], [2004, 2, ATTACK], [2300, 2, GRAB],
   ], []],
   approaches: [[[1, 60], [200, 60], [400, 60], [600, 45], [760, 40], [840, 40], [1000, 60], [1200, 60], [1500, 45], [1800, 60], [2100, 45], [2400, 60]], []],
-  rollbacks: [...every(180, 2700, 180, 8), ...every(840, 2700, 300, 60), [1130, 1180], [2090, 2140]],
+  rollbacks: [...every(180, 2700, 180, 8), ...every(840, 2700, 300, 60), [1270, 1320], [2230, 2280]],
 };
 
 
