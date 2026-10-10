@@ -235,6 +235,10 @@ for (const [ordinal, action] of authoredActions.entries()) {
       } else if (node && action.pose !== "sideSpecial") { let [y, z] = joint(node.Name, action.gesture); y = node.Name === "Bone_Root" && action.roll ? frame / action.frames * 360 * action.roll : y * amount(frame);
         if (node.Name === "Bone_Root" && (action.pose === "getUp" || action.pose === "getUpAttack" || action.pose.startsWith("getUpRoll"))) y += 85 * Math.max(0, 1 - frame / action.contact);
         z *= amount(frame); Vector = rotated(first.Vector, y, z); }
+      if (rake && action.pose === "sideSpecial" && frame >= rake.first) {
+        const alpha = /^\.GeosetAnims\.(\d+)\.Alpha$/.exec(path);
+        if (alpha) Vector = new Float32Array([source.GeosetAnims[Number(alpha[1])]!.GeosetId < 3 ? 1 : 0]);
+      }
       const tangent = () => match || track.LineType === mdx.LineType.Bezier ? Vector.slice() : new Float32Array(Vector.length);
       track.Keys.push({ ...first, Frame: start + Math.round(frame * 1000 / 60), Vector, ...(track.LineType > 1 ? { InTan: tangent(), OutTan: tangent() } : {}) });
     }
@@ -327,7 +331,7 @@ for (const [ordinal, action] of authoredActions.entries()) {
     const triangles = drawn.triangles(index, frame / 60, 1); let lowest = Infinity;
     for (let i = 1; i < triangles.length; i += 2) lowest = Math.min(lowest, triangles[i]!);
     const key = root.Translation.Keys.find(k => k.Frame === start + Math.round(frame * 1000 / 60))!;
-    if (!action.air && action.pose !== "sideSpecial") { key.Vector[2] = key.Vector[2]! - lowest; if (key.InTan) { key.InTan = root.Translation.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); } }
+    if (!action.air && (action.pose !== "sideSpecial" || rake && frame >= rake.first)) { key.Vector[2] = key.Vector[2]! - lowest; if (key.InTan) { key.InTan = root.Translation.LineType === mdx.LineType.Bezier ? key.Vector.slice() : new Float32Array(3); key.OutTan = key.InTan.slice(); } }
   }
   const victim = /^victim(Pummel|Throw)/.test(action.pose);
   const binding = `{ index: ${index}, seconds: ${seconds(victim ? 1 : (end - start) / 1000)}, aligned: true${action.paired ? `, contact: ${seconds(victim ? 0.5 : action.contact / 60)}` : ""} }`;
