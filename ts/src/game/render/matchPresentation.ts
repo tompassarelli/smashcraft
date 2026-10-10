@@ -249,13 +249,9 @@ export class MatchPresentation {
 
   // A match start is synchronized, so every client makes the winner's handle there rather than when its results arrive.
   preparePoses(world: Readonly<Roster>): void {
+    this.releasePoses();
     for (const slot of PARTICIPANT_SLOTS) {
-      const previous = this.poses[slot];
-      if (previous !== undefined) DestroyEffect(previous.model);
-      if (!isActive(world, slot)) {
-        this.poses[slot] = undefined;
-        continue;
-      }
+      if (!isActive(world, slot)) continue;
       const character = fighterAt(world, slot).character;
       const index = originalClipNamed(character, victoryAnimation(character));
       const clip = index === undefined ? undefined : originalClip(character, index);
@@ -352,8 +348,17 @@ export class MatchPresentation {
   }
 
 
+  private releasePoses(): void {
+    for (const slot of PARTICIPANT_SLOTS) {
+      const pose = this.poses[slot];
+      if (pose !== undefined) DestroyEffect(pose.model);
+      this.poses[slot] = undefined;
+    }
+  }
+
   enterMenus(): void {
     this.hideResults();
+    this.releasePoses();
     this.playMusic(MENU_MUSIC);
   }
 }

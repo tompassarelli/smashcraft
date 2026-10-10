@@ -22,6 +22,7 @@ import { Character } from "../src/game/sim/codes";
 import { PROJECTILE_CAPACITY } from "../src/game/sim/fighter";
 import { fighterRenderedCues } from "../src/game/presentation/attackCues";
 import { DEFINITIVE_CUE_EMITTERS } from "../src/game/presentation/cueEmitterInfo";
+import { POPCORN_VOICES } from "../src/game/render/specialCueEffects";
 import { HIT_AREA_EFFECT_CAPACITY } from "../src/game/render/hitAreaEffects";
 import { fighterAt, isActive } from "../src/game/sim/roster";
 import { INTEGRITY_BUILD } from "../src/game/shell/currentBuild";
@@ -228,6 +229,7 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
     parked.on = false;
     for (const slot of [0, 1]) clients.press(slot, Key.n);
     until("fighter selection", () => phase() === Phase.characterMenu, 30);
+    frames(1);
     return { ...played, parkedCalls: parked.calls };
   };
 
@@ -262,7 +264,9 @@ sweep("a match and its three-fighter rematch show each pooled fighter whole wher
 
   const illidan = originalClipCount(Character.demonHunter) + (originalLightPath(Character.demonHunter) === undefined ? 0 : 1);
   const pooledCues = fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] !== true).length;
-  expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3);
+  const emitterVoices = POPCORN_VOICES * new Set(fighterRenderedCues(Character.demonHunter).filter(cue => DEFINITIVE_CUE_EMITTERS[cue.model] === true).map(cue => cue.model)).size;
+  const victoryPose = 1;
+  expect(rematch.effectsAtResult - first.effectsAtResult).toBe(illidan + 1 + PROJECTILE_CAPACITY + pooledCues + HIT_AREA_EFFECT_CAPACITY + 3 + emitterVoices + victoryPose);
   expect(retainedEffects()).toBe(selectionAfterFirst);
   for (const client of clients.clients) expect(client.errors).toEqual([]);
 
