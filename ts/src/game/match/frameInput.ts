@@ -13,7 +13,7 @@ import { type FrameControls, createFrameControls } from "./controls";
 import type { PacingAndPresentation } from "./pacingAndPresentation";
 import { type MatchState, Phase, computerActive } from "./rules";
 import { produceComputerInput, repeatComputerInput } from "./botPlay";
-import { type StepScope, observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
+import { type EarlierFrame, type StepScope, observedFrameLegalActions, observedFrameStartedActions, stepMatch } from "./step";
 import { latchPresses, releasePresses } from "./training";
 import { type ReplayState, copyReplayState } from "../replay/snapshot";
 import { type BotMemory, clearBotMemory, copyBotMemory, createBotMemory, firstBotMemoryDifference } from "./botPerception";
@@ -193,7 +193,7 @@ function reusePresentation(runtime: PacingAndPresentation, after: Readonly<Repla
   copyFighterPoseInto(runtime.poses[slot], was.poses[slot], after.world);
 }
 
-export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers, scope?: Readonly<ScopedFrame>): boolean {
+export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world: Roster, controls: FrameControls, runtime: PacingAndPresentation, frame: number, repeated?: RepeatedComputers, scope?: Readonly<ScopedFrame>, earlier?: EarlierFrame): boolean {
   if (!prepareMatchFrame(row, game, world, controls, runtime, frame, repeated)) return false;
   if (game.phase === Phase.match && game.training) {
 
@@ -211,7 +211,7 @@ export function executeMatchFrame(row: MatchFrameInput, game: MatchState, world:
     }
   }
   advanceImpacts(runtime.impacts);
-  stepMatch(game, world, row.scratch, frame, scope);
+  stepMatch(game, world, row.scratch, frame, scope, earlier);
   for (const slot of PARTICIPANT_SLOTS) {
     if (scope !== undefined && slot !== scope.slot) {
       observedFrameLegalActions[slot] = scope.after.runtime.observedLegal[slot];

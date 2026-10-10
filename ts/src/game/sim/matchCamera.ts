@@ -53,6 +53,30 @@ export function copyMatchCamera(target: MatchCamera, source: Readonly<MatchCamer
   }
 }
 
+/** Whether two cameras hold the same values. */
+export function sameMatchCamera(a: Readonly<MatchCamera>, b: Readonly<MatchCamera>): boolean {
+  if (a.initialized !== b.initialized || a.x !== b.x || a.z !== b.z || a.distance !== b.distance || a.tangent !== b.tangent
+    || a.left !== b.left || a.right !== b.right || a.bottom !== b.bottom || a.top !== b.top) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    const box = a.boxes[slot];
+    const other = b.boxes[slot];
+    if (box.left !== other.left || box.right !== other.right || box.bottom !== other.bottom || box.top !== other.top) return false;
+  }
+  return true;
+}
+
+/** Whether advanceMatchCamera reads the same fighters from both worlds: the same active slots, each with the same x, z, facing and out. */
+export function sameCameraSubjects(world: Readonly<Roster>, other: Readonly<Roster>): boolean {
+  if (world.mask !== other.mask) return false;
+  for (const slot of PARTICIPANT_SLOTS) {
+    if (!isActive(world, slot)) continue;
+    const a = fighterAt(world, slot);
+    const b = fighterAt(other, slot);
+    if (a.motion.x !== b.motion.x || a.motion.z !== b.motion.z || a.facing !== b.facing || a.status.out !== b.status.out) return false;
+  }
+  return true;
+}
+
 const clamp = (value: number, low: number, high: number): number => Math.min(high, Math.max(low, value));
 
 const ease = (current: number, target: number, rate: number): number => current === target && current !== 0 ? current : f32(current + f32(f32(target - current) * rate));

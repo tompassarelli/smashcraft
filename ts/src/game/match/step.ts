@@ -29,7 +29,7 @@ import { surfaceCount, surfaceLine, surfaceZAt } from "../sim/stage";
 import { setWorldMotionValue } from "../sim/motion";
 import { advanceFreezeTraps } from "../sim/summons";
 import { steppedFrames } from "./frameCount";
-import { advanceMatchCamera } from "../sim/matchCamera";
+import { advanceMatchCamera, copyMatchCamera, sameCameraSubjects } from "../sim/matchCamera";
 import { nextJab } from "../sim/moves";
 import { advanceOffscreenDamage } from "../sim/offscreenDamage";
 import type { FrameControls } from "./controls";
@@ -127,7 +127,10 @@ export interface StepScope {
   after: Readonly<{ world: Roster; controls: FrameControls }>;
 }
 
-export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number, scope?: Readonly<StepScope>): void {
+/** The state an earlier run of this frame reached from a match camera equal to this run's before it. */
+export type EarlierFrame = Readonly<{ match: Readonly<MatchState>; world: Readonly<Roster> }>;
+
+export function stepMatch(game: MatchState, world: Roster, controls: FrameControls, frame: number, scope?: Readonly<StepScope>, earlier?: EarlierFrame): void {
   if (game.phase !== Phase.match) return;
   steppedFrames.count++;
   game.matchFrame++;
@@ -270,7 +273,9 @@ export function stepMatch(game: MatchState, world: Roster, controls: FrameContro
   }
   if (bossFight) resolveBossFight(game, world);
   else resolveStocks(game, world);
-  advanceMatchCamera(game.camera, world, game.stageChoice);
+  // The camera follows from itself, the stage and the fighters it frames, so an earlier run that stepped them and framed the same ones reached it; training may move fighters after it.
+  if (earlier !== undefined && !game.training && earlier.match.phase === Phase.match && earlier.match.stageChoice === game.stageChoice && sameCameraSubjects(world, earlier.world)) copyMatchCamera(game.camera, earlier.match.camera);
+  else advanceMatchCamera(game.camera, world, game.stageChoice);
   advanceOffscreenDamage(world, game.camera, game.practice || game.training, scope === undefined ? mask : 1 << scope.slot);
   if (game.training) advanceTrainingReadout(game.trainer, world, game.humanFighterMask, game.computerMask);
   if (game.training && tutorialOn(game.trainer)) advanceTutorial(game.trainer, world, game.humanFighterMask, game.computerMask);
