@@ -53,7 +53,10 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
   4: { jab: [-7, 1, 78, -1, -90, 15, 10, 1], jab2: [70, -2, -91, -18, -90, -13, 5, -25], upTilt: [34, -145, -103, 15, 35, -5, -1, 0], dashAttack: [30, 10, -60, -40, 0, 15, 20, 12] },
   6: { forwardTilt: [-10, -45, 5, -2, -1, 0, 0, 10], forwardTiltDown: [25, -70, 10, 0, 0, 0, 0, 12], downTilt: [20, -68, 15, -10, -10, 0, 0, 25], dashAttack: [28, -84, -5, 1, 2, 0, 0, 10] },
   8: {
-    jab2: [-12, -48, -42, 38, -20, 18, -8, 10], downTilt: [15, 35, 50, -15, -60, -83, 95, 10],
+    jab2: [36, -70, -45, -28, 20, -35, 50, 16],
+    downTilt: [55, -52, -38, -18, -35, -70, 100, 20],
+    forwardAir: [48, -80, -42, -28, 35, -55, 80, 22],
+    backAir: [-42, 70, 42, -25, -35, 55, 80, -22],
     jab3: [44, -68, -35, -32, 20, -42, 65, 18],
     neutralAir: [35, -75, -100, -25, 25, -55, 80, 20],
     upAir: [-44, -145, -100, -25, 40, -55, 80, -22],
@@ -78,7 +81,7 @@ const FIGHTER_CONTACT: Readonly<Record<number, Readonly<Record<string, readonly 
 const DRAW_BACK: Readonly<Record<number, Readonly<Record<string, number>>>> = {
   4: { jab: 0.5, upTilt: 1 }, 8: { downTilt: 0.4 }, 11: { jab2: 0.4 },
 };
-const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt"]);
+const DREADLORD_DRIVE = new Set<HeroPose>(["jab3", "neutralAir", "upAir", "upTilt", "jab2", "downTilt", "forwardAir", "backAir"]);
 const contactProfile=(pose: HeroPose, character: number)=>FIGHTER_CONTACT[character]?.[pose]??CONTACT[pose];
 
 const HOP: Readonly<Record<number, Readonly<Record<string, number>>>> = {
@@ -379,7 +382,7 @@ for(const [id,poses]of Object.entries(PLAN)) {
       const anticipation=Math.max(1,contact-2),peak=Math.max(anticipation+1,contact-1);
       const arc=driven?(frame<anticipation?-0.9*Math.sin(frame/anticipation*Math.PI/2):frame<=peak?-0.9+1.9*(frame-anticipation)/(peak-anticipation):frame<contact+3?1+0.35*(frame-peak)/(contact+3-peak):1.35*Math.max(0,1-(frame-contact-3)/(total-contact-3))):frame<=contact?Math.sin(frame/contact*Math.PI/2):Math.max(0,1-(frame-contact)/(total-contact));
       helper.Rotation?.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:rotate(new Float32Array([0,0,0,1]),contactProfile(pose,character)![7]!*arc)});
-      if(hop&&driven)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([26*arc,0,pose.endsWith("Air")?10*arc:0])});
+      if(hop&&driven)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([(pose==="backAir"?-26:26)*arc,0,pose.endsWith("Air")?10*arc:0])});
     }
     if(hop&&!driven)for(let frame=0;frame<=total;frame++)hop.Keys.push({Frame:start+Math.round(frame*1000/60),Vector:new Float32Array([0,0,frame<contact?(hops[pose]??0)*Math.sin(Math.PI*frame/contact):0])});
     const shadowLow = character === 9 && pose === "downTilt";
