@@ -262,7 +262,7 @@ interface Portrait { readonly elapsed: number; readonly yaw: number; readonly an
 interface Correction { readonly rest?: boolean; readonly turn?: number; readonly elapsed?: number; readonly angle?: number; readonly zoom?: number; readonly level?: boolean; readonly lift?: number; readonly body?: boolean; readonly flipped?: boolean; readonly shift?: readonly [number, number]; readonly bones?: Readonly<Record<string, readonly [number, number, number]>> }
 const CORRECTIONS: Readonly<Record<'classic' | 'definitive', Readonly<Record<string, Correction>>>> = {
   classic: {
-    "Anub'arak": { zoom: 0.6, lift: 2.6, angle: -30 },
+    "Anub'arak": { zoom: 0.6, angle: -30 },
     Lich: { lift: 1.3, zoom: 1.2 },
     Murloc: { zoom: 1.2, shift: [0.14, 0] },
     PitLord: { lift: 1.3 },
@@ -597,7 +597,12 @@ await Effect.runPromise(Effect.gen(function*() {
     const passes: Record<string, string> = {};
     let images: readonly { frame: number; image: string }[] = [];
     for (const pass of LIGHT_PASSES) {
-      images = yield* renderScenes(project, fitted.map((scene) => lit(scene, pass)), join(directory, `fitted-${pass.name}`), graphics);
+      images = yield* renderScenes(project, fitted.map((scene) => {
+        const character = Math.floor(scene.frame / VARIANTS.length);
+        return graphics === 'classic' && character === Character.anubarak
+          ? { ...scene, environment: { ...scene.environment, dayNight: required(captured.get(character), 'match scene').environment.dayNight } }
+          : lit(scene, pass);
+      }), join(directory, `fitted-${pass.name}`), graphics);
       passes[pass.name] = join(directory, `fitted-${pass.name}`);
     }
     const portraits = join(output, 'fighter-renders', ...(graphics === 'definitive' ? ['de'] : []));
@@ -610,7 +615,9 @@ await Effect.runPromise(Effect.gen(function*() {
       const raw = join(directory, `${name}${suffix}.png`);
       // Classic lights in display space and Definitive in linear space, so each sums its passes where its shader adds them.
       const space = linear ? ['-colorspace', 'RGB'] : [];
-      const summed = LIGHT_PASSES.flatMap((pass, index) => ['(', join(required(passes[pass.name], 'pass'), image), '-alpha', 'off', ...space, '-evaluate', 'multiply', String(weights[index] ?? 0), ')', ...(index === 0 ? [] : ['-compose', 'plus', '-composite'])]);
+      const summed = graphics === 'classic' && character === Character.anubarak
+        ? [join(required(passes.ambient, 'match light pass'), image), '-alpha', 'off']
+        : LIGHT_PASSES.flatMap((pass, index) => ['(', join(required(passes[pass.name], 'pass'), image), '-alpha', 'off', ...space, '-evaluate', 'multiply', String(weights[index] ?? 0), ')', ...(index === 0 ? [] : ['-compose', 'plus', '-composite'])]);
       const masks = LIGHT_PASSES.flatMap((pass, index) => ['(', join(required(passes[pass.name], 'pass'), image), '-alpha', 'off', '-fill', 'white', '+opaque', `rgb(${CLEAR.join(',')})`, '-fill', 'black', '-opaque', `rgb(${CLEAR.join(',')})`, ')', ...(index === 0 ? [] : ['-compose', 'lighten', '-composite'])]);
       run(['magick', ...summed, ...(linear ? ['-colorspace', 'sRGB'] : []), ...(gamma === 1 ? [] : ['-gamma', String(gamma)]), '(', ...masks, ')', '-compose', 'CopyOpacity', '-composite', '-resize', `${RESOLUTION}x${RESOLUTION}`, `PNG32:${raw}.tmp`]);
       renameSync(`${raw}.tmp`, raw);
@@ -626,6 +633,11 @@ await Effect.runPromise(Effect.gen(function*() {
     for (const { frame, image } of images) {
       if (at(VARIANTS, frame % VARIANTS.length).suffix !== 'P1') continue;
       const character = Math.floor(frame / VARIANTS.length), name = fighterRenderName(character);
+      if (graphics === 'classic' && character === Character.anubarak) {
+        lighting.set(character, [1, 0, 0, 0]);
+        console.log(`${graphics} ${name} light: captured match day/night, no portrait exposure`);
+        continue;
+      }
       const busts: Uint8Array[] = [];
       for (const [index, pass] of LIGHT_PASSES.entries()) {
         const into = join(directory, `pass-${pass.name}`);

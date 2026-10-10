@@ -76,6 +76,7 @@ a rim from behind, image right and 35 above, so no face falls half into
 shadow (#363). Definitive sums get a 1.4 gamma lift. Three weightings
 (`LIGHT_VARIANTS`) are each exposed so the P1 bust's mean luma reaches 110; the
 one lighting the largest share of the bust above luma 50 lights all five outfits.
+Classic Anub'arak uses the captured match day/night light directly, without portrait gamma or exposure.
 `bun scripts/portraitLight.ts [FIGHTER_RENDERS]` (default: the stored family) checks
 every fighter in both looks: bust mean luma within 85-150, roster max/min at
 most 1.6, lit share at least the calibrated floor, the card render's box
