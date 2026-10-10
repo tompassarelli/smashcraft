@@ -94,6 +94,23 @@ head bone or its direct children, evaluated with Wisp's vendored war3-model
 head alone.
 The custom-game preview uses the red and blue player cards.
 
+Jaina and Illidan's #363 weapon corrections keep head and shoulders plus the
+held signature weapon in the tile and bust crop. In 0.0.112, Jaina's staff
+was present in both timeline bodies but outside the head-centred crop;
+Definitive's smaller head mesh made its 1.2x crop especially narrow. Her
+portrait uses the existing Stand frame at 3.433 s, turned 25 degrees, with a
+wider crop shifted toward the staff. Classic uses zoom 0.85 and Definitive
+0.45, so the grip and staff crown can fit beside her face.
+
+Definitive Illidan's Combat Idle at 18.809 s raised a glaive vertically across
+his face, and the 1.5x crop emphasized his topknot. His portrait instead uses
+the existing Stand 4 frame at 139.173 s, turn 45 degrees, a level camera and
+zoom 0.8 with the crop lowered by 0.4 head sizes. These are source candidates
+pending the #363 render judge; model projections alone cannot accept the
+portraits. If a full glaive and a readable face cannot share the crop, retain
+the clear face and record the weapon framing limitation in the 26-fighter
+judge table. Jaina's staff must remain visible and held.
+
 It writes `PRIVATE_OUTPUT/fighter-renders/` (Classic) with its `de/` folder
 (Definitive); store that folder with `bun wisp inputs add fighter-renders`.
 The map build imports each Classic portrait at its path and each Definitive one
