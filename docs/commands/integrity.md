@@ -33,3 +33,8 @@
   the integrity, transport and edge rows dropped from the export. `pad` runs keep
   those pages beside their traces, but a pad run writes them only when the
   probe was started (Ctrl+G) and exported (Ctrl+H).
+  The native-input build records each match epoch itself, from its first
+  match callback for at most 6,000 callbacks, with `checksum` rows at
+  confirmed frames 600, 1,200, … and at the window end; its pages carry an
+  `epoch recorded=E incomplete=…` line naming epochs that began while a
+  window was still recording or exporting.

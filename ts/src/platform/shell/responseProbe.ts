@@ -392,7 +392,7 @@ export function exportProbePage(probe: ResponseProbe): void {
   const lines = [
     `RS v=3 build=${probe.build} local=${slot} run=${probe.run} page=${probe.page} rows=${probe.rows} mode=${probe.edgeStamps ? "edge-stamp" : "clean"} edge_pairs=${probe.edgePairs} edge_limit=${EDGE_PAIR_LIMIT} edge_dropped=${probe.edgeDropped}`,
     `integrity retained=${probe.integrity.length} dropped=${probe.integrityDropped}`,
-    `epoch recorded=${probe.epoch ?? -1} incomplete=${probe.incomplete.length === 0 ? "none" : probe.incomplete.join(",")}`,
+    ...(probe.epoch === undefined ? [] : [`epoch recorded=${probe.epoch} incomplete=${probe.incomplete.length === 0 ? "none" : probe.incomplete.join(",")}`]),
     `counts poll=${probe.polls} capture_attempt=${probe.captures} advance=${probe.advances} present=${probe.presentations}`,
     `waiting callbacks=${probe.waitingCallbacks} own_callbacks=${probe.waitingOwnCallbacks}`,
     `transport sent_frames=${probe.transportSent} received_frames=${probe.transportReceived} unmatched_receipts=${probe.transportUnmatched} dropped_from_export=${probe.transportDropped} retained=${probe.transportOrder.length}`,
@@ -445,16 +445,18 @@ export function exportProbe(probe: ResponseProbe): void {
 export const epochChecksumDue = (probe: ResponseProbe | undefined, frame: number): boolean => probeRecording(probe) && probe.epoch !== undefined && floorMod(frame, CHECKSUM_FRAMES) === 0;
 
 
-export function serviceEpochProbe(probe: ResponseProbe, epoch: number | undefined, checksum: () => string, started: () => string): void {
-  if (probe.recording && probe.epoch !== undefined && (epoch !== probe.epoch || probe.rows >= EPOCH_CALLBACKS)) {
-    probeIntegrity(probe, checksum());
-    exportProbe(probe);
-  }
-  if (epoch === undefined || epoch === probe.seenEpoch) return;
+export const epochWindowEnds = (probe: ResponseProbe, epoch: number | undefined): boolean =>
+  probe.recording && probe.epoch !== undefined && (epoch !== probe.epoch || probe.rows >= EPOCH_CALLBACKS);
+
+
+// True when this call starts recording `epoch`; an epoch that arrives while a window is still recording or exporting is listed as incomplete.
+export function beginEpochWindow(probe: ResponseProbe, epoch: number | undefined): boolean {
+  if (epoch === undefined || epoch === probe.seenEpoch) return false;
   probe.seenEpoch = epoch;
-  if (probe.exporting || probe.recording) probe.incomplete.push(epoch);
-  else {
-    startProbe(probe, false, epoch);
-    probeIntegrity(probe, started());
+  if (probe.exporting || probe.recording) {
+    probe.incomplete.push(epoch);
+    return false;
   }
+  startProbe(probe, false, epoch);
+  return true;
 }
