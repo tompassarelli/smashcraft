@@ -1311,6 +1311,9 @@ weak hit along two independent axes, decided per move.
   neutral air 12% clean against 9% late, Sheik's 14% against 9%; Captain
   Falcon's knee (forward air, 18% against 6%) and Zelda's kicks (forward and
   back air, 20% against 10%) are the extreme cases.
+- Ultimate keeps all three: Marth's tipper, Captain Falcon's knee and Zelda's
+  lightning kicks still split strong and weak, and the strong hit gets its own
+  sound and a bigger spark, the feedback this rule copies.
 - Rivals of Aether 2 keeps the same vocabulary of sweetspot, sourspot, early
   and late hitboxes in its frame data.
 
