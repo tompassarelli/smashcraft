@@ -24,14 +24,14 @@ export class PauseMenu {
     placeTopLeft(this.root, f32(0.08), f32(0.53));
     BlzFrameSetSize(this.root, f32(0.64), f32(0.46));
     BlzFrameSetLevel(this.root, 20);
-    const label = (name: string, y: number, height: number, size: number) => {
-      const frame = createText(name, this.root, 1801);
+    const label = (name: string, y: number, height: number, size: number, parent = this.root) => {
+      const frame = createText(name, parent, 1801);
       placeTopLeft(frame, f32(0.26), y);
       BlzFrameSetSize(frame, f32(0.28), height);
       BlzFrameSetFont(frame, MENU_FONT, size, 0);
       BlzFrameSetTextAlignment(frame, TEXT_JUSTIFY_MIDDLE, TEXT_JUSTIFY_CENTER);
       BlzFrameSetEnable(frame, false);
-      BlzFrameSetLevel(frame, 21);
+      if (parent === this.root) BlzFrameSetLevel(frame, 21);
       return frame;
     };
     this.heading = label("SmashcraftPauseHeading", f32(0.42), f32(0.04), f32(0.023));
@@ -41,7 +41,7 @@ export class PauseMenu {
       placeTopLeft(button, f32(0.26), y);
       BlzFrameSetSize(button, f32(0.28), f32(0.036));
       this.buttons.push(this.clicks.add(button, row));
-      this.options.push(label(`SmashcraftPauseOptions${I2S(row)}`, y, f32(0.036), f32(0.018)));
+      this.options.push(label(`SmashcraftPauseOptions${I2S(row)}`, y, f32(0.036), f32(0.018), button));
     }
     this.help = label("SmashcraftPauseHelp", f32(0.23), f32(0.05), f32(0.010));
     this.controls = label("SmashcraftPauseControls", f32(0.49), f32(0.1), f32(0.009));
@@ -71,7 +71,8 @@ export class PauseMenu {
     if (!paused && !title) return;
     BlzFrameSetText(this.heading, title ? "Smashcraft" : "Paused");
     BlzFrameSetFont(this.heading, MENU_FONT, title ? f32(0.034) : f32(0.023), 0);
-    if (this.title !== title || this.choice !== choice) this.hovered = undefined;
+    const titleChanged = this.title !== title;
+    if (titleChanged || this.choice !== choice) this.hovered = undefined;
     this.title = title;
     this.choice = choice;
     this.highlight(this.hovered);
@@ -80,6 +81,7 @@ export class PauseMenu {
       const option = this.options[row];
       if (button === undefined || option === undefined) continue;
       BlzFrameSetVisible(button, !title || row === 0);
+      if (titleChanged) BlzFrameSetEnable(button, !title || row === 0);
       BlzFrameSetVisible(option, !title || row === 0);
       const y = title ? f32(0.323) : f32(f32(0.359) - f32(row * f32(0.036)));
       placeTopLeft(button, f32(0.26), y);
