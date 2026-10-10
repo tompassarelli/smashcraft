@@ -94,6 +94,8 @@ export function allProjectileModels(): readonly string[] {
 }
 
 export const PROJECTILE_DRAW_SCALES: { readonly [model: string]: number | undefined } = {
+  "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx": f32(0.3),
+  "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx": f32(1.2),
   "Abilities\\Weapons\\QuillSprayMissile\\QuillSprayMissile.mdx": 1.5,
   "Abilities\\Weapons\\ShadowHunterMissile\\ShadowHunterMissile.mdx": 1.5,
   "Abilities\\Weapons\\FarseerMissile\\FarseerMissile.mdx": 0.5,
@@ -107,8 +109,14 @@ export const PROJECTILE_DRAW_SCALES: { readonly [model: string]: number | undefi
   "Abilities\\Spells\\NightElf\\Cyclone\\CycloneTarget.mdx": 0.5,
 };
 
+export const PROJECTILE_DRAW_OFFSETS: { readonly [model: string]: { readonly x: number; readonly z: number; readonly sequence?: string | undefined; readonly seconds?: number | undefined; readonly width?: number | undefined; readonly height?: number | undefined } | undefined } = {
+  "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx": { x: -20.0, z: -33.0, sequence: "stand", seconds: f32(0.2), width: f32(0.75), height: 2.0 },
+  "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx": { x: 0.0, z: 0.0, sequence: "birth", seconds: f32(0.2) },
+};
+
 
 export const DEFINITIVE_ULTIMATE_MODELS: { readonly [character: number]: { readonly [model: string]: string | undefined } | undefined } = {
+  [Character.cairne]: { "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx": "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx" },
   [Character.demonHunter]: { "Abilities\\Spells\\Human\\MarkOfChaos\\MarkOfChaosTarget.mdx": "Abilities\\Weapons\\IllidanMissile\\IllidanMissile.mdx" },
   [Character.forsakenPaladin]: { "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdx": "Abilities\\Weapons\\PriestMissile\\PriestMissile.mdl" },
   [Character.pitLord]: { "Abilities\\Spells\\Undead\\Curse\\CurseTarget.mdx": "Abilities\\Weapons\\VoidWalkerMissile\\VoidWalkerMissile.mdx" },

@@ -63,6 +63,8 @@ export interface Cue {
   readonly model: string;
   readonly anchor: CueAnchor;
   readonly scale: number;
+  readonly scaleEnd?: number | undefined;
+  readonly scaleFrames?: number | undefined;
 
   readonly drawn?: boolean | undefined;
 
@@ -159,7 +161,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Summon Water Elemental", startup: ARCANE, active: cue("Abilities\\Weapons\\WaterElementalMissile\\WaterElementalMissile.mdx", "hand", f32(0.7)) },
   },
   [Character.cairne]: {
-    neutral: { spell: "Shockwave", startup: cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareTarget.mdx", "ahead", f32(0.6)), active: drawn("Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx", "ahead") },
+    neutral: { spell: "Shockwave", startup: { ...timed(cue("Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx", "ahead", f32(0.4)), "birth", f32(0.2)), scaleEnd: f32(1.6), scaleFrames: 23, timeScale: 0.0 }, active: drawn("Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx", "ahead") },
     side: { spell: "War Stomp", startup: BEAST, active: cue("Objects\\Spawnmodels\\Other\\NeutralBuildingExplosion\\NeutralBuildingExplosion.mdx", "feet", f32(0.4)) },
     up: { spell: "Spirit Lift", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\CommandAura\\CommandAura.mdx", "feet", f32(0.7)) },
     down: { spell: "Reincarnation", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\Reincarnation\\ReincarnationTarget.mdx", "body", f32(0.6)) },
