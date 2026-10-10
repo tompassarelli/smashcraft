@@ -886,8 +886,10 @@ the infrastructure finish line when integrating new gameplay.
   and code (smashcraft:ts/src/game/sim/mash.ts). Each frame, a fresh press of
   attack, special, jump, grab or a shield button counts once and a new stick
   direction once more; each takes 8 frames off the 300-frame freeze, but
-  mashing never thaws it before frame 60, so a trap sprung near Rifleman still
-  gives him a follow-up. Holding a button or a direction counts only on its
+  mashing never thaws it before frame 45, one frame sooner per 3% the frozen
+  fighter carries, down to frame 15 (#414: the trap was a guaranteed kill
+  confirm), so a trap sprung near Rifleman gives him a follow-up at low
+  percent but a mashing fighter at kill percent can escape. Holding a button or a direction counts only on its
   first frame. Melee's freeze runs its grab-mash routine on its own timer the
   same way (`ftCo_DamageIce_Anim`, melee:src/melee/ft/kinds/ftCommon/ftCo_DamageIce.c).
   The thaw frame, from the freeze, by presses a second (first on frame 1):

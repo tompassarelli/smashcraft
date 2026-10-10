@@ -93,7 +93,7 @@ import { checkBlastZone, respawnFighter } from "./stocks";
 import { advanceSurfaceRecovery, advanceWallJump, leaveMainDeckBody, resolveSolidSurfaceContacts } from "./surfaces";
 import { forwardRollTurnFrame, rollTravel } from "../physics/rollTravel";
 import { advanceTechInput, techContactWindow } from "../physics/techInput";
-import { FREEZE_MINIMUM_FRAMES, cancelAttack, clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
+import { freezeMinimumFrames, cancelAttack, clearDownState, clearOwnedFreezeTrap, thawFighter } from "./transitions";
 import { advanceMash } from "./mash";
 import { WORLD_UNITS_PER_MELEE_UNIT } from "./tuning";
 import { aerialJumps, heavyFall, jumpBuffed, speedBuffed } from "./itemBuffs";
@@ -143,7 +143,7 @@ function advanceFreeze(f: Fighter, input: Readonly<Controls>): boolean {
   const wasFrozen = status.frozenFrames > 0;
   if (status.freezeImmunityFrames > 0) status.freezeImmunityFrames--;
   if (wasFrozen) {
-    const remaining = advanceMash(f.grab, input, status.frozenFrames, FREEZE_MINIMUM_FRAMES);
+    const remaining = advanceMash(f.grab, input, status.frozenFrames, freezeMinimumFrames(status.damage));
     if (remaining === 0) thawFighter(f);
     else status.frozenFrames = remaining;
   }
