@@ -1,6 +1,6 @@
 import { max } from "../../runtime/numbers";
 import { f32 } from "wisp/src/sim/f32";
-import { GrabAction, LedgeState, SpecialAction } from "../sim/codes";
+import { GrabAction, GroundAction, LedgeState, SpecialAction } from "../sim/codes";
 import { canAttack } from "../sim/conditions";
 import type { Fighter } from "../sim/fighter";
 import { type Controls, type Roster, isActive } from "../sim/roster";
@@ -113,6 +113,10 @@ export function advanceIllidanMotion(history: IllidanMotion, fighter: Readonly<F
   if (!available) {
     history.transitionRemaining = 0;
     history.motion = motion.fastFalling ? IllidanLocomotion.fastFall : IllidanLocomotion.fall;
+  } else if (controls.direction === 0 && ground.action === GroundAction.none && history.motion === IllidanLocomotion.turn
+    && (ground.pivotGraceFrames > 0 || f32(motion.vx * fighter.facing) < 0)) {
+    history.motion = IllidanLocomotion.idle;
+    history.transitionRemaining = 0;
   } else if (controls.direction !== 0 && history.previousFacing !== 0
     && (fighter.facing !== history.previousFacing || f32(motion.vx * controls.direction) < 0)) {
     history.motion = IllidanLocomotion.turn;

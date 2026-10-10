@@ -92,6 +92,10 @@ interface GroundMovement {
   turnRunEntryFacing: number;
   turnRunFacingCommandLatched: boolean;
   turnRunPausePending: boolean;
+  pivotEligible: boolean;
+  pivotGraceFrames: number;
+  pivotDashFrame: number;
+  pivotDashActionFrame: number;
 
   dashGrabWindow: number;
 }
@@ -613,6 +617,10 @@ export function createFighter(character: Character, startX: number, facing: numb
       turnRunEntryFacing: 0,
       turnRunFacingCommandLatched: false,
       turnRunPausePending: false,
+      pivotEligible: false,
+      pivotGraceFrames: 0,
+      pivotDashFrame: 0,
+      pivotDashActionFrame: 0,
       dashGrabWindow: 0,
     },
     jump: {

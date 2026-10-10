@@ -8,7 +8,7 @@ import { speedBuffed } from "./itemBuffs";
 import { GroundAction } from "./codes";
 import type { Fighter } from "./fighter";
 import { floorTraction } from "./stage";
-import { DASH_FLICK_SAMPLES, DASH_STICK_THRESHOLD, type GroundOption, GroundState, StickZone, TAP_JUMP_WINDOW, groundOptionAllowed, runStickDirection, stickSpeedScale, stickZone } from "./stickZones";
+import { DASH_FLICK_SAMPLES, DASH_STICK_THRESHOLD, type GroundOption, GroundState, STICK_DEADZONE, StickZone, TAP_JUMP_WINDOW, groundOptionAllowed, runStickDirection, stickSpeedScale, stickZone } from "./stickZones";
 import { stickZ } from "./stick";
 import type { Controls } from "./roster";
 import { INITIAL_DASH_FRAMES, WORLD_UNITS_PER_MELEE_UNIT, melee } from "./tuning";
@@ -51,6 +51,10 @@ export function clearDash(f: Fighter): void {
   ground.turnRunEntryFacing = 0;
   ground.turnRunFacingCommandLatched = false;
   ground.turnRunPausePending = false;
+  ground.pivotEligible = false;
+  ground.pivotGraceFrames = 0;
+  ground.pivotDashFrame = 0;
+  ground.pivotDashActionFrame = 0;
 }
 
 function actionClockLimit(f: Fighter): number {
@@ -63,6 +67,7 @@ function runBrakeHasRecordedEndRules(f: Fighter): boolean {
 }
 
 function startRunBrake(f: Fighter): void {
+  f.ground.pivotEligible = false;
   f.ground.action = GroundAction.runBrake;
   f.ground.actionFrame = 0;
   f.ground.runBrakeFramesRemaining = f.tuning.ground.runBrakeMaximumFrames;
@@ -70,6 +75,7 @@ function startRunBrake(f: Fighter): void {
 
 function startTurnRun(f: Fighter, animationFrame: number): void {
   const { ground } = f;
+  ground.pivotEligible = ground.action === GroundAction.run;
   ground.action = GroundAction.turnRun;
   ground.actionFrame = animationFrame;
   ground.turnRunEntryFacing = f.facing;
@@ -119,6 +125,7 @@ function advanceActionClock(f: Fighter, direction: number): void {
           ground.actionFrame = 0;
           ground.turnRunEntryFacing = 0;
           ground.turnRunFacingCommandLatched = false;
+          ground.pivotEligible = false;
         } else {
           clearDash(f);
         }
@@ -159,6 +166,27 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   const { ground, motion } = f;
   const physics = f.tuning.physics;
   const traction = floorTraction(physics.traction, friction);
+  if (ground.pivotGraceFrames > 0) {
+    if (direction !== 0) {
+      ground.action = ground.pivotDashFrame > 0 ? GroundAction.dash : GroundAction.none;
+      ground.dashFrame = ground.pivotDashFrame;
+      ground.actionFrame = ground.pivotDashActionFrame;
+      ground.pivotGraceFrames = 0;
+      ground.pivotDashFrame = 0;
+      ground.pivotDashActionFrame = 0;
+    } else {
+      ground.pivotGraceFrames--;
+      if (ground.pivotDashFrame > 0) {
+        ground.pivotDashFrame = min(INITIAL_DASH_FRAMES + 1, ground.pivotDashFrame + 1);
+        ground.pivotDashActionFrame = min(actionClockLimit(f), ground.pivotDashActionFrame + 1);
+      }
+      if (ground.pivotGraceFrames === 0) {
+        motion.vx = f32(ground.turnRunEntryFacing * min(Math.abs(motion.vx), f32(traction * 2.0)));
+        clearDash(f);
+      }
+      return false;
+    }
+  }
   const changingDirection = direction !== 0 && direction !== ground.dashDirection;
 
 
@@ -168,6 +196,25 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
   const strongStick = Math.abs(horizontalStick) >= DASH_STICK_THRESHOLD;
   const freshFlick = motion.stickSideAge < DASH_FLICK_SAMPLES || (ground.action !== GroundAction.dash && Math.abs(horizontalStick) >= 1.0);
   const speedScale = stickSpeedScale(horizontalStick === 0 ? direction : horizontalStick, walking);
+
+  const pivotWindow = ground.action === GroundAction.turnRun ? ground.actionFrame < 2
+    : ground.action === GroundAction.dash && ground.actionFrame <= 2;
+  if (!pivotWindow) ground.pivotEligible = false;
+  if (Math.abs(horizontalStick) < STICK_DEADZONE && direction === 0 && pivotWindow && ground.pivotEligible) {
+    const entryFacing = ground.turnRunEntryFacing;
+    const dashFrame = ground.action === GroundAction.dash ? min(INITIAL_DASH_FRAMES + 1, ground.dashFrame + 1) : 0;
+    const dashActionFrame = dashFrame > 0 ? min(actionClockLimit(f), ground.actionFrame + 1) : 0;
+    const dashDirection = dashFrame > 0 ? ground.dashDirection : 0;
+    f.facing = -entryFacing;
+    if (dashFrame === 0) motion.vx = f32(entryFacing * min(Math.abs(motion.vx), f32(traction * 2.0)));
+    clearDash(f);
+    ground.turnRunEntryFacing = entryFacing;
+    ground.dashDirection = dashDirection;
+    ground.pivotGraceFrames = 3;
+    ground.pivotDashFrame = dashFrame;
+    ground.pivotDashActionFrame = dashActionFrame;
+    return false;
+  }
 
   const travelInWindow = ground.actionFrame - motion.stickSideAge < f.tuning.ground.dashRunEnableFrame;
   if (!walking && changingDirection && ground.action !== GroundAction.run && ground.action !== GroundAction.turnRun && ground.action !== GroundAction.runBrake) {
@@ -226,11 +273,15 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
 
       if (ground.action !== GroundAction.turnRun) startTurnRun(f, 0);
     } else {
+      const entryFacing = f.facing;
+      const reversingDash = ground.action === GroundAction.dash && direction !== ground.dashDirection;
       ground.dashFrame = 1;
       ground.dashDirection = direction;
       ground.action = GroundAction.dash;
 
       ground.actionFrame = 1;
+      ground.turnRunEntryFacing = reversingDash ? entryFacing : 0;
+      ground.pivotEligible = reversingDash;
       f.facing = direction;
       motion.vx = f32(direction * min(speedBuffed(f, chillScaled(f, physics.dashSpeed)), speedBuffed(f, physics.groundSpeedCap)));
       return true;
@@ -243,6 +294,8 @@ export function advanceGroundMovement(f: Fighter, direction: number, walking: bo
     if (ground.actionFrame >= f.tuning.ground.dashRunEnableFrame && runStickDirection(horizontalStick === 0 ? direction : horizontalStick, f.facing) === f.facing) {
       ground.action = GroundAction.run;
       ground.actionFrame = 0;
+      ground.pivotEligible = false;
+      ground.turnRunEntryFacing = 0;
     }
   }
   const runTarget = f32(speedBuffed(f, chillScaled(f, physics.runSpeed)) * speedScale);

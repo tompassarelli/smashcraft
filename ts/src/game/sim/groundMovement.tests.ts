@@ -1,6 +1,20 @@
-import { assertEquals, test } from "wisp/src/runtime/testing";
-import { Character, GroundAction } from "./codes";
-import { type Fighter } from "./fighter";
+import { assertDefined, assertEquals, assertTrue, test } from "wisp/src/runtime/testing";
+import { f32 } from "wisp/src/sim/f32";
+import { Action, bit } from "../input/actions";
+import { adaptInput } from "../input/adapter";
+import { inputRow } from "../input/inputRow";
+import { commitEdges, keyboardCapture, sampleKeys } from "../input/keyboardCapture";
+import { captureFrame, createMatchFrameInput } from "../match/frameInput";
+import { stateChecksum } from "../replay/canonical";
+import { firstPoseDifference, firstStateDifference } from "../replay/difference";
+import { IllidanLocomotion } from "../presentation/illidanMotion";
+import { ReplayHistory } from "../replay/history";
+import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
+import { copyFighterState } from "../replay/fighterState";
+import { createTapeWorld, executeTapeRow } from "../replay/tapeWorld";
+import { AttackStyle, Character, GroundAction } from "./codes";
+import { createFighter, type Fighter } from "./fighter";
+import { fighterAt } from "./roster";
 import { createReferenceFighter } from "./referenceRig";
 import { advanceSolo, controls } from "./testWorld";
 import {
@@ -43,6 +57,130 @@ test("the retail dash-to-run command uses the actor's encoded enable frame [k4 r
     assertEquals(fighter.ground.action, GroundAction.run);
     assertEquals(fighter.ground.actionFrame, 0);
   });
+});
+
+test("movement pivots: recorded reverse-neutral rows retain a slide and next-frame tilt smash and grab facing through rollback [k1 scenario]", () => {
+  for (const keyboard of [false, true]) for (const facing of [-1, 1]) {
+    for (const warmup of [5, 20]) {
+      for (const move of [AttackStyle.forwardTilt, AttackStyle.forwardSmash, AttackStyle.grab]) {
+        const make = () => createTapeWorld({ stocks: 1, humans: 2,
+          first: createFighter(Character.rifleman, 0.0, facing), second: createFighter(Character.rifleman, f32(-facing * 600.0), -facing) });
+        const canonical = make();
+        const replayed = make();
+        const history = new ReplayHistory();
+        const row = createMatchFrameInput();
+        const keys = keyboardCapture();
+        assertTrue(history.beginEpoch(1, warmup + 1));
+        const releaseFrame = warmup + 3;
+        for (let frame = 1; frame <= releaseFrame + 1; frame++) {
+          const sideSmash = facing === 1 ? Action.smashLeft : Action.smashRight;
+          const pressed = frame !== releaseFrame + 1 ? 0 : bit(move === AttackStyle.grab ? Action.grab : sideSmash);
+          const held = pressed | (frame === releaseFrame + 1 && move === AttackStyle.forwardTilt ? bit(Action.walk) : 0);
+          const axisX = frame <= warmup ? facing * 127 : frame < releaseFrame ? -facing * 127 : 0;
+          sampleKeys(keys, held | (axisX < 0 ? bit(Action.moveLeft) : axisX > 0 ? bit(Action.moveRight) : 0));
+          adaptInput(keyboard ? keys.row : assertDefined(inputRow({ held, pressed, axisX })), fighterAt(canonical.live.world, 0), frame,
+            canonical.live.controls.inputs[0], canonical.live.controls.commands[0]);
+          commitEdges(keys);
+          assertTrue(captureFrame(row, frame, 3, canonical.live.controls, canonical.live.runtime));
+          if (frame > warmup) assertTrue(history.save(1, row, replayed.live));
+          assertTrue(executeTapeRow(canonical, row));
+          assertTrue(executeTapeRow(replayed, row));
+          if (frame <= warmup) continue;
+          if (frame >= warmup + 2) assertTrue(history.replay(1, warmup + 1, frame, replayed.live));
+          assertEquals(firstStateDifference(canonical.live, replayed.live), undefined, `first differing frame ${frame}`);
+          assertEquals(firstPoseDifference(canonical.live, replayed.live), undefined, `first differing pose frame ${frame}`);
+          assertEquals(stateChecksum(canonical.live), stateChecksum(replayed.live), `checksum frame ${frame}`);
+          const fighter = fighterAt(canonical.live.world, 0);
+          if (frame === warmup + 1) {
+            const omitted = createReplaySnapshot();
+            copyReplayState(omitted, canonical.live);
+            fighterAt(omitted.world, 0).ground.pivotEligible = false;
+            assertTrue(firstStateDifference(canonical.live, omitted)?.includes("groundPivotEligible") === true);
+            assertTrue(stateChecksum(canonical.live) !== stateChecksum(omitted));
+          }
+          if (frame === releaseFrame) {
+            assertEquals(fighter.facing, -facing, `pivot release frame ${frame}`);
+            assertEquals(fighter.ground.action, GroundAction.none);
+            assertEquals(fighter.ground.pivotGraceFrames, 3);
+            if (warmup === 20) assertTrue(fighter.motion.vx * facing > 0 && Math.abs(fighter.motion.vx) < 2.0);
+            else assertTrue(fighter.motion.vx * facing < 0 && Math.abs(fighter.motion.vx) <= fighter.tuning.physics.groundSpeedCap);
+            const omitted = createReplaySnapshot();
+            copyReplayState(omitted, canonical.live);
+            fighterAt(omitted.world, 0).ground.pivotGraceFrames = 0;
+            assertTrue(firstStateDifference(canonical.live, omitted)?.includes("groundPivotGraceFrames") === true);
+            assertTrue(stateChecksum(canonical.live) !== stateChecksum(omitted));
+            assertEquals(fighter.attack.style, undefined);
+            assertTrue(canonical.live.runtime.poses[0].motion.motion !== IllidanLocomotion.turn);
+            assertEquals(canonical.live.runtime.poses[0].motion.transitionRemaining, 0);
+          }
+          if (frame === releaseFrame + 1) {
+            assertEquals(fighter.attack.style, move, `next actionable frame ${frame}`);
+            assertEquals(fighter.facing, -facing);
+          }
+        }
+      }
+    }
+  }
+});
+
+function timingViolation(fighter: Fighter, facing: number, reversedFrames: number, running: boolean): string | undefined {
+  if (reversedFrames <= 2) {
+    if (fighter.facing !== -facing || fighter.ground.action !== GroundAction.none) return "short reversal failed to pivot";
+    if (running && (fighter.motion.vx * facing <= 0 || Math.abs(fighter.motion.vx) >= 2.0)) return "run pivot lost its small forward slide";
+    if (!running && fighter.motion.vx * facing >= 0) return "dash pivot lost its retained dash momentum";
+  } else if (running) {
+    if (fighter.ground.action !== GroundAction.turnRun || fighter.facing !== facing) return "long reversal bypassed the turnaround";
+  } else if (fighter.ground.action !== GroundAction.dash || fighter.facing !== -facing) return "long early-dash reversal lost dash dancing";
+  return undefined;
+}
+
+test("movement pivots: keyboard and stick release after one or two reverse samples pivots immediately; directions in the next three frames resume dash dancing [k2 property]", () => {
+  for (const keyboard of [false, true]) for (const running of [false, true]) {
+    for (const amplitude of keyboard ? [1.0] : [1.0, 0.8500000238418579]) {
+      for (let reversedFrames = 1; reversedFrames <= 5; reversedFrames++) {
+        const right = createFighter(Character.rifleman, 0.0, 1);
+        const left = createFighter(Character.rifleman, 0.0, -1);
+        const warmup = running ? 20 : reversedFrames + 2;
+        for (let frame = 0; frame < warmup + reversedFrames + 1; frame++) {
+          const direction = frame < warmup ? 1 : frame < warmup + reversedFrames ? -1 : 0;
+          for (const fighter of [right, left]) {
+            const sign = fighter === right ? 1 : -1;
+            advanceSolo(fighter, 0, controls({ direction: direction * sign, diStickValid: !keyboard,
+              diStickX: f32(f32(direction * sign) * amplitude) }), 0.0);
+            if (direction !== 0) assertTrue(fighter.ground.action !== GroundAction.none);
+          }
+          assertEquals(right.facing, -left.facing, `reflection frame ${frame}`);
+          assertEquals(right.motion.vx, -left.motion.vx, `reflected momentum frame ${frame}`);
+          assertTrue(Math.abs(right.motion.vx) <= right.tuning.physics.groundSpeedCap);
+        }
+        for (const fighter of [right, left]) {
+          assertEquals(timingViolation(fighter, fighter === right ? 1 : -1, reversedFrames, running), undefined,
+            `warmup ${warmup}, reverse samples ${reversedFrames}, amplitude ${amplitude}`);
+        }
+        if (reversedFrames <= 2) {
+          for (let gap = 1; gap <= 3; gap++) for (const toward of [-1, 1]) {
+            const resumed = createFighter(Character.rifleman, 0.0, 1);
+            copyFighterState(resumed, right, 1);
+            for (let frame = 1; frame < gap; frame++) advanceSolo(resumed, 0, controls(), 0.0);
+            advanceSolo(resumed, 0, controls({ direction: toward, diStickValid: !keyboard, diStickX: f32(toward * amplitude) }), 0.0);
+            assertEquals(resumed.ground.action, GroundAction.dash, `resume gap ${gap}, toward ${toward}`);
+            assertEquals(resumed.facing, toward);
+            assertEquals(resumed.ground.dashDirection, toward);
+          }
+          for (let frame = 1; frame <= 3; frame++) advanceSolo(right, 0, controls(), 0.0);
+          assertEquals(right.ground.pivotGraceFrames, 0);
+          assertEquals(right.ground.action, GroundAction.none);
+          assertEquals(right.facing, -1);
+          assertTrue(Math.abs(right.motion.vx) < 2.0);
+        }
+        if (running && reversedFrames === 3) {
+          right.ground.action = GroundAction.none;
+          right.facing = -1;
+          assertEquals(timingViolation(right, 1, reversedFrames, true), "long reversal bypassed the turnaround");
+        }
+      }
+    }
+  }
 });
 
 test("a turn-run waits for the retail facing command boundary [k4 reference melee]", () => {
