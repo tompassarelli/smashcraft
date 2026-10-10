@@ -1,0 +1,202 @@
+{
+  "recorded": "2026-10-10T03:35Z, smashcraft: claude/* tips with their autoland status (GraphQL) and the unfinished Autoland runs",
+  "lanes": [
+    {
+      "branch": "claude/bot-selection-410",
+      "tip": "d31928e39edac9bc18bce9bec9c400e81224ea6e",
+      "status": {
+        "at": "2026-10-09T21:59:46Z",
+        "description": "rebasing onto main and the branches ahead of it conflicts in ts/src/game/render/bodyFlash.ts",
+        "state": "failure"
+      }
+    },
+    {
+      "branch": "claude/cue-widest-drawn",
+      "tip": "5f7421ed263d53bc45d3468b5c3131338df76fbb",
+      "status": {
+        "at": "2026-10-10T03:33:06Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/generated-untracked-401",
+      "tip": "eb9e11cde2e1bc3077eaa54f15054314d59527d9",
+      "status": {
+        "at": "2026-10-10T03:28:36Z",
+        "description": "rebasing onto main and the branches ahead of it conflicts in build-inputs.json ts/scripts/test.ts",
+        "state": "failure"
+      }
+    },
+    {
+      "branch": "claude/handle-invariant-409-main",
+      "tip": "fc2f81089c97a5234e36e71ed07996b9740e2701",
+      "status": {
+        "at": "2026-10-10T03:34:04Z",
+        "description": "bisect",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/handle-invariant-409",
+      "tip": "3513ff6819813e363096c079fa11a08d4e5764a1",
+      "status": {
+        "at": "2026-10-10T03:20:46Z",
+        "description": "rebasing onto main and the branches ahead of it conflicts in docs/commands/soak.md ts/scripts/wisp.ts",
+        "state": "failure"
+      }
+    },
+    {
+      "branch": "claude/headless-soak-168b",
+      "tip": "18cd33fcd31a2b85e148090c72d1623fe8683917",
+      "status": {
+        "at": "2026-10-10T03:30:58Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/headless-soak-168",
+      "tip": "5916dece15cf4c848d0084e1c311abf387fcfef6",
+      "status": {
+        "at": "2026-10-10T02:47:45Z",
+        "description": "on 65234daf99: the checks failed",
+        "state": "failure"
+      }
+    },
+    {
+      "branch": "claude/land-def-head-415-36510cebb7d2",
+      "tip": "36510cebb7d2057618d5585e3173d22fff146df0",
+      "status": {
+        "at": "2026-10-10T03:34:05Z",
+        "description": "bisect",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-native-doc-one-client-0b3119a39ef3",
+      "tip": "0b3119a39ef3a94e399ecb30ec70303062ec28d6",
+      "status": {
+        "at": "2026-10-10T03:31:21Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-native-fire-380-2ab2b104bd52",
+      "tip": "2ab2b104bd523be3c5b9e77e4661ac477d36a074",
+      "status": {
+        "at": "2026-10-10T03:34:03Z",
+        "description": "bisect",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-pin-lightning-11388347e90f",
+      "tip": "11388347e90fb323f17c972395c5ff9a870de107",
+      "status": {
+        "at": "2026-10-10T03:31:40Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-portraits-363-close-c67ce55d65ed",
+      "tip": "c67ce55d65ed7f8881005cbf43897b542a769845",
+      "status": {
+        "at": "2026-10-10T03:34:06Z",
+        "description": "bisect",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-rifleman-smashes-192b5ef39a97",
+      "tip": "192b5ef39a976795cff01b7bba26954b1e67b0f5",
+      "status": {
+        "at": "2026-10-10T00:23:25Z",
+        "description": "on 421abee87a: 2 failing; main lands only on a green suite, including tests main already fails",
+        "state": "failure"
+      }
+    },
+    {
+      "branch": "claude/land-stack-cpu-412-386-385-37f792d2fc65",
+      "tip": "37f792d2fc65e722b4aa5e058276e2aa8dc1c09e",
+      "status": {
+        "at": "2026-10-10T02:46:37Z",
+        "description": "bisect",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-stack-cpu-412-386-385-aaedcd3d4837",
+      "tip": "aaedcd3d483758a84e31a0133d3a8cbb11563a15",
+      "status": {
+        "at": "2026-10-10T03:32:51Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/land-wisp-pin-738-05f857550704",
+      "tip": "05f857550704d5fa4bb43ff0a29b2857158a3076",
+      "status": {
+        "at": "2026-10-10T02:46:37Z",
+        "description": "bisect",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/nightly-playtester-403",
+      "tip": "ea3849801ba265add7d44ff8001938e69675d3e0",
+      "status": {
+        "at": "2026-10-10T01:37:16Z",
+        "description": "it changes .github/workflows, which the workflow token can't push; land it with safe-push",
+        "state": "failure"
+      }
+    },
+    {
+      "branch": "claude/perf-pair-gate-405",
+      "tip": "28bb29180f80306a4e429a95f02b639eed750501",
+      "status": {
+        "at": "2026-10-10T03:29:26Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    },
+    {
+      "branch": "claude/signatures-docs-389",
+      "tip": "001fb81447f2a81cfc77a3dc3568a5a10cd522a3",
+      "status": {
+        "at": "2026-10-10T03:32:28Z",
+        "description": "queued",
+        "state": "pending"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "status": "pending",
+      "title": "Autoland claude/land-def-head-415-36510cebb7d2 claude/land-portraits-363-close-c67ce55d65ed"
+    },
+    {
+      "status": "pending",
+      "title": "Autoland claude/land-native-fire-380-2ab2b104bd52 claude/handle-invariant-409-main"
+    },
+    {
+      "status": "pending",
+      "title": "Autoland claude/handle-invariant-409"
+    },
+    {
+      "status": "pending",
+      "title": "Autoland claude/land-stack-cpu-412-386-385-37f792d2fc65"
+    },
+    {
+      "status": "in_progress",
+      "title": "Autoland claude/land-wisp-pin-738-05f857550704"
+    },
+    {
+      "title": "Autoland waiting branches",
+      "status": "pending"
+    }
+  ]
+}

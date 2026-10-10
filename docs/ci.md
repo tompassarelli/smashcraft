@@ -6,7 +6,7 @@
 | Main is red (smashcraft:.github/workflows/main-red.yml) | after each CI run on main | the sheriff reverts a landing that turned green main red, then opens, updates or closes the "main is red" issue (smashcraft:AGENTS.md) |
 | Farm test (smashcraft:.github/workflows/farm-test.yml) | `bun wisp farm test`, autoland | every check CI runs: full Bun and Lua32 suites with their sweeps, sharded (wisp:docs/farm.md), and the stack trace, parity corpus, tapes and numeric, perf compare, effect-kit, clean room, benchmark and computer coverage checks. Its summary, uploaded even when the run fails or times out, names each failing test (a Lua test with its module), failing check, Lua budget overrun and missing shard |
 | Playtest (smashcraft:.github/workflows/playtest.yml) | nightly, dispatch with `matches` | plays computer-versus-computer matches across every fighter, stage and computer level on the newest green main, each seed twice to compare state hashes, and opens or updates one issue per finding kind (smashcraft:docs/commands/soak.md) |
-| Autoland (smashcraft:.github/workflows/autoland.yml) | push to `claude/**`, `safe-push --to main`, dispatch with `branch` | main's one landing queue: batches waiting branches, lands on green |
+| Autoland (smashcraft:.github/workflows/autoland.yml) | push to `claude/**`, `safe-push --to main`, dispatch with `branch` | main's one landing queue: tests each waiting tip alone at once, lands trains of tips that passed |
 | Effect upgrade (smashcraft:.github/workflows/effect-upgrade.yml) | Mondays, dispatch | `effect-kit upgrade` and `effect-kit check`; a clean upgrade goes to Autoland, findings to the "Weekly Effect upgrade" issue |
 
 ## Autoland
@@ -18,31 +18,40 @@ Autoland is main's one landing queue. Cloud workers push to `claude/NAME`;
 landing restarts another's suites.
 
 1. **Queue.** A push marks the branch tip with a pending `autoland` commit
-   status ("queued"; its time is the arrival order) and queues a run.
-2. **Batch.** A run takes every queued branch in arrival order and rebases
-   each onto main plus the branches ahead of it. A conflicting branch, or one
-   that changes `.github/workflows/` (the workflow token can't push those),
-   is refused and the rest go on.
-3. **Checks and suites.** The candidate is pushed to a scratch
-   `farm/autoland-SHA` branch, which runs the pre-push gate
-   (smashcraft:ts/scripts/prePush.ts), and the farm test workflow runs every
-   check main's CI runs on it inside the run: one farm run per batch.
+   status ("queued") and starts a plan run.
+2. **Test alone, at once.** A plan run gives every waiting tip its own test
+   run: the tip rebased onto main, the pre-push gate
+   (smashcraft:ts/scripts/prePush.ts) on a scratch `farm/autoland-SHA`
+   branch and the farm test workflow, which runs every check main's CI runs.
+   Tests run in two slots of one farm run each, outside the landing queue, so
+   a red tip gets its failed status and issue comment within minutes. A
+   conflicting tip, or one that changes `.github/workflows/` (the workflow
+   token can't push those), is refused. A green tip becomes "passed alone on
+   MAIN as tree TREE".
+3. **Train.** One train at a time takes up to 4 tips that passed alone, first
+   passed first, and rebases them onto main. A leader whose rebase is the
+   very tree it passed alone lands by itself without another suite; any other
+   train runs the gate and farm test once as one merged candidate.
 4. **Land.** Only when the suites pass on that exact candidate, main's known
    failures included (#394), main is fast-forwarded to it, each branch's
    status becomes "landed as SHA" and its branch is deleted. Pushes made with
    the workflow token start no workflows, so the run dispatches main's CI,
    which runs only its smoke job for a landed commit.
-5. **Bisect.** A red batch of several branches marks them "bisect" and queues
-   one run for each half. A lone red branch gets a failed status and every
-   issue its commits reference (`Refs smashcraft#N`) gets a comment naming
-   the files or tests and linking the run. The branch stays; push a fix to it
-   and it queues again.
+5. **Red.** A red lone tip gets a failed status and every issue its commits
+   reference (`Refs smashcraft#N`) gets a comment naming the files or tests
+   and linking the run. The branch stays; push a fix to it and it queues
+   again. A red train of several tips sends each back to testing alone; the
+   first to pass again on main leads the next train and lands without a
+   suite.
 
-Runs share one concurrency group, so batches land one at a time and never
-race main; a run that finds nothing queued ends in seconds. The run's own
-status is red whenever a suite shard fails; its `land` job and summary say
-what landed. To retry a refused branch without a new commit:
-`gh workflow run autoland.yml -f branch=claude/NAME`.
+Every dispatched run ends with a plan, cancelled runs too, and a plan tests
+again any pending tip that no unfinished run holds, so a cancelled run never
+strands a tip. The scheduling decisions are a pure function, checked on the
+queue recorded at 2026-10-10T03:35Z and generated queues
+(smashcraft:ts/scripts/autolandCore.ts, ts/scripts/autoland.tests.ts). The
+run's own status is red whenever a suite shard fails; its `land` job and
+summary say what landed. To test a refused branch again without a new
+commit: `gh workflow run autoland.yml -f branch=claude/NAME`.
 
 Everything runs on GitHub's hosted runners from source: no private build
 inputs, no `.w3x` build. A change to `.github/workflows/` lands through

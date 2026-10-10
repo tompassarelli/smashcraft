@@ -1,20 +1,25 @@
 name: Autoland
 
-# The one landing queue for main, cloud and local alike (smashcraft:docs/ci.md):
-# a run batches every waiting claude/** branch in arrival order onto main, runs
-# the full suites (farm-test.yml) once on that exact candidate and fast-forwards
-# main to it on green (#394). On red it re-runs each half; a lone failing branch
-# gets a failed `autoland` commit status and a comment on the issues it references.
+# Main's one landing queue (smashcraft:docs/ci.md#autoland); ts/scripts/autolandCore.ts decides, this file applies.
 on:
   push:
     branches: ["claude/**"]
   workflow_dispatch:
     inputs:
       branch:
-        description: claude/ branches to land, space-separated; empty lands every waiting branch
+        description: claude/ branches to test again, space-separated, even after a failure; empty plans every waiting branch
+        default: ""
+      test:
+        description: "Set by Autoland: BRANCH SHA to test alone on main"
+        default: ""
+      slot:
+        description: "Set by Autoland: the test slot"
+        default: "0"
+      train:
+        description: "Set by Autoland: land the tips that passed alone"
         default: ""
 
-run-name: Autoland ${{ inputs.branch || (github.event_name == 'push' && format('{0} (push)', github.ref_name)) || 'waiting branches' }}
+run-name: ${{ github.event_name == 'push' && format('Autoland {0} (push)', github.ref_name) || inputs.test && format('Autoland test {0} {1}', inputs.slot, inputs.test) || inputs.train && 'Autoland train' || inputs.branch && format('Autoland plan {0}', inputs.branch) || 'Autoland plan' }}
 
 permissions:
   contents: write
@@ -22,10 +27,9 @@ permissions:
   issues: write
   statuses: write
 
-# One landing at a time; up to 100 runs wait their turn in order. A push only
-# marks its branch queued and queues a run, so it never waits here itself.
+# Two test slots of one farm run each (8 jobs) and one train at a time, so Autoland holds at most 3 of the account's 20 jobs' farm runs.
 concurrency:
-  group: ${{ github.event_name == 'push' && format('autoland-push-{0}', github.ref) || 'autoland' }}
+  group: ${{ github.event_name == 'push' && format('autoland-push-{0}', github.ref) || inputs.test && format('autoland-test-{0}', inputs.slot) || inputs.train && 'autoland-train' || 'autoland-plan' }}
   cancel-in-progress: false
   queue: max
 
@@ -33,12 +37,20 @@ env:
   GH_TOKEN: ${{ github.token }}
   GH_REPO: ${{ github.repository }}
   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  TEST: ${{ inputs.test }}
+  TRAIN: ${{ inputs.train }}
+  LANES_QUERY: >-
+    query($owner: String!, $name: String!, $endCursor: String) { repository(owner: $owner, name: $name) {
+    refs(refPrefix: "refs/heads/claude/", first: 100, after: $endCursor) { pageInfo { hasNextPage endCursor }
+    nodes { name target { oid ... on Commit { status { context(name: "autoland") { state description createdAt } } } } } } } }
+  LANES_JQ: >-
+    .data.repository.refs.nodes[] | {branch: ("claude/" + .name), tip: .target.oid,
+    status: (.target.status.context | if . == null then null else {state: (.state | ascii_downcase), description, at: .createdAt} end)}
 
 jobs:
-  # A push runs the branch's copy of this file; the landing runs main's.
-  # The `autoland` status on a branch tip is the queue: pending "queued" (its
-  # created_at is the arrival order), pending "bisect", success "landed as SHA"
-  # or failure. `safe-push --to main` waits on it.
+  # The `autoland` status on a branch tip is the queue: pending "queued", "waiting to test alone",
+  # "testing alone on MAIN" or "passed alone on MAIN as tree TREE", then success "landed as SHA"
+  # or failure. `safe-push --to main` waits on it. A push runs the branch's copy of this file.
   queue:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -49,12 +61,13 @@ jobs:
           gh workflow run autoland.yml --ref main
 
   build:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && (inputs.test != '' || inputs.train != '')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
       verdict: ${{ steps.build.outputs.verdict }}
       sha: ${{ steps.build.outputs.sha }}
+      tree: ${{ steps.build.outputs.tree }}
       base: ${{ steps.build.outputs.base }}
       scratch: ${{ steps.build.outputs.scratch }}
       branches: ${{ steps.build.outputs.branches }}
@@ -70,11 +83,8 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
-      # verdict: test (candidate built and checked), check (the pre-push gate failed on it) or none.
-      # Pushing the candidate to a scratch farm/ branch runs the pre-push gate.
+      # verdict: test (needs the suite), tested (a train leader rebased to the very tree it passed alone), check (the pre-push gate failed) or none.
       - id: build
-        env:
-          REQUESTED: ${{ inputs.branch }}
         run: |
           set +e -uo pipefail
           out() { echo "$1=$2" >> "$GITHUB_OUTPUT"; }
@@ -94,26 +104,21 @@ jobs:
           git fetch -q origin '+refs/heads/claude/*:refs/remotes/origin/claude/*'
           base=$(git rev-parse origin/main)
           out base "$base"
-          : > waiting
-          for branch in $(git for-each-ref --format='%(refname:strip=3)' refs/remotes/origin/claude/); do
-            tip=$(git rev-parse "origin/$branch")
-            if [ -n "$REQUESTED" ]; then
-              tr ' ' '\n' <<< "$REQUESTED" | grep -qx "$branch" || continue
-              arrived=$(git log -1 --format=%ct "$tip")
-            else
-              IFS=$'\t' read -r state description created < <(gh api "repos/$GH_REPO/commits/$tip/status" \
-                --jq '([.statuses[] | select(.context == "autoland")][0] // {}) | [.state // "", .description // "", .created_at // ""] | @tsv')
-              case "$state:$description" in
-                :) arrived=$(git log -1 --format=%ct "$tip") ;;
-                pending:queued) arrived=$(date -d "$created" +%s) ;;
-                *) continue ;;
-              esac
+          if [ -n "$TEST" ]; then
+            read -r branch tip <<< "$TEST"
+            current=$(gh api "repos/$GH_REPO/commits/$tip/status" --jq '([.statuses[] | select(.context == "autoland")][0] // {}) | "\(.state // ""):\(.description // "")"')
+            if [ "$(git rev-parse -q --verify "refs/remotes/origin/$branch")" != "$tip" ] || [ "${current%%:*}" != pending ] || [[ "${current#*:}" == "passed alone on "* ]]; then
+              echo "\`$branch\` no longer waits at ${tip:0:10} (${current:-no status}): nothing to test" >> "$GITHUB_STEP_SUMMARY"
+              out verdict none; exit 0
             fi
-            echo "$arrived $branch $tip" >> waiting
-          done
+            printf '%s\t%s\t\t\n' "$branch" "$tip" > lanes.tsv
+          else
+            gh api graphql --paginate -F owner="${GH_REPO%/*}" -F name="${GH_REPO#*/}" -f query="$LANES_QUERY" --jq "$LANES_JQ" | jq -s . > lanes.json
+            bun ts/scripts/autoland.ts train --lanes lanes.json > lanes.tsv
+          fi
           git checkout -q -B autoland "$base"
-          branches=""; tips=""
-          while read -r _ branch tip; do
+          branches=""; tips=""; count=0; tested=""
+          while IFS=$'\t' read -r -u 3 branch tip _ passed_tree; do
             if [ -z "$(git rev-list "$base..$tip")" ]; then
               git push -q --force-with-lease="refs/heads/$branch:$tip" origin ":refs/heads/$branch"
               status "$tip" success "landed as $base"
@@ -134,15 +139,28 @@ jobs:
               continue
             fi
             git checkout -q -B autoland
-            branches="$branches $branch"; tips="$tips $tip"
-          done < <(sort -n waiting)
+            branches="$branches $branch"; tips="$tips $tip"; count=$((count + 1))
+            if [ "$count" = 1 ] && [ -n "$passed_tree" ] && [ "$(git rev-parse 'HEAD^{tree}')" = "$passed_tree" ]; then
+              tested=1
+              break
+            fi
+          done 3< lanes.tsv
           out branches "${branches# }"
           out tips "${tips# }"
           if [ -z "$branches" ]; then out verdict none; exit 0; fi
           sha=$(git rev-parse HEAD)
           scratch="farm/autoland-${sha:0:12}"
           out sha "$sha"
-          echo "Candidate ${sha:0:10} on main ${base:0:10}:$(printf ' `%s`' $branches)" >> "$GITHUB_STEP_SUMMARY"
+          out tree "$(git rev-parse 'HEAD^{tree}')"
+          [ -z "$TEST" ] || status "${tips# }" pending "testing alone on ${base:0:10}"
+          echo "${TEST:+Testing alone: }${TRAIN:+Train: }candidate ${sha:0:10} on main ${base:0:10}:$(printf ' `%s`' $branches)" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$tested" ]; then
+            git push -q --no-verify origin "HEAD:refs/heads/$scratch" || exit 1
+            echo "It is the very tree that passed alone on this main: it lands without another suite." >> "$GITHUB_STEP_SUMMARY"
+            out scratch "$scratch"
+            out verdict tested
+            exit 0
+          fi
           # A branch may move ts/bun.lock (the Wisp pin): check against the candidate's own install.
           if ! (cd ts && bun install --frozen-lockfile) > push.log 2>&1 \
               || ! git push origin "HEAD:refs/heads/$scratch" >> push.log 2>&1; then
@@ -169,6 +187,7 @@ jobs:
     env:
       VERDICT: ${{ needs.build.outputs.verdict }}
       SHA: ${{ needs.build.outputs.sha }}
+      TREE: ${{ needs.build.outputs.tree }}
       BASE: ${{ needs.build.outputs.base }}
       SCRATCH: ${{ needs.build.outputs.scratch }}
       BRANCHES: ${{ needs.build.outputs.branches }}
@@ -179,6 +198,9 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
       - if: env.VERDICT == 'test'
         uses: actions/download-artifact@v4
         continue-on-error: true
@@ -197,21 +219,28 @@ jobs:
           why=""; failed=""
           if [ "$VERDICT" = check ]; then
             why="the checks failed"; failed=$(printf '```\n%s\n```' "$DETAIL")
-          elif [ ! -f candidate/summary.json ]; then
+          elif [ "$VERDICT" = test ] && [ ! -f candidate/summary.json ]; then
             why="the suite run ended without a result"
-          else
+          elif [ "$VERDICT" = test ]; then
             failed=$(jq -r '.failures[], .problems[]' candidate/summary.json | sed 's/^/- /')
             [ -z "$failed" ] || why="$(grep -c . <<< "$failed") failing; main lands only on a green suite, including tests main already fails"
           fi
-          if [ -n "$why" ] && [ "${#branches[@]}" -gt 1 ]; then
-            half=$(( (${#branches[@]} + 1) / 2 ))
-            for tip in "${tips[@]}"; do status "$tip" pending bisect; done
-            gh workflow run autoland.yml --ref main -f branch="${branches[*]:0:half}"
-            gh workflow run autoland.yml --ref main -f branch="${branches[*]:half}"
-            echo "Candidate ${SHA:0:10} failed ($why): queued its halves" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$TEST" ] && [ "$(git rev-parse -q --verify "refs/remotes/origin/${branches[0]}")" != "${tips[0]}" ]; then
+            echo "\`${branches[0]}\` moved or landed while it was tested: its new tip is tested on its own" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ -n "$TEST" ] && [ -z "$why" ]; then
+            status "${tips[0]}" pending "passed alone on $BASE as tree $TREE"
+            echo "\`${branches[0]}\` passed alone on main ${BASE:0:10}: it joins the next train" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          verdict=$(bun ts/scripts/autoland.ts judge --count "${#branches[@]}" --green "$([ -z "$why" ] && echo true || echo false)")
+          if [ "$verdict" = retest ]; then
+            for tip in "${tips[@]}"; do status "$tip" pending queued; done
+            echo "Train ${SHA:0:10} failed ($why): each of its tips is tested alone again on main" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-          if [ -n "$why" ]; then
+          if [ "$verdict" = fail ]; then
             tip=${tips[0]}
             status "$tip" failure "${SHA:+on ${SHA:0:10}: }$why"
             { echo "Autoland didn't land \`${branches[0]}\`${SHA:+ (${SHA:0:10}, rebased onto main ${BASE:0:10})}: $why:"; echo; printf '%s\n' "$failed" | head -60
@@ -222,17 +251,16 @@ jobs:
             done
             exit 1
           fi
-          # Main moved outside the queue while the suites ran: test the new rebase.
           git fetch -q origin main
           if [ "$(git rev-parse origin/main)" != "$BASE" ]; then
-            gh workflow run autoland.yml --ref main -f branch="$BRANCHES"
-            echo "main moved during the suites: queued $BRANCHES again" >> "$GITHUB_STEP_SUMMARY"
+            echo "main moved while the train ran: its tips wait for the next train" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git fetch -q origin "$SCRATCH"
           if ! git push origin "$SHA:refs/heads/main" 2> push.log; then
-            for tip in "${tips[@]}"; do status "$tip" failure "pushing to main failed"; done
-            cat push.log; exit 1
+            cat push.log
+            echo "pushing to main failed: the train's tips wait for the next train" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
           for i in "${!branches[@]}"; do
             status "${tips[i]}" success "landed as $SHA"
@@ -244,3 +272,35 @@ jobs:
           echo "Landed ${SHA:0:10} on main:$(printf ' `%s`' "${branches[@]}")" >> "$GITHUB_STEP_SUMMARY"
       - if: always() && env.SCRATCH != ''
         run: git push origin --delete "$SCRATCH" || true
+
+  # Every dispatched run ends here, cancelled ones too: a tip whose run ended is tested again, a passed one boards a train.
+  plan:
+    needs: [build, suite, land]
+    if: always() && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+      - env:
+          RETRY: ${{ inputs.branch }}
+        run: |
+          set -euo pipefail
+          gh api graphql --paginate -F owner="${GH_REPO%/*}" -F name="${GH_REPO#*/}" -f query="$LANES_QUERY" --jq "$LANES_JQ" | jq -s . > lanes.json
+          gh api "repos/$GH_REPO/actions/workflows/autoland.yml/runs?per_page=100" \
+            --jq "[.workflow_runs[] | select(.status != \"completed\" and .id != $GITHUB_RUN_ID) | {title: .display_title, status}]" > runs.json
+          bun ts/scripts/autoland.ts plan --lanes lanes.json --runs runs.json --retry "$RETRY" > plan.tsv
+          while IFS=$'\t' read -r -u 3 action branch tip slot; do
+            if [ "$action" = test ]; then
+              gh api "repos/$GH_REPO/statuses/$tip" -f state=pending -f context=autoland -f description="waiting to test alone" -f target_url="$RUN_URL" > /dev/null
+              gh workflow run autoland.yml --ref main -f test="$branch $tip" -f slot="$slot"
+              echo "testing \`$branch\` (${tip:0:10}) alone in slot $slot" >> "$GITHUB_STEP_SUMMARY"
+            else
+              gh workflow run autoland.yml --ref main -f train=1
+              echo "started a train for the tips that passed alone" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done 3< plan.tsv
