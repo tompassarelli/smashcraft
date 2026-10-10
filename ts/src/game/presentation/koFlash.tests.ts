@@ -109,3 +109,24 @@ test("the KO flash eases out in Classic and Reforged, never stepping more than 6
     assertEquals(previous, scene, `${mode} ends on the scene`);
   }
 });
+
+test("the KO blur eases to 0 by its last shown frame, stepping at most 1.5x its average fall rate a frame, for every hitlag [repro #289]", () => {
+  const fighter = createFighter(Character.rifleman, 0.0, 1);
+  const events = createImpactEvents();
+  events.koDirectionX = 1;
+  const bound = (1.5 * KO_BLUR_SCALE) / (KO_BLUR_FADE_FRAMES - 1) + f32(1e-3);
+  for (let hitlag = 1; hitlag <= 30; hitlag++) {
+    const flash = createKoFlash();
+    fighter.launch.hitlag = hitlag;
+    noteKoFlash(flash, 0, 0, fighter, events);
+    const off = flash.rise + KO_BLUR_FADE_FRAMES;
+    assertEquals(koFlashLevels(flash, off - 1)?.blur, 0.0, `hitlag ${hitlag}: the off call finds no blur`);
+    let previous = KO_BLUR_SCALE;
+    for (let frame = flash.rise + 1; frame <= off; frame++) {
+      const levels = koFlashLevels(flash, frame);
+      const blur = levels?.showing === true ? levels.blur : 0.0;
+      assertEquals(Math.abs(blur - previous) <= bound, true, `hitlag ${hitlag} frame ${frame}: blur ${previous} to ${blur}`);
+      previous = blur;
+    }
+  }
+});

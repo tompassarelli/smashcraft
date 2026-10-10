@@ -49,9 +49,12 @@ export function noteKoFlash(flash: KoFlash, frame: number, slot: number, fighter
   return true;
 }
 
+// The fall is a smoothstep that lands on 0 on the last shown frame, so turning the effect off changes nothing (#289).
 function pulse(age: number, rise: number, fade: number, peak: number): number {
   if (age < rise) return peak * sineTurns(f32(f32(age / rise) / 4.0));
-  return age >= rise + fade ? 0.0 : (1.0 - (age - rise) / fade) * peak;
+  if (age >= rise + fade - 1) return 0.0;
+  const t = 1.0 - (age - rise) / (fade - 1);
+  return t * t * (3.0 - 2.0 * t) * peak;
 }
 
 
