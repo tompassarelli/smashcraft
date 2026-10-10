@@ -18,7 +18,7 @@ export interface TextBox {
 
 export const MATCH_HELP_BOX: TextBox = { left: f32(0.06), top: f32(0.54), width: f32(0.58), height: f32(0.055) };
 
-export const MATCH_NOTICE_BOX: TextBox = { left: f32(0.26), top: f32(0.47), width: f32(0.42), height: f32(0.07) };
+export const MATCH_NOTICE_BOX: TextBox = { left: f32(0.06), top: f32(0.47), width: f32(0.34), height: f32(0.07) };
 
 export const TRAINING_READOUT_BOX: TextBox = { left: f32(0.02), top: f32(0.48), width: f32(0.23), height: f32(0.08) };
 

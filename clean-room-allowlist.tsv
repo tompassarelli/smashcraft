@@ -7,3 +7,12 @@ tools/selection/art/SmashcraftHUD.toc	generated	bun scripts/wisp/uiFrames.ts (fr
 tools/selection/art/CueGraphics.fdf	original	Authored local graphics-mode string for Classic spell cue timing (#144).
 tools/selection/art/CueGraphics.toc	original	Authored loader for the local graphics-mode string (#144).
 tools/selection/art/CueGraphicsDE.fdf	original	Authored Definitive override of the local graphics-mode string (#144).
+evidence/434/434-beastmaster-definitive.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/434/434-rifleman-definitive.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/434/434-spectra-vs-references.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/434/reference-battleroar.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/434/reference-druidoftheclawmorph1.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/435/illidan-pick-wait-stage-zoom.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/435/illidan-voice-vs-natural-course.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/435/rifleman-pick-then-stage-zoom.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
+evidence/435/rifleman-pick-then-stage.jpg	generated	Spectrogram/plot rendered by matplotlib from a clone-c audio recording (#434/#435 by-ear evidence).
