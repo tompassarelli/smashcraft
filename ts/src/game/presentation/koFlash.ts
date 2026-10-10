@@ -17,6 +17,11 @@ export const KO_BLUR_DISTANCE = 50.0;
 
 export const KO_BLUR_FADE_FRAMES = 36;
 
+// Reforged and Definitive blend the filter in linear light and draw nothing below alpha 4, so the wash fades by colour at this alpha (#289).
+export const KO_FLASH_FLOOR_ALPHA = 8;
+
+export const KO_FLASH_TAIL_FRAMES = 20;
+
 export interface KoFlash {
 
   readonly hitlag: number[];
@@ -29,6 +34,8 @@ export interface KoFlash {
 export interface KoFlashLevels {
 
   readonly alpha: number;
+
+  readonly colour: number;
   readonly blur: number;
 
   readonly showing: boolean;
@@ -49,7 +56,7 @@ export function noteKoFlash(flash: KoFlash, frame: number, slot: number, fighter
   return true;
 }
 
-// The fall is a smoothstep that lands on 0 on the last shown frame, so turning the effect off changes nothing (#289).
+// The fall is a smoothstep that lands on 0 before the wash's colour tail, so turning the effect off changes nothing (#289).
 function pulse(age: number, rise: number, fade: number, peak: number): number {
   if (age < rise) return peak * sineTurns(f32(f32(age / rise) / 4.0));
   if (age >= rise + fade - 1) return 0.0;
@@ -61,15 +68,18 @@ function pulse(age: number, rise: number, fade: number, peak: number): number {
 export function koFlashLevels(flash: Readonly<KoFlash>, frame: number): KoFlashLevels | undefined {
   if (flash.start === undefined) return undefined;
   const age = Math.max(0, frame - flash.start);
-  const left = Math.max(0, flash.rise + KO_BLUR_FADE_FRAMES - age);
-
-
-
-  const alpha = age < flash.rise ? Math.floor(KO_FLASH_ALPHA * sineTurns(f32(f32(age / flash.rise) / 4.0))) : floorDiv(KO_FLASH_ALPHA * left * left, KO_BLUR_FADE_FRAMES * KO_BLUR_FADE_FRAMES);
+  const fading = age - flash.rise;
+  const cube = KO_BLUR_FADE_FRAMES * KO_BLUR_FADE_FRAMES * KO_BLUR_FADE_FRAMES;
+  const left = KO_BLUR_FADE_FRAMES - fading;
+  const tail = fading - KO_BLUR_FADE_FRAMES;
+  const alpha = age < flash.rise ? Math.floor(KO_FLASH_ALPHA * sineTurns(f32(f32(age / flash.rise) / 4.0)))
+    : left > 0 ? KO_FLASH_FLOOR_ALPHA + floorDiv((KO_FLASH_ALPHA - KO_FLASH_FLOOR_ALPHA) * left * left * left + floorDiv(cube, 2), cube)
+    : KO_FLASH_FLOOR_ALPHA;
   return {
     alpha,
+    colour: tail < 0 ? 255 : floorDiv(255 * Math.max(0, KO_FLASH_TAIL_FRAMES - 1 - tail), KO_FLASH_TAIL_FRAMES),
     blur: pulse(age, flash.rise, KO_BLUR_FADE_FRAMES, KO_BLUR_SCALE),
-    showing: left > 0,
+    showing: tail < KO_FLASH_TAIL_FRAMES,
   };
 }
 

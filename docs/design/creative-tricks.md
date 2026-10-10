@@ -457,6 +457,10 @@ section records where it does.
     SpecialPow, SpecialSplat and Panda-n-Cub (`ReplaceableTextures\CameraMasks\`).
   - `SetCineFilterStartUV`/`EndUV` with `SetCineFilterDuration` move the mask
     across the screen.
+  - Reforged and Definitive blend the filter in linear light and draw nothing
+    below alpha 4: White_Mask at alpha 4 still lifts a black deck to about 37
+    luma, so an alpha fade to 0 ends in a step. The KO flash holds alpha 8 and
+    fades the filter colour to black instead (#289).
 - **Bytes:** 0.
 - **Frame cost:** about six calls per flash.
 - **Modes:** C R D.

@@ -172,8 +172,8 @@ export class CombatEffects {
       SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_DISTANCE, KO_BLUR_DISTANCE, 0.0);
       this.koFlashShown = true;
     }
-    SetCineFilterStartColor(255, 255, 255, levels.alpha);
-    SetCineFilterEndColor(255, 255, 255, levels.alpha);
+    SetCineFilterStartColor(levels.colour, levels.colour, levels.colour, levels.alpha);
+    SetCineFilterEndColor(levels.colour, levels.colour, levels.colour, levels.alpha);
     SetCameraField(CAMERA_FIELD_DEPTH_OF_FIELD_SCALE, levels.blur, 0.0);
   }
 
