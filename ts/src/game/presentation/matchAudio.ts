@@ -152,16 +152,36 @@ export const readyVoice = (character: Character): string => voice(character, "Re
 export const warcryVoice = (character: Character): string => voice(character, "Warcry");
 
 
-export function victoryAnimation(character: Character): string {
-  switch (character) { case Character.blademaster: case Character.forsakenPaladin: case Character.shadowHunter:
-      return "stand victory";
+const VICTORY_ANIMATIONS: Readonly<Record<Character, string>> = {
+  [Character.rifleman]: "spell",
+  [Character.demonHunter]: "spell throw",
+  [Character.blademaster]: "stand victory",
+  [Character.mountainKing]: "spell throw",
+  [Character.warden]: "spell throw",
+  [Character.lich]: "stand channel",
+  [Character.forsakenPaladin]: "stand victory 1",
+  [Character.dreadlord]: "spell",
+  [Character.shadowHunter]: "stand  victory",
+  [Character.pitLord]: "stand channel",
+  [Character.beastmaster]: "spell",
+  [Character.lichKing]: "spell throw",
+  [Character.thrall]: "spell",
+  [Character.jaina]: "stand victory",
+  [Character.sylvanas]: "spell",
+  [Character.cairne]: "stand victory",
+  [Character.chen]: "spell throw",
+  [Character.peon]: "stand - talk gesture",
+  [Character.tinker]: "spell three",
+  [Character.kaelthas]: "spell",
+  [Character.murloc]: "stand -3",
+  [Character.grom]: "stand victory",
+  [Character.anubarak]: "spell throw",
+  [Character.malfurion]: "spell",
+  [Character.medivh]: "stand talk fourth",
+  [Character.kobold]: "stand - 3",
+};
 
-    case Character.lich: case Character.pitLord:
-      return "stand channel";
-    default:
-      return "stand ready";
-  }
-}
+export const victoryAnimation = (character: Character): string => VICTORY_ANIMATIONS[character];
 
 
 export function interfaceSoundPaths(characters: readonly Character[]): string[] {
