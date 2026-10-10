@@ -4,7 +4,7 @@
 
 
 
-import type { Character } from "../sim/codes";
+import { Character } from "../sim/codes";
 import type { Fighter } from "../sim/fighter";
 import { ATTACK_CUES, type AttackCueState, attackCueState, fighterRenderedCues } from "../presentation/attackCues";
 import { characterModelScale } from "../presentation/modelScale";
@@ -14,6 +14,7 @@ import { HitAreaEffects } from "./hitAreaEffects";
 import { DEFINITIVE_CUE_EMITTERS } from "../presentation/cueEmitterInfo";
 import { modelFailed } from "wisp/src/platform/modelFailures";
 import { fighterName } from "../sim/heroes/registry";
+import { specialAreaRegion } from "../presentation/disjointCues";
 
 declare global { var __smashcraftCueDefinitive: boolean | undefined; }
 
@@ -58,6 +59,7 @@ export class SpecialCueEffects {
   private readonly popcorn: PopcornCue[] = [];
   private confirmedCue: Cue | undefined;
   private confirmedKey = 0;
+  private breathFrame = 0;
   private readonly definitive: boolean;
   private readonly front: number;
   private readonly scale: number;
@@ -77,7 +79,8 @@ export class SpecialCueEffects {
       if (DEFINITIVE_CUE_EMITTERS[cue.model] !== true) this.cues.push({ cue, model: AddSpecialEffect(cue.model, origin.x, origin.y) });
       else if (shared && this.voices[cue.model] === undefined) {
         const models: effect[] = [];
-        for (let voice = 0; voice < POPCORN_VOICES; voice++) {
+        const count = character === Character.chen && cue.anchor === "breath" ? 11 : POPCORN_VOICES;
+        for (let voice = 0; voice < count; voice++) {
           const model = AddSpecialEffect(cue.model, origin.x, origin.y);
           this.parkPopcorn(model);
           models.push(model);
@@ -103,6 +106,7 @@ export class SpecialCueEffects {
     this.popcorn.length = 0;
     this.confirmedCue = undefined;
     this.confirmedKey = 0;
+    this.breathFrame = 0;
   }
 
 
@@ -118,8 +122,15 @@ export class SpecialCueEffects {
         key = 100 + attack.key;
       }
     }
-    if (cue !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey)) {
-      const model = this.popcornModel(cue.model);
+    const breath = this.character === Character.chen && cue?.anchor === "breath";
+    const strike = breath && fighter !== undefined ? specialAreaRegion(fighter, 0).strike : undefined;
+    if (breath && strike === undefined) cue = undefined;
+    if (cue !== undefined && DEFINITIVE_CUE_EMITTERS[cue.model] === true && (cue !== this.confirmedCue || key !== this.confirmedKey || (breath && fighter?.special.frame !== this.breathFrame))) {
+      const model = this.popcornModel(cue, strike === undefined || fighter === undefined ? undefined : {
+        x: this.origin.x + fighter.motion.x + fighter.facing * strike.x2,
+        y: this.front,
+        z: this.origin.z + fighter.motion.z + strike.z2,
+      }, fighter?.facing ?? 1);
       if (model !== undefined) this.popcorn.push({ cue, model, born: now, seekStep: 0 });
     }
     for (let index = this.popcorn.length - 1; index >= 0; index--) {
@@ -131,6 +142,7 @@ export class SpecialCueEffects {
     }
     this.confirmedCue = cue;
     this.confirmedKey = key;
+    this.breathFrame = breath && strike !== undefined ? fighter?.special.frame ?? 0 : 0;
   }
 
   present(fighter: Readonly<Fighter> | undefined, playing: boolean, paused: boolean): void {
@@ -148,6 +160,11 @@ export class SpecialCueEffects {
         const anchor = CUE_ANCHORS[cue.anchor];
         x = anchor.x * this.scale;
         z = anchor.z * this.scale;
+        if (this.character === Character.chen && cue.anchor === "breath") {
+          const strike = specialAreaRegion(fighter, 0).strike;
+          if (strike === undefined) cue = undefined;
+          else { x = strike.x2; z = strike.z2; }
+        }
         key = fighter.special.action * 100 + fighter.special.form;
       } else {
         const attack = attackCueState(fighter, this.attack, this.definitive);
@@ -232,13 +249,29 @@ export class SpecialCueEffects {
     return this.definitive ? cue.definitive ?? cue : cue;
   }
 
-  private popcornModel(path: string): effect | undefined {
-    if (!this.shared) return AddSpecialEffect(path, this.origin.x, this.origin.y);
+  private popcornModel(cue: Cue, breath: WorldOrigin | undefined, facing: number): effect | undefined {
+    const path = cue.model;
+    if (!this.shared) {
+      const model = AddSpecialEffect(path, breath?.x ?? this.origin.x, breath?.y ?? this.origin.y);
+      if (breath !== undefined) {
+        BlzSetSpecialEffectPosition(model, breath.x, breath.y, breath.z);
+        BlzSetSpecialEffectScale(model, cue.scale * this.scale);
+        BlzSetSpecialEffectYaw(model, facingYaw(facing));
+        BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+      }
+      return model;
+    }
     const voices = this.voices[path];
     const model = voices?.models[voices.next];
     if (voices === undefined || model === undefined) return undefined;
     voices.next = voices.next + 1 >= voices.models.length ? 0 : voices.next + 1;
     for (let index = this.popcorn.length - 1; index >= 0; index--) if (this.popcorn[index]?.model === model) this.popcorn.splice(index, 1);
+    if (breath !== undefined) {
+      BlzSetSpecialEffectPosition(model, breath.x, breath.y, breath.z);
+      BlzSetSpecialEffectScale(model, cue.scale * this.scale);
+      BlzSetSpecialEffectYaw(model, facingYaw(facing));
+      BlzSetSpecialEffectTimeScale(model, 1.0);
+    }
     BlzSpecialEffectClearSubAnimations(model);
     BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
     return model;
