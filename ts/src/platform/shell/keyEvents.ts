@@ -33,8 +33,8 @@ function registerKeys(s: ShellState, escapeOnly: boolean): void {
   const up = CreateTrigger();
   for (let key = 1; key <= 255; key++) {
 
-    const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.enter || key === Key.f2 || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
-    if (key === Key.y || (!escapeOnly && key === Key.enter) || (escapeOnly && !pauseKey)) continue;
+    const pauseKey = pauseCameraKey(key) || key === Key.escape || key === Key.f2 || key === 0x26 || key === 0x28 || key === 32 || key === 69 || key === Key.n || key === Key.u;
+    if (key === Key.y || key === Key.enter || (escapeOnly && !pauseKey)) continue;
     registerKey(s, down, key, true);
     registerKey(s, up, key, false);
     if (key === 0xbb) {
