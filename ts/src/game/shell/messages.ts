@@ -100,7 +100,7 @@ export function matchHelp(game: Readonly<MatchState>, paused: boolean, start: St
   }
   if (!playing) return rematchStatus(game, start);
   if (paused) return `PAUSED — Press ${start} to resume. Combat is frozen.${game.practice || game.endless || game.training ? "\nEscape: back to fighter selection." : ""}`;
-  return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nShield + Special: EX special (one bar segment).\nAttack + Special (A + X): Ultimate (full bar).\nShield then Left/Right: roll; Down: dodge.`;
+  return `${start}: pause. Tap Shield before a hard landing to tech; hold Left/Right for a tech roll.\nShield + Special: EX special (one bar segment).\nAttack + Special: Ultimate (full bar).\nShield then Left/Right: roll; Down: dodge.`;
 }
 
 
