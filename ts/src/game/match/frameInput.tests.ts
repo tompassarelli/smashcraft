@@ -92,7 +92,7 @@ test("a network row adapts again from the world it replays into [k1 scenario]", 
   }
 });
 
-test("a frame handed an earlier run's camera reaches the state recomputing the camera does [invariant]", () => {
+test("a frame handed an earlier run's camera reaches the state recomputing the camera does [k1 scenario]", () => {
   const frames = 600;
   const earlier = testMatch(15, Character.rifleman);
   const rows = Array.from({ length: frames + 1 }, () => createMatchFrameInput());
