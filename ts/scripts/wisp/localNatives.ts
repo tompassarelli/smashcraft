@@ -60,7 +60,7 @@ export const SMASHCRAFT_LOCAL_NATIVES: LocalNatives = {
 
 const PREDICTED_PRESENTATION: LocalNatives = {
   ...Object.fromEntries([
-    "BlzPlaySpecialEffect", "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectAnimation", "BlzSetSpecialEffectAnimationBlendTime", "BlzSetSpecialEffectColor",
+    "BlzPlaySpecialEffect", "BlzSpecialEffectClearSubAnimations", "BlzSetSpecialEffectAlpha", "BlzSetSpecialEffectAnimation", "BlzSetSpecialEffectAnimationBlendTime", "BlzSetSpecialEffectColor",
     "BlzSetSpecialEffectColorByPlayer", "BlzSetSpecialEffectMatrixScale", "BlzSetSpecialEffectPitch", "BlzSetSpecialEffectPosition",
     "BlzSetSpecialEffectRoll", "BlzSetSpecialEffectScale", "BlzSetSpecialEffectTime", "BlzSetSpecialEffectTimeScale", "BlzSetSpecialEffectYaw",
   ].map((name) => [name, "poses an existing effect from this client's prediction"])),
