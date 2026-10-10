@@ -59,7 +59,7 @@ export const PEON_MOVES: FighterMoves = {
     [AttackStyle.forwardTiltUp]: tilt(72.0),
     [AttackStyle.forwardTiltDown]: tilt(24.0),
     [AttackStyle.upTilt]: heroMove(7, 4, 20, 0, swing(7, [[45.0, 106.0], [15.0, 118.0], [-15.0, 118.0], [-36.0, 102.0]], 8.192000389099121, 85, 68.94999694824219, 40.0)),
-    [AttackStyle.downTilt]: heroMove(6, 3, 19, 0, swing(6, [[74.0, 8.0], [74.0, 16.0], [66.0, 28.0]], 7.168000221252441, 70, 64.0250015258789, 45.0)),
+    [AttackStyle.downTilt]: heroMove(6, 3, 19, 0, swing(6, [[74.0, 8.0], [74.0, 16.0], [66.0, 28.0]], 7.168000221252441, 70, 72.0, 45.0)),
     [AttackStyle.dashAttack]: heroMove(10, 4, 25, 0, swing(10, [[80.0, 38.0], [80.0, 42.0], [74.0, 48.0], [68.0, 50.0]], 10.239999771118164, 55), 34.0, true),
     [AttackStyle.forwardSmash]: tipperMove(heroMove(22, 3, 35, 0, swing(22, [[110.0, 104.0], [128.0, 55.0], [116.0, 8.0]], 19.45599937438965, 40, 122.13999938964844, 28.0)), 0.25),
     [AttackStyle.upSmash]: heroMove(17, 4, 31, 0, swing(17, [[34.0, 136.0], [10.0, 148.0], [-10.0, 148.0], [-34.0, 136.0]], 16.384000778198242, 90, 118.19999694824219, 26.0)),

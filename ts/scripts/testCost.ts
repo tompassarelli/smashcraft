@@ -9,7 +9,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-/** Bun: frames stepMatch may simulate in one test, 4 s at a farm runner's 14,500 frames/s, measured from scripts/projectileRules.tests.ts (28,700 frames in 1.98 s CPU) (AGENTS.md). Never raise it to fit a test. */
+/** Bun: frames stepMatch may simulate in one test, 4 s at a farm runner's 14,500 frames/s, measured from test/projectile-rules.test.ts (28,700 frames in 1.98 s CPU) (AGENTS.md). Never raise it to fit a test. */
 export const BUN_TEST_CEILING_FRAMES = 58_000;
 /** Lua32: CPU seconds one test may use on the reference runner (AGENTS.md). Never raise it to fit a test. */
 export const LUA_TEST_CEILING_S = 6;

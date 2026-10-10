@@ -1,7 +1,8 @@
 import { preloadModels, preloadSkies } from "../../game/presentation/stagePreload";
-import { STOCK_TERRAIN_LIGHT, STOCK_UNIT_LIGHT, placedPieces, shadowCastingLights, stageScenery } from "../../game/presentation/stageScenery";
+import { pointLightPieces, STOCK_TERRAIN_LIGHT, STOCK_UNIT_LIGHT, placedPieces, shadowCastingLights, stageScenery } from "../../game/presentation/stageScenery";
 import { hideEffect } from "../../game/render/effects";
 import type { ShellState } from "./state";
+import { cameraZOverride } from "../../game/presentation/arenaCamera";
 
 function drawStageFog(s: ShellState): void {
   const scenery = stageScenery(s.game.stageChoice);
@@ -108,5 +109,26 @@ export function showStageLighting(s: ShellState, authored: boolean): void {
   for (const [index, effect] of (s.stageScenery ?? []).entries()) {
     const color = pieces[index]?.color;
     if (color !== undefined) BlzSetSpecialEffectColor(effect, color[0], color[1], color[2]);
+  }
+}
+
+export function leverCommand(s: ShellState, name: string, a: string, b: string): void {
+  if (name === "fog") showStageFog(s, a === "on");
+  else if (name === "density") BlzSetTerrainFogMaxLinearDensity(S2R(a));
+  else if (name === "oversky") BlzSetTerrainFogDrawOverSky(a === "on");
+  else if (name === "camz") cameraZOverride.z = a === "off" ? undefined : S2R(a);
+  else if (name === "shadows") BlzSetMinShadowCastingPointLightCount(S2I(a));
+  else if (name === "light") {
+    const lights = pointLightPieces(s.game.stageChoice);
+    const effects = s.stageScenery ?? [];
+    const index = S2I(a);
+    const effect = effects[effects.length - lights.length + index];
+    const piece = lights[index];
+    if (effect === undefined || piece === undefined) return;
+    if (b === "off") hideEffect(effect, s.origin);
+    else {
+      BlzSetSpecialEffectPosition(effect, s.origin.x + piece.x, s.origin.y + piece.y, s.origin.z + piece.z);
+      BlzSetSpecialEffectScale(effect, piece.scale);
+    }
   }
 }

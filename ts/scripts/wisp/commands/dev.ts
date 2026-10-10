@@ -13,7 +13,7 @@ export const SMASHCRAFT_DEV: DevProject = {
   typeCheck: { projects: ["tsconfig.json", "tsconfig.game.json"], command: [process.execPath, "run", "check"] },
   tests: {
 
-    files: ["{src,scripts,test}/**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}", "scripts/**/*.tests.ts"],
+    files: ["{src,scripts,test}/**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx}"],
     registry: "src/**/*.tests.ts",
     registryRunners: ["test/game.test.ts"],
     preload: ["test/host-natives.ts"],
@@ -22,7 +22,7 @@ export const SMASHCRAFT_DEV: DevProject = {
       "test/integrity.test.ts": ["../evidence/**"],
       "test/playable.test.ts": ["test/fixtures/playable-0045/**", "../evidence/**"],
       "test/standalone.test.ts": ["test/native/pads/cpu-expert.pad"],
-      "scripts/meleeOracle.tests.ts": ["../docs/gameplay-design.md"],
+      "test/melee-oracle.test.ts": ["../docs/gameplay-design.md"],
     },
 
     journeys: [

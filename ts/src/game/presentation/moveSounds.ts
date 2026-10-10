@@ -53,7 +53,7 @@ const s = (perform: string, hit: string): SpecialSound => ({ perform, hit });
 export const FIGHTER_SOUNDS: { readonly [character: number]: FighterSound | undefined } = {
   [Character.rifleman]: {
     weapon: Weapon.blunt, strong: "FlakCannonHit",
-    specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("DruidOfTheClawMorph", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack"), s("WardBirth", "FrostNova")],
+    specials: [s("RiflemanAttack1", "GyrocopterAttack"), s("BattleRoar", "StampedeHit"), s("RiflemanAttack1", "GyrocopterAttack"), s("WardBirth", "FrostNova")],
   },
   [Character.demonHunter]: {
     weapon: Weapon.blade, strong: "DemonHunterMissileHit",
@@ -94,7 +94,7 @@ export const FIGHTER_SOUNDS: { readonly [character: number]: FighterSound | unde
   },
   [Character.beastmaster]: {
     weapon: Weapon.axe, effort: ["BeastmasterAttack"], strong: "AxeMissileHit",
-    specials: [s("AxeMissileLaunch", "AxeMissileHit"), s("DruidOfTheClawMorph", "StampedeHit"), s("HarpyMissileLaunch", "HarpyMissileHit"), s("BristleBackMissileLaunch", "BristleBackMissileHit")],
+    specials: [s("AxeMissileLaunch", "AxeMissileHit"), s("BattleRoar", "StampedeHit"), s("HarpyMissileLaunch", "HarpyMissileHit"), s("BristleBackMissileLaunch", "BristleBackMissileHit")],
   },
   [Character.lichKing]: {
     weapon: Weapon.blade, swing: ["HeroDeathKnightAttack1"], strong: "FrostWyrmAttack1",

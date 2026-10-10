@@ -10,7 +10,7 @@ import { Action } from "../src/game/input/actions";
 import { Character } from "../src/game/sim/codes";
 import type { Fighter } from "../src/game/sim/fighter";
 import { RIFLEMAN_BLASTER_AIR_SHOT_FRAME } from "../src/game/sim/moves";
-import { type Held, type Situation, Timeline } from "./interactions";
+import { type Held, type Situation, Timeline } from "../scripts/interactions";
 
 const START = 10;
 const LAST = 220;

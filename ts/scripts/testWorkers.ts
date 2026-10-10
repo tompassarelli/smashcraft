@@ -7,7 +7,7 @@
  */
 export const ISOLATED_TEST_GROUPS: readonly (readonly string[])[] = [
   ["test/standalone.test.ts"],
-  ["scripts/platformAdvantage.tests.ts"],
+  ["test/platform-advantage.test.ts"],
   ["test/game.test.ts"],
   ["test/desync-guard.test.ts"],
   ["test/visual-lifecycle.test.ts", "test/player-text.test.ts"],
@@ -32,4 +32,4 @@ export const TEST_WORKER_ENV: Readonly<Record<string, string>> = {
 
 /** Full matches and the all-pairs platform measurement amortize the production runtime's optimizing tiers. */
 export const testWorkerEnvironment = (files: readonly string[]): Readonly<Record<string, string>> =>
-  files.some((file) => file.endsWith("test/standalone.test.ts") || file.endsWith("scripts/platformAdvantage.tests.ts")) ? {} : TEST_WORKER_ENV;
+  files.some((file) => file.endsWith("test/standalone.test.ts") || file.endsWith("test/platform-advantage.test.ts")) ? {} : TEST_WORKER_ENV;

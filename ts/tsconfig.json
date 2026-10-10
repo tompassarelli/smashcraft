@@ -39,7 +39,26 @@
   "include": [
     "src/**/*.ts",
     "scripts/**/*.ts",
-    "plugins/**/*.ts"
+    "plugins/**/*.ts",
+    "test/advantage-state.test.ts",
+    "test/air-drift.test.ts",
+    "test/autoland.test.ts",
+    "test/cpu-field.test.ts",
+    "test/cue-budget.test.ts",
+    "test/dreadlord-shadow-hunter-gameplans.test.ts",
+    "test/farm-guard.test.ts",
+    "test/genre-envelope.test.ts",
+    "test/integrity-verdict.test.ts",
+    "test/live-agency.test.ts",
+    "test/melee-oracle.test.ts",
+    "test/perf-pairs.test.ts",
+    "test/platform-advantage.test.ts",
+    "test/playtest.test.ts",
+    "test/powershield-reflect.test.ts",
+    "test/projectile-rules.test.ts",
+    "test/rifleman-blaster.test.ts",
+    "test/tavern-gameplans.test.ts",
+    "test/text-match.test.ts"
   ],
   "exclude": [
     "src/platform/**",
@@ -51,6 +70,7 @@
     "scripts/wisp/handleBaselineLua.ts",
     "scripts/wisp/handleBaseline.ts",
     "scripts/wisp/memoryCensus.ts",
+    "scripts/wisp/memoryCensus.tests.ts",
     "scripts/wisp/botMatch.ts",
     "scripts/wisp/censusProfile.ts"
   ]

@@ -11,7 +11,7 @@ import type { Fighter } from "../sim/fighter";
 import { AIR_DODGE_ANIMATION_FRAMES } from "../sim/jumpsAndDodges";
 import { LEDGE_CLIMB_FRAMES, LEDGE_ROLL_FRAMES } from "../sim/ledge";
 import { totalVelocityX } from "../sim/motion";
-import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame } from "../sim/moves";
+import { LEDGE_ATTACK_FRAMES, RIFLEMAN_BLASTER_AIR_FRAMES, attackStartupFrames, characterAttackActiveFrames, grabActionDuration, grabContactFrame, isSmashAttack } from "../sim/moves";
 import { type Controls, type Roster, fighterAt } from "../sim/roster";
 import { SHIELD_RELEASE_LAG_FRAMES } from "../sim/shield";
 import { INITIAL_DASH_FRAMES, SHIELD_BREAK_LAND_FRAMES, SHIELD_BREAK_STAND_FRAMES, authoredPhysics } from "../sim/tuning";
@@ -153,7 +153,8 @@ export function advanceFighterPose(
 
   pose.clipTime = f32(pose.clipTime + f32(pose.rate * FRAME_SECONDS));
   const phase = attackPhase(fighter);
-  if (attacked && phase !== AttackPhase.none) selectAttackClip(pose, fighter);
+  const charging = fighter.attack.smashCharging || (fighter.attack.smashChargeAllowed && controls.attackHeld && isSmashAttack(fighter.attack.style));
+  if (attacked && phase !== AttackPhase.none && !charging) selectAttackClip(pose, fighter);
   advanceIllidanMotion(pose.motion, fighter, controls, world);
   if (hit) {
     pose.motion.escapeRemaining = 0;
@@ -173,10 +174,10 @@ export function advanceFighterPose(
     return;
   }
   advanceJumpClip(pose, fighter, phase, wasOut, jumped);
-  const rate = selectClip(pose, fighter, world, phase, hit);
+  const rate = selectClip(pose, fighter, world, phase, hit, charging);
 
 
-  pose.rate = fighter.launch.hitlag > 0 || fighter.attack.smashCharging ? 0.0 : rate;
+  pose.rate = fighter.launch.hitlag > 0 || charging ? 0.0 : rate;
 }
 
 function advanceJumpClip(pose: FighterPose, f: Readonly<Fighter>, phase: AttackPhase, wasOut: boolean, jumped: boolean): void {
@@ -198,7 +199,7 @@ const posesDown = (f: Readonly<Fighter>): boolean =>
   f.down.state !== DownState.none && f.down.state !== DownState.tumble && f.down.state !== DownState.attack;
 
 
-function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Roster>, phase: AttackPhase, hit: boolean): number {
+function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Roster>, phase: AttackPhase, hit: boolean, charging: boolean): number {
   const reaction = damagePose(f);
   const rate = actionRate(pose, f, phase, reaction);
   const { character } = f;
@@ -294,7 +295,7 @@ function selectClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly<Ros
     playIndex(pose, `special${f.special.action}${playsFollowUpPose(f) ? "+" : ""}`, fighterSpecialClip(f).index);
     return rate;
   }
-  const stateRate = illidan ? selectIllidanAction(pose, f) : selectTableAction(pose, f, table);
+  const stateRate = illidan ? selectIllidanAction(pose, f, charging) : selectTableAction(pose, f, table, charging);
   if (stateRate !== undefined) return stateRate;
   if (pose.jumpAnimationRemaining > 0) {
     playIndex(pose, "jump", clips.clipFor(character, pose.doubleJumpAnimation ? "doubleJump" : "jump").index);
@@ -376,7 +377,7 @@ function selectGrabClip(pose: FighterPose, f: Readonly<Fighter>, world: Readonly
 
 
 
-function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Readonly<HeroClipTable>): number | undefined {
+function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Readonly<HeroClipTable>, charging: boolean): number | undefined {
   const { dodge, jump, motion, landing, shield, attack } = f;
   if (dodge.airDodging && table.airDodge !== undefined) {
     playIndex(pose, "air-dodge", table.airDodge.index);
@@ -401,20 +402,24 @@ function selectTableAction(pose: FighterPose, f: Readonly<Fighter>, table: Reado
   const { style } = attack;
 
 
-  if (f.character === Character.lichKing && style === AttackStyle.forwardSmash) {
-    return attack.smashCharging ? 0.0 : attackRate(f, attackPhase(f));
-  }
-  if (attack.smashCharging && table.smashCharge !== undefined) {
-    playIndex(pose, "smash-charge", table.smashCharge.index);
+  if (charging) {
+    const charge = table.smashCharge ?? table.idle;
+    if (charge === undefined) playName(pose, "smash-charge", "stand ready");
+    else playIndex(pose, "smash-charge", charge.index);
     return 0.0;
   }
 
-  const release = clips.ownAttackClip(f.character, style);
+  const release = attackClip(f);
   if (style !== undefined && release !== undefined && (pose.animation === "smash-charge" || pose.animation === "smash-release")) {
     if (pose.animation === "smash-charge") {
       selectFighterClipIndex(pose, release.index);
       pose.animation = "smash-release";
+      if (f.character === Character.lichKing && style === AttackStyle.forwardSmash) {
+        const startup = attackStartupFrames(style, f.tuning.moves);
+        pose.clipTime = f32(strikeStart(f.character, style, release, startup) + f32(attackRate(f, AttackPhase.startup) * f32(attack.frame * FRAME_SECONDS)));
+      }
     }
+    if (f.character === Character.lichKing && style === AttackStyle.forwardSmash) return attackRate(f, attackPhase(f));
     return clipRate(release.seconds, attack.duration - attackStartupFrames(style, f.tuning.moves));
   }
   return undefined;
@@ -435,7 +440,7 @@ function tableLocomotion(table: Readonly<HeroClipTable>, motion: IllidanLocomoti
 }
 
 
-function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | undefined {
+function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>, charging: boolean): number | undefined {
   const { dodge, jump, motion, landing, shield, attack } = f;
   if (dodge.airDodging) {
     playIndex(pose, "air-dodge", dh.DEMON_HUNTER_AIR_DODGE_INDEX);
@@ -464,7 +469,7 @@ function selectIllidanAction(pose: FighterPose, f: Readonly<Fighter>): number | 
     return clipRate(dh.DEMON_HUNTER_SHIELD_RELEASE_SECONDS, SHIELD_RELEASE_LAG_FRAMES);
   }
   const { style } = attack;
-  if (attack.smashCharging) {
+  if (charging) {
     playIndex(pose, "smash-charge", clips.illidanSmashClips(style).charge.index);
     return 0.0;
   }

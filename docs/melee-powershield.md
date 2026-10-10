@@ -47,7 +47,7 @@ while the reflector is up, the whole shield circle reflects. With a separate
 0.75 circle checked in the same swept step, a projectile met the outer quarter
 of the bubble a frame before the reflector and was blocked, and projectiles
 flying at height 75 passed above the reflector of a fully pressed shield, so a
-timed press rarely reflected (smashcraft:ts/scripts/powershieldReflect.tests.ts
+timed press rarely reflected (smashcraft:ts/test/powershield-reflect.test.ts
 measures every projectile on shield frames 1-3). The reflector state is sampled
 once per frame, so every projectile meeting the shield on a reflecting frame,
 such as a Multishot volley, reflects. Original joint-scaling and reflector

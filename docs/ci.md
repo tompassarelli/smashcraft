@@ -48,7 +48,7 @@ Every dispatched run ends with a plan, cancelled runs too, and a plan tests
 again any pending tip that no unfinished run holds, so a cancelled run never
 strands a tip. The scheduling decisions are a pure function, checked on the
 queue recorded at 2026-10-10T03:35Z and generated queues
-(smashcraft:ts/scripts/autolandCore.ts, ts/scripts/autoland.tests.ts). The
+(smashcraft:ts/scripts/autolandCore.ts, ts/test/autoland.test.ts). The
 run's own status is red whenever a suite shard fails; its `land` job and
 summary say what landed. To test a refused branch again without a new
 commit: `gh workflow run autoland.yml -f branch=claude/NAME`.

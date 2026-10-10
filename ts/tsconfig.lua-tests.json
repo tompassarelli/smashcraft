@@ -23,7 +23,8 @@
     "src/game/**/*.ts",
     "src/**/*.tests.ts",
     "node_modules/wisp/src/natives/warcraft.d.ts",
-    "test/lua/*.ts"
+    "test/lua/*.ts",
+    "scripts/wisp/memoryCensus.tests.ts"
   ],
   "tstl": {
     "luaTarget": "5.3",

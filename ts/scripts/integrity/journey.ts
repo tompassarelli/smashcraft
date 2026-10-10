@@ -219,7 +219,8 @@ export const receiptFields = (text: string): ReadonlyMap<string, string> => new 
 const both = <A, E>(each: (client: Slot) => Effect.Effect<A, E>) => Effect.forEach(SLOTS, each, { concurrency: 2 });
 
 
-export function journey(rig: RigShape, options: JourneyOptions) {
+/** The journey's options, its rig and the helpers every phase shares. */
+function journeyContext(rig: RigShape, options: JourneyOptions) {
   const { build, epochs, fourFighters, sweep } = options;
   const matchOnly = options.workload === "match";
   const playable = options.workload === "playable";
@@ -281,14 +282,13 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       const contents = (yield* menus).map((file) => file?.text ?? "");
       yield* rig.record({ event: "menu", phase, contents, observed_monotonic_ns: yield* rig.monotonicNs });
     });
+  return { rig, options, build, epochs, fourFighters, sweep, matchOnly, playable, bot, diagnosticBuild, commands, firstEpoch, lastEpoch, complete, menuName, controlName, menus, menusShow, boundaries, failed, send, button, tap, menuButton, playerView, menuPhase };
+}
+type JourneyContext = ReturnType<typeof journeyContext>;
 
-
-
-
-
-
-
-
+/** Dev commands typed into chat, and the chat-driven capture and resume. */
+function chatSteps(context: JourneyContext) {
+  const { rig, boundaries, build, complete, failed, menuButton } = context;
   const command = (text: string, expected: Readonly<Record<string, string | number | RegExp>>) =>
     Effect.gen(function*() {
       const name = (client: Slot) => devCommandReceiptFile(build, client);
@@ -360,8 +360,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       return yield* failed(`epoch ${epoch}: chat resume receipt`, `client ${slot} has no RESUME receipt`);
     })) });
   });
+  return { command, devCommand, journalChat, resumeAfterChat };
+}
 
+type ChatSteps = JourneyContext & ReturnType<typeof chatSteps>;
 
+/** The character screen and the slot modes a session starts from. */
+function setupSteps(context: ChatSteps) {
+  const { rig, bot, boundaries, command, commands, firstEpoch, menuButton, menuName, menuPhase, menusShow, options, send } = context;
   const characterScreen = Effect.gen(function*() {
     yield* menuPhase("CHARACTER");
     if (!commands) yield* rig.waitText(0, CONTROLS, SELECTION_HELP);
@@ -427,19 +433,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* command(`-dev stage ${BOT_STAGE}`, { stage: BOT_STAGE });
     }
   });
+  return { characterScreen, controllerSelect, clickSlotTag, setSlots, modeChanges, fourFighterSetup, botSetup };
+}
 
+type SetupSteps = ChatSteps & ReturnType<typeof setupSteps>;
 
-
-
-
-
-
-
-
-
-
-
-
+/** The bot workload: pad49's scripted stick and the beats, stalls and moments of a bot match. */
+function botSteps(context: JourneyContext) {
+  const { rig, button, complete, controlName, firstEpoch, options, send } = context;
   const pad49 = (epoch: number, startNs: number) =>
     Effect.gen(function*() {
       const at = (offsetMs: number) => Effect.gen(function*() {
@@ -539,8 +540,12 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
       yield* playUntil(BOT_PLAY_MILLIS);
     });
+  return { pad49, botMatch };
+}
 
-
+/** Rematch slot changes and the stock and time rules. */
+function ruleSteps(context: SetupSteps) {
+  const { rig, characterScreen, clickSlotTag, command, commands, complete, failed, fourFighters, menuName, menusShow, modeChanges, setSlots } = context;
   const slotChange = (epoch: number) =>
     Effect.gen(function*() {
       yield* characterScreen;
@@ -610,22 +615,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       yield* rig.waitText(1, new RegExp(`${minutes}:00`));
     }
   });
+  return { slotChange, slotRestore, restoreTwoHumans, clickRule, stockCount, reduceStocks, oneMinute };
+}
 
+type RuleSteps = SetupSteps & ReturnType<typeof ruleSteps>;
 
-
-
-
-  const stageDrawn = (epoch: number) =>
-    Effect.gen(function*() {
-      const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, stageReceiptFile(build, client)));
-      yield* rig.until(`epoch ${epoch}: stage drawn receipts absent`, receipts.pipe(Effect.map((files) => files.every((file) => complete(file) && receiptFields(file.text).get("epoch") === String(epoch)))));
-      if (!bot) return;
-      for (const [client, file] of (yield* receipts).entries()) {
-        const stage = receiptFields(file?.text ?? "").get("stage");
-        if (stage !== String(BOT_STAGE)) return yield* failed(`epoch ${epoch}: stage drawn`, `client ${client} drew stage ${stage}, wanted ${BOT_STAGE}`);
-      }
-    });
-
+/** The integrity schedule's pulses, stalls and pause. */
+function integritySteps(context: JourneyContext) {
+  const { rig, build, complete, failed, menuButton, options } = context;
   const runPulse = (epoch: number, pulse: Pulse) =>
     Effect.gen(function*() {
       const { presses, releases } = pulseSends(epoch, pulse);
@@ -710,6 +707,23 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
     }, { discard: true });
 
+  return { runPulse, stall, pause, integrity };
+}
+
+/** The receipts a match leaves: the drawn stage, the completed trace and the exported response pages. */
+function receiptSteps(context: JourneyContext) {
+  const { rig, bot, build, complete, failed } = context;
+  const stageDrawn = (epoch: number) =>
+    Effect.gen(function*() {
+      const receipts = Effect.forEach(SLOTS, (client) => rig.file(client, stageReceiptFile(build, client)));
+      yield* rig.until(`epoch ${epoch}: stage drawn receipts absent`, receipts.pipe(Effect.map((files) => files.every((file) => complete(file) && receiptFields(file.text).get("epoch") === String(epoch)))));
+      if (!bot) return;
+      for (const [client, file] of (yield* receipts).entries()) {
+        const stage = receiptFields(file?.text ?? "").get("stage");
+        if (stage !== String(BOT_STAGE)) return yield* failed(`epoch ${epoch}: stage drawn`, `client ${client} drew stage ${stage}, wanted ${BOT_STAGE}`);
+      }
+    });
+
   const traceComplete = (client: Slot, afterNs: bigint, ticks = PROBE_TRACE_TICKS) =>
     rig.file(client, TRACE).pipe(Effect.map((file) => {
       if (!complete(file) || file.mtimeNs < afterNs) return false;
@@ -735,7 +749,14 @@ export function journey(rig: RigShape, options: JourneyOptions) {
         }));
       }
     });
+  return { stageDrawn, traceComplete, exportResponse };
+}
 
+type MatchSteps = RuleSteps & ReturnType<typeof botSteps> & ReturnType<typeof integritySteps> & ReturnType<typeof receiptSteps>;
+
+/** One match from start to result, then back to character select for the next. */
+function matchStep(context: MatchSteps) {
+  const { rig, bot, botMatch, boundaries, commands, complete, controlName, controllerSelect, devCommand, diagnosticBuild, exportResponse, firstEpoch, integrity, journalChat, lastEpoch, matchOnly, menuButton, menuPhase, menusShow, options, playable, playerView, reduceStocks, resumeAfterChat, send, slotChange, slotRestore, stageDrawn, sweep, tap, traceComplete } = context;
   const match = (epoch: number) =>
     Effect.gen(function*() {
       const odd = epoch % 2 === 1;
@@ -845,7 +866,17 @@ export function journey(rig: RigShape, options: JourneyOptions) {
       }
       yield* rig.progress(`Epoch ${epoch}: ${bot ? "bot combat, stalls, moment and results" : matchOnly ? "four-fighter combat and results" : playable ? "one-stock combat, stock loss and results" : "game start, tap, stock loss and results"} observed`);
     });
+  return { match };
+}
 
+export function journey(rig: RigShape, options: JourneyOptions) {
+  const base = journeyContext(rig, options);
+  const chat = { ...base, ...chatSteps(base) };
+  const setup = { ...chat, ...setupSteps(chat) };
+  const rules = { ...setup, ...ruleSteps(setup) };
+  const steps = { ...rules, ...botSteps(base), ...integritySteps(base), ...receiptSteps(base) };
+  const { match } = matchStep(steps);
+  const { epochs, fourFighters, matchOnly, playable, bot, commands, firstEpoch, menusShow, menuPhase, tap, menuButton, command, devCommand, characterScreen, restoreTwoHumans, fourFighterSetup, botSetup, oneMinute, reduceStocks, stockCount, clickRule, controllerSelect, integrity } = steps;
   const run = Effect.gen(function*() {
 
 

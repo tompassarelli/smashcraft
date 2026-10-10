@@ -9,7 +9,7 @@ profile: prototype
 - Keep every mutable gameplay field in deterministic snapshots/replay; local presentation stays separate and shared handles are created consistently.
 - Publish a release only when Tom decides; private playable builds are Smashcraft 0.0.N (increment N only). Diagnostics keep distinct run IDs and names; keep one current candidate under Maps/00-Smashcraft.
 - Never touch Tom’s install; run account a only as clone-a through its launch.sh, which yields to Tom’s game. The offline pool is Classic-only; Definitive checks run on the signed-in pairs clone-c+clone-b and clone-a+clone-d.
-- A visual box (stage, water, fog, lighting, portrait, VFX, HUD) closes only on a capture from Tom's own profile: Definitive on Warcraft 3.0.0.24268 (the VM's account b), and Classic on the VM pool. Wisp renders and 3.0.1 captures are evidence, not acceptance (#277, #428).
+- A visual box (stage, water, fog, lighting, portrait, VFX, animation, HUD) closes only on captures from Tom's own profile: Definitive on Warcraft 3.0.0.24268 (the VM's account b, or clone-c/clone-d), and Classic on the VM pool. A VFX, animation or move-readability box also needs a motion strip, not a still; the effect's footprint matching the hit regions on the active frames; and a cold reader new to the move, shown it on the strip's stage, naming what it does and where it hits. Wisp renders, 3.0.1 captures and "the effect spawns" are evidence, not acceptance (#277, #428, #433).
 
 Commands: from ts/, run bun wisp help.
 Docs and source layout: [docs/README.md](docs/README.md), topic → file.

@@ -258,8 +258,11 @@ right where the backdrop behind the fighters is darker than they are.
 ### Chosen stage atmosphere (Classic and Definitive)
 
 The selectable stage chooses its own sky and fog colour, with distance fog
-starting at least 5,000 units away from the camera and ending beyond that
-start. Height fog's upper edge stays below the deck. These requirements are
+starting at least 3,300 units away from the camera and ending beyond that
+start. The current camera's full fighting envelope reaches 3,130 units at
+the narrowest field of view and farthest 4:3 zoom; fog clearance follows
+that eye-space depth rather than a scenery placement's world y.
+Height fog's upper edge stays below the deck. These requirements are
 pinned through `stageScenery` in
 smashcraft:ts/src/game/presentation/stageScenery.tests.ts; the camera-specific
 fighter clearance check remains in smashcraft:ts/test/player-view.test.ts.

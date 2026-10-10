@@ -5,6 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { copyMatchCamera, createMatchCamera, limitCamera, MATCH_CAMERA_ASPECT, type MatchCamera } from "../sim/matchCamera";
 import { arctangentDegrees } from "../sim/mathTables";
 import { stageBounds } from "../sim/stageBounds";
+import { TOMB_OF_SARGERAS_STAGE } from "../sim/stage";
 
 
 export const FLOOR_HEIGHT = 1800.0;
@@ -32,14 +33,20 @@ export function cameraFieldOfView(camera: Readonly<MatchCamera>, aspect: number)
   return f32(2.0 * arctangentDegrees(f32(camera.tangent * aspect)));
 }
 
+export function finalCamera(camera: MatchCamera, stage: number): void {
+  if (stage === TOMB_OF_SARGERAS_STAGE) camera.z = Math.max(camera.z, 80.0 - camera.distance * 0.1736481785774231);
+}
+
 
 export type CameraExtreme = "near" | "far";
 
 
+export const cameraZOverride: { z: number | undefined } = { z: undefined };
+
 export function extremeCamera(target: MatchCamera, stage: number, aspect: number, extreme: CameraExtreme): void {
   const bounds = stageBounds(stage);
   target.x = 0.0;
-  target.z = extreme === "near" ? 100.0 : -100000.0;
+  target.z = cameraZOverride.z ?? (extreme === "near" ? 100.0 : -100000.0);
   target.distance = extreme === "near" ? 1450.0 : 100000.0;
   target.tangent = extreme === "near" ? 0.2679491937160492 : 0.3443276286125183;
   limitCamera(target, bounds.camera, aspect, bounds.blast.bottom);
