@@ -8,9 +8,9 @@ import { RENDERED_FIGHTERS, fighterRenderName } from '../src/game/sim/heroes/reg
 import { CARD_PREVIEW, CARD_TEXTURE_PX, TILE_TEXTURE_PX, cardPortrait } from '../src/game/ui/portraitFrames';
 
 /** Calibrated on Peon, Blademaster and Thrall, the portraits Tom accepts as well lit (#363). */
-export const LIGHT_BAND = { target: 110, lowest: 85, highest: 150, spread: 1.6, floor: 50, lit: 0.65 } as const;
+const LIGHT_BAND = { target: 110, lowest: 85, highest: 150, spread: 1.6, floor: 50, lit: 0.65 } as const;
 
-export interface Light { readonly mean: number; readonly lit: number }
+interface Light { readonly mean: number; readonly lit: number }
 
 /** Mean Rec. 709 luma of a bust's opaque pixels and the share of them brighter than the floor. */
 export function lightOf(rgba: Uint8Array, floor = LIGHT_BAND.floor): Light {
@@ -57,8 +57,8 @@ export function exposureFor(mean: (scale: number) => number, target = LIGHT_BAND
 }
 
 /** Where a render's opaque pixels sit in its square: their box and centroid as fractions of the side, and the share of the square they cover. */
-export interface Placement { readonly box: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }; readonly centroid: { readonly x: number; readonly y: number }; readonly cover: number }
-export function placementOf(rgba: Uint8Array, side: number): Placement {
+interface Placement { readonly box: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }; readonly centroid: { readonly x: number; readonly y: number }; readonly cover: number }
+function placementOf(rgba: Uint8Array, side: number): Placement {
   let left = side, right = -1, top = side, bottom = -1, count = 0, sx = 0, sy = 0;
   for (let y = 0; y < side; y++) for (let x = 0; x < side; x++) {
     if ((rgba[(y * side + x) * 4 + 3] ?? 0) < 128) continue;
@@ -69,10 +69,10 @@ export function placementOf(rgba: Uint8Array, side: number): Placement {
 }
 
 /** Calibrated on the accepted fighters' cards and chips (#363). */
-export const PLACE_BAND = { cardCentre: 0.02, cardFill: [0.9, 0.96], chipCentre: 0.15, chipCover: [0.3, 0.9] } as const;
+const PLACE_BAND = { cardCentre: 0.02, cardFill: [0.9, 0.96], chipCentre: 0.15, chipCover: [0.3, 0.9] } as const;
 
 /** A card's problems: its box off the texture's centre or filling too little or too much of it. */
-export function judgeCard(name: string, { box }: Placement): string[] {
+function judgeCard(name: string, { box }: Placement): string[] {
   const problems: string[] = [];
   const dx = box.x + box.w / 2 - 0.5, dy = box.y + box.h / 2 - 0.5, fill = Math.max(box.w, box.h);
   if (Math.abs(dx) > PLACE_BAND.cardCentre || Math.abs(dy) > PLACE_BAND.cardCentre) problems.push(`${name}: card box centre off by ${dx.toFixed(3)}, ${dy.toFixed(3)}`);
@@ -81,7 +81,7 @@ export function judgeCard(name: string, { box }: Placement): string[] {
 }
 
 /** A chip's problems: its fighter's mass off the chip's centre line or covering too little or too much of it. */
-export function judgeChip(name: string, { centroid, cover }: Placement): string[] {
+function judgeChip(name: string, { centroid, cover }: Placement): string[] {
   const problems: string[] = [];
   if (Math.abs(centroid.x - 0.5) > PLACE_BAND.chipCentre) problems.push(`${name}: chip centroid ${centroid.x.toFixed(2)} off centre`);
   if (cover < PLACE_BAND.chipCover[0] || cover > PLACE_BAND.chipCover[1]) problems.push(`${name}: chip cover ${cover.toFixed(2)} outside ${PLACE_BAND.chipCover.join('-')}`);
@@ -89,7 +89,7 @@ export function judgeChip(name: string, { centroid, cover }: Placement): string[
 }
 
 /** The player-preview frame's problems: its square off the centre of its card's preview area. */
-export function judgePreview(): string[] {
+function judgePreview(): string[] {
   return [false, true].flatMap((computer) => {
     const { top, size } = cardPortrait(computer), bottom = computer ? CARD_PREVIEW.computerBottom : CARD_PREVIEW.bottom;
     const off = (top - size / 2) - (CARD_PREVIEW.top + bottom) / 2;
@@ -98,7 +98,7 @@ export function judgePreview(): string[] {
 }
 
 /** Each look's problems: a bust outside the band or under the lit share, and the roster's spread. */
-export function judge(lights: ReadonlyMap<string, Light>): string[] {
+function judge(lights: ReadonlyMap<string, Light>): string[] {
   const problems: string[] = [];
   for (const [name, { mean, lit }] of lights) {
     if (mean < LIGHT_BAND.lowest || mean > LIGHT_BAND.highest) problems.push(`${name}: mean luma ${mean.toFixed(1)} outside ${LIGHT_BAND.lowest}-${LIGHT_BAND.highest}`);
@@ -112,7 +112,7 @@ export function judge(lights: ReadonlyMap<string, Light>): string[] {
 
 class PixelsFailure extends Schema.TaggedError<PixelsFailure>()('PixelsFailure', { problem: Schema.String }) {}
 
-export const pixels = (path: string): Effect.Effect<Uint8Array, PixelsFailure> => Effect.try({
+const pixels = (path: string): Effect.Effect<Uint8Array, PixelsFailure> => Effect.try({
   try: () => {
     const result = Bun.spawnSync(['magick', path, '-depth', '8', 'RGBA:-'], { stdout: 'pipe', stderr: 'pipe' });
     if (result.exitCode !== 0) throw new Error(result.stderr.toString());
@@ -124,7 +124,7 @@ export const bustPixels = pixels;
 
 const portrait = (renders: string, look: 'classic' | 'definitive', kind: string, name: string) => join(renders, ...(look === 'definitive' ? ['de'] : []), `Fighter${kind}${name}P1.tga`);
 
-export const lookLights = (renders: string, look: 'classic' | 'definitive', names = RENDERED_FIGHTERS.map(fighterRenderName)): Effect.Effect<Map<string, Light>, PixelsFailure> =>
+const lookLights = (renders: string, look: 'classic' | 'definitive', names = RENDERED_FIGHTERS.map(fighterRenderName)): Effect.Effect<Map<string, Light>, PixelsFailure> =>
   Effect.forEach(names, (name) => Effect.map(pixels(portrait(renders, look, 'Bust', name)), (bytes) => [name, lightOf(bytes)] as const)).pipe(Effect.map((entries) => new Map(entries)));
 
 if (import.meta.main) {

@@ -78,7 +78,7 @@ const compileTypeScriptLua = Effect.gen(function*() {
 });
 
 
-export const replayInLua = (files: readonly string[], executable: string) =>
+const replayInLua = (files: readonly string[], executable: string) =>
   Effect.forEach(files, (file) =>
     captureProcess("replay in 32-bit Lua", file, [executable, tapesLua], { env: { ...process.env, TAPE_FILE: file } }).pipe(
       Effect.map(({ stdout, stderr, exitCode }): Run => ({

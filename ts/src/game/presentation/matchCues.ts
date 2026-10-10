@@ -92,7 +92,7 @@ export function confirmedFrameCues(before: Readonly<CueObservation>, game: Reado
 }
 
 
-export interface ResultRow {
+interface ResultRow {
   readonly slot: ParticipantSlot;
   readonly winner: boolean;
   readonly text: string;
@@ -101,7 +101,7 @@ export interface ResultRow {
 const percent = (damage: number): string => `${Math.floor(damage)}%`;
 
 
-export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, tally: Readonly<MatchTally>): ResultRow[] {
+function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, tally: Readonly<MatchTally>): ResultRow[] {
   const rows: ResultRow[] = [];
   for (const slot of PARTICIPANT_SLOTS) {
     if (!isActive(world, slot)) continue;
@@ -119,7 +119,7 @@ export function resultRows(game: Readonly<MatchState>, world: Readonly<Roster>, 
 }
 
 
-export interface MenuObservation {
+interface MenuObservation {
   phase: Phase;
   stage: number;
   hover: number | undefined;
@@ -132,7 +132,7 @@ export function createMenuObservation(): MenuObservation {
 }
 
 
-export interface MenuCues {
+interface MenuCues {
   hover: boolean;
   confirm: boolean;
   readonly fighters: ParticipantSlot[];

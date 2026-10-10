@@ -25,7 +25,7 @@ export function hydraWarningX(stage: number, water: Readonly<Fighter["water"]>):
   return hasTide(stage) && water.hydraFrame > 0 && water.hydraFrame < HYDRA_STRIKE_FRAME ? water.hydraX : undefined;
 }
 
-export const HYDRA_SUBMERGE_FRAMES = 18;
+const HYDRA_SUBMERGE_FRAMES = 18;
 
 export function hydraStrikeZ(stage: number, water: Readonly<Fighter["water"]>, matchFrame: number): number | undefined {
   const elapsed = matchFrame - water.hydraStrikeFrame;
@@ -33,7 +33,7 @@ export function hydraStrikeZ(stage: number, water: Readonly<Fighter["water"]>, m
   return SEA_SURFACE_Z + HYDRA_REACH - elapsed * 20.0;
 }
 
-export interface WindStreak { x: number; z: number; direction: -1 | 1 }
+interface WindStreak { x: number; z: number; direction: -1 | 1 }
 const streak: WindStreak = { x: 0.0, z: 0.0, direction: 1 };
 
 
@@ -85,7 +85,7 @@ export function stageWarning(game: Readonly<MatchState>, world: Readonly<Roster>
 }
 
 
-export interface LavaLook {
+interface LavaLook {
   alpha: number;
   red: number;
   green: number;

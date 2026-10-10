@@ -128,14 +128,14 @@ export async function createStandaloneSession(options: { readonly script?: strin
   }
 }
 
-export const SMASHCRAFT_STANDALONE: StandaloneGame = {
+const SMASHCRAFT_STANDALONE: StandaloneGame = {
   title: "Smashcraft",
   render: { ...headlessRender(), preloadModels: ["Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdx"] },
   create: createStandaloneSession,
   net: { mapHash: smashcraftMapHash, create: createNetStandalone },
 };
 
-export function standaloneArguments(args: readonly string[]) {
+function standaloneArguments(args: readonly string[]) {
   let script: string | undefined, out: string | undefined, frames: number | undefined;
   let presentation: MapBuild["presentation"] | undefined;
   let headless = false, fourFighters = false;

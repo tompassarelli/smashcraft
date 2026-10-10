@@ -177,4 +177,4 @@ export const sendDevCommand = (command: string, clientName?: string) => Effect.g
   yield* Console.log(`${command} acknowledged by ${received.length} client(s)`);
 });
 
-export const sendQuickMatchCommand = sendDevCommand(QUICK_MATCH_COMMAND);
+const sendQuickMatchCommand = sendDevCommand(QUICK_MATCH_COMMAND);

@@ -24,12 +24,12 @@ export function confirmedDropCues(before: Readonly<DropCueObservation>, drops: R
   return cues;
 }
 
-export const DROP_MARKER_SCALE_START = f32(0.2);
-export const DROP_MARKER_SCALE_END = f32(0.45);
+const DROP_MARKER_SCALE_START = f32(0.2);
+const DROP_MARKER_SCALE_END = f32(0.45);
 export const DROP_ORB_SCALE = f32(0.8);
-export const DEFINITIVE_DROP_MARKER_SCALE = f32(2.5);
+const DEFINITIVE_DROP_MARKER_SCALE = f32(2.5);
 export const DEFINITIVE_DROP_ORB_SCALE = f32(2.0);
-export const DROP_PULSE_FRAMES = 30;
+const DROP_PULSE_FRAMES = 30;
 
 export function dropMarkerScale(left: number, definitive = false): number {
   const progress = f32(f32(DROP_TELEGRAPH_FRAMES - left) / DROP_TELEGRAPH_FRAMES);

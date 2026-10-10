@@ -11,11 +11,11 @@ import { elementLook } from "./elementLooks";
 import { warcryVoice } from "./matchAudio";
 import { SWING_SOUND, SoundTier, TIER_HIT_VOLUME, TIER_SWING_PITCH, TIER_SWING_VOLUME, moveTier } from "./moveTiers";
 
-export const SPECIAL_MOVE = 100;
-export const SPECIAL_SLOT_NAMES = ["Neutral special", "Side special", "Up special", "Down special"] as const;
+const SPECIAL_MOVE = 100;
+const SPECIAL_SLOT_NAMES = ["Neutral special", "Side special", "Up special", "Down special"] as const;
 
-export const Weapon = { blade: 0, axe: 1, hammer: 2, blunt: 3, claw: 4, rock: 5 } as const;
-export type Weapon = (typeof Weapon)[keyof typeof Weapon];
+const Weapon = { blade: 0, axe: 1, hammer: 2, blunt: 3, claw: 4, rock: 5 } as const;
+type Weapon = (typeof Weapon)[keyof typeof Weapon];
 
 const FLESH: readonly (readonly string[])[] = [
   ["MetalLightSliceFlesh", "MetalMediumSliceFlesh", "MetalHeavySliceFlesh"],
@@ -164,7 +164,7 @@ export interface SoundLayer {
   readonly pitch: number;
 }
 
-export interface MoveSound {
+interface MoveSound {
   readonly perform: readonly SoundLayer[];
   readonly hit: readonly SoundLayer[];
   readonly strong: readonly SoundLayer[];
@@ -260,7 +260,7 @@ export function soundFiles(sound: string): readonly string[] {
   return sound.includes("\\") ? [sound] : VERIFIED_STOCK_SOUND_LABELS[sound] ?? [];
 }
 
-export type MoveSoundSink = (file: string, volume: number, pitch: number) => void;
+type MoveSoundSink = (file: string, volume: number, pitch: number) => void;
 
 function playLayer(sound: SoundLayer, serial: number, salt: number, sink: MoveSoundSink): void {
   const label = at(sound.sounds, imod(serial, sound.sounds.length));

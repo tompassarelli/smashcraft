@@ -42,9 +42,11 @@ the clean-room check (smashcraft:ts/scripts/cleanRoom.ts: no game files or
 copied game scripts outside smashcraft:clean-room-allowlist.tsv; wisp:docs/clean-room.md),
 `bun run check` (the kind-tag refusal of test titles, smashcraft:ts/scripts/oracleTagsCheck.ts,
 then the type check) and the type-escape audit (smashcraft:ts/test/source-shapes.test.ts)
-when the pushed commits change ts/, the model facts check
+when the pushed commits change ts/, the unused-code check
+(smashcraft:ts/scripts/unused-code.ts, about 30 s) when they change ts/, tools/,
+docs/ or .githooks/, the model facts check
 (smashcraft:ts/test/model-facts.test.ts; it refuses with the `bun wisp view models`
-refresh command) when they change clips or model build inputs, in a few seconds (smashcraft:ts/scripts/prePush.ts).
+refresh command) when they change clips or model build inputs (smashcraft:ts/scripts/prePush.ts).
 It checks the working tree, so push from a clean checkout of the commit.
 A push to main then needs a green farm suite (`bun wisp farm test`) on the exact commit it pushes: the gate reuses a farm run already green on that commit, else runs one and waits (about 4 minutes), and refuses on any failure, main's known ones included (#394). The repository's .safe-push sets `landing.queue = autoland`, so `safe-push --to main` runs the local checks, then hands the lane to Autoland's one queue, which farms each batch of waiting lanes once and lands the exact commit it tested (smashcraft:docs/ci.md, "Autoland"); a lane that changes `.github/workflows/` lands directly through the gate.
 

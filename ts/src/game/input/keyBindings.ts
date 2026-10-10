@@ -4,7 +4,7 @@ import { floorDiv } from "wisp/src/sim/intMath";
 export type KeySlot = 0 | 1;
 
 
-export const KEY_SLOT_COUNT = ACTION_COUNT * 2;
+const KEY_SLOT_COUNT = ACTION_COUNT * 2;
 
 // Saved binding slots use 0 for empty because Lua arrays cannot hold undefined.
 
@@ -30,7 +30,7 @@ const code = (character: string) => character.charCodeAt(0);
 
 const RESERVED_KEYS: readonly number[] = [13, 27, 75, 89, 112, 116, 117, 118];
 
-export function slotIndex(action: Action, slot: KeySlot): number {
+function slotIndex(action: Action, slot: KeySlot): number {
   return action * 2 + slot;
 }
 

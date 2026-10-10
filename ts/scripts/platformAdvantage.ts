@@ -81,7 +81,7 @@ function earliest(attacker: Character, victim: Character, attackerAbove: boolean
   return best;
 }
 
-export interface PlatformAdvantage {
+interface PlatformAdvantage {
   readonly above: Character;
   readonly below: Character;
 
@@ -103,7 +103,7 @@ export function platformAdvantages(characters: readonly Character[] = SELECTABLE
 
 export const belowLead = (row: PlatformAdvantage): number => (row.aboveFirst ?? LIMIT + 1) - (row.belowFirst ?? LIMIT + 1);
 
-export function platformAdvantageTable(rows: readonly PlatformAdvantage[]): string {
+function platformAdvantageTable(rows: readonly PlatformAdvantage[]): string {
   const lines = ["above        below        above's first hit  below's first hit  below's lead"];
   for (const row of rows) {
     const cell = (value: number | undefined) => (value === undefined ? "none" : String(value)).padEnd(19);

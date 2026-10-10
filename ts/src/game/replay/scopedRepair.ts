@@ -162,7 +162,7 @@ function rosterReach(): Extent {
  * (`strikeReach`). A special that moves its caster next to another fighter is
  * caught by the same test on the states after the frame.
  */
-export const SCOPE_REACH: Readonly<Extent> = rosterReach();
+const SCOPE_REACH: Readonly<Extent> = rosterReach();
 /** Two fighters doing nothing that strikes still push each other within this. */
 const SCOPE_BODY = 150.0;
 
@@ -200,7 +200,7 @@ function objectsApart(owner: Readonly<Fighter>, other: Readonly<Fighter>): boole
 }
 
 /** Neither fighter can touch the other this frame: far apart, or close with neither doing anything that reaches. */
-export function fightersApart(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
+function fightersApart(a: Readonly<Fighter>, b: Readonly<Fighter>): boolean {
   if (!objectsApart(a, b) || !objectsApart(b, a)) return false;
   return apartPair(a.motion.x, a.motion.z, b.motion.x, b.motion.z, strikeReach(a), strikeReach(b));
 }

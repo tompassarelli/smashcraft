@@ -8,10 +8,10 @@ import { Effect } from "effect";
 import { ChildProcess } from "effect/process";
 import { runProcess } from "./hostProcess";
 
-export const VIEWER_MODULES = ["game.replay.viewer", "game.replay.viewerDriver"] as const;
+const VIEWER_MODULES = ["game.replay.viewer", "game.replay.viewerDriver"] as const;
 
 
-export function viewerModules(bundle: string, names: readonly string[] = VIEWER_MODULES): string {
+function viewerModules(bundle: string, names: readonly string[] = VIEWER_MODULES): string {
   const entries = names.map((name) => {
     const head = `\n["${name}"] = function(...)`;
     const start = bundle.indexOf(head);

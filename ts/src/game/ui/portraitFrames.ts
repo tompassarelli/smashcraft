@@ -5,7 +5,7 @@ import { f32 } from "wisp/src/sim/f32";
 
 
 
-export const REFERENCE_HEIGHT_PX = 1920;
+const REFERENCE_HEIGHT_PX = 1920;
 
 export const TILE_TEXTURE_PX = 256;
 export const CARD_TEXTURE_PX = 384;

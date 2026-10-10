@@ -8,26 +8,26 @@ class SheriffFailure extends Schema.TaggedError<SheriffFailure>()("SheriffFailur
   }
 }
 
-export interface Step { readonly name: string; readonly conclusion: string }
-export interface Job { readonly name: string; readonly conclusion: string; readonly steps: readonly Step[] }
-export interface CiRun { readonly conclusion: string; readonly jobs: readonly Job[] }
-export interface Commit { readonly sha: string; readonly message: string }
-export interface Situation {
+interface Step { readonly name: string; readonly conclusion: string }
+interface Job { readonly name: string; readonly conclusion: string; readonly steps: readonly Step[] }
+interface CiRun { readonly conclusion: string; readonly jobs: readonly Job[] }
+interface Commit { readonly sha: string; readonly message: string }
+interface Situation {
   readonly run: CiRun;
   readonly previous: (CiRun & { readonly ancestor: boolean }) | undefined;
   readonly commits: readonly Commit[];
   readonly workflowFiles: readonly string[];
 }
-export type Verdict =
+type Verdict =
   | { readonly kind: "none"; readonly why: string }
   | { readonly kind: "report"; readonly why: string }
   | { readonly kind: "revert"; readonly why: string; readonly step: string; readonly shas: readonly string[] };
 
-export const REVERT_TRAILER = "Sheriff-Reverts:";
+const REVERT_TRAILER = "Sheriff-Reverts:";
 const SETUP_STEP = /^(?:Set up job|Complete job|Post |Run actions\/|Run oven-sh\/setup-bun|Run bun install|Install stock texture converter)/;
 const INFRA_JOB = new Set(["cancelled", "timed_out", "startup_failure", "action_required", "stale"]);
 
-export function firstFailingStep(run: CiRun): string | undefined {
+function firstFailingStep(run: CiRun): string | undefined {
   const jobs = run.jobs.filter((job) => job.conclusion === "failure").toSorted((a, b) => a.name.localeCompare(b.name));
   for (const job of jobs) {
     const step = job.steps.find((entry) => entry.conclusion === "failure");
@@ -36,7 +36,7 @@ export function firstFailingStep(run: CiRun): string | undefined {
   return undefined;
 }
 
-export function decide({ run, previous, commits, workflowFiles }: Situation): Verdict {
+function decide({ run, previous, commits, workflowFiles }: Situation): Verdict {
   if (run.conclusion === "success") return { kind: "none", why: "green" };
   if (run.conclusion !== "failure") return { kind: "report", why: `run ${run.conclusion || "unfinished"}: infrastructure, not the commit` };
   const infra = run.jobs.find((job) => INFRA_JOB.has(job.conclusion));
@@ -57,7 +57,7 @@ export function decide({ run, previous, commits, workflowFiles }: Situation): Ve
   return { kind: "revert", why: `${step} failed after a green parent`, step, shas: commits.map((commit) => commit.sha) };
 }
 
-export function referencedIssues(commits: readonly Commit[]): number[] {
+function referencedIssues(commits: readonly Commit[]): number[] {
   const issues = new Set<number>();
   for (const { message } of commits) {
     for (const match of message.matchAll(/(?:refs|fixes|closes) (?:smashcraft)?#(\d+)/gi)) issues.add(Number(match[1]));
@@ -118,7 +118,7 @@ const revertOnMain = (verdict: Extract<Verdict, { kind: "revert" }>, base: strin
   }
 });
 
-export const sheriffRun = (runId: string) => Effect.gen(function*() {
+const sheriffRun = (runId: string) => Effect.gen(function*() {
   const ci = yield* viewRun(runId);
   if (ci.headBranch !== "main" || ci.conclusion === "success") return yield* Console.log(`run ${runId} on ${ci.headBranch} ${ci.conclusion}: nothing to do`);
   const history = yield* gh("run", "list", "--workflow", ci.workflowName, "--branch", "main", "--limit", "50",

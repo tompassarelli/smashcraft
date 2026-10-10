@@ -148,7 +148,7 @@ export function quickMatchPair(message: string): readonly [Character, Character]
 }
 
 
-export const QUICK_RECOVERY_HERO_COMMAND = "-dev quick recovery hero ";
+const QUICK_RECOVERY_HERO_COMMAND = "-dev quick recovery hero ";
 
 export function quickRecoveryHero(message: string): Character | undefined {
   return heroAfter(message, QUICK_RECOVERY_HERO_COMMAND);
@@ -217,7 +217,7 @@ export function prepareQuickMatch(game: MatchState, stage = 0, character?: Chara
 }
 
 
-export const CLASSIC_COMMAND = "-dev classic ";
+const CLASSIC_COMMAND = "-dev classic ";
 
 export function classicDevRequest(message: string): { readonly character: Character; readonly boss: boolean } | undefined {
   const boss = heroAfter(message, `${CLASSIC_COMMAND}boss `);
@@ -227,7 +227,7 @@ export function classicDevRequest(message: string): { readonly character: Charac
 }
 
 
-export const LORE_COMMAND = "-dev lore ";
+const LORE_COMMAND = "-dev lore ";
 
 export function loreDevRequest(message: string, battles: number): number | undefined {
   if (!message.startsWith(LORE_COMMAND)) return undefined;
@@ -269,7 +269,7 @@ export function prepareQuickTraining(game: MatchState): void {
 export const QUICK_CPU_COMMAND = "-dev quick cpu ";
 export const QUICK_CPU_STOCKS = 3;
 
-export interface QuickCpuProfile { readonly opponent: CpuOpponentChoice; readonly tier: CpuTier }
+interface QuickCpuProfile { readonly opponent: CpuOpponentChoice; readonly tier: CpuTier }
 
 export function quickMatchCpuProfile(message: string): QuickCpuProfile | undefined {
   if (!message.startsWith(QUICK_CPU_COMMAND)) return undefined;

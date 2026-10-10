@@ -10,9 +10,9 @@ import { type MatchState, humanPresent } from "../match/rules";
 
 export const STAGE_READY_PREFIX = "SC_STAGE";
 
-export const STAGE_SETTLE_FRAMES = 30;
+const STAGE_SETTLE_FRAMES = 30;
 
-export const STAGE_LOAD_TIMEOUT_FRAMES = 600;
+const STAGE_LOAD_TIMEOUT_FRAMES = 600;
 
 export interface StageLoad {
 

@@ -762,7 +762,7 @@ function render(text: string, file: string): string {
     });
 }
 
-export async function staleDocuments(): Promise<string[]> {
+async function staleDocuments(): Promise<string[]> {
   const stale: string[] = [];
   for (const file of readdirSync(CASE_STUDY_DIRECTORY).filter((f) => f.endsWith(".md")).sort()) {
     const text = await Bun.file(join(CASE_STUDY_DIRECTORY, file)).text();

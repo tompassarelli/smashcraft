@@ -36,13 +36,13 @@ export interface Combo {
 }
 
 /** A true combo: consecutive moves with no actionable frame for the victim between them. Hits of one move instance (a multi-hit move, or a grab's pummels and throw) count as one move. */
-export interface Segment {
+interface Segment {
   readonly moves: readonly string[];
   readonly damage: number;
   readonly percent: number;
 }
 
-export function trueSegments(combo: Combo): Segment[] {
+function trueSegments(combo: Combo): Segment[] {
   const segments: Segment[] = [];
   let moves: string[] = [];
   let damage = 0;
@@ -65,14 +65,14 @@ export function trueSegments(combo: Combo): Segment[] {
 }
 
 /** #83's rule (docs/gameplay-design.md): at most followUpMax guaranteed follow-ups after an opening, and at most guaranteedDamageMax from an opening and its follow-ups while the victim is below guaranteedPercentCap. One move alone is no combo. */
-export function trueComboBreak(segment: Segment, config: Config): string | undefined {
+function trueComboBreak(segment: Segment, config: Config): string | undefined {
   if (segment.moves.length > config.followUpMax + 1) return `more than ${config.followUpMax} follow-ups`;
   if (segment.moves.length > 1 && segment.damage > config.guaranteedDamageMax && segment.percent < config.guaranteedPercentCap) return `over ${config.guaranteedDamageMax}% from below ${config.guaranteedPercentCap}%`;
   return undefined;
 }
 
 /** Tukey's upper fence over a fighter's move shares. */
-export function upperFence(shares: readonly number[], k: number): number {
+function upperFence(shares: readonly number[], k: number): number {
   const sorted = [...shares].sort((x, y) => x - y);
   const at = (q: number) => {
     const position = (sorted.length - 1) * q;
@@ -85,7 +85,7 @@ export function upperFence(shares: readonly number[], k: number): number {
   return q3 + k * (q3 - q1);
 }
 
-export interface ComboString {
+interface ComboString {
   readonly victim: number;
   readonly frame: number;
   readonly hits: number;
@@ -94,7 +94,7 @@ export interface ComboString {
   readonly tail: number;
 }
 
-export const isTrueCombo = (string: ComboString): boolean => string.gaps.length === string.hits - 1 && string.gaps.every((gap) => gap === 0);
+const isTrueCombo = (string: ComboString): boolean => string.gaps.length === string.hits - 1 && string.gaps.every((gap) => gap === 0);
 
 export interface Run {
   readonly spec: MatchSpec;
@@ -106,7 +106,7 @@ export interface Run {
 export type Play = (spec: MatchSpec, frameCap: number) => Observation;
 
 export const FINDING_KINDS = ["never-ends", "stuck", "zero-to-death", "infinite-combo", "win-rate-band", "move-share", "move-usage", "stage-no-kos", "desync"] as const;
-export type FindingKind = (typeof FINDING_KINDS)[number];
+type FindingKind = (typeof FINDING_KINDS)[number];
 
 export interface Finding {
   readonly kind: FindingKind;
@@ -154,7 +154,7 @@ export const DEFAULT_CONFIG: Config = {
   minMoveUses: 100,
 };
 
-export interface Roster {
+interface Roster {
   readonly fighters: readonly string[];
   readonly stages: readonly string[];
   readonly tiers: readonly string[];
@@ -196,11 +196,11 @@ export function runPlaytest(specs: readonly MatchSpec[], play: Play, frameCap: n
   });
 }
 
-export function matchId(spec: MatchSpec): string {
+function matchId(spec: MatchSpec): string {
   return `${spec.a}-vs-${spec.b}@${spec.stage}/${spec.tier}#seed${spec.seed}`;
 }
 
-export function wilson(wins: number, trials: number): readonly [number, number] {
+function wilson(wins: number, trials: number): readonly [number, number] {
   if (trials === 0) return [0, 1];
   const z = 1.959964;
   const p = wins / trials;
@@ -210,7 +210,7 @@ export function wilson(wins: number, trials: number): readonly [number, number] 
   return [Math.max(0, center - half), Math.min(1, center + half)];
 }
 
-export function firstDivergence(x: Observation, y: Observation): number | undefined {
+function firstDivergence(x: Observation, y: Observation): number | undefined {
   const length = Math.min(x.checksums.length, y.checksums.length);
   for (let i = 0; i < length; i++) {
     const left = x.checksums[i];
@@ -315,7 +315,7 @@ export function classify(runs: readonly Run[], config: Config = DEFAULT_CONFIG):
   return findings.sort(byRank);
 }
 
-export interface Summary {
+interface Summary {
   readonly matches: number;
   readonly repeated: number;
   readonly fighters: number;
@@ -327,7 +327,7 @@ export interface Summary {
   readonly slowestMs: number;
 }
 
-export function summarize(runs: readonly Run[]): Summary {
+function summarize(runs: readonly Run[]): Summary {
   const fighters = new Set<string>();
   const stages = new Set<string>();
   const tiers = new Set<string>();
@@ -402,7 +402,7 @@ export function renderReport(runs: readonly Run[], findings: readonly Finding[],
 
 // One open issue a finding kind, found by its stable title. The workflow lists
 // the open `playtester` issues and applies these actions with gh.
-export const ISSUE_TITLES: Record<FindingKind, string> = {
+const ISSUE_TITLES: Record<FindingKind, string> = {
   "never-ends": "Playtester: matches that never end",
   stuck: "Playtester: stuck matches",
   "zero-to-death": "Playtester: zero-to-death strings",
@@ -414,14 +414,12 @@ export const ISSUE_TITLES: Record<FindingKind, string> = {
   desync: "Playtester: desyncs and nondeterminism",
 };
 
-export const ISSUE_LABEL = "playtester";
-
-export interface OpenIssue {
+interface OpenIssue {
   readonly number: number;
   readonly title: string;
 }
 
-export type IssueAction =
+type IssueAction =
   | { readonly action: "create"; readonly kind: FindingKind; readonly title: string; readonly body: string }
   | { readonly action: "update"; readonly kind: FindingKind; readonly number: number; readonly body: string }
   | { readonly action: "comment"; readonly kind: FindingKind; readonly number: number; readonly body: string };

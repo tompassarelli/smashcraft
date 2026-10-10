@@ -225,7 +225,7 @@ export function keepShellMomentEnd(s: ShellState): void {
 }
 
 
-export interface ReplayRecording {
+interface ReplayRecording {
   readonly recorder: MatchReplayRecorder;
 
   serial: number;

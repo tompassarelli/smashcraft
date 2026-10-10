@@ -9,7 +9,7 @@ const MARK_NEAR = 60.0;
 const MARK_HEIGHT = 20.0;
 const MARK_SPACING = f32(f32(EYE_BLAST_REACH - MARK_NEAR) / (EYE_BLAST_MARKS - 1));
 
-export interface EyeBlastMarkPose {
+interface EyeBlastMarkPose {
   x: number;
   z: number;
   scale: number;

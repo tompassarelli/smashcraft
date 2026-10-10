@@ -51,7 +51,7 @@ const compileReplayLua = Effect.gen(function*() {
 }).pipe(Effect.provide(BunServices.layer));
 
 
-export function parseLuaReport(stdout: string): MatchReplayResult | undefined {
+function parseLuaReport(stdout: string): MatchReplayResult | undefined {
   const lines = stdout.split("\n").filter((line) => line.length > 0);
   const match = /^frames (\d+) reached (\d+) recorded (\d+) checksum (\S*) digests (\d+) divergent (\d+)$/.exec(lines[0] ?? "");
   if (match === null) return undefined;

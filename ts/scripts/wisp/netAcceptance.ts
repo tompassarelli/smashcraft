@@ -10,7 +10,7 @@ import { SELECTABLE_CHARACTERS, fighterName } from "../../src/game/sim/heroes/re
 const MATCH_START = 300;
 const BUTTONS = ["A", "A", "A", "X", "X", "B", "RB"] as const;
 
-export interface AcceptanceMatch {
+interface AcceptanceMatch {
   readonly index: number;
   readonly rttMs: number;
   readonly seed: number;
@@ -29,7 +29,7 @@ const random = (seed: number) => {
 };
 
 /** The matches: round trips 0, 60 and 120 ms in turn, each with its own fighters and stage. */
-export function acceptanceMatches(count: number, rtts: readonly number[], seed: number): readonly AcceptanceMatch[] {
+function acceptanceMatches(count: number, rtts: readonly number[], seed: number): readonly AcceptanceMatch[] {
   const draw = random(seed);
   const pick = <T>(items: readonly T[]): T => {
     const item = items[Math.floor(draw() * items.length)];
@@ -44,7 +44,7 @@ export function acceptanceMatches(count: number, rtts: readonly number[], seed: 
 }
 
 /** Three stocks, no time limit; a starts the match; then both players walk, jump, shield, grab and attack in every direction until someone is KO'd. */
-export function acceptancePad(match: AcceptanceMatch, frames: number, setup: readonly string[] = ["#! chat -dev stocks 3"]): string {
+function acceptancePad(match: AcceptanceMatch, frames: number, setup: readonly string[] = ["#! chat -dev stocks 3"]): string {
   const draw = random(match.seed * 7919);
   const lines = [
     `# wisp#112 match ${match.index}: ${match.fighters[0]} against ${match.fighters[1]} on stage ${match.stage}, ${match.rttMs} ms round trip`,
@@ -88,7 +88,7 @@ const PressReport = Schema.Struct({
 });
 const decodePresses = Schema.decodeUnknownSync(Schema.fromJsonString(PressReport));
 
-export interface SideResult {
+interface SideResult {
   readonly summary: string;
   readonly frames: number | undefined;
   readonly checksums: number | undefined;
@@ -100,7 +100,7 @@ export interface SideResult {
 }
 
 /** One side's outcome from `net pair`: its summary line on stdout and its relayed `net:` lines on stderr. */
-export function sideResult(stdout: string, stderr: string, side: "host" | "join"): SideResult {
+function sideResult(stdout: string, stderr: string, side: "host" | "join"): SideResult {
   const summary = stdout.split("\n").find((line) => line.startsWith(`${side}: `)) ?? `${side}: no summary`;
   const relayed = stderr.split("\n").filter((line) => line.startsWith(`${side} net: `)).map((line) => line.substring(side.length + 6));
   const number = (pattern: RegExp) => {
@@ -124,7 +124,7 @@ export function sideResult(stdout: string, stderr: string, side: "host" | "join"
 const ts = join(import.meta.dir, "../..");
 
 /** Two players and two computers, 99 stocks, so four fighters stay on stage for the whole run. */
-export const FOUR_FIGHTER_SETUP = ["#! chat -dev slots 3 12", "#! chat -dev stocks 99", "#! chat -dev fighter 3 Illidan", "#! chat -dev fighter 4 Warden"];
+const FOUR_FIGHTER_SETUP = ["#! chat -dev slots 3 12", "#! chat -dev stocks 99", "#! chat -dev fighter 3 Illidan", "#! chat -dev fighter 4 Warden"];
 
 const DisplaySummary = Schema.Struct({ frames: Schema.Finite, fps: Schema.Finite, frameMs: Schema.Struct({ p50: Schema.Finite, p95: Schema.Finite, p99: Schema.Finite }), intervalMs: Schema.Struct({ p50: Schema.Finite, p95: Schema.Finite, p99: Schema.Finite }), presentedMs: Schema.Struct({ p50: Schema.Finite, p95: Schema.Finite, p99: Schema.Finite }) });
 const decodeDisplay = Schema.decodeUnknownSync(Schema.fromJsonString(DisplaySummary));
@@ -186,7 +186,7 @@ export const runAcceptance = (options: { readonly matches: number; readonly fram
   });
 
 /** One player's presses against the other side: lost or extra presses, rows off their assigned frame or missing remotely, and press-to-drawn ticks. */
-export function pressAccounting(local: SideResult, remote: SideResult) {
+function pressAccounting(local: SideResult, remote: SideResult) {
   const report = local.presses;
   if (report === undefined) return { presses: 0, lost: 1, extra: 1, offFrame: 1, remoteMismatch: 1, afterEnd: 0, drawn: [], delay: 0 };
   const remoteRows = remote.presses?.received[`${report.slot}`] ?? {};

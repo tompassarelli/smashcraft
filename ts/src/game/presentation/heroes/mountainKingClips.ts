@@ -15,14 +15,14 @@ import { AttackStyle } from "../../sim/codes";
 import { MOUNTAIN_KING_GROUND, jabSlice, strikeClip } from "../../sim/heroes/groundNormals";
 import type { HeroClip, HeroClipTable } from "../../sim/heroes/hero";
 
-export interface StockSequence {
+interface StockSequence {
   readonly index: number;
   readonly seconds: number;
   readonly looping: boolean;
 }
 
 
-export const MOUNTAIN_KING_SEQUENCES = {
+const MOUNTAIN_KING_SEQUENCES = {
   "Stand - 1": { index: 0, seconds: 1.5, looping: true },
   "Stand Ready": { index: 1, seconds: 1.5, looping: true },
   "Stand - 2": { index: 2, seconds: f32(2.3), looping: true },
@@ -39,7 +39,7 @@ export const MOUNTAIN_KING_SEQUENCES = {
   "Attack Slam Alternate": { index: 25, seconds: 1.0, looping: false },
 } as const satisfies Readonly<Record<string, StockSequence>>;
 
-export type MountainKingSequence = keyof typeof MOUNTAIN_KING_SEQUENCES;
+type MountainKingSequence = keyof typeof MOUNTAIN_KING_SEQUENCES;
 
 
 const play = (sequence: MountainKingSequence, seconds?: number): HeroClip => {

@@ -24,7 +24,7 @@ function report(line: string): void {
 }
 
 
-export function spacingPunishCase(seed: number, noise: boolean) {
+function spacingPunishCase(seed: number, noise: boolean) {
   const game = createMatchState();
   game.phase = Phase.match;
   const attacker = createFighter(Character.rifleman, -85.0, 1);

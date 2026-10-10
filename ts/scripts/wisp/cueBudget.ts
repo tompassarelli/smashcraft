@@ -42,8 +42,8 @@ import { presentImpactSounds } from "../../src/game/presentation/hitPresentation
 import { authoredHitRegion, authoredHitRegionCount, emptyHitRegion, type HitEffect } from "../../src/game/sim/hitRegions";
 import { authoredTuning } from "../../src/game/sim/tuning";
 
-export const CUE_FADE_FRAMES = 12;
-export const CUE_COVERAGE_LIMIT = 0.04;
+const CUE_FADE_FRAMES = 12;
+const CUE_COVERAGE_LIMIT = 0.04;
 const DRAWN_DELTA = 24;
 const SHOWN_SHARE = 0.0005;
 const WIDTH = 640, HEIGHT = 360;
@@ -57,7 +57,7 @@ const SPECIALS = [
   { slot: "neutral", x: 0, z: 0 }, { slot: "side", x: 1, z: 0 }, { slot: "up", x: 0, z: 1 }, { slot: "down", x: 0, z: -1 },
 ] as const;
 
-export interface CueMove {
+interface CueMove {
   readonly character: Character;
   readonly name: string;
   readonly style?: AttackStyle;
@@ -180,7 +180,7 @@ function sparkEffect(character: Character, style: AttackStyle, strong: boolean):
   throw new Error(`${fighterSlug(character)} style ${style} has no ${strong ? "strong" : "weak"} hit`);
 }
 
-export function sparkScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene; readonly feedback: string } {
+function sparkScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene; readonly feedback: string } {
   if (move.style === undefined) throw new Error("a spark row names its move");
   const attacker = createFighter(move.character, -60.0, 1);
   const victim = createFighter(Character.rifleman, 0.0, -1);
@@ -312,7 +312,7 @@ function dropScenes(graphics: Graphics): ReturnType<typeof cueScenes> {
   } finally { runtime.restore(); }
 }
 
-export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene; readonly feedback?: string; readonly expected?: readonly string[] } {
+function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes: RenderScene[]; readonly poses: (readonly ParkPose[])[]; readonly lastDanger: number; readonly empty: RenderScene; readonly feedback?: string; readonly expected?: readonly string[] } {
   if (move.drop === true) return dropScenes(graphics);
   if (move.spark !== undefined) return sparkScenes(move, graphics);
   const runtime = installHeadless({ ...SMASHCRAFT_HEADLESS, natives: (client) => ({

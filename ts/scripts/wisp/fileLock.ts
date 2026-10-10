@@ -10,7 +10,7 @@ const LOCK_NB = 4;
 const libc = dlopen("libc.so.6", { flock: { args: ["i32", "i32"], returns: "i32" } });
 
 
-export function tryLock(path: string): number | undefined {
+function tryLock(path: string): number | undefined {
   mkdirSync(dirname(path), { recursive: true });
   const fd = openSync(path, "a");
   if (libc.symbols.flock(fd, LOCK_EX | LOCK_NB) === 0) return fd;

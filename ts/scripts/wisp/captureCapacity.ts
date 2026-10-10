@@ -11,7 +11,7 @@ import { type PadStep, parsePadScript } from "../integrity/padScript";
 const Lease = Schema.Struct({ id: Schema.String, class: Schema.String, owner: Schema.String, kind: Schema.String, expiresAt: Schema.NullOr(Schema.Finite) });
 
 
-export function captureLease() {
+function captureLease() {
   const compact = /\/agent-capacity-([0-9a-f]{32})\.scope(?:\/|$)/m.exec(readFileSync("/proc/self/cgroup", "utf8"))?.[1];
   if (compact === undefined) return undefined;
   const id = `${compact.slice(0, 8)}-${compact.slice(8, 12)}-${compact.slice(12, 16)}-${compact.slice(16, 20)}-${compact.slice(20)}`;

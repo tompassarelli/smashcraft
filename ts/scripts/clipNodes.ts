@@ -15,7 +15,7 @@ interface Node {
 }
 
 
-export interface NodeTable {
+interface NodeTable {
   Bones: Node[];
   Lights: Node[];
   Helpers: Node[];

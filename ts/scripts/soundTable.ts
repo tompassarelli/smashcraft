@@ -3,13 +3,13 @@ import { SELECTABLE_CHARACTERS, fighterName } from "../src/game/sim/heroes/regis
 import { SPECIAL_INPUTS, fighterKit, normalName } from "../src/game/sim/moveNames";
 import { type SoundLayer, isSpecialMove, moveSound, soundedMoves, specialMove } from "../src/game/presentation/moveSounds";
 
-export const SOUND_TABLE_PATH = join(import.meta.dir, "../../docs/design/sound-table.md");
+const SOUND_TABLE_PATH = join(import.meta.dir, "../../docs/design/sound-table.md");
 
 const BACKSLASH = String.fromCharCode(92);
 const short = (sound: string) => sound.includes(BACKSLASH) ? sound.slice(sound.lastIndexOf(BACKSLASH) + 1).replace(/\.flac$/, "") : sound;
 const cell = (layers: readonly SoundLayer[]) => layers.map((layer) => layer.sounds.map(short).join(" / ")).join(" + ");
 
-export function soundTableMarkdown(): string {
+function soundTableMarkdown(): string {
   const lines = [
     "# Move sound table",
     "",

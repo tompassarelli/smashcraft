@@ -34,7 +34,7 @@ import { firstSummonPoseDifference } from "../presentation/summonPose";
 export const REPAIR_WHOLE_COST = 2;
 
 /** How repairs choose fighter-scoped steps: by the eligibility tests, never, or always (a test's broken eligibility). */
-export type ScopedRepair = "auto" | "off" | "force";
+type ScopedRepair = "auto" | "off" | "force";
 
 /** One bit per changed slot, or the single slot in a one-bit mask. */
 const soleSlot = (mask: number): number | undefined => {

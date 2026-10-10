@@ -31,7 +31,7 @@ export interface KoFlash {
   rise: number;
 }
 
-export interface KoFlashLevels {
+interface KoFlashLevels {
 
   readonly alpha: number;
 

@@ -27,7 +27,7 @@ import { replayInLua } from "./commands/replay";
 import { projectRoot, tsDirectory } from "./project";
 import { readReplay } from "./replayFiles";
 
-export class CorpusFailure extends Schema.TaggedError<CorpusFailure>()("CorpusFailure", {
+class CorpusFailure extends Schema.TaggedError<CorpusFailure>()("CorpusFailure", {
   problem: Schema.String,
 }) {
   override get message(): string {
@@ -36,9 +36,9 @@ export class CorpusFailure extends Schema.TaggedError<CorpusFailure>()("CorpusFa
 }
 
 
-export const CHECKED_IN_CORPUS = join(tsDirectory, "test/corpus");
+const CHECKED_IN_CORPUS = join(tsDirectory, "test/corpus");
 
-export const localCorpus = () => join(process.env.XDG_STATE_HOME ?? join(homedir(), ".local/state"), "wisp/corpus");
+const localCorpus = () => join(process.env.XDG_STATE_HOME ?? join(homedir(), ".local/state"), "wisp/corpus");
 
 
 const REPLAY_FILE = /^smashcraft-replay-(\d+)(?:-(\d+))?\.txt$/;
@@ -85,7 +85,7 @@ function readSession(path: string): Session {
 const isDirectory = (path: string) => existsSync(path) && statSync(path).isDirectory();
 
 
-export function findRecordings(root: string): Recording[] {
+function findRecordings(root: string): Recording[] {
   if (!isDirectory(root)) return [];
   if (existsSync(join(root, "session.json"))) return [{ id: basename(root), path: root, session: readSession(root) }];
   return readdirSync(root).sort().flatMap((name) => findRecordings(join(root, name)));
@@ -94,7 +94,7 @@ export function findRecordings(root: string): Recording[] {
 const clientsOf = (recording: Recording) => readdirSync(recording.path).filter((client) => isDirectory(join(recording.path, client))).sort();
 
 
-export function assembleReplays(recordings: readonly Recording[]): { readonly replays: readonly Replay[]; readonly open: number } {
+function assembleReplays(recordings: readonly Recording[]): { readonly replays: readonly Replay[]; readonly open: number } {
   interface Found { manifest?: { recording: Recording; path: string }; parts: Map<number, string>; sources: Recording[] }
   const found = new Map<string, Found>();
   for (const recording of recordings) {
@@ -147,7 +147,7 @@ const ReplayOutcome = Schema.Struct({
   recording: Schema.String, client: Schema.String, file: Schema.String, version: Schema.String, frames: Schema.Finite,
   bun: Schema.optionalKey(ReplayResult), lua: Schema.optionalKey(ReplayResult), skipped: Schema.optionalKey(Schema.String),
 });
-export type ReplayOutcome = typeof ReplayOutcome.Type;
+type ReplayOutcome = typeof ReplayOutcome.Type;
 const ReplayOutcomes = Schema.Array(ReplayOutcome);
 
 const passed = (result: MatchReplayResult | undefined) => result !== undefined && result.problems.length === 0 && result.reached === result.recorded;
@@ -262,7 +262,7 @@ const runtimeLine = (name: string, result: MatchReplayResult | undefined) => {
 };
 
 
-export function corpusReport(outcomes: readonly ReplayOutcome[], recordings: number, open: number): { readonly lines: readonly string[]; readonly passed: boolean } {
+function corpusReport(outcomes: readonly ReplayOutcome[], recordings: number, open: number): { readonly lines: readonly string[]; readonly passed: boolean } {
   const lines: string[] = [];
   let frames = 0;
   let divergentBun = 0;

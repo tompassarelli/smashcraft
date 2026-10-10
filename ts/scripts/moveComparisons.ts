@@ -79,7 +79,7 @@ class Rig {
   }
 }
 
-export function compareContact(character: Character, category: number, spacing: number, percent: number, shielding: boolean, mutant = false): ContactResult {
+function compareContact(character: Character, category: number, spacing: number, percent: number, shielding: boolean, mutant = false): ContactResult {
   const rig = new Rig(character, category, spacing, percent, shielding, mutant);
   const result: ContactResult = { connected: rig.connected, contactFrame: rig.contactFrame, attackerReady: -1, defenderReady: -1, attackerLanding: -1,
     shieldstun: rig.initialShieldstun, hitstun: rig.initialHitstun, attackerHitlag: rig.attackerHitlag, defenderHitlag: rig.defenderHitlag,
@@ -100,7 +100,7 @@ export function compareContact(character: Character, category: number, spacing: 
   return result;
 }
 
-export function categoryTradeoffViolation(smash: ContactResult, normal: ContactResult): boolean {
+function categoryTradeoffViolation(smash: ContactResult, normal: ContactResult): boolean {
   return smash.connected && normal.connected && smash.attackerReady >= 0 && normal.attackerReady >= 0 && smash.defenderReady >= 0 && normal.defenderReady >= 0
     && smash.shieldDamage > normal.shieldDamage && smash.attackerReady <= normal.attackerReady && smash.defenderReady >= normal.defenderReady;
 }
@@ -111,7 +111,7 @@ interface FollowupResult {
   timingAllows: boolean; reachesBeforeAction: boolean;
 }
 
-export function compareFollowup(character: Character, category: number, spacing: number, percent: number, shielding: boolean, candidateStyle: AttackStyle,
+function compareFollowup(character: Character, category: number, spacing: number, percent: number, shielding: boolean, candidateStyle: AttackStyle,
   delay: number, approach: boolean, baseline: ContactResult): FollowupResult {
   const result: FollowupResult = { scheduledStart: -1, actualStart: -1, actualStyle: -1, firstActive: -1, firstContact: -1, opponentReady: -1,
     separationAtStart: 0, verticalAtStart: 0, separationAtFirstActive: 0, verticalAtFirstActive: 0, timingAllows: false, reachesBeforeAction: false };
@@ -148,7 +148,7 @@ export function compareFollowup(character: Character, category: number, spacing:
   return result;
 }
 
-export function followupVerdict(result: FollowupResult, shielding: boolean, approach: boolean): string {
+function followupVerdict(result: FollowupResult, shielding: boolean, approach: boolean): string {
   if (result.actualStart < 0) return "ground-normal-unavailable";
   if (result.opponentReady < 0) return "opponent-recovery-unobserved";
   if (result.reachesBeforeAction) return shielding ? "bounded-punish" : "bounded-true-link";

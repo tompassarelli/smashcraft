@@ -19,7 +19,7 @@ import type { FeelValues, FeelSample } from "./balanceKit";
 
 const cache = new Map<string, number | undefined>();
 
-export function killPercent(effect: Readonly<HitEffect>): number | undefined {
+function killPercent(effect: Readonly<HitEffect>): number | undefined {
   const key = JSON.stringify(effect);
   if (cache.has(key)) return cache.get(key);
   const kills = (percent: number): boolean => {

@@ -12,9 +12,9 @@ export type HandleCounts = readonly (readonly [string, number])[];
 
 export const BASELINE_LINEUP: readonly Character[] = [Character.demonHunter, Character.rifleman, Character.warden, Character.demonHunter];
 
-export const BASELINE_STAGE = 2;
+const BASELINE_STAGE = 2;
 
-export interface HandleBaseline {
+interface HandleBaseline {
   /** Each client's counts at fighter selection before any match. */
   readonly cold: readonly HandleCounts[];
   /** Each client's counts back at fighter selection after each match. */

@@ -24,7 +24,7 @@ export interface PauseArrivals {
 }
 
 
-export function startPresses(producerJsonl: string): number[] {
+function startPresses(producerJsonl: string): number[] {
   return producerJsonl.split("\n").filter((line) => line.trim() !== "").map((line) => decodeProducerEvent(line))
     .filter((event) => event.type === 1 && event.code === START && event.value === 1).map((event) => event.producer_injected_monotonic_ns);
 }

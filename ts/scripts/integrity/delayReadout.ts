@@ -4,12 +4,12 @@ import { type Distribution, distribution, integer, integrityHeader, integrityRow
 
 // #396: the quantities are defined in smashcraft:docs/commands/integrity.md ("Delay readout").
 
-export interface ClientPages {
+interface ClientPages {
   readonly client: string;
   readonly pages: readonly string[];
 }
 
-export interface ClientDelay {
+interface ClientDelay {
   readonly client: string;
   readonly dropped: Dropped;
   readonly delay: Distribution;

@@ -14,15 +14,15 @@ export const BUN_TEST_CEILING_FRAMES = 58_000;
 /** Lua32: CPU seconds one test may use on the reference runner (AGENTS.md). Never raise it to fit a test. */
 export const LUA_TEST_CEILING_S = 6;
 /** The reference CI runner's stock Lua32 speed: the median over the heaviest files of their instructions per baseline CPU second (#394). */
-export const LUA_INSTRUCTIONS_PER_S = 70_000_000;
+const LUA_INSTRUCTIONS_PER_S = 70_000_000;
 export const LUA_TEST_CEILING_INSTRUCTIONS = LUA_TEST_CEILING_S * LUA_INSTRUCTIONS_PER_S;
 /** A file fails when its instructions or allocation per test exceed its baseline by more than this share. */
-export const RISE = 0.25;
+const RISE = 0.25;
 /** Rises below these totals per file are too small to matter: one reference second, and 16 MB. */
-export const MATTERS_INSTRUCTIONS = LUA_INSTRUCTIONS_PER_S;
-export const MATTERS_KB = 16384;
+const MATTERS_INSTRUCTIONS = LUA_INSTRUCTIONS_PER_S;
+const MATTERS_KB = 16384;
 
-export interface UnitCost {
+interface UnitCost {
   readonly tests: number;
   readonly cpu: number;
   /** The CPU seconds of the file's heaviest test, when measured. */
@@ -66,7 +66,7 @@ export function cpuReport(label: string, measured: Costs, totalCpu?: number): re
   return [`${label} heaviest tests (CPU): ${heaviest}`, `${label} heaviest tests (frames, ceiling ${BUN_TEST_CEILING_FRAMES}): ${framed}`, `${label} CPU: ${cpu.toFixed(1)} s for ${tests} tests${total} (reported, not gated)`];
 }
 
-export interface LuaCost {
+interface LuaCost {
   readonly tests: number;
   readonly instructions: number;
   readonly allocKb: number;
@@ -85,7 +85,7 @@ export function addLuaCost(costs: LuaCosts, unit: string, instructions: number, 
 
 const LUA_HEADER = "unit\ttests\tinstructions\talloc_kb";
 
-export function readLuaBaseline(path: string): LuaCosts {
+function readLuaBaseline(path: string): LuaCosts {
   const costs: LuaCosts = new Map();
   if (!existsSync(path)) return costs;
   for (const line of readFileSync(path, "utf8").split("\n").slice(1)) {
@@ -106,7 +106,7 @@ function writeLuaBaseline(path: string, costs: LuaCosts): void {
 const megas = (instructions: number) => `${(instructions / 1e6).toFixed(1)}M`;
 
 /** The rule for one file measured at its baseline's test count: a line naming it when it rose, else undefined. */
-export function luaRise(unit: string, cost: LuaCost, base: LuaCost): string | undefined {
+function luaRise(unit: string, cost: LuaCost, base: LuaCost): string | undefined {
   const rose = (now: number, was: number, matters: number) => now > was * (1 + RISE) && now - was > matters;
   if (rose(cost.instructions, base.instructions, MATTERS_INSTRUCTIONS)) {
     return `${unit}: ${megas(cost.instructions / cost.tests)} Lua instructions per test, ${((cost.instructions / base.instructions - 1) * 100).toFixed(0)}% over its baseline ${megas(base.instructions / base.tests)}; shrink it or move it to the farm`;
@@ -117,7 +117,7 @@ export function luaRise(unit: string, cost: LuaCost, base: LuaCost): string | un
   return undefined;
 }
 
-export interface LuaJudgement {
+interface LuaJudgement {
   /** One line per file over budget, naming it. */
   readonly risen: readonly string[];
   readonly summary: string;

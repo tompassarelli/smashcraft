@@ -27,7 +27,7 @@ export const ITEM_INTERVAL_MAX_SECONDS = 60;
 
 export const ITEM_WARNING_FRAMES = 10 * FRAMES_PER_SECOND;
 
-export const ITEM_REACH = melee(8.0);
+const ITEM_REACH = melee(8.0);
 
 export const ITEM_HEIGHT = melee(8.0);
 
@@ -63,7 +63,7 @@ function enabledKind(mask: number, index: number): ItemKind {
 }
 
 
-export const matchHasItems = (game: Readonly<MatchState>): boolean =>
+const matchHasItems = (game: Readonly<MatchState>): boolean =>
   game.items.on && !game.training && (game.items.enabledMask & ALL_ITEMS_MASK) !== 0;
 
 
@@ -89,7 +89,7 @@ export function itemWarningFrames(items: Readonly<MatchItems>, matchFrame: numbe
 }
 
 
-export function itemKindOf(code: number): ItemKind {
+function itemKindOf(code: number): ItemKind {
   switch (code) {
     case ItemKind.speed: return ItemKind.speed;
     case ItemKind.heavy: return ItemKind.heavy;
@@ -98,7 +98,7 @@ export function itemKindOf(code: number): ItemKind {
 }
 
 
-export function requestedStyle(style: number | undefined): AttackStyle | undefined {
+function requestedStyle(style: number | undefined): AttackStyle | undefined {
   switch (style) {
     case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: return style;
     default: return undefined;

@@ -9,12 +9,12 @@ import { WORLD_UNITS_PER_MELEE_UNIT, authoredTuning } from "../src/game/sim/tuni
 import { EdgeGuardTool, edgeGuardTool } from "../src/game/match/edgeGuardScenarios";
 import { SIGNATURE_STRONG_HIT, strongHitReason, strongHitRows } from "../src/game/sim/strongHitTable";
 
-export const MOVE_LIST_PATH = join(import.meta.dir, "../../docs/move-list.md");
+const MOVE_LIST_PATH = join(import.meta.dir, "../../docs/move-list.md");
 
 const cell = (text: string) => text.replaceAll("|", "\\|");
 const percent = (damage: number) => `${Math.round(damage * 10) / 10}%`;
 
-export function moveListMarkdown(): string {
+function moveListMarkdown(): string {
   const lines = [
     "# Move list",
     "",

@@ -32,13 +32,13 @@ const RunsSchema = Schema.Array(Schema.Struct({
 }));
 const readRuns = (file: string): Run[] => Schema.decodeUnknownSync(RunsSchema)(JSON.parse(readFileSync(file, "utf8"))).map((run) => ({ ...run, second: run.second }));
 
-export const ROSTER = {
+const ROSTER = {
   fighters: SELECTABLE_CHARACTERS.map(fighterSlug),
   stages: Object.keys(FIELD_STAGES),
   tiers: CPU_TIERS.map((tier): string => tier),
 };
 
-export const playReal: Play = (spec: MatchSpec, frameCap: number): Observation => {
+const playReal: Play = (spec: MatchSpec, frameCap: number): Observation => {
   const a = selectableCharacterBySlug(spec.a);
   const b = selectableCharacterBySlug(spec.b);
   if (a === undefined || b === undefined || !isCpuTier(spec.tier)) throw new Error(`cannot play ${spec.a} against ${spec.b} at ${spec.tier}`);

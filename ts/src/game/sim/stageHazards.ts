@@ -100,8 +100,8 @@ const TidePhase = { flood: 0, slackToEbb: 1, ebb: 2, slackToFlood: 3 } as const;
 type TidePhase = (typeof TidePhase)[keyof typeof TidePhase];
 
 
-export const TIDE_FLOW_FRAMES = 540;
-export const TIDE_SLACK_FRAMES = 60;
+const TIDE_FLOW_FRAMES = 540;
+const TIDE_SLACK_FRAMES = 60;
 
 const TIDE_CYCLE_FRAMES = 2 * (TIDE_FLOW_FRAMES + TIDE_SLACK_FRAMES);
 
@@ -143,7 +143,7 @@ export function framesUntilTideTurns(frame: number): number {
 
 
 const seaLeft = (stage: number): number => stageBounds(stage).blast.left;
-export const seaRight = (stage: number): number => stageBounds(stage).blast.right;
+const seaRight = (stage: number): number => stageBounds(stage).blast.right;
 
 
 export function inSea(stage: number, x: number, z: number): boolean {

@@ -29,7 +29,7 @@ const fighter = (args: readonly string[], name: string, fallback: Character): Ch
   return found;
 };
 
-export function optionsFrom(args: readonly string[]): TextMatchOptions {
+function optionsFrom(args: readonly string[]): TextMatchOptions {
   const [level = DEFAULT_OPTIONS.level] = flagValues(args, "level");
   if (!isCpuTier(level)) throw new UsageFailure({ problem: `--level ${level} is not a computer level (rookie beginner intermediate advanced expert)` });
   const frames = flagValues(args, "frames").length === 0 ? undefined : whole(args, "frames", 0);

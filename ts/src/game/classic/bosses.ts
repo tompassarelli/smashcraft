@@ -26,7 +26,7 @@ interface BossZone {
   readonly top: number;
 }
 
-export interface BossStrike {
+interface BossStrike {
   readonly name: string;
 
   readonly tell: number;

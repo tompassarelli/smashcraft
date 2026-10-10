@@ -9,7 +9,7 @@ import type { Fighter } from "./fighter";
 import type { AppliedStatus } from "./heroStatus";
 
 
-export const CHILL_SPEED_SCALE = f32(0.6);
+const CHILL_SPEED_SCALE = f32(0.6);
 
 
 export function chillScaled(f: Readonly<Fighter>, speed: number): number {

@@ -107,7 +107,7 @@ const NAMES: Readonly<Record<number, string>> = {
 };
 
 
-export function describeInputs(held: readonly number[]): string {
+function describeInputs(held: readonly number[]): string {
   const runs: string[] = [];
   for (let run = 0; run + 2 < held.length; run += 3) {
     const mask = held[run] ?? 0;

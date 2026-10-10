@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-export type Kind = "json" | "tsv" | "facts" | "markdown";
+type Kind = "json" | "tsv" | "facts" | "markdown";
 type Entry = { readonly key: string; readonly text: string };
 
 const unique = (entries: ReadonlyArray<{ key: string; text: string }>): Entry[] => {
@@ -41,7 +41,7 @@ const parseJson = (source: string): Entry[] => {
 type Merged = { readonly key: string; readonly text: string }
   | { readonly key: string; readonly conflict: readonly [string | undefined, string | undefined] };
 
-export const mergeEntries = (base: Entry[], ours: Entry[], theirs: Entry[]): Merged[] => {
+const mergeEntries = (base: Entry[], ours: Entry[], theirs: Entry[]): Merged[] => {
   const b = new Map(base.map((e) => [e.key, e.text]));
   const o = new Map(ours.map((e) => [e.key, e.text]));
   const t = new Map(theirs.map((e) => [e.key, e.text]));
@@ -70,7 +70,7 @@ export const mergeEntries = (base: Entry[], ours: Entry[], theirs: Entry[]): Mer
 const renderConflict = (ours: string[], theirs: string[]): string[] =>
   ["<<<<<<< ours", ...ours, "=======", ...theirs, ">>>>>>> theirs"];
 
-export const merge = (kind: Kind, base: string, ours: string, theirs: string): { text: string; conflicts: number } => {
+const merge = (kind: Kind, base: string, ours: string, theirs: string): { text: string; conflicts: number } => {
   const parse = kind === "json" ? parseJson : (s: string) => parseLines(kind, s);
   const merged = mergeEntries(parse(base), parse(ours), parse(theirs));
   const conflicts = merged.filter((m) => "conflict" in m).length;
@@ -91,7 +91,7 @@ export const merge = (kind: Kind, base: string, ours: string, theirs: string): {
   return { text: merged.length === 0 ? "{}\n" : `{\n${out.join("\n")}\n}\n`, conflicts };
 };
 
-export const kindOf = (path: string): Kind | undefined =>
+const kindOf = (path: string): Kind | undefined =>
   path.endsWith(".json") ? "json"
   : path.endsWith(".tsv") ? "tsv"
   : path.endsWith("modelFacts.ts") ? "facts"

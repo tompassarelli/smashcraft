@@ -96,7 +96,7 @@ export function views(s: Readonly<ShellState>): UiObjects {
 
 const each = <T>(create: (slot: ParticipantSlot) => T): Slots<T> => [create(0), create(1), create(2), create(3)];
 
-export interface ManaBars {
+interface ManaBars {
   readonly hud: ManaBar;
 }
 

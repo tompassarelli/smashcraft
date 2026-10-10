@@ -12,7 +12,7 @@ import { PENDING_CAPACITY } from "../../game/netcode/shadowSchedule";
 import { createText, gameUi, placeTopLeft } from "../../game/ui/frames";
 import { at } from "wisp/src/runtime/lookup";
 
-export const DELAY_PREFIX = "SC_DY";
+const DELAY_PREFIX = "SC_DY";
 export const DELAY_RECEIVED = "shell.delayProposal";
 const SECOND = 60;
 
@@ -44,9 +44,9 @@ function humans(game: Readonly<MatchState>): number {
   return count;
 }
 
-export const isOnline = (game: Readonly<MatchState>): boolean => humans(game) > 1;
+const isOnline = (game: Readonly<MatchState>): boolean => humans(game) > 1;
 
-export function requestFor(net: Readonly<NetDelay>, game: Readonly<MatchState>, slot: number, choice: number): number {
+function requestFor(net: Readonly<NetDelay>, game: Readonly<MatchState>, slot: number, choice: number): number {
   return requestedDelay(choice, isOnline(game) ? at(net.proposals, slot) : DEFAULT_DELAY);
 }
 

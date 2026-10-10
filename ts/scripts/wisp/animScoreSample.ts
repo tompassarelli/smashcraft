@@ -26,7 +26,7 @@ import { capture, DrawnModel, type PoseFrame } from "./hurtboxView";
 export type Look = "classic" | "definitive";
 
 
-export const SCORED_NORMALS: readonly { readonly move: string; readonly style: AttackStyle; readonly moveClass: MoveClass; readonly aerial: boolean }[] = [
+const SCORED_NORMALS: readonly { readonly move: string; readonly style: AttackStyle; readonly moveClass: MoveClass; readonly aerial: boolean }[] = [
   { move: "jab", style: AttackStyle.jab, moveClass: "jab", aerial: false },
   { move: "jab2", style: AttackStyle.jab2, moveClass: "jab", aerial: false },
   { move: "jab3", style: AttackStyle.jab3, moveClass: "jab", aerial: false },
@@ -47,7 +47,7 @@ export const SCORED_NORMALS: readonly { readonly move: string; readonly style: A
 ];
 
 
-export const SCORED_SPECIALS: readonly { readonly move: string; readonly x: number; readonly z: number; readonly ultimate?: true }[] = [
+const SCORED_SPECIALS: readonly { readonly move: string; readonly x: number; readonly z: number; readonly ultimate?: true }[] = [
   { move: "neutral-special", x: 0, z: 0 }, { move: "side-special", x: 1, z: 0 },
   { move: "up-special", x: 0, z: 1 }, { move: "down-special", x: 0, z: -1 },
   { move: "ultimate", x: 0, z: 0, ultimate: true },
@@ -79,21 +79,21 @@ const LIMBS: readonly (readonly [string, string, string])[] = [
   ["foreleg", "^bone front {S} leg(01)?$", "^bone front ?{S} toe(01)?$"],
 ];
 
-export const SKELETON_EXCEPTIONS: Readonly<Record<string, { readonly pelvis?: string; readonly chest?: string; readonly limbs?: readonly { readonly name: string; readonly root: string; readonly end: string }[] }>> = {};
+const SKELETON_EXCEPTIONS: Readonly<Record<string, { readonly pelvis?: string; readonly chest?: string; readonly limbs?: readonly { readonly name: string; readonly root: string; readonly end: string }[] }>> = {};
 
 
 const AFTER_FRAMES = 2;
 const LIMIT = 150;
 
 
-export function gameplayPixelsPerUnit(): number {
+function gameplayPixelsPerUnit(): number {
   const camera = createMatchCamera();
   extremeCamera(camera, FROZEN_THRONE_STAGE, MATCH_CAMERA_ASPECT, "far");
   return 1080 / (2 * camera.distance * camera.tangent);
 }
 
 
-export function bodyPath(assets: string, character: Character, look: Look): { readonly classic: string; readonly definitive: string } {
+function bodyPath(assets: string, character: Character, look: Look): { readonly classic: string; readonly definitive: string } {
   const clip = originalClip(character, 0);
   if (clip === undefined) throw new Error(`${fighterSlug(character)} has no clip table`);
   const relative = clip.modelPath.replaceAll("\\", "/");
@@ -109,7 +109,7 @@ export async function loadBody(assets: string, character: Character, look: Look)
   return new DrawnModel(await Bun.file(path).arrayBuffer(), characterModelScale(character));
 }
 
-export function skeletonOf(model: DrawnModel, character: Character): ScoreSkeleton {
+function skeletonOf(model: DrawnModel, character: Character): ScoreSkeleton {
   const nodes = model.nodes();
   const names = nodes.map((node) => node.name);
   const exception = SKELETON_EXCEPTIONS[fighterSlug(character)];
@@ -177,7 +177,7 @@ const strikeEnd = (capsule: { readonly x1: number; readonly z1: number; readonly
   Math.hypot(capsule.x2, capsule.z2 - chestZ) >= Math.hypot(capsule.x1, capsule.z1 - chestZ) ? { x: capsule.x2, z: capsule.z2 } : { x: capsule.x1, z: capsule.z1 };
 
 
-export function sampleNormal(model: DrawnModel, skeleton: ScoreSkeleton, character: Character, entry: (typeof SCORED_NORMALS)[number], pixelsPerUnit: number): SampledMove | undefined {
+function sampleNormal(model: DrawnModel, skeleton: ScoreSkeleton, character: Character, entry: (typeof SCORED_NORMALS)[number], pixelsPerUnit: number): SampledMove | undefined {
   const f = createFighter(character, 0.0, 1);
   if (authoredHitRegionCount(entry.style, f.tuning.moves) === 0) return undefined;
   const world = createRoster(1, [f]);
@@ -214,7 +214,7 @@ export function sampleNormal(model: DrawnModel, skeleton: ScoreSkeleton, charact
 }
 
 
-export function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, character: Character, entry: (typeof SCORED_SPECIALS)[number], pixelsPerUnit: number): SampledMove | undefined {
+function sampleSpecial(model: DrawnModel, skeleton: ScoreSkeleton, character: Character, entry: (typeof SCORED_SPECIALS)[number], pixelsPerUnit: number): SampledMove | undefined {
   if (!HERO_ROSTER.some((hero) => hero.character === character)) return undefined;
   const f: Fighter = createFighter(character, 0.0, 1);
   f.mana.points = 100;

@@ -43,7 +43,7 @@ const clientNames = (clientsFile: string): [string, ...string[]] => {
 };
 
 
-export const acceptForClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => {
+const acceptForClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => {
   const rename = <T extends { readonly client?: string }>(entry: T): T => entry.client === undefined ? entry : {
     ...entry, client: entry.client === "a" ? clients[0] : entry.client === "b" ? clients[1] ?? clients[0] : entry.client,
   };
@@ -55,7 +55,7 @@ export const acceptForClients = (suite: AcceptSuite, clients: readonly [string, 
 };
 
 
-export const acceptForSoloClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => ({
+const acceptForSoloClients = (suite: AcceptSuite, clients: readonly [string, ...string[]]): AcceptSuite => ({
   ...acceptForClients(suite, clients),
   checks: acceptForClients(suite, clients).checks.map(check => ({ ...check,
     ...(check.setup === undefined ? {} : { setup: check.setup.flatMap(step =>
@@ -63,7 +63,7 @@ export const acceptForSoloClients = (suite: AcceptSuite, clients: readonly [stri
   })),
 });
 
-export const sendSoloDevCommand = (command: string, name?: string) => Effect.gen(function*() {
+const sendSoloDevCommand = (command: string, name?: string) => Effect.gen(function*() {
   const clients = yield* Clients;
   yield* Effect.forEach(clients.all.filter(client => name === undefined || client.name === name), client =>
     sendDevCommand(command, client.name).pipe(Effect.provideService(Clients, { ...clients, all: [client] })), { discard: true });
@@ -97,7 +97,7 @@ const matchEnd = (receipts: readonly ReceiptFile[], since: number) => {
 
 
 
-export const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], since: number) => Effect.gen(function*() {
+const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], since: number) => Effect.gen(function*() {
   const quick = receipts.filter(({ name }) => name.startsWith("smashcraft-dev-")).sort((a, b) => b.modified - a.modified)[0];
   if (quick === undefined) return "two fighters present: the host wrote no quick-match receipt";
   const setup = yield* DevCommandReceipt.decode(quick.name, quick.text).pipe(Effect.option);
@@ -123,7 +123,7 @@ export const smokeProblem = (frame: Frame, receipts: readonly ReceiptFile[], sin
 
 
 
-export const withSmokeCapture = (driver: AcceptDriver["Service"], settle: Duration.Input = "2 seconds") => {
+const withSmokeCapture = (driver: AcceptDriver["Service"], settle: Duration.Input = "2 seconds") => {
   let smoked = false;
   let failed: string | undefined;
   const stopped = () => new AcceptFailure({ operation: "smoke capture", problem: `${failed ?? ""}; the batch stopped` });
@@ -186,7 +186,7 @@ const prebuild = (maps: readonly string[], profiles: Readonly<Record<string, Sma
 
 
 
-export const runShard = (pair: string, ids: readonly string[], directory: string, map?: string) => Effect.scoped(Effect.gen(function*() {
+const runShard = (pair: string, ids: readonly string[], directory: string, map?: string) => Effect.scoped(Effect.gen(function*() {
   yield* Effect.try({ try: () => mkdirSync(directory, { recursive: true }), catch: (cause) => new AcceptFailure({ operation: `pair ${pair}`, problem: describeCause(cause) }) });
   const { handle, written } = yield* spawnLogged(ChildProcess.make(process.execPath, [join(import.meta.dir, "../../wisp.ts"), "accept", "--only", ids.join(","), "--pair", pair, "--out", directory, ...(map === undefined ? [] : ["--map", map])], {
     env: { ...process.env, [PREBUILT]: "1" }, stdin: "ignore",

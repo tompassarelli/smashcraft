@@ -2,19 +2,16 @@
 
 
 
-export type Liquid = "Water" | "Lava";
-export const LIQUID_TEXTURE_SIZE = 64;
+type Liquid = "Water" | "Lava";
+const LIQUID_TEXTURE_SIZE = 64;
 type Rgba = readonly [red: number, green: number, blue: number, alpha: number];
 
 
-export const STOCK_BLOOM_THRESHOLD = 0.72;
 
 
 
 
-
-
-export const LAVA_GLOW = { color: [255, 196, 96] as const, crest: 0.8 };
+const LAVA_GLOW = { color: [255, 196, 96] as const, crest: 0.8 };
 
 const ripple = (x: number, y: number) => Math.sin((x + 5 * Math.sin(y * Math.PI / 16)) * Math.PI / 8) * 0.5 + 0.5;
 

@@ -14,7 +14,7 @@
 
 import { at } from "wisp/src/runtime/lookup";
 import { lineTokens, parseRecord, recordTokens } from "wisp/src/runtime/recordText";
-import { type Repro, type ReproResult, reproLines } from "wisp/src/runtime/repro";
+import { type ReproResult } from "wisp/src/runtime/repro";
 import { floorMod } from "wisp/src/sim/intMath";
 import { PARTICIPANT_SLOTS } from "../input/participants";
 import { type FrameControls, createFrameControls } from "../match/controls";
@@ -40,9 +40,9 @@ import { type Lanes, MODULUS, fieldName, foldFields, foldInteger, foldNumber, fo
 export * from "./replayFormat";
 
 
-export const CHECKPOINT_FRAMES = SNAPSHOT_FRAMES;
+const CHECKPOINT_FRAMES = SNAPSHOT_FRAMES;
 
-export const PART_LINES = 48;
+const PART_LINES = 48;
 
 const STATE_TOKENS_PER_CALLBACK = 32;
 
@@ -569,7 +569,7 @@ export function finishMatchReplay(recorder: MatchReplayRecorder, moment: Readonl
 
 
 
-export interface ReplaySegment {
+interface ReplaySegment {
   readonly start: number;
   readonly startChecksum: string;
   readonly state: ReplayState;
@@ -671,9 +671,6 @@ export function runReplayFrame(state: ReplayState, input: MomentInput, scratch: 
 export const createFrameScratch = (): FrameScratch => ({ frameInput: createMatchFrameInput(), produced: createFrameControls() });
 
 
-export const replayStateChecksum = checksumVia;
-
-
 export interface MatchReplayResult extends ReproResult {
 
   readonly reached: number;
@@ -728,9 +725,4 @@ export function replayMatch(lines: readonly string[]): MatchReplayResult {
   }
   check(replay.frame, replay.checksum);
   return { checksum: checksumVia(checksums, state), frames, problems, reached, recorded, digests, divergent };
-}
-
-
-export function replayRepro(repro: Repro): ReproResult {
-  return replayMatch(reproLines(repro, repro.lines));
 }

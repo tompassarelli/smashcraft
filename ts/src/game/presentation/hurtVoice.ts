@@ -32,7 +32,7 @@ const CRIES: { readonly [character: number]: CryClips | undefined } = {
 };
 
 
-export const CRY_COOLDOWN_FRAMES = 120;
+const CRY_COOLDOWN_FRAMES = 120;
 
 export const CryDecision = { play: 0, keep: 1, standIn: 2 } as const;
 export type CryDecision = (typeof CryDecision)[keyof typeof CryDecision];
@@ -61,7 +61,7 @@ export function cryStandIn(character: Character): number | undefined {
 }
 
 
-export function earnsCry(fighter: Readonly<Fighter>): boolean {
+function earnsCry(fighter: Readonly<Fighter>): boolean {
   return fighter.status.out || fighter.launch.damageLevel === 3 || fighter.down.state !== DownState.none;
 }
 

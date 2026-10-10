@@ -18,7 +18,7 @@ import { Phase } from "../src/game/match/rules";
 import { padScriptPreset } from "./integrity/padScript";
 import { platformLayer } from "wisp/scripts/platform/layer";
 
-export function validatePadCutClients(clients: readonly Pick<Client, "name" | "documents" | "x11" | "wayland">[], entries: readonly ClientEntry[], appIds: ReadonlyMap<string, string>, pair: string) {
+function validatePadCutClients(clients: readonly Pick<Client, "name" | "documents" | "x11" | "wayland">[], entries: readonly ClientEntry[], appIds: ReadonlyMap<string, string>, pair: string) {
   const count = pair === "tom" ? 1 : 2;
   if (clients.length !== count || entries.length !== count || appIds.size !== count || new Set(clients.map(client => client.name)).size !== count) {
     throw new Error(`Assign exactly ${count} selected clients and their app IDs`);
@@ -52,7 +52,7 @@ export function validatePadCutClients(clients: readonly Pick<Client, "name" | "d
   }
 }
 
-export const startPadCutProducer = (options: {
+const startPadCutProducer = (options: {
   helper: string; client: Pick<Client, "x11" | "wayland" | "window">; pid: number; single: boolean;
   niriWindow?: string | undefined; appId: string; out: string; slot: number;
 }) => {
@@ -63,7 +63,7 @@ export const startPadCutProducer = (options: {
   });
 };
 
-export const padCut = Effect.gen(function*() {
+const padCut = Effect.gen(function*() {
 const { values } = parseArgs({ options: {
   pair: { type: "string" }, "clients-file": { type: "string" }, helper: { type: "string" }, map: { type: "string" },
   out: { type: "string" }, "app-id": { type: "string", multiple: true }, plan: { type: "boolean" },

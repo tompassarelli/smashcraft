@@ -18,16 +18,16 @@ import { melee } from "./tuning";
 
 type Mode = "reset-right" | "alternate" | "held" | "wiggle";
 
-export interface SdiFixture {
+interface SdiFixture {
   readonly name: string;
   readonly hitlag: number;
   readonly hits: number;
   readonly mode: Mode;
 }
 
-export interface SdiStep { readonly hit: number; readonly tick: number; readonly dx: number; readonly dz: number; readonly hitlag: number }
+interface SdiStep { readonly hit: number; readonly tick: number; readonly dx: number; readonly dz: number; readonly hitlag: number }
 
-export interface SdiMeasurement extends SdiFixture {
+interface SdiMeasurement extends SdiFixture {
   readonly pathWorld: number;
   readonly maxStepWorld: number;
   readonly netWorld: number;
@@ -38,7 +38,7 @@ export interface SdiMeasurement extends SdiFixture {
 }
 
 
-export const SDI_FIXTURES: readonly SdiFixture[] = [
+const SDI_FIXTURES: readonly SdiFixture[] = [
   { name: "one-frame", hitlag: 1, hits: 1, mode: "reset-right" },
   { name: "two-frame", hitlag: 2, hits: 1, mode: "reset-right" },
   { name: "light", hitlag: 4, hits: 1, mode: "reset-right" },
@@ -80,7 +80,7 @@ function stick(mode: Mode, tick: number): readonly [number, number] {
 }
 
 
-export function measureSdiFixture(fixture: SdiFixture): SdiMeasurement {
+function measureSdiFixture(fixture: SdiFixture): SdiMeasurement {
   const f = isolatedVictim();
   const direction = neutralDirections();
   const input = controls();

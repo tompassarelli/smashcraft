@@ -56,11 +56,11 @@ export function createBindingSettings(owner: number, persistence: BindingPersist
 const DELAY_MARK = "D";
 const DELAY_CODES = "012345678";
 
-export function encodeSettings(settings: Readonly<BindingSettings>): string {
+function encodeSettings(settings: Readonly<BindingSettings>): string {
   return `${encodeBindings(settings.bindings)}${DELAY_MARK}${settings.delay === AUTO_DELAY ? "A" : DELAY_CODES.charAt(settings.delay)}`;
 }
 
-export function decodeDelay(encoded: string): { readonly bindings: string; readonly delay: DelayChoice } {
+function decodeDelay(encoded: string): { readonly bindings: string; readonly delay: DelayChoice } {
   const at = encoded.length - 2;
   if (at < 0 || encoded.charAt(at) !== DELAY_MARK) return { bindings: encoded, delay: AUTO_DELAY };
   const code = encoded.charAt(at + 1);

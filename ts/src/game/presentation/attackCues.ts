@@ -17,7 +17,7 @@ import { DISJOINT_MODELS } from "./disjointCues";
 const cue = (model: string, scale: number): Cue => ({ model, anchor: "body", scale });
 
 
-export interface AttackCue {
+interface AttackCue {
   readonly name: string;
   readonly fromActive: number;
   // Definitive Popcorn emitters ignore time seeks and draw nothing on their birth frame, so their cue can be born earlier.
@@ -115,7 +115,7 @@ export function attackCueState(fighter: Readonly<Fighter>, out: AttackCueState, 
 }
 
 
-export function fighterAttackCues(character: Character): readonly Cue[] {
+function fighterAttackCues(character: Character): readonly Cue[] {
   const out: Cue[] = [];
   for (const cues of Object.values(ATTACK_CUES[character] ?? {})) for (const { cue } of cues) if (!out.includes(cue)) out.push(cue);
   return out;

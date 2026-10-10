@@ -543,7 +543,7 @@ const FOLLOW_THROUGH = f32(0.4);
 const strikeSkip = (strike: number, startup: number): number => max(0.0, f32(strike - f32(FASTEST_SWING * f32(startup * FRAME_SECONDS))));
 
 
-export function strikeStart(character: number, style: number, clip: Readonly<HeroClip>, startup: number): number {
+function strikeStart(character: number, style: number, clip: Readonly<HeroClip>, startup: number): number {
   const moment = HERO_STRIKE_MOMENTS[character]?.[style];
   return moment === undefined || clip.aligned === true || moment.clip !== clip.index || moment.seconds < EARLIEST_STRIKE || startup <= 0 ? 0.0 : strikeSkip(moment.seconds, startup);
 }

@@ -4,8 +4,8 @@ import type { MatchState } from "../match/rules";
 import { ITEM_BUFF_FRAMES } from "../sim/itemBuffs";
 import { RULE_BUTTONS, type RuleBox } from "./ruleButtons";
 
-export type RuleName = keyof typeof RULE_BUTTONS;
-export type RuleGroup = "match" | "items" | "training" | "classic" | "mode";
+type RuleName = keyof typeof RULE_BUTTONS;
+type RuleGroup = "match" | "items" | "training" | "classic" | "mode";
 
 export const RULE_HELP_WIDTH = f32(0.38);
 export const RULE_HELP_HEIGHT = f32(0.046);

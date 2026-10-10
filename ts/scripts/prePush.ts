@@ -29,13 +29,16 @@ interface Check { readonly name: string; readonly directory: string; readonly ar
 const MODEL_INPUTS = ["build-inputs.json", "tools/animations/", "ts/src/game/assets/", "ts/src/game/presentation/", "ts/scripts/wisp/playerView.ts", "ts/scripts/wisp/modelFacts.ts"];
 
 
-export function checksFor(paths: readonly string[]): Check[] {
+function checksFor(paths: readonly string[]): Check[] {
   const ts = paths.some((path) => path.startsWith("ts/") || path === "typescript-toolchain.lock");
   const models = paths.some((path) => MODEL_INPUTS.some((input) => path === input || input.endsWith("/") && path.startsWith(input)));
   return [
     ...(paths.length > 0 ? [{ name: "clean room", directory: "ts", args: ["scripts/cleanRoom.ts"], fix: "follow wisp:docs/clean-room.md and the line above." }] : []),
     ...(ts ? [
       { name: "kind tags and type-check ts", directory: "ts", args: ["run", "check"], fix: "end each refused test title with its kind tag (listed above) or delete the test; fix each type error." },
+    ] : []),
+    ...(ts || paths.some((path) => /^(tools|docs|\.githooks)\//.test(path)) ? [
+      { name: "unused code", directory: "ts", args: ["scripts/unused-code.ts"], fix: "drop each listed export no other module uses, delete what nothing uses, or name the file where it is documented." },
     ] : []),
     ...(models ? [
       { name: "generated models stored", directory: "ts", args: ["scripts/storedModels.ts"], fix: "store the regenerated family (smashcraft:docs/build-inputs.md, \"Change art\")." },
@@ -66,7 +69,7 @@ export function killChildren(): void {
 
 
 
-export const run = (command: readonly string[], cwd: string, stdout: "pipe" | "ignore" = "pipe") => Effect.acquireUseRelease(
+const run = (command: readonly string[], cwd: string, stdout: "pipe" | "ignore" = "pipe") => Effect.acquireUseRelease(
   Effect.try({
     try: () => {
       const child = Bun.spawn([...command], { cwd, stdin: "ignore", stdout, stderr: "pipe", detached: true });
@@ -112,7 +115,7 @@ const changedPaths = (local: string, remote: string) => Effect.gen(function*() {
 const RedIssues = Schema.fromJsonString(Schema.Array(Schema.Struct({ number: Schema.Finite, title: Schema.String, body: Schema.String, url: Schema.String })));
 
 
-export function redNotice(issue: { readonly number: number; readonly body: string; readonly url: string }): string {
+function redNotice(issue: { readonly number: number; readonly body: string; readonly url: string }): string {
   const tests = issueTests(issue.body);
   const shown = tests.slice(0, 8).join("; ");
   return `pre-push: main is red (#${issue.number} ${issue.url}), ${tests.length} failing: ${shown}${tests.length > 8 ? `; and ${tests.length - 8} more` : ""}`;
@@ -161,7 +164,7 @@ const FARM_TIMEOUT_MINUTES = 30;
 const FarmRuns = Schema.fromJsonString(Schema.Array(Schema.Struct({ displayTitle: Schema.String, conclusion: Schema.String, url: Schema.String })));
 
 
-export function greenFarmRun(runs: readonly { readonly displayTitle: string; readonly conclusion: string; readonly url: string }[], sha: string): string | undefined {
+function greenFarmRun(runs: readonly { readonly displayTitle: string; readonly conclusion: string; readonly url: string }[], sha: string): string | undefined {
   return runs.find(({ displayTitle, conclusion }) => conclusion === "success" && displayTitle.startsWith(`Farm test ${sha} `))?.url;
 }
 

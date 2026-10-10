@@ -129,7 +129,7 @@ const DEMON_HUNTER_REGIONS: { readonly [style: number]: Readonly<HitRegion> } = 
 
 
 
-export const DEMON_HUNTER_NEUTRAL_AIR_CLEAN_FRAMES = 4;
+const DEMON_HUNTER_NEUTRAL_AIR_CLEAN_FRAMES = 4;
 const FORWARD_AIR_LINK = region(0.0, 175.0, -55.0, 115.0, 2.0, 10.0, 30.0, -0.258819043636322, 0.9659258127212524);
 const FORWARD_AIR_LAUNCH = region(0.0, 150.0, -40.0, 110.0, 3.0, 85.0, 18.0, 0.7660444378852844, 0.6427876353263855, 2);
 const NEUTRAL_AIR_CLEAN = { ...DEMON_HUNTER_REGIONS[AttackStyle.neutralAir] ?? NO_HIT_REGION, effect: strongHit((DEMON_HUNTER_REGIONS[AttackStyle.neutralAir] ?? NO_HIT_REGION).effect) };

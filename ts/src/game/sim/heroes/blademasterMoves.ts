@@ -10,12 +10,12 @@ import { drillStrikes, linkAt, multiHit } from "./multiHit";
 import { type Angle, capsuleOf, makeHit, path } from "./authoring";
 
 
-export const H = HERO_REFERENCE_HEIGHT;
+const H = HERO_REFERENCE_HEIGHT;
 export const length = (heights: number) => f32(H * heights);
-export const S = length(f32(0.55));
+const S = length(f32(0.55));
 export const M = length(f32(0.80));
 export const L = length(f32(1.10));
-export const XL = length(f32(1.40));
+const XL = length(f32(1.40));
 const TIP_LENGTH = length(f32(0.20));
 export const BLADE_RADIUS = 6.0;
 

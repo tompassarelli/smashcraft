@@ -65,7 +65,7 @@ const COS = Float64Array.from({ length: 64 }, (_, i) => {
 });
 
 // ITU T.81 Annex K quantisation tables use libjpeg's quality scaling.
-export function quantTable(quality: number): Uint8Array {
+function quantTable(quality: number): Uint8Array {
   const q = Math.min(100, Math.max(1, Math.round(quality)));
   const scale = q < 50 ? 5000 / q : 200 - q * 2;
   return Uint8Array.from(BASE_QUANT, (value) => Math.min(255, Math.max(1, Math.floor((value * scale + 50) / 100))));
@@ -214,7 +214,7 @@ interface Table { readonly counts: number[]; readonly values: number[] }
 const segment = (marker: number, body: readonly number[]) => [0xff, marker, (body.length + 2) >> 8, (body.length + 2) & 0xff, ...body];
 
 
-export function encodeJpegPlanes(image: Rgba, quality: number): { header: Uint8Array; scan: Uint8Array } {
+function encodeJpegPlanes(image: Rgba, quality: number): { header: Uint8Array; scan: Uint8Array } {
   const quant = quantTable(quality), coefficients = quantise(image, quant);
   const frequencies = [0, 1, 2, 3].map(() => new Uint32Array(256));
   walk(coefficients, (table, ac, symbol) => {

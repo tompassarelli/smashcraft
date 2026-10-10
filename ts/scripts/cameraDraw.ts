@@ -38,7 +38,7 @@ interface Callback {
 }
 
 
-export function cameraMarker(rgb: Uint8Array, width: number, height: number): Marker | undefined {
+function cameraMarker(rgb: Uint8Array, width: number, height: number): Marker | undefined {
   const scale = height / 0.6;
   let count = 0, sumX = 0, sumY = 0;
   for (let y = 0; y < Math.min(height, Math.ceil(0.065 * scale)); y++) {

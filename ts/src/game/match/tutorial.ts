@@ -18,7 +18,7 @@ import {
 export const LessonAction = { dash: 0, doubleJump: 1, hit: 2, special: 3, dodge: 4, throw: 5, ledge: 6, knockout: 7 } as const;
 export type LessonAction = (typeof LessonAction)[keyof typeof LessonAction];
 
-export interface Lesson {
+interface Lesson {
   readonly name: string;
   readonly instruction: string;
 

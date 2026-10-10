@@ -12,7 +12,7 @@ import { ABS_X, ABS_Y, BTN_START, BTN_SELECT, EV_ABS, EV_KEY } from "./integrity
 import { frameWriteNs, padScriptPreset, parsePadScript, ruleFrame } from "./integrity/padScript";
 import { platformLayer } from "wisp/scripts/platform/layer";
 
-export function keyboardPadPlan(script: string) {
+function keyboardPadPlan(script: string) {
   return parsePadScript(script).flatMap(step => {
     if (step.kind !== "edge" || step.slot !== 0) throw Error("keyboard timing requires input edges for pad a only");
     return step.edges.map(edge => {

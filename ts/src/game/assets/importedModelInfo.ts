@@ -16,12 +16,7 @@ export const LICH_KING_ICON = "ReplaceableTextures\\CommandButtons\\BTNLichKing.
 
 export const LICH_KING_STOCK_SCALE = { unit: "LichKing2", scale: 1.0 } as const;
 
-
-export const HOWLING_BLAST_MODEL = "Abilities\\Weapons\\FrostWyrmMissile\\FrostWyrmMissile.mdx";
-
 export const VALKYR_MODEL = "Units\\Undead\\Banshee\\Banshee.mdx";
-
-export const DEFILE_MODEL = "Abilities\\Spells\\Demon\\DarkPortal\\DarkPortalTarget.mdx";
 
 
 export const IMPORTED_MODEL_FILES: readonly { readonly entry: string; readonly file: string }[] = [

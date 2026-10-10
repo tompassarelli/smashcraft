@@ -180,7 +180,7 @@ export function keepMomentEnd(recorder: MomentRecorder, world: Readonly<Roster>,
 }
 
 
-export function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string {
+function checksumOf(scratch: ReplayState, state: Readonly<ReplayState>): string {
   copyReplayState(scratch, state);
   return stateChecksum(scratch);
 }
@@ -201,7 +201,7 @@ export function savedRuntime(runtime: Readonly<PacingAndPresentation>): SavedRun
   return { ...runtime, botStrategies: [savedBotStrategy(strategies[0]), savedBotStrategy(strategies[1]), savedBotStrategy(strategies[2]), savedBotStrategy(strategies[3])] };
 }
 
-export function savedView(state: Readonly<ReplayState>) {
+function savedView(state: Readonly<ReplayState>) {
   const fighters: (Fighter | undefined)[] = [];
   for (const slot of PARTICIPANT_SLOTS) if (isActive(state.world, slot)) fighters[slot] = fighterAt(state.world, slot);
   return { mask: state.world.mask, fighters, match: state.match, commands: state.controls.commands, runtime: savedRuntime(state.runtime) };
@@ -242,7 +242,7 @@ export function sameFrameRows(recorder: MomentRecorder, first: number, second: n
 export const runToken = (recorder: MomentRecorder, index: number, count: number): string => `${count}:${frameRowText(recorder, index)}`;
 
 
-export function rowTokens(recorder: MomentRecorder, start: number, last: number): string[] {
+function rowTokens(recorder: MomentRecorder, start: number, last: number): string[] {
   const tokens: string[] = [];
   let run = floorMod(start + 1, ROW_FRAMES);
   let count = 1;

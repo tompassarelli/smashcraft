@@ -6,7 +6,7 @@
 
 
 
-export interface ClientSample {
+interface ClientSample {
   readonly slot: number;
   readonly tables: number;
   readonly functions: number;
@@ -14,7 +14,7 @@ export interface ClientSample {
   readonly live: Readonly<Record<string, number>>;
 }
 
-export interface MemorySample {
+interface MemorySample {
 
   readonly kind: string;
   readonly frame: number;
@@ -23,7 +23,7 @@ export interface MemorySample {
   readonly clients: readonly ClientSample[];
 }
 
-export interface MemoryRun {
+interface MemoryRun {
   readonly samples: readonly MemorySample[];
   readonly problems: readonly string[];
   readonly frames: number;
@@ -102,7 +102,7 @@ function flat(points: readonly (readonly [x: number, y: number])[], limit: numbe
   return { slope, error, rise, grows: rise >= limit && slope > 3 * error };
 }
 
-export interface MemoryLimits {
+interface MemoryLimits {
 
   readonly warmupMinutes: number;
 
@@ -116,7 +116,7 @@ export interface MemoryLimits {
 
 export const MEMORY_LIMITS: MemoryLimits = { warmupMinutes: 10, heapKbPer10Minutes: 1024, heapKbPerMatch: 1, handlesPerWindow: 1 };
 
-export interface MemoryVerdict {
+interface MemoryVerdict {
   readonly lines: readonly string[];
   readonly failures: readonly string[];
 }

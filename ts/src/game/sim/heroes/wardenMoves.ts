@@ -136,7 +136,7 @@ const NORMALS: { readonly [style: number]: AuthoredMove | undefined } = {
 
 
 const BODY_RADIUS = f32(24.0 * f32(0.90));
-export const WARDEN_BODY: HurtPart = hurtPart(0.0, 4.0, 0.0, f32(f32(4.0 + 132.0) - f32(2.0 * BODY_RADIUS)), BODY_RADIUS);
+const WARDEN_BODY: HurtPart = hurtPart(0.0, 4.0, 0.0, f32(f32(4.0 + 132.0) - f32(2.0 * BODY_RADIUS)), BODY_RADIUS);
 const SHOULDER_Z = 70.0;
 const LIMB_RADIUS = 7.0;
 const LIMB_LEAD_FRAMES = 2;

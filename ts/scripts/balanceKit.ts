@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import ts from "typescript";
 import { AttackStyle, Character, GrabAction } from "../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, fighterSlug } from "../src/game/sim/heroes/registry";
@@ -88,7 +88,7 @@ export function currentRosterKits(): Record<string, KitSnapshot> {
   return Object.fromEntries(SELECTABLE_CHARACTERS.map(character => [fighterSlug(character), currentKit(character)]));
 }
 
-export type KitParameter = "proportional" | "frames" | "fixed";
+type KitParameter = "proportional" | "frames" | "fixed";
 
 export function parameterKind(path: string): KitParameter {
   if (path.includes(".hurtboxes.")) return "fixed";
@@ -103,7 +103,3 @@ export type FeelValues = Readonly<Record<string, FeelSample>>;
 
 
 
-export function currentComputerCode(): string {
-  const folder = `${import.meta.dir}/../src/game/match`;
-  return readdirSync(folder).filter(name => name.startsWith("bot") || name === "cpuSkill.ts" || name === "cpuProfiles.ts").filter(name => name.endsWith(".ts") && !name.endsWith(".tests.ts")).sort().map(name => `${name}\n${readFileSync(`${folder}/${name}`, "utf8")}`).join("\n");
-}

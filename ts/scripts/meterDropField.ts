@@ -5,7 +5,7 @@ import { type Character } from "../src/game/sim/codes";
 import { SELECTABLE_CHARACTERS, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
 import { isCpuTier, type CpuTier } from "../src/game/match/cpuProfiles";
 
-export interface DropFieldSummary {
+interface DropFieldSummary {
   readonly matches: number;
   readonly apartShare: number;
   readonly apartOnStageShare: number;
@@ -14,7 +14,7 @@ export interface DropFieldSummary {
   readonly winRateSpread: number;
 }
 
-export function summarizeDropField(records: readonly MatchRecord[]): DropFieldSummary {
+function summarizeDropField(records: readonly MatchRecord[]): DropFieldSummary {
   let apart = 0, onStage = 0, both = 0, taken = 0;
   const wins: Record<string, number> = {};
   const decisive: Record<string, number> = {};

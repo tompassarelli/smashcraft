@@ -1,7 +1,7 @@
 import { Action, bit } from "../src/game/input/actions";
 import { type InputRow, inputRow } from "../src/game/input/inputRow";
 
-export interface Held {
+interface Held {
   readonly buttons: number;
   readonly axisX: number;
   readonly axisZ: number;
@@ -13,7 +13,7 @@ export interface Command {
   readonly tap: number;
 }
 
-export const NEUTRAL: Held = { buttons: 0, axisX: 0, axisZ: 0 };
+const NEUTRAL: Held = { buttons: 0, axisX: 0, axisZ: 0 };
 
 const BUTTONS: Readonly<Record<string, number>> = {
   attack: bit(Action.attack), special: bit(Action.special), jump: bit(Action.jump), grab: bit(Action.grab),
@@ -26,7 +26,7 @@ const STICKS: Readonly<Record<string, readonly [number, number, number]>> = {
   up: [bit(Action.moveUp), 0, 127], down: [bit(Action.moveDown), 0, -127],
 };
 
-export const COMMAND_WORDS: readonly string[] = [...Object.keys(STICKS), ...Object.keys(BUTTONS), "neutral"];
+const COMMAND_WORDS: readonly string[] = [...Object.keys(STICKS), ...Object.keys(BUTTONS), "neutral"];
 
 const clamp = (value: number): number => Math.max(-127, Math.min(127, Math.trunc(value)));
 
@@ -152,7 +152,7 @@ export function ledgeDistance(x: number, left: number, right: number): number {
   return Math.min(x - left, right - x);
 }
 
-export function fighterText(view: FighterView): string {
+function fighterText(view: FighterView): string {
   const platform = view.platform === undefined ? "-" : `${num(view.platform.dx)}/${num(view.platform.dz)}`;
   const boxes = view.hitboxes.length === 0 ? "-" : view.hitboxes.map((box) => `${word(box.move)}[${num(box.minX)}..${num(box.maxX)},${num(box.minZ)}..${num(box.maxZ)}]gap${num(box.gap)}`).join("+");
   return `${view.label} x${num(view.x)} z${num(view.z)} ${num(view.percent)}% ${view.stocks}st ${view.state} ${view.facing < 0 ? "L" : "R"} ledge${num(view.ledge)} plat${platform} hb${boxes}`;
@@ -162,7 +162,7 @@ export function frameLine(frame: number, views: readonly FighterView[]): string 
   return `${frame} ${views.map(fighterText).join(" | ")}`;
 }
 
-export interface Header {
+interface Header {
   readonly seed: number;
   readonly stage: string;
   readonly you: string;
@@ -173,7 +173,7 @@ export interface Header {
   readonly stocks: number;
 }
 
-export const LEGEND = "# frame, then per fighter: x z (world units, +x right, +z up), percent, stocks, state, facing, ledge (signed distance to the nearer deck edge, negative once past it), plat (dx/dz to the nearest side platform, dx 0 under or over it), hb (an active hitbox [local x range,z range, facing-relative] with its gap to the other fighter, within reach only)";
+const LEGEND = "# frame, then per fighter: x z (world units, +x right, +z up), percent, stocks, state, facing, ledge (signed distance to the nearer deck edge, negative once past it), plat (dx/dz to the nearest side platform, dx 0 under or over it), hb (an active hitbox [local x range,z range, facing-relative] with its gap to the other fighter, within reach only)";
 
 export function headerLines(header: Header): string[] {
   return [

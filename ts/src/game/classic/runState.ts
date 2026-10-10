@@ -109,7 +109,7 @@ export interface ConfiguredRun {
   readonly boss: BossState;
 }
 
-export function createBossState(): BossState {
+function createBossState(): BossState {
   return { kind: BossKind.none, health: 0, maxHealth: 0, strike: -1, aimX: 0.0, hitMask: 0, lastSerial: -1, lastWindow: 0, flash: 0 };
 }
 

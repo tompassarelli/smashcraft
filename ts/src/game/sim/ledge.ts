@@ -19,8 +19,8 @@ import { heroBody } from "./heroes/heroBodies";
 export const LEDGE_CLIMB_FRAMES = 25;
 export const LEDGE_ROLL_FRAMES = 36;
 export const LEDGE_INTANGIBLE_FRAMES = 30;
-export const LEDGE_INTANGIBLE_DECAY = 8;
-export const LEDGE_HANG_LIMIT_FRAMES = 300;
+const LEDGE_INTANGIBLE_DECAY = 8;
+const LEDGE_HANG_LIMIT_FRAMES = 300;
 
 export function ledgeIntangibleFrames(grabs: number): number {
   return max(0, LEDGE_INTANGIBLE_FRAMES - LEDGE_INTANGIBLE_DECAY * grabs);

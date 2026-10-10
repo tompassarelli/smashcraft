@@ -22,7 +22,7 @@ export type FighterAgency = "none" | "di" | "act";
 
 
 
-export const MAX_REUSE_AGE = 3;
+const MAX_REUSE_AGE = 3;
 
 
 const CLEARANCE_RECHECK = 3;

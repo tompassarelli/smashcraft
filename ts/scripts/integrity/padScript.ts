@@ -14,7 +14,7 @@ import type { Slot } from "./reconcile";
 /** Recorded pad scripts and test drivers speak wc3-controller's hidden `script` preset; WC3_PAD_PRESET picks another for a preset check. */
 export const padScriptPreset = (): readonly string[] => ["--preset", process.env.WC3_PAD_PRESET ?? "script"];
 
-export const PAD_SCRIPT_BUTTONS: Readonly<Record<string, number>> = { A: BTN_A, B: BTN_B, X: BTN_X, Y: BTN_Y, LB: BTN_TL, RB: BTN_TR, TL: BTN_TL, TR: BTN_TR, START: BTN_START, VIEW: BTN_SELECT };
+const PAD_SCRIPT_BUTTONS: Readonly<Record<string, number>> = { A: BTN_A, B: BTN_B, X: BTN_X, Y: BTN_Y, LB: BTN_TL, RB: BTN_TR, TL: BTN_TL, TR: BTN_TR, START: BTN_START, VIEW: BTN_SELECT };
 
 export type PadStep =
   | { readonly kind: "edge"; readonly frame: number; readonly slot: Slot; readonly edges: readonly SourceEdge[]; readonly line: number; readonly text: string }
@@ -73,15 +73,7 @@ export function parsePadScript(text: string): readonly PadStep[] {
 }
 
 
-export function publishedFrame(log: string): number | undefined {
-  const index = log.lastIndexOf("published_frame=");
-  if (index < 0) return undefined;
-  const frame = Number(/^published_frame=(\d+)/.exec(log.slice(index))?.[1]);
-  return Number.isInteger(frame) ? frame : undefined;
-}
-
-
-export function helperEvents(log: string): ReadonlyMap<number, number> {
+function helperEvents(log: string): ReadonlyMap<number, number> {
   const landed = new Map<number, number>();
   for (const match of log.matchAll(/^event mono_ns=(\d+) frame=(\d+)/gm)) landed.set(Number(match[1]), Number(match[2]));
   return landed;
@@ -95,7 +87,7 @@ export interface SentEdge {
   readonly injectedNs: number;
 }
 
-export interface LandedEdge extends SentEdge {
+interface LandedEdge extends SentEdge {
 
   readonly landed: number | undefined;
 }

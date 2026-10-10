@@ -1,4 +1,4 @@
-export type Verdict = "success" | "failure" | "pending" | "missing";
+type Verdict = "success" | "failure" | "pending" | "missing";
 
 export interface RunSummary {
   readonly status: string;
@@ -17,7 +17,7 @@ export const PLAYTEST_COST_SUFFIXES = [".lua-cost.json", ".lua-cost.perf"] as co
 
 export const PLAYABLE_FILE = /^Smashcraft (\d+\.\d+\.\d+)(?: ([0-9a-f]{7,40}))?\.w3x$/;
 
-export const KEPT_PRIOR_VERSIONS = 2;
+const KEPT_PRIOR_VERSIONS = 2;
 
 export function verdictOf(runs: readonly RunSummary[]): Verdict {
   const latest = runs.reduce<RunSummary | undefined>((best, run) => best === undefined || run.createdAt > best.createdAt ? run : best, undefined);
@@ -26,13 +26,13 @@ export function verdictOf(runs: readonly RunSummary[]): Verdict {
   return latest.conclusion === "success" ? "success" : "failure";
 }
 
-export const isGreen = ({ ci, farm }: Candidate): boolean => ci === "success" && farm === "success";
+const isGreen = ({ ci, farm }: Candidate): boolean => ci === "success" && farm === "success";
 
 export function installName(version: string, sha: string): string {
   return `Smashcraft ${version} ${sha.slice(0, SHORT_COMMIT)}`;
 }
 
-export interface Installed {
+interface Installed {
   readonly version: readonly [number, number, number];
   readonly commit: string | undefined;
 }
