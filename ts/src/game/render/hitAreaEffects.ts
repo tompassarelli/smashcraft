@@ -12,6 +12,7 @@ export const HIT_AREA_EFFECT_CAPACITY = 12;
 
 export class HitAreaEffects {
   private readonly models: effect[] = [];
+  private frame = 0;
   private readonly styles;
   private readonly parked: ParkedFlags = [];
   private readonly region = emptyHitRegion();
@@ -25,6 +26,7 @@ export class HitAreaEffects {
   }
 
   clear(): void {
+    this.frame = 0;
     for (let index = 0; index < this.models.length; index++) {
       const model = this.models[index];
       if (model !== undefined) parkCue(model, this.origin, this.parked, index);
@@ -42,15 +44,18 @@ export class HitAreaEffects {
           const pose = fanKnifePose(fighter, index, this.knife);
           const model = this.models[shown];
           if (!pose.visible || model === undefined) continue;
+          const starts = this.parked[shown] === true;
           this.parked[shown++] = false;
           BlzSetSpecialEffectPosition(model, this.origin.x + pose.x, this.origin.y - 14.0, this.origin.z + pose.z);
           BlzSetSpecialEffectYaw(model, pose.yaw);
           BlzSetSpecialEffectPitch(model, pose.pitch);
           BlzSetSpecialEffectScale(model, pose.scale);
           BlzSetSpecialEffectAlpha(model, pose.alpha);
-          BlzSetSpecialEffectAnimation(model, "stand");
-          BlzSetSpecialEffectTime(model, f32(0.3));
-          BlzSetSpecialEffectTimeScale(model, 0.0);
+          BlzSetSpecialEffectTimeScale(model, 1.0);
+          if (pose.birth !== undefined && (starts || (pose.birth.eachFrame && fighter.special.frame !== this.frame))) {
+            BlzSpecialEffectClearSubAnimations(model);
+            BlzPlaySpecialEffect(model, ANIM_TYPE_BIRTH);
+          }
           continue;
         }
         const region = normal ? authoredHitRegion(this.region, fighter.character, style, fighter.attack.frame, fighter.attack.smashChargeFrames, index, fighter.tuning.moves) : specialAreaRegion(fighter, index);
@@ -75,6 +80,7 @@ export class HitAreaEffects {
       const model = this.models[index];
       if (model !== undefined) parkCue(model, this.origin, this.parked, index);
     }
+    this.frame = fighter?.special.frame ?? 0;
   }
 
   destroy(): void {

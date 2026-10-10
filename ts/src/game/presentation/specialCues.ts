@@ -59,12 +59,19 @@ export const CUE_ANCHORS: { readonly [anchor in CueAnchor]: { readonly x: number
   breath: { x: 124.0, z: 62.0 },
 };
 
+export interface CueBirth {
+  readonly eachFrame: boolean;
+  readonly strike?: number | undefined;
+  readonly voices?: number | undefined;
+}
+
 export interface Cue {
   readonly model: string;
   readonly anchor: CueAnchor;
   readonly scale: number;
   readonly scaleEnd?: number | undefined;
   readonly scaleFrames?: number | undefined;
+  readonly birth?: CueBirth | undefined;
 
   readonly drawn?: boolean | undefined;
 
@@ -122,6 +129,8 @@ const cue = (model: string, anchor: CueAnchor, scale: number): Cue => {
   return { model, anchor, scale, sequence, seconds, pitch };
 };
 const drawn = (model: string, anchor: CueAnchor): Cue => ({ model, anchor, scale: 1.0, drawn: true });
+
+export const FAN_KNIFE_CUE: Cue = { model: "Abilities\\Spells\\NightElf\\FanOfKnives\\FanOfKnivesMissile.mdx", anchor: "body", scale: f32(0.6), birth: { eachFrame: true } };
 
 
 const BLOODLUST = cue("Abilities\\Spells\\Orc\\Bloodlust\\BloodlustSpecial.mdx", "hand", f32(0.8));
@@ -185,7 +194,7 @@ export const HERO_CUES: { readonly [character: number]: { readonly [slot in Spec
     down: { spell: "Life Drain", startup: SHADOW, active: cue("Abilities\\Spells\\Other\\Drain\\DrainCaster.mdx", "hand", f32(0.6)) },
   },
   [Character.chen]: {
-    neutral: { spell: "Breath of Fire", startup: BEAST, active: timed(cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "breath", f32(0.4)), "birth", 0.0) },
+    neutral: { spell: "Breath of Fire", startup: BEAST, active: { ...timed(cue("Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireMissile.mdx", "breath", f32(0.4)), "birth", 0.0), birth: { eachFrame: true, strike: 0, voices: 11 } } },
     side: { spell: "Drunken Haze", startup: BEAST, active: cue("Abilities\\Spells\\Other\\StrongDrink\\BrewmasterTarget.mdx", "hand", f32(0.7)) },
     up: { spell: "Storm Rise", startup: STORM, active: cue("Abilities\\Spells\\Other\\Tornado\\TornadoElementalSmall.mdx", "body", f32(0.6)) },
     down: { spell: "Storm, Earth and Fire", startup: BEAST, active: cue("Abilities\\Spells\\Orc\\SpiritLink\\SpiritLinkTarget.mdx", "feet", f32(0.5)) },

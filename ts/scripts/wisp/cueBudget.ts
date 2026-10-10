@@ -1,3 +1,4 @@
+/// <reference types="lua-types/5.3" />
 /// <reference path="../../node_modules/wisp/src/natives/warcraft.d.ts" />
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -11,12 +12,18 @@ import { captureScene, renderScenes, type DrawnPose, type RenderScene } from "wi
 import type { Graphics } from "wisp/scripts/wisp/graphicsProfiles";
 import { SMASHCRAFT_HEADLESS } from "./headless";
 import { headlessRender } from "./headlessRender";
+import { DISJOINT_MODELS, disjointNormals } from "../../src/game/presentation/disjointCues";
 import { ATTACK_CUES } from "../../src/game/presentation/attackCues";
 import { ARENA_CAMERA, FLOOR_HEIGHT, PLAYABLE_BOUNDS, cameraFieldOfView, extremeCamera } from "../../src/game/presentation/arenaCamera";
 import { ACTIVE_CUE_FRAMES, type Cue, ORIGINAL_ACTIONS, ORIGINAL_BRANCH_CUES, specialCueState } from "../../src/game/presentation/specialCues";
 import { FOLLOW_UP_FORM, SpecialForm, specialForm, specialKit } from "../../src/game/sim/heroSpecials";
 import { DEFINITIVE_CUE_EMITTERS } from "../../src/game/presentation/cueEmitterInfo";
 import { SpecialCueEffects } from "../../src/game/render/specialCueEffects";
+import { SpecialEffects } from "../../src/game/render/specialEffects";
+import { FrostEffects } from "../../src/game/render/frostEffects";
+import { PlacedObjectEffects } from "../../src/game/render/placedObjectEffects";
+import { advanceSpecialEffect, createSpecialEffectState } from "../../src/game/presentation/specialEffectState";
+import { advanceSummons, createSummonState } from "../../src/game/presentation/summonState";
 import { ProjectilePresentation } from "../../src/game/render/projectilePresentation";
 import { beginFighterAttack, resolveAttacks } from "../../src/game/sim/attacks";
 import { AttackPhase, AttackStyle, Character, ContactKind, SpecialAction } from "../../src/game/sim/codes";
@@ -47,7 +54,7 @@ export const CUE_COVERAGE_LIMIT = 0.04;
 const DRAWN_DELTA = 24;
 const SHOWN_SHARE = 0.0005;
 const WIDTH = 640, HEIGHT = 360;
-export const CUE_FRAMES = join(homedir(), ".local/state/smashcraft/cue-budget");
+export const CUE_FRAMES = process.env.CUE_FRAMES ?? join(homedir(), ".local/state/smashcraft/cue-budget");
 const AFTER_FRAMES = 40;
 const RENDER_BATCH = 600;
 const LIMIT = 240;
@@ -64,6 +71,7 @@ export interface CueMove {
   readonly special?: (typeof SPECIALS)[number];
   readonly form?: number;
   readonly air?: boolean;
+  readonly ex?: boolean;
   readonly ultimate?: true;
   readonly drop?: boolean;
   readonly spark?: "strong" | "weak";
@@ -90,6 +98,7 @@ export interface CueModelPixels {
   readonly pixels: number;
   readonly frames: number;
   readonly popcorn: boolean;
+  readonly sampledFrames: readonly number[];
 }
 
 interface ParkPose { readonly handle: number; readonly model: string; readonly shown: boolean; readonly timeScale: number }
@@ -126,11 +135,14 @@ async function particleTails(poses: readonly (readonly ParkPose[])[], graphics: 
 
 export function cueMoves(): CueMove[] {
   const moves: CueMove[] = [];
-  for (const character of Object.values(Character)) for (const [name, style] of Object.entries(AttackStyle)) {
-    if (ATTACK_CUES[character]?.[style] !== undefined) moves.push({ character, name: `${fighterSlug(character)}:${name}`, style });
+  for (const character of Object.values(Character)) {
+    const normals = disjointNormals(createFighter(character, 0.0, 1));
+    for (const [name, style] of Object.entries(AttackStyle)) {
+      if (ATTACK_CUES[character]?.[style] !== undefined || normals.includes(style)) moves.push({ character, name: `${fighterSlug(character)}:${name}`, style });
+    }
   }
   for (const character of Object.values(Character)) for (const [slot, special] of SPECIALS.entries()) {
-    for (const { form, air, label } of specialForms(character, slot)) moves.push({ character, name: `${fighterSlug(character)}:${special.slot}-special${label}`, special, form, air });
+    for (const { form, air, label } of specialForms(character, slot)) for (const ex of [false, true]) moves.push({ character, name: `${fighterSlug(character)}:${special.slot}-special${label}${ex ? "-ex" : ""}`, special, form, air, ex });
   }
   for (const character of Object.values(Character)) moves.push({ character, name: `${fighterSlug(character)}:ultimate`, ultimate: true });
   moves.push({ character: Character.rifleman, name: "meter-drop:telegraph-and-orb", drop: true });
@@ -324,14 +336,20 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
     const client = clients.client(0);
     clients.start();
     const origin = { x: 0.0, y: PLAYABLE_BOUNDS.centreY, z: FLOOR_HEIGHT };
-    let cues: SpecialCueEffects | undefined, shots: ProjectilePresentation | undefined;
+    let cues: SpecialCueEffects | undefined, shots: ProjectilePresentation | undefined, specials: SpecialEffects | undefined, frost: FrostEffects | undefined, placed: PlacedObjectEffects | undefined;
     client.run(() => {
       globalThis.__smashcraftCueDefinitive = undefined;
-      cues = new SpecialCueEffects(move.character, origin);
+      cues = new SpecialCueEffects(move.character, origin, true);
+      specials = new SpecialEffects(origin);
+      frost = new FrostEffects(origin);
+      placed = new PlacedObjectEffects(origin);
+      placed.prepareFighter(0, move.character);
       shots = new ProjectilePresentation(move.character, origin);
     });
-    if (cues === undefined || shots === undefined) throw new Error("missing cue renderers");
+    if (cues === undefined || shots === undefined || specials === undefined || frost === undefined || placed === undefined) throw new Error("missing cue renderers");
     const f = createFighter(move.character, 0.0, 1);
+    const specialState = createSpecialEffectState();
+    const summonState = createSummonState();
     f.mana.points = 100;
     const world = createRoster(1, [f]);
     const idle = neutralControls();
@@ -342,10 +360,11 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
       beginFighterAttack(world, 0, move.style, false);
     }
     const press = move.ultimate === true ? { ...neutralControls(), specialPressed: true, ultimatePressed: true, attackHeld: true }
-      : move.special === undefined ? idle : { ...neutralControls(), specialPressed: true, specialX: move.special.x, specialZ: move.special.z };
+      : move.special === undefined ? idle : { ...neutralControls(), specialPressed: true, specialX: move.special.x, specialZ: move.special.z, meter: move.ex === true };
     const scenes: RenderScene[] = [];
     const poses: (readonly ParkPose[])[] = [];
     const expected = new Set<string>();
+    if (move.style !== undefined && disjointNormals(f).includes(move.style)) expected.add(DISJOINT_MODELS[move.character] ?? "");
     const look = (cue: Cue) => (graphics === "definitive" ? cue.definitive ?? cue : cue);
     let lastDanger = -1, ended = -1, lastLive = 0;
     let empty: RenderScene | undefined;
@@ -360,14 +379,22 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
       const running = move.style !== undefined ? f.attack.style === move.style : f.special.action !== SpecialAction.none;
       if (tick === 0 && !running) return { scenes: [], poses: [], lastDanger: -1, empty: captureScene(client) };
       if (dangerous(f, move.style)) lastDanger = tick;
-      const live = running || f.projectiles.some((_, index) => projectileActive(f, index));
+      const live = running || f.projectiles.some((_, index) => projectileActive(f, index)) || f.bear.life > 0 || f.freezeTrap.life > 0 || f.placed.life > 0 || f.pack.some(object => object.life > 0);
       if (!live && ended < 0) ended = tick;
       if (live) lastLive = tick;
-      const renderers = { cues, shots };
+      advanceSpecialEffect(specialState, f, 0);
+      advanceSummons(summonState, f, 0);
+      const renderers = { cues, shots, specials, frost, placed };
       client.run(() => {
         renderers.cues.confirm(f, true, tick / 60);
         renderers.cues.present(f, true, false);
         renderers.shots.present(f, true, false);
+        renderers.specials.presentConfirmedAnimated(tick, f, 0);
+        renderers.specials.presentStatic(specialState, f, 0);
+        renderers.specials.presentSummons(summonState, f, 0);
+        renderers.frost.present(f, 0);
+        renderers.placed.presentConfirmed(tick, f, 0);
+        renderers.placed.present(f, 0);
         aimNear(origin.x + f.motion.x, f.motion.z);
       });
       clients.frames(1);
@@ -378,7 +405,7 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
       if (ended >= 0 && tick >= ended + AFTER_FRAMES) break;
     }
     if (empty === undefined) throw new Error("no frames");
-    return { scenes, poses, lastDanger: lastDanger >= 0 ? lastDanger : lastLive, empty, ...(move.special === undefined ? {} : { expected: [...expected] }) };
+    return { scenes, poses, lastDanger: lastDanger >= 0 ? lastDanger : lastLive, empty, expected: [...expected] };
   } finally { runtime.restore(); }
 }
 
@@ -387,13 +414,12 @@ const measureModels = (sampled: readonly { readonly move: CueMove; readonly inde
   const project = { ...headlessRender(), width: WIDTH, height: HEIGHT };
   const renders: RenderScene[] = [];
   const baselines = new Set<number>();
-  const plans: { readonly index: number; readonly model: string; readonly frames: number; readonly pairs: readonly (readonly [number, number])[] }[] = [];
+  const plans: { readonly index: number; readonly model: string; readonly frames: number; readonly pairs: readonly (readonly [number, number])[]; readonly sampledFrames: readonly number[] }[] = [];
   let next = 10_000_000;
   for (const { index, scenes, expected } of sampled) {
-    if (expected === undefined) continue;
     const names = new Map<string, string>();
-    for (const model of expected) names.set(modelKey(model), model);
-    for (const scene of scenes) for (const model of drawnModels(scene.effects)) if (!names.has(modelKey(model))) names.set(modelKey(model), model);
+    for (const model of expected ?? []) names.set(modelKey(model), model);
+    for (const scene of scenes) for (const { model } of scene.effects.filter(pose => pose.alpha > 0 && pose.scale > 0 && !pose.flat)) if (!names.has(modelKey(model))) names.set(modelKey(model), model);
     for (const [key, model] of names) {
       const shown = scenes.filter(({ effects }) => effects.some((pose) => modelKey(pose.model) === key && pose.alpha > 0 && pose.scale > 0 && !pose.flat));
       const picks = shown.length <= MODEL_SAMPLES ? shown : Array.from({ length: MODEL_SAMPLES }, (_, sample) => shown[Math.floor(sample * shown.length / MODEL_SAMPLES)]).filter((scene) => scene !== undefined);
@@ -404,7 +430,7 @@ const measureModels = (sampled: readonly { readonly move: CueMove; readonly inde
         renders.push({ ...scene, frame: next, effects: scene.effects.filter((pose) => modelKey(pose.model) === key) });
         pairs.push([next++, base]);
       }
-      plans.push({ index, model, frames: shown.length, pairs });
+      plans.push({ index, model, frames: shown.length, pairs, sampledFrames: picks.map(scene => scene.frame) });
     }
   }
   const undrawn = new Set<string>();
@@ -414,14 +440,14 @@ const measureModels = (sampled: readonly { readonly move: CueMove; readonly inde
     })));
   }
   const rows = new Map<number, CueModelPixels[]>();
-  for (const { index, model, frames, pairs } of plans) {
+  for (const { index, model, frames, pairs, sampledFrames } of plans) {
     let pixels = 0;
     for (const [shot, base] of pairs) {
       const drawn = drawnPixels(yield* rgba(join(directory, `p0-frame-${base}.png`)), yield* rgba(join(directory, `p0-frame-${shot}.png`)));
       pixels = Math.max(pixels, Math.round(drawn.share * WIDTH * HEIGHT));
     }
     const popcorn = [...undrawn].some((line) => line.toLowerCase().includes(modelKey(model)));
-    rows.set(index, [...rows.get(index) ?? [], { model: model.split("\\").at(-1) ?? model, pixels, frames, popcorn }]);
+    rows.set(index, [...rows.get(index) ?? [], { model, pixels, frames, popcorn, sampledFrames }]);
   }
   return rows;
 });
@@ -488,7 +514,8 @@ export const measureCueMoves = (moves: readonly CueMove[], graphics: Graphics, d
     const popcorn = [...undrawn].filter((line) => [...models].some((model) => line.startsWith(model)));
     results.push({ move: move.name, graphics, lastDanger, firstShown, lastShown, linger, coverage, widest, over, popcorn: popcorn.length > 0,
       ...(move.spark === undefined ? {} : { colour: colours[shares.indexOf(coverage)] ?? [0, 0, 0], feedback }),
-      ...(move.special === undefined ? {} : { models: modelRows.get(index) ?? [] }) });
+      models: modelRows.get(index) ?? [] });
   }
+  yield* Effect.promise(() => Bun.write(join(directory, "cue-measurements.json"), JSON.stringify({ graphics, selectors: moves.map(move => move.name), uncovered: moves.filter(move => !sampled.some(row => row.move === move)).map(move => move.name), rows: results }, null, 2)));
   return results;
 });
