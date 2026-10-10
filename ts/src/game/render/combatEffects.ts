@@ -26,7 +26,7 @@ import {
 import { f32 } from "wisp/src/sim/f32";
 import { at } from "wisp/src/runtime/lookup";
 import { floorDiv, floorMod } from "wisp/src/sim/intMath";
-import { impactAnimation, impactColour, impactModel, impactModelScale, impactSoundNames, impactStartSeconds, presentImpactSounds } from "../presentation/hitPresentation";
+import { impactAnimation, impactColour, impactModel, impactModelScale, impactSoundNames, impactStartSeconds, presentImpactSounds, type ImpactSoundSink } from "../presentation/hitPresentation";
 import { VOICE_CAP, admitVoice, createVoiceBudget, resetVoiceBudget } from "../presentation/voiceBudget";
 import { SoundBank, SoundKind } from "./soundBank";
 import { tierSoundPaths } from "../presentation/moveTiers";
@@ -213,15 +213,23 @@ export class CombatEffects {
     const previous = this.soundFrames[slot];
     if (previous !== undefined && frame <= previous) return;
     this.soundFrames[slot] = frame;
-    presentImpactSounds(events, (sound, x, z, volume, pitch, file, cls) => {
-      const admitted = admitVoice(this.voices, frame, cls, sound);
-      if (!admitted.play) return;
-      const evicted = this.voiceHandles[admitted.slot];
-      if (admitted.replaced && evicted !== undefined) StopSound(evicted, false, false);
-      this.voiceHandles[admitted.slot] = this.sounds.playAt(file ? SoundKind.combatFile : SoundKind.combatLabel, sound, this.x + x, this.y, this.z + z, floorDiv(volume * admitted.percent, 100), pitch);
-      soundPlayed?.(sound, volume, pitch);
-    });
+    this.soundFrame = frame;
+    this.soundPlayed = soundPlayed;
+    presentImpactSounds(events, this.playSound);
+    this.soundPlayed = undefined;
   }
+
+  private soundFrame = 0;
+  private soundPlayed: ((sound: string, volume: number, pitch: number) => void) | undefined;
+  // One sink for every call, so presenting sounds allocates no closure a frame (#400).
+  private readonly playSound: ImpactSoundSink = (sound, x, z, volume, pitch, file, cls) => {
+    const admitted = admitVoice(this.voices, this.soundFrame, cls, sound);
+    if (!admitted.play) return;
+    const evicted = this.voiceHandles[admitted.slot];
+    if (admitted.replaced && evicted !== undefined) StopSound(evicted, false, false);
+    this.voiceHandles[admitted.slot] = this.sounds.playAt(file ? SoundKind.combatFile : SoundKind.combatLabel, sound, this.x + x, this.y, this.z + z, floorDiv(volume * admitted.percent, 100), pitch);
+    this.soundPlayed?.(sound, volume, pitch);
+  };
 
 
 

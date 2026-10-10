@@ -105,45 +105,44 @@ export function impactSoundNames(characters: readonly Character[]): ImpactSoundN
   return { files: [...files], labels: [...labels] };
 }
 
-type ImpactSoundSink = (sound: string, x: number, z: number, volume: number, pitch: number, file: boolean, cls: VoiceClass) => void;
+export type ImpactSoundSink = (sound: string, x: number, z: number, volume: number, pitch: number, file: boolean, cls: VoiceClass) => void;
 
 
 
 
+
+
+const fileSink = (sink: ImpactSoundSink, x: number, z: number, cls: VoiceClass) => (path: string, volume: number, pitch: number) => sink(path, x, z, volume, pitch, true, cls);
 
 
 export function presentImpactSounds(events: Readonly<ImpactEvents>, sink: ImpactSoundSink): void {
-  const labelSink = (cls: VoiceClass) => (label: string, volume = 100, pitch = 1.0) => sink(label, events.x, events.z, volume, pitch, false, cls);
-  const files = (cls: VoiceClass) => (path: string, volume: number, pitch: number) => sink(path, events.x, events.z, volume, pitch, true, cls);
-  const movement = labelSink(VoiceClass.movement);
-  const special = labelSink(VoiceClass.special);
-  const hit = labelSink(VoiceClass.hit);
-  const ko = labelSink(VoiceClass.ko);
-  if (events.perform >= 0) playPerform(events.character, events.perform, events.performSerial, files(VoiceClass.special));
-  else if (events.swing >= 0) sink(SWING_SOUND, events.x, events.z, at(TIER_SWING_VOLUME, events.swing), at(TIER_SWING_PITCH, events.swing), true, VoiceClass.special);
-  if (events.throwRelease) hit("BlinkTarget");
-  else if (events.pummel) hit("Defend", 75, 1.5);
-  else if (events.hit && events.hitMove >= 0) playHit(events.hitCharacter, events.hitMove, events.strong, events.element, events.variant, files(VoiceClass.hit));
+  // Labels go straight to the sink: closures per call allocated about 1 KB a fighter every frame (#400).
+  const { x, z } = events;
+  if (events.perform >= 0) playPerform(events.character, events.perform, events.performSerial, fileSink(sink, x, z, VoiceClass.special));
+  else if (events.swing >= 0) sink(SWING_SOUND, x, z, at(TIER_SWING_VOLUME, events.swing), at(TIER_SWING_PITCH, events.swing), true, VoiceClass.special);
+  if (events.throwRelease) sink("BlinkTarget", x, z, 100, 1.0, false, VoiceClass.hit);
+  else if (events.pummel) sink("Defend", x, z, 75, 1.5, false, VoiceClass.hit);
+  else if (events.hit && events.hitMove >= 0) playHit(events.hitCharacter, events.hitMove, events.strong, events.element, events.variant, fileSink(sink, x, z, VoiceClass.hit));
   else if (events.hit) {
 
     const electric = events.element !== HitElement.fire && events.electric;
     const tier = events.strong ? SoundTier.large : events.tier;
     const path = electric ? undefined : tierHitPath(events.element, tier, events.variant);
     const volume = at(TIER_HIT_VOLUME, tier);
-    if (path !== undefined) sink(path, events.x, events.z, volume, 1.0, true, VoiceClass.hit);
-    else hit(electric ? "LightningBolt" : elementLook(events.element).sound ?? "LightningBolt", volume);
+    if (path !== undefined) sink(path, x, z, volume, 1.0, true, VoiceClass.hit);
+    else sink(electric ? "LightningBolt" : elementLook(events.element).sound ?? "LightningBolt", x, z, volume, 1.0, false, VoiceClass.hit);
   }
-  if (events.shieldHit && events.shieldMove >= 0) playShieldHit(events.shieldCharacter, events.shieldMove, events.shieldVariant, files(VoiceClass.hit));
-  if (events.shieldHit || events.shieldReflect) hit(events.shieldElectric ? "LightningBolt" : "Defend", 90, events.shieldReflect ? 1.5 : 1.0);
-  if (events.shieldBreak) hit("ThunderClap");
-  if (events.grab) special("EntanglingRoots", 70);
-  if (events.landing === ImpactLanding.tech || events.surface === SurfaceContact.techWall || events.surface === SurfaceContact.techCeiling) movement("DispelMagic", 120);
-  else if (events.landing === ImpactLanding.missedTech || events.surfaceMissedTech) movement("Warstomp", 90);
-  else if (events.ordinaryLanding) movement("DeepFootstep", 65, 0.75);
-  if (events.ledgeCatch || events.ledgeRecovery) movement("BlinkTarget", 55, 1.5);
-  if (events.jump !== JumpCue.none) movement("BlinkTarget", events.jump === JumpCue.ground ? 45 : 60, 1.5);
-  if (events.footstep !== "none") movement(events.footstep === "walk" ? "DeepFootstep" : "DeepFootstep2", events.footstep === "walk" ? 35 : events.footstep === "dash" ? 115 : 90, events.footstep === "walk" ? 1.0 : 1.25);
-  if (events.koDirectionX !== 0 || events.koDirectionZ !== 0) ko("ThunderClap");
+  if (events.shieldHit && events.shieldMove >= 0) playShieldHit(events.shieldCharacter, events.shieldMove, events.shieldVariant, fileSink(sink, x, z, VoiceClass.hit));
+  if (events.shieldHit || events.shieldReflect) sink(events.shieldElectric ? "LightningBolt" : "Defend", x, z, 90, events.shieldReflect ? 1.5 : 1.0, false, VoiceClass.hit);
+  if (events.shieldBreak) sink("ThunderClap", x, z, 100, 1.0, false, VoiceClass.hit);
+  if (events.grab) sink("EntanglingRoots", x, z, 70, 1.0, false, VoiceClass.special);
+  if (events.landing === ImpactLanding.tech || events.surface === SurfaceContact.techWall || events.surface === SurfaceContact.techCeiling) sink("DispelMagic", x, z, 120, 1.0, false, VoiceClass.movement);
+  else if (events.landing === ImpactLanding.missedTech || events.surfaceMissedTech) sink("Warstomp", x, z, 90, 1.0, false, VoiceClass.movement);
+  else if (events.ordinaryLanding) sink("DeepFootstep", x, z, 65, 0.75, false, VoiceClass.movement);
+  if (events.ledgeCatch || events.ledgeRecovery) sink("BlinkTarget", x, z, 55, 1.5, false, VoiceClass.movement);
+  if (events.jump !== JumpCue.none) sink("BlinkTarget", x, z, events.jump === JumpCue.ground ? 45 : 60, 1.5, false, VoiceClass.movement);
+  if (events.footstep !== "none") sink(events.footstep === "walk" ? "DeepFootstep" : "DeepFootstep2", x, z, events.footstep === "walk" ? 35 : events.footstep === "dash" ? 115 : 90, events.footstep === "walk" ? 1.0 : 1.25, false, VoiceClass.movement);
+  if (events.koDirectionX !== 0 || events.koDirectionZ !== 0) sink("ThunderClap", x, z, 100, 1.0, false, VoiceClass.ko);
 }
 
 
