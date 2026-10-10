@@ -6,7 +6,12 @@
   both pads itself and holds each capture frame with the fighters' animations
   and effects frozen; host it with `bun wisp fresh MAP.w3x --no-quick
   --clients-file FILE` while `bun scripts/nativeCapture.ts run --clients-file FILE
-  --client NAME --manifest MAP.captures.json --out DIR` captures the screen. A
+  --client NAME --install DIR --manifest MAP.captures.json --out DIR` captures
+  the screen. `run` first reads DIR/.build.info and the live build from
+  `w3/versions`, records both in captures.json and refuses when they differ;
+  `bun scripts/nativeCapture.ts build-check --install DIR [--update-bytes N]`
+  runs that check alone and, before Battle.net may update to a new live build,
+  compares the install's free space with the update's size. A
   capture counts only when the drawn stamp in its own pixels (a row of cells
   along the top-left of the 4:3 UI area) names that fixture and frame, so a
   screen that hasn't redrawn can't pass for it. `--control` first plays the

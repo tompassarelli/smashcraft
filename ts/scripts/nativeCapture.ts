@@ -19,7 +19,7 @@
 
 
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, statfsSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { BunRuntime, BunServices } from "@effect/platform-bun";
 import { Effect, Layer, Schema } from "effect";
@@ -200,6 +200,52 @@ function cropFrame(frame: Frame, [x0, y0, width, height]: readonly [number, numb
   return { width, height, rgb };
 }
 
+const VERSIONS_URL = "http://us.patch.battle.net:1119/w3/versions";
+
+function pipeTable(text: string): Record<string, string>[] {
+  const lines = text.split("\n").map(line => line.trim()).filter(line => line !== "" && !line.startsWith("#"));
+  const header = (lines[0] ?? "").split("|").map(column => column.split("!")[0] ?? "");
+  return lines.slice(1).map(line => Object.fromEntries(line.split("|").map((value, index) => [header[index] ?? "", value])));
+}
+
+export function installedBuild(buildInfo: string): { readonly build: string; readonly branch: string } {
+  const rows = pipeTable(buildInfo);
+  const row = rows.find(entry => entry.Active === "1") ?? rows[0];
+  if (row?.Version === undefined || row.Version === "") fail(".build.info names no Version");
+  return { build: row!.Version!, branch: row!.Branch || "us" };
+}
+
+export function liveBuild(versions: string, region: string): string {
+  const rows = pipeTable(versions);
+  const row = rows.find(entry => entry.Region === region) ?? fail(`w3/versions has no ${region} row`);
+  return row.VersionsName || fail(`w3/versions ${region} row names no build`);
+}
+
+export function bindBuild(installed: string, live: string, freeBytes: number, updateBytes: number | undefined) {
+  const binding = { installed, live, equal: installed === live, freeBytes, ...(updateBytes === undefined ? {} : { updateBytes, updateFits: updateBytes <= freeBytes }) };
+  if (!binding.equal) fail(`installed ${installed} isn't the live ${live}: captures bind to the live build. Before Battle.net updates, compare free space (${freeBytes} bytes) with the update's size${updateBytes === undefined ? " (pass --update-bytes N)" : `: ${updateBytes} bytes ${binding.updateFits ? "fit" : "don't fit"}`}`);
+  return binding;
+}
+
+const readBinding = (args: readonly string[]) => Effect.gen(function*() {
+  const install = option(args, "--install");
+  if (install === undefined) return yield* new CaptureFailure({ problem: "--install DIR names the installation whose .build.info the captures bind to" });
+  const versionsFile = option(args, "--versions");
+  const updateText = option(args, "--update-bytes");
+  const updateBytes = updateText === undefined ? undefined : Number(updateText);
+  if (updateBytes !== undefined && !Number.isSafeInteger(updateBytes)) return yield* new CaptureFailure({ problem: "--update-bytes takes a whole number" });
+  const { build, branch } = yield* attempt("read .build.info", () => installedBuild(readFileSync(join(install, ".build.info"), "utf8")));
+  const versions = versionsFile === undefined
+    ? yield* Effect.tryPromise({ try: async () => { const response = await fetch(VERSIONS_URL, { signal: AbortSignal.timeout(15000) }); if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.text(); }, catch: cause => new CaptureFailure({ problem: `read ${VERSIONS_URL}: ${String(cause)}` }) })
+    : yield* attempt("read --versions", () => readFileSync(versionsFile, "utf8"));
+  const live = yield* attempt("read the live build", () => liveBuild(versions, branch));
+  const freeBytes = yield* attempt("read free space", () => { const disk = statfsSync(install); return disk.bavail * disk.bsize; });
+  const binding = yield* attempt("bind to the live build", () => bindBuild(build, live, freeBytes, updateBytes));
+  return { install, readAt: new Date().toISOString(), ...binding };
+});
+
+const buildCheck = (args: readonly string[]) => readBinding(args).pipe(Effect.tap(binding => Effect.sync(() => console.log(JSON.stringify(binding)))));
+
 const runCaptures = (args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const clientsFile = option(args, "--clients-file");
   const clientName = option(args, "--client");
@@ -210,11 +256,13 @@ const runCaptures = (args: readonly string[]) => Effect.scoped(Effect.gen(functi
   const [cx, cy, cw, ch, ...extra] = cropText?.split(",").map(Number) ?? [];
   const crop = cx !== undefined && cy !== undefined && cw !== undefined && ch !== undefined ? [cx, cy, cw, ch] as const : undefined;
   if (cropText !== undefined && (crop === undefined || extra.length > 0 || !crop.every(Number.isInteger))) return yield* new CaptureFailure({ problem: "--crop takes X,Y,W,H in whole pixels" });
-  if (clientsFile === undefined || clientName === undefined || manifestPath === undefined || out === undefined) return yield* new CaptureFailure({ problem: "usage: run --clients-file FILE --client NAME --manifest MAP.captures.json --out DIR [--minutes M] [--crop X,Y,W,H] [--audio-sink SINK | --no-audio]" });
+  if (clientsFile === undefined || clientName === undefined || manifestPath === undefined || out === undefined) return yield* new CaptureFailure({ problem: "usage: run --clients-file FILE --client NAME --install DIR --manifest MAP.captures.json --out DIR [--versions FILE] [--minutes M] [--crop X,Y,W,H] [--audio-sink SINK | --no-audio]" });
   const text = yield* attempt("read the manifest", () => readFileSync(manifestPath, "utf8"));
   const manifest = yield* Schema.decodeEffect(Manifest)(text).pipe(Effect.mapError(cause => new CaptureFailure({ problem: `${manifestPath}: ${String(cause)}` })));
   const client = (yield* loadClients(clientsFile).pipe(Effect.mapError(failure => new CaptureFailure({ problem: `${failure.operation}: ${failure.cause}` })))).find(row => row.name === clientName);
   if (client === undefined) return yield* new CaptureFailure({ problem: `${clientName} isn't in ${clientsFile}` });
+  const binding = yield* readBinding(args);
+  console.log(`build: installed ${binding.installed}, live ${binding.live}`);
   yield* attempt("create the result folder", () => mkdirSync(out, { recursive: true }));
   const statusPath = join(dataDirectory(client.documents), CAPTURE_STATUS_FILE);
   const started = Date.now();
@@ -248,7 +296,7 @@ const runCaptures = (args: readonly string[]) => Effect.scoped(Effect.gen(functi
     if (lastScript >= manifest.fixtures.length && Date.now() - idleSince > 30000) break;
   }
   const missed = manifest.fixtures.flatMap(fixture => fixture.frames.filter(frame => !saved.has(`${fixture.name}/${frame}`)).map(frame => ({ fixture: fixture.name, frame })));
-  const result = { map: manifest.map, captured: saved.size, wanted, missed, audio, captures: [...saved.values()], log };
+  const result = { map: manifest.map, build: binding, captured: saved.size, wanted, missed, audio, captures: [...saved.values()], log };
   yield* attempt("write captures.json", () => writeFileSync(join(out, "captures.json"), `${JSON.stringify(result, null, 1)}\n`));
   const unreadable = log.filter(row => row.stamp === "unreadable").length;
   console.log(JSON.stringify({ captured: saved.size, wanted, missed: missed.length, screenCaptures: log.length, unreadable, medianCaptureMs: [...log.map(row => row.captureMs)].sort((a, b) => a - b)[Math.floor(log.length / 2)] ?? 0 }));
@@ -308,6 +356,6 @@ const compare = (args: readonly string[]) => Effect.gen(function*() {
 
 if (import.meta.main) {
   const [verb, ...args] = Bun.argv.slice(2);
-  const program = verb === "build" ? build(args) : verb === "plan" ? plan(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts build|plan|run|compare ..." }));
+  const program = verb === "build" ? build(args) : verb === "plan" ? plan(args) : verb === "run" ? runCaptures(args) : verb === "compare" ? compare(args) : verb === "build-check" ? buildCheck(args) : Effect.fail(new CaptureFailure({ problem: "usage: nativeCapture.ts build|plan|run|compare|build-check ..." }));
   BunRuntime.runMain(program.pipe(Effect.provide(Layer.merge(BunServices.layer, platformLayer()))));
 }
