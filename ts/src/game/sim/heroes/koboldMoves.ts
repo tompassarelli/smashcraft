@@ -3,7 +3,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -19,8 +19,8 @@ const arm = (x: number, z: number) => hurtPart(8.0, 40.0, x, z, 8.0);
 const reach = (first: number, last: number, x: number, z: number) => [heroHurtPose(first, last, [torso, arm(x, z)])];
 const tilt = (z: number, angle: 25 | 35 | 55) => heroMove(6, 3, 19, 0, [heroRegion(6, 8, pick(20.0, 40.0, 66.0, z), ordinary(8.968000411987305, angle))]);
 
-export const KOBOLD_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const KOBOLD_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [torso], crouch: [hurtPart(0.0, 4.0, 0.0, f32(body.z2 * f32(0.6)), body.radius)],
     attacks: {
@@ -64,4 +64,4 @@ export const KOBOLD_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 12, totalFrames: 26, effect: ordinary(6.72599983215332, 90, 51.040000915527344, 50.0) },
     [GrabAction.throwDown]: { contactFrame: 16, totalFrames: 38, effect: ordinary(5.605000019073486, 25, 37.119998931884766, 75.0) },
   },
-};
+});

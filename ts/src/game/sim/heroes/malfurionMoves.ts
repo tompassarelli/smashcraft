@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart, hurtPose, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -20,8 +20,8 @@ const tilt = (height: number, angle: 25 | 35 | 55) => heroMove(9, 3, 22, 0,
   [heroRegion(9, 11, path(28.0, 54.0, 115.0, height, 8.0), malfurionHit(8.0, angle))]);
 const noHit = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false };
 
-export const MALFURION_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const MALFURION_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [torso], crouch: [hurtPart(0.0, 4.0, 0.0, f32(body.z2 * f32(0.6)), body.radius)],
     attacks: {
@@ -67,4 +67,4 @@ export const MALFURION_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 25, effect: malfurionHit(7.0, 90, 70.0, 45.0) },
     [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 43, effect: malfurionHit(6.0, 70, 40.0, 75.0) },
   },
-};
+});

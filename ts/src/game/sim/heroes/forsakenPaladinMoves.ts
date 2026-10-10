@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type FighterMoves, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroMoves, heroRegion, type StrikeCapsule } from "../heroMoves";
 import { FORSAKEN_PALADIN_GROUND, groundPoses } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
@@ -111,10 +111,8 @@ const FORSAKEN_PALADIN_HURTBOXES: FighterHurtboxes = {
   },
 };
 
-export const FORSAKEN_PALADIN_MOVES: FighterMoves = {
+export const FORSAKEN_PALADIN_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   hurtboxes: FORSAKEN_PALADIN_HURTBOXES,
   normals: {
@@ -182,4 +180,4 @@ export const FORSAKEN_PALADIN_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 16, totalFrames: 25, effect: hit(7.504000186920166, "JUGGLE", 90) },
     [GrabAction.throwDown]: { contactFrame: 20, totalFrames: 46, effect: hit(6.432000160217285, "CHASE", 70) },
   },
-};
+});

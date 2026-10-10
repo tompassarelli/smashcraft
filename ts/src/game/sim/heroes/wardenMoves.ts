@@ -2,7 +2,7 @@ import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { floorDiv } from "wisp/src/sim/intMath";
 import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroRegion, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroHurtPose, heroMove, heroMoves, heroRegion, type AuthoredMove, type MoveRegion, type StrikeCapsule } from "../heroMoves";
 import { WARDEN_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
@@ -206,10 +206,8 @@ function wardenHurtboxes(): FighterHurtboxes {
   return { stand: [WARDEN_BODY], attacks };
 }
 
-export const WARDEN_MOVES: FighterMoves = {
+export const WARDEN_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   normals: NORMALS,
   hurtboxes: wardenHurtboxes(),
@@ -220,4 +218,4 @@ export const WARDEN_MOVES: FighterMoves = {
     [GrabAction.throwUp]: throwMove(11, 9, 4.565000057220459, "JUGGLE", 85),
     [GrabAction.throwDown]: throwMove(14, 20, 3.6519999504089355, "CHASE", 25),
   },
-};
+});

@@ -1,7 +1,7 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroRegion, type FighterMoves, type MoveRegion } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, jabStep, heroHurtPose, heroMove, heroMoves, heroRegion, type MoveRegion } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { strongHit } from "../strongHits";
 import { type FighterHurtboxes, hurtPart } from "../hurtboxes";
@@ -93,10 +93,8 @@ const NO_LAUNCH = { growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric
 
 const CLEAVING_SWEEP = heroMove(13, 4, 35, 0, cleave(13, [150.0, 100.0, 50.0, 10.0], XL, hit(12.65999984741211, "EDGE", 35)));
 
-export const PIT_LORD_MOVES: FighterMoves = {
+export const PIT_LORD_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   hurtboxes: PIT_LORD_BODY,
   normals: {
@@ -219,4 +217,4 @@ export const PIT_LORD_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 20, totalFrames: 30, effect: hit(10.550000190734863, "JUGGLE", 85, 1.0, HitElement.normal) },
     [GrabAction.throwDown]: { contactFrame: 23, totalFrames: 50, effect: hit(8.4399995803833, "CHASE", 70, 1.0, HitElement.normal) },
   },
-};
+});

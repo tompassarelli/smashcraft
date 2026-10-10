@@ -1,6 +1,6 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement } from "../codes";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import { hurtPart, type HurtPart, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
 
@@ -20,11 +20,8 @@ const arm = (first: number, last: number, shoulderX: number, shoulderZ: number, 
   heroHurtPose(first, last, [BODY, hurtPart(shoulderX, shoulderZ, handX, handZ, 10.0)]);
 const tilt = (z: number) => heroMove(8, 3, 19, 0, swing(8, [[92.0, f32(z + 16.0)], [92.0, z], [84.0, f32(z - 16.0)]], 9.215999603271484, 40));
 
-export const PEON_MOVES: FighterMoves = {
+export const PEON_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
-  maxPummels: 1,
   hurtboxes: {
     stand: [BODY],
     attacks: {
@@ -85,4 +82,4 @@ export const PEON_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 12, totalFrames: 22, effect: peonHit(6.144000053405762, 85, 54.17499923706055, 50.0) },
     [GrabAction.throwDown]: { contactFrame: 17, totalFrames: 42, effect: peonHit(5.119999885559082, 25, 39.400001525878906, 75.0) },
   },
-};
+});

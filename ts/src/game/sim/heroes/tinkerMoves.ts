@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type MoveRegion, type StrikeCapsule, tipperMove } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart } from "../hurtboxes";
 import { ANGLES, type Angle, capsuleOf } from "./authoring";
@@ -27,8 +27,8 @@ const BODY = hurtPart(0.0, 4.0, 0.0, body.z2, body.radius);
 const limb = (first: number, last: number, x: number, z: number) => [heroHurtPose(first - 2, last + 2, [BODY, hurtPart(12.0, 40.0, x, z, 12.0)])];
 const none = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 
-export const TINKER_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const TINKER_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: { stand: [BODY], attacks: {
     [AttackStyle.jab]: limb(4, 5, 38.0, 48.0), [AttackStyle.jab2]: limb(4, 5, 40.0, 56.0),
     [AttackStyle.jab3]: limb(6, 8, 43.0, 48.0), [AttackStyle.grab]: limb(8, 9, 55.0, 46.0),
@@ -67,4 +67,4 @@ export const TINKER_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 24, effect: tinkerHit(6.460999965667725, "juggle", 85) },
     [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: tinkerHit(5.538000106811523, "chase", 70) },
   },
-};
+});

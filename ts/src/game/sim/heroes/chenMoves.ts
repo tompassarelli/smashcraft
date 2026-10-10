@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type FighterMoves, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type StrikeCapsule, cleanLateMove } from "../heroMoves";
 import { hurtPart, type HurtPose } from "../hurtboxes";
 import type { HitEffect } from "../hitRegions";
 
@@ -20,8 +20,8 @@ const reach = (first: number, last: number, x: number, z: number): readonly Hurt
   [heroHurtPose(first, last, [body, hurtPart(x < 0 ? -12.0 : 12.0, 60.0, x, z, 11.0)])];
 const tilt = (height: number) => heroMove(9, 3, 21, 0, [region(9, 11, 22.0, 58.0, 96.0, height, 12.0, poke(8.694000244140625))]);
 
-export const CHEN_MOVES: FighterMoves = {
-  dashAttack: AttackStyle.dashAttack, smashMaxChargeFrames: 45, smashMaxDamageMultiplier: 1.25, maxPummels: 1,
+export const CHEN_MOVES = heroMoves({
+  dashAttack: AttackStyle.dashAttack,
   hurtboxes: {
     stand: [body], attacks: {
       [AttackStyle.jab]: reach(3, 8, 48.0, 64.0), [AttackStyle.jab2]: reach(4, 9, 50.0, 58.0), [AttackStyle.jab3]: reach(6, 12, 44.0, 52.0),
@@ -60,4 +60,4 @@ export const CHEN_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 25, effect: chenHit(6.76200008392334, 41.52000045776367, 50.0, 0.0, 1.0) },
     [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 42, effect: chenHit(5.796000003814697, 41.52000045776367, 75.0, f32(0.342020), f32(0.939693)) },
   },
-};
+});

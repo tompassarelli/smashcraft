@@ -1,7 +1,7 @@
 import { downSmashHit } from "../downMoveValues";
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, GrabAction, HitElement, LAST_ATTACK_STYLE } from "../codes";
-import { HERO_REFERENCE_HEIGHT, heroMove, type AuthoredMove, type FighterMoves, type MoveRegion, type StrikeCapsule, cleanLateMove } from "../heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroMove, heroMoves, type AuthoredMove, type MoveRegion, type StrikeCapsule, cleanLateMove } from "../heroMoves";
 import { type FighterHurtboxes, type HurtPart, type HurtPose, hurtPart, hurtPose } from "../hurtboxes";
 import { DREADLORD_GROUND } from "./groundNormals";
 import type { HitEffect } from "../hitRegions";
@@ -199,10 +199,8 @@ function attachedBodies(): FighterHurtboxes {
   return { stand: DREADLORD_STAND, attacks };
 }
 
-export const DREADLORD_MOVES: FighterMoves = {
+export const DREADLORD_MOVES = heroMoves({
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
   maxPummels: 2,
   normals: NORMALS,
   hurtboxes: attachedBodies(),
@@ -213,4 +211,4 @@ export const DREADLORD_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 15, totalFrames: 26, effect: dreadlordHit(9.032805442810059, "JUGGLE", 85) },
     [GrabAction.throwDown]: { contactFrame: 19, totalFrames: 44, effect: dreadlordHit(8.029160499572754, "CHASE", 25) },
   },
-};
+});

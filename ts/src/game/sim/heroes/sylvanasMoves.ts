@@ -1,7 +1,7 @@
 import { f32 } from "wisp/src/sim/f32";
 import { AttackStyle, Character, GrabAction, HitElement } from "../codes";
 import { hurtCapsule } from "../../physics/contactGeometry";
-import { heroHurtPose, heroMove, heroRegion, jabStep, type AuthoredMove, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
+import { heroHurtPose, heroMove, heroMoves, heroRegion, jabStep, type AuthoredMove, type FighterMoves, type StrikeCapsule, tipperMove } from "../heroMoves";
 import type { HitEffect } from "../hitRegions";
 import { hurtPart, type HurtPart, type HurtPose } from "../hurtboxes";
 import { groundHit } from "./groundNormals";
@@ -62,12 +62,9 @@ for (const key in NORMALS) {
   });
 }
 
-export const SYLVANAS_MOVES: FighterMoves = {
+export const SYLVANAS_MOVES = heroMoves({
   normals: NORMALS,
   dashAttack: AttackStyle.dashAttack,
-  smashMaxChargeFrames: 45,
-  smashMaxDamageMultiplier: 1.25,
-  maxPummels: 1,
   hurtboxes: { stand: SYLVANAS_STAND, attacks: limbPoses },
   throws: {
     [GrabAction.pummel]: { contactFrame: 60, totalFrames: 75, effect: { ...NOTHING, damage: 3.0 } },
@@ -76,4 +73,4 @@ export const SYLVANAS_MOVES: FighterMoves = {
     [GrabAction.throwUp]: { contactFrame: 14, totalFrames: 24, effect: sylvanasHit(5.831999778747559, 75, 87.63500213623047, 60.0, true) },
     [GrabAction.throwDown]: { contactFrame: 18, totalFrames: 39, effect: sylvanasHit(5.831999778747559, 70, 41.2400016784668, 75.0) },
   },
-};
+});
