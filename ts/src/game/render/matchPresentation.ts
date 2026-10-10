@@ -116,7 +116,7 @@ export class MatchPresentation {
     }
     this.lines = lines;
     this.help = createText("MatchResultsHelp", this.panel, 0);
-    BlzFrameSetSize(this.help, f32(0.33), f32(0.04));
+    BlzFrameSetSize(this.help, f32(0.33), f32(0.06));
     BlzFrameSetFont(this.help, MENU_FONT, f32(0.009), 0);
     BlzFrameSetTextAlignment(this.help, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
     BlzFrameSetEnable(this.help, false);
@@ -247,7 +247,7 @@ export class MatchPresentation {
   private showResults(view: ResultsView): void {
     const { winner } = view;
     BlzFrameSetText(this.title, winner === undefined ? "No contest" : "Results");
-    BlzFrameSetSize(this.panel, f32(0.36), f32(f32(0.095) + view.rows.length * f32(0.04)));
+    BlzFrameSetSize(this.panel, f32(0.36), f32(f32(0.115) + view.rows.length * f32(0.04)));
     BlzFrameSetPoint(this.help, FRAMEPOINT_TOPLEFT, this.panel, FRAMEPOINT_TOPLEFT, f32(0.018), f32(-0.045) - view.rows.length * f32(0.04));
     for (let index = 0; index < this.lines.length; index++) {
       const row = view.rows[index];
@@ -310,6 +310,10 @@ export class MatchPresentation {
       else seconds -= I2R(R2I(seconds / duration)) * duration;
       BlzSetSpecialEffectTime(model, (clip.timeline === true ? clip.startSeconds : 0.0) + seconds);
     }
+  }
+
+  resultsShown(): boolean {
+    return this.resultView !== undefined && this.pending === undefined;
   }
 
   hideResults(): void {

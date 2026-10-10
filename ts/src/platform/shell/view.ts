@@ -579,9 +579,9 @@ export function renderUi(s: ShellState): void {
   const teaching = game.phase === Phase.match && game.training && s.trainingHints === true && !paused;
   BlzFrameSetVisible(help, showMatch && teaching);
   const waiting = game.phase === Phase.match ? activeRollback(s)?.waitingFor ?? 0 : 0;
-  BlzFrameSetVisible(notice, showMatch && game.phase !== Phase.result && waiting !== 0);
+  BlzFrameSetVisible(notice, showMatch && (waiting !== 0 || (game.phase === Phase.result && !ui.match.resultsShown())));
   if (!selecting) {
-    if (game.phase === Phase.result) ui.match.showResultHelp(matchHelp(game, s.session.paused, startControl(s), localFighter, false));
+    if (game.phase === Phase.result) ui.match.showResultHelp(`${resultNotice(game, s.status.text)}\n${matchHelp(game, s.session.paused, startControl(s), localFighter, false)}`);
     BlzFrameSetText(help, matchHelp(game, s.session.paused, startControl(s), localFighter, game.phase === Phase.match));
     probeWaiting(s.probe, waiting, localSlot());
     BlzFrameSetText(notice, game.phase === Phase.result ? resultNotice(game, s.status.text) : waiting !== 0 ? waitingMessage(waiting) : "");
