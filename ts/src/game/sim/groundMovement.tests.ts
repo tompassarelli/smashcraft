@@ -5,7 +5,8 @@ import { adaptInput } from "../input/adapter";
 import { inputRow } from "../input/inputRow";
 import { captureFrame, createMatchFrameInput } from "../match/frameInput";
 import { stateChecksum } from "../replay/canonical";
-import { firstStateDifference } from "../replay/difference";
+import { firstPoseDifference, firstStateDifference } from "../replay/difference";
+import { IllidanLocomotion } from "../presentation/illidanMotion";
 import { ReplayHistory } from "../replay/history";
 import { copyReplayState, createReplaySnapshot } from "../replay/snapshot";
 import { captureTape, createTapeWorld, executeTapeRow } from "../replay/tapeWorld";
@@ -81,6 +82,7 @@ test("movement pivots: recorded reverse-neutral rows retain a slide and next-fra
           assertTrue(executeTapeRow(replayed, row));
           if (frame >= warmup + 2) assertTrue(history.replay(1, warmup + 1, frame, replayed.live));
           assertEquals(firstStateDifference(captureTape(canonical), captureTape(replayed)), undefined, `first differing frame ${frame}`);
+          assertEquals(firstPoseDifference(canonical.live, replayed.live), undefined, `first differing pose frame ${frame}`);
           assertEquals(stateChecksum(canonical.live), stateChecksum(replayed.live), `checksum frame ${frame}`);
           const fighter = fighterAt(canonical.live.world, 0);
           if (frame === warmup + 1) {
@@ -95,6 +97,8 @@ test("movement pivots: recorded reverse-neutral rows retain a slide and next-fra
             assertEquals(fighter.ground.action, GroundAction.none);
             assertTrue(fighter.motion.vx * facing > 0 && Math.abs(fighter.motion.vx) < 2.0);
             assertEquals(fighter.attack.style, undefined);
+            assertTrue(canonical.live.runtime.poses[0].motion.motion !== IllidanLocomotion.turn);
+            assertEquals(canonical.live.runtime.poses[0].motion.transitionRemaining, 0);
           }
           if (frame === releaseFrame + 1) {
             assertEquals(fighter.attack.style, move, `next actionable frame ${frame}`);
