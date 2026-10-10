@@ -26,7 +26,7 @@ import { advanceSpecialEffect, createSpecialEffectState } from "../../src/game/p
 import { advanceSummons, createSummonState } from "../../src/game/presentation/summonState";
 import { ProjectilePresentation } from "../../src/game/render/projectilePresentation";
 import { beginFighterAttack, resolveAttacks } from "../../src/game/sim/attacks";
-import { AttackPhase, AttackStyle, Character, ContactKind, SpecialAction } from "../../src/game/sim/codes";
+import { AttackPhase, AttackStyle, Character, ContactKind, DownState, SpecialAction } from "../../src/game/sim/codes";
 import { attackPhase } from "../../src/game/sim/conditions";
 import { beginDamageContacts, finishDamageContacts, queueDamageContact } from "../../src/game/sim/contacts";
 import { type Fighter, createFighter } from "../../src/game/sim/fighter";
@@ -38,6 +38,9 @@ import { advancePlacedObjects } from "../../src/game/sim/placedObjects";
 import { projectileActive, updateProjectiles } from "../../src/game/sim/projectiles";
 import { type Controls, createRoster, neutralControls, type Roster } from "../../src/game/sim/roster";
 import { advanceSpecials, startFighterSpecial } from "../../src/game/sim/specials";
+import { beginDownState } from "../../src/game/sim/transitions";
+import { DOWN_WAIT_FRAMES } from "../../src/game/sim/down";
+import { snapToLedge } from "../../src/game/sim/ledge";
 import { advanceFighter } from "../../src/game/sim/step";
 import { DROP_TELEGRAPH_FRAMES, advanceMeterDrops, meterDropPoint } from "../../src/game/match/meterDrops";
 import { Phase, createMatchState } from "../../src/game/match/rules";
@@ -355,11 +358,14 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
     const idle = neutralControls();
     for (let frame = 0; frame < 3; frame++) step(world, idle);
     if (move.air === true) { f.motion.grounded = false; f.motion.z = 300.0; }
-    if (move.style !== undefined) {
+    const contextual = move.style === AttackStyle.getupAttack || move.style === AttackStyle.ledgeAttack;
+    if (move.style === AttackStyle.getupAttack) { beginDownState(f, DownState.wait, 0); f.down.waitRemaining = DOWN_WAIT_FRAMES; }
+    if (move.style === AttackStyle.ledgeAttack) { snapToLedge(world, 0, 0, -1); step(world, idle); }
+    if (move.style !== undefined && !contextual) {
       if (isAerialAttack(move.style)) { f.motion.grounded = false; f.motion.z = 300.0; }
       beginFighterAttack(world, 0, move.style, false);
     }
-    const press = move.ultimate === true ? { ...neutralControls(), specialPressed: true, ultimatePressed: true, attackHeld: true }
+    const press = contextual ? { ...neutralControls(), getupAttackPressed: true } : move.ultimate === true ? { ...neutralControls(), specialPressed: true, ultimatePressed: true, attackHeld: true }
       : move.special === undefined ? idle : { ...neutralControls(), specialPressed: true, specialX: move.special.x, specialZ: move.special.z, meter: move.ex === true };
     const scenes: RenderScene[] = [];
     const poses: (readonly ParkPose[])[] = [];
@@ -369,7 +375,7 @@ export function cueScenes(move: CueMove, graphics: Graphics): { readonly scenes:
     let lastDanger = -1, ended = -1, lastLive = 0;
     let empty: RenderScene | undefined;
     for (let tick = 0; tick < LIMIT; tick++) {
-      if (tick > 0 || move.style === undefined) step(world, tick === 0 ? press : idle);
+      if (tick > 0 || move.style === undefined || contextual) step(world, tick === 0 ? press : idle);
       if (tick === 0 && move.form !== undefined && f.special.action !== SpecialAction.none && f.special.form !== move.form) enterForm(f, move.form);
       const cueState = specialCueState(f);
       if (move.special !== undefined && cueState.cues !== undefined && cueState.phase !== "none") {
