@@ -9,8 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Commit, branch or tag to check
+        description: Commit to check
         default: main
+      lane:
+        description: The claude/ lane or farm/ scratch branch that holds the commit; empty for main
+        default: ""
       dirs:
         description: Script files or folders under ts/test/native/pads, space-separated (. is the top level)
         default: "."
@@ -20,8 +23,13 @@ on:
 
 run-name: Headless pads ${{ inputs.ref }} ${{ inputs.tag }}
 
+concurrency:
+  group: headless-pads ${{ inputs.lane || inputs.ref }} ${{ inputs.dirs }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+  actions: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -47,7 +55,7 @@ jobs:
   helper:
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -73,7 +81,7 @@ jobs:
   pad:
     needs: [plan, helper]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 6
     strategy:
       fail-fast: false
       # The account runs 20 jobs at once across every repository.
@@ -89,6 +97,15 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
+      - name: Stop when the commit has left main and the lane
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          LANE: ${{ inputs.lane }}
+        run: |
+          git fetch -q --depth 1 origin "$GITHUB_SHA" && git checkout -q FETCH_HEAD -- scripts/farmGuard.ts
+          bun scripts/farmGuard.ts --workflow pads --sha "$SHA" --lane "$LANE"
       - uses: actions/download-artifact@v4
         with:
           name: wc3-journal

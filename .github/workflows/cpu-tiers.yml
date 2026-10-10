@@ -4,18 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Commit, branch or tag to measure
+        description: Commit to measure
         default: main
+      lane:
+        description: The claude/ lane that holds the commit; empty for main
+        default: ""
 
 run-name: Computer difficulty ${{ inputs.ref }}
 
+concurrency:
+  group: cpu-tiers ${{ inputs.lane || inputs.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+  actions: write
 
 jobs:
   tiers:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,6 +33,14 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
+      - name: Stop when the commit has left main and the lane
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANE: ${{ inputs.lane }}
+        run: |
+          git fetch -q --depth 1 origin "$GITHUB_SHA" && git checkout -q FETCH_HEAD -- scripts/farmGuard.ts
+          bun scripts/farmGuard.ts --workflow tiers --sha "$(git rev-parse HEAD)" --lane "$LANE"
       - name: Compare all difficulty tiers
         working-directory: ts
         run: |

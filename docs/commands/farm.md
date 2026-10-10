@@ -2,8 +2,18 @@
 
 - Compute farm: `bun wisp farm test [--ref REF] [--wait]` runs the full Bun
   and 32-bit Lua suites, sharded by measured time
-  (smashcraft:.github/workflows/farm-test.yml).
-  `bun wisp farm balance [--ref REF] [--wait]` plays the
+  (smashcraft:.github/workflows/farm-test.yml). It refuses a commit already
+  on main (main's CI runs these suites) or queued in Autoland (the train runs
+  them).
+  Balance, Playtest and memory soaks run only on a commit on main or on a lane
+  tip named with `--lane NAME` (pushed to `claude/NAME`), never on a scratch
+  branch; perf, pads and difficulty runs may also use a `farm/` scratch branch.
+  A newer run of the same shape on the same line (main, the lane or the
+  scratch commit) cancels the older one, and every job first cancels its run
+  when the commit has left main (or main reverted it) and its lane
+  (smashcraft:ts/scripts/farmGuard.ts). Job timeouts sit about 1.5 times above
+  the longest measured job.
+  `bun wisp farm balance [--ref REF] [--lane NAME] [--wait]` plays the
   balance gate's computer field (Wren Expert, 400 a pair; `--opponent`, `--tier`,
   `--per-pair`, `--seeds`) on GitHub's free hosted runners, a `cpuField
   --pairs` process a core, eight pairs a job and at most 8 jobs at once (the

@@ -10,7 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Commit, branch or tag to play (empty is the newest green main)
+        description: Commit to play, on main or on the lane (empty is the newest green main)
+        default: ""
+      lane:
+        description: The claude/ lane whose tip this plays; empty for main
         default: ""
       matches:
         description: Matches to play
@@ -29,16 +32,21 @@ on:
 
 run-name: Playtest ${{ inputs.ref || 'green main' }} ${{ inputs.matches || '1000' }} matches ${{ inputs.tag }}
 
+concurrency:
+  group: playtest ${{ inputs.lane || 'main' }} ${{ inputs.matches || '1000' }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
+  actions: write
 
 jobs:
   plan:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
       contents: read
-      actions: read
+      actions: write
     outputs:
       sha: ${{ steps.plan.outputs.sha }}
       shards: ${{ steps.plan.outputs.shards }}
@@ -63,6 +71,14 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
+      - name: Stop when the commit has left main and the lane
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANE: ${{ inputs.lane }}
+        run: |
+          git fetch -q --depth 1 origin "$GITHUB_SHA" && git checkout -q FETCH_HEAD -- scripts/farmGuard.ts
+          bun scripts/farmGuard.ts --workflow playtest --sha "$(git rev-parse HEAD)" --lane "$LANE"
       - id: plan
         working-directory: ts
         env:
@@ -77,7 +93,7 @@ jobs:
   shard:
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       max-parallel: 8
@@ -92,6 +108,15 @@ jobs:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
+      - name: Stop when the commit has left main and the lane
+        working-directory: ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.plan.outputs.sha }}
+          LANE: ${{ inputs.lane }}
+        run: |
+          git fetch -q --depth 1 origin "$GITHUB_SHA" && git checkout -q FETCH_HEAD -- scripts/farmGuard.ts
+          bun scripts/farmGuard.ts --workflow playtest --sha "$SHA" --lane "$LANE"
       - name: Play the range, one process a core
         working-directory: ts
         env:
@@ -124,7 +149,7 @@ jobs:
     needs: [plan, shard]
     if: ${{ always() && needs.plan.result == 'success' && needs.shard.result != 'cancelled' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     permissions:
       contents: read
       issues: write
