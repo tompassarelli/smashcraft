@@ -97,7 +97,7 @@ export interface SelectionActions {
 type RuleButton = { kind: "stocks"; direction: -1 | 1 } | { kind: "time"; direction: -1 | 1 } | { kind: "endless" } | { kind: "automaticRematch" }
   | { kind: "items" } | { kind: "ultimates" } | { kind: "itemKind"; item: ItemKind } | { kind: "training" } | { kind: "partner"; setting: TrainingSetting; direction: -1 | 1 } | { kind: "hitAreas" } | { kind: "speed" }
   | { kind: "classicTier"; direction: -1 | 1 };
-type SelectionButton = { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
+type SelectionButton = { kind: "tile"; tile: number } | { kind: "mode"; slot: number } | { kind: "cpuSettings"; slot: number } | { kind: "cpuStep"; row: 0 | 1; direction: -1 | 1 } | { kind: "cpuClose" } | { kind: "start" } | { kind: "settings" } | RuleButton
   | { kind: "moves" } | { kind: "movesBack" } | { kind: "movesStep"; direction: -1 | 1 } | TutorialButton;
 
 type MenuFocus = { readonly kind: "fighter" | "settings"; readonly slot: number };
@@ -165,6 +165,7 @@ const decodeSlot = (data: string): number | undefined => (data === "0" ? 0 : dat
 
 export class SelectionPanel {
   private readonly tiles: framehandle[][] = [];
+  private readonly tileButtons: framehandle[] = [];
   private readonly root: framehandle;
   private readonly backdrop: framehandle;
   private readonly confirm: framehandle;
@@ -242,7 +243,7 @@ export class SelectionPanel {
     private readonly controls: MenuControls,
   ) {
     const suffix = I2S(participantId);
-    this.clicks = new ButtonClicks(`ui.selection.${suffix}.click`, (button, clicker) => this.click(button, clicker));
+    this.clicks = new ButtonClicks(`ui.selection.${suffix}.click`, (button, clicker) => this.click(button, clicker), button => this.highlight(button));
     const root = BlzCreateFrameByType("FRAME", `MeleeSelectRoot${suffix}`, gameUi(), "", 0);
     this.root = root;
     this.backdrop = createBackdrop(`MeleeSelectBackdrop${suffix}`, consoleUi(), 400 + participantId);
@@ -264,6 +265,10 @@ export class SelectionPanel {
       const tileName = label(root, `MeleeTileName${name}`, x + f32(0.004) * scale, y - f32(0.108) * scale, f32(0.103) * scale, f32(0.018) * scale, f32(0.0078) * scale);
       BlzFrameSetText(tileName, nameText(PLAYABLE_CHARACTERS[choice]));
       this.tiles.push([tileFrame, tilePortraitFrame, tileName]);
+      const button = BlzCreateFrameByType("BUTTON", `MeleeTileButton${name}`, root, "", 0);
+      placeTopLeft(button, x, y);
+      BlzFrameSetSize(button, f32(grid.cellWidth), f32(grid.cellHeight));
+      this.tileButtons.push(this.clicks.add(button, { kind: "tile", tile: choice }));
     }
     this.cards = PARTICIPANT_SLOTS.map((slot) => {
       const x = cardX(slot);
@@ -430,7 +435,7 @@ export class SelectionPanel {
   bindActions(actions: SelectionActions): void {
     this.actions = actions;
     bindPrototype(this.clicks, ButtonClicks.prototype);
-    this.clicks.bindHandler((button, clicker) => this.click(button, clicker));
+    this.clicks.bindHandler((button, clicker) => this.click(button, clicker), button => this.highlight(button));
     const suffix = I2S(this.participantId);
     bindSyncHandler(`ui.selection.${suffix}.drop`, (_, data) => this.acceptDrop(data));
     bindSyncHandler(`ui.selection.${suffix}.cpuDrop`, (_, data) => this.acceptCpuDrop(data));
@@ -452,7 +457,12 @@ export class SelectionPanel {
   private click(button: SelectionButton, clicker: player): void {
     if (clicker !== Player(this.participantId)) return;
     if (this.cpuSlot !== undefined && button.kind !== "cpuStep" && button.kind !== "cpuClose") return;
-    if (button.kind === "mode") this.actions.cycleMode(this.participantId, button.slot);
+    if (button.kind === "tile") {
+      const game = this.choosing();
+      if (game === undefined || !selectableMatchCharacter(game, characterOfTile(button.tile))) return;
+      if (this.ownsLocalClient()) this.sendPlacement({ slot: this.drag.held ?? this.participantId, tile: button.tile });
+    }
+    else if (button.kind === "mode") this.actions.cycleMode(this.participantId, button.slot);
     else if (button.kind === "start") this.actions.start(this.participantId);
     else if (button.kind === "settings") this.actions.openSettings(this.participantId);
     else if (button.kind === "moves") this.openMoves();
@@ -483,6 +493,24 @@ export class SelectionPanel {
     else this.actions.toggleAutomaticRematch(this.participantId);
   }
 
+
+  private highlight(button: SelectionButton | undefined): void {
+    const tile = button?.kind === "tile" ? button.tile : undefined;
+    for (let slot = 0; slot < this.cards.length; slot++) {
+      const card = this.cards[slot];
+      if (card !== undefined) BlzFrameSetTextColor(card.tag, button?.kind === "mode" && button.slot === slot ? -13312 : -1);
+    }
+    BlzFrameSetTextColor(this.confirm, button?.kind === "start" ? -13312 : -1);
+    for (const kind of ["Settings", "Moves"]) {
+      const label = BlzGetFrameByName(`Melee${kind}Label${I2S(this.participantId)}`, 0);
+      BlzFrameSetTextColor(label, (kind === "Settings" && button?.kind === "settings") || (kind === "Moves" && button?.kind === "moves") ? -13312 : -1);
+    }
+    this.drag.hover = tile;
+    for (let index = 0; index < this.tiles.length; index++) {
+      const name = this.tiles[index]?.[2];
+      if (name !== undefined) BlzFrameSetTextColor(name, index === tile ? -13312 : -1);
+    }
+  }
 
   private choosing(): Readonly<MatchState> | undefined {
     const { game } = this;
@@ -719,7 +747,10 @@ export class SelectionPanel {
       return;
     }
     for (let tile = 0; tile < this.tiles.length; tile++) {
-      for (const frame of this.tiles[tile] ?? []) BlzFrameSetVisible(frame, selectableMatchCharacter(game, characterOfTile(tile)));
+      const selectable = selectableMatchCharacter(game, characterOfTile(tile));
+      for (const frame of this.tiles[tile] ?? []) BlzFrameSetVisible(frame, selectable);
+      const button = this.tileButtons[tile];
+      if (button !== undefined) BlzFrameSetVisible(button, selectable);
     }
     if (drag.held === undefined && humanFighterActive(game, participantId)) drag.held = participantId;
     let x = 0.0;
@@ -867,8 +898,8 @@ export class SelectionPanel {
   private confirmText(game: Readonly<MatchState>): string {
     const journal = this.controls === "journal";
     if (hasUnassignedHuman(game)) return "Choose CPU or Empty";
-    if (allCharactersReady(game)) return journal ? "Press Start" : "Start (Y)";
+    if (allCharactersReady(game)) return journal ? "Start / Click" : "Start (Y) / Click";
     if (fighterMask(game) === 0) return "Add a fighter";
-    return journal ? "Select [A]" : "Place your chip";
+    return journal ? "Select [A] / Click" : "Place your chip / Click";
   }
 }

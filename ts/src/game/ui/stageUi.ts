@@ -28,7 +28,7 @@ export interface StageActions {
   toggleDrops(participantId: number): void;
 }
 
-type StageButton = { kind: "hazards" } | { kind: "drops" } | { kind: "start" } | { kind: "back" } | { kind: "poolOpen" } | { kind: "poolClose" } | { kind: "poolMode" } | { kind: "poolStage"; choice: number };
+type StageButton = { kind: "stage"; choice: StageChoice } | { kind: "hazards" } | { kind: "drops" } | { kind: "start" } | { kind: "back" } | { kind: "poolOpen" } | { kind: "poolClose" } | { kind: "poolMode" } | { kind: "poolStage"; choice: number };
 
 export const HAZARDS_BUTTON = { x: f32(0.225), y: f32(0.082), width: f32(0.19), height: f32(0.037) } as const;
 export const DROPS_BUTTON = { x: f32(0.42), y: f32(0.082), width: f32(0.12), height: f32(0.037) } as const;
@@ -64,6 +64,7 @@ export class StagePanel {
   private readonly hazardsToggle: framehandle;
   private readonly dropsToggle: framehandle;
   private readonly clicks: ButtonClicks<StageButton>;
+  private readonly tileNames: framehandle[] = [];
   private readonly sync: trigger;
   private readonly poolRoot: framehandle;
   private readonly poolMode: framehandle;
@@ -82,7 +83,7 @@ export class StagePanel {
     controls: MenuControls,
   ) {
     const journal = controls === "journal";
-    this.clicks = new ButtonClicks("ui.stage.click", (button, clicker) => this.click(button, GetPlayerId(clicker)));
+    this.clicks = new ButtonClicks("ui.stage.click", (button, clicker) => this.click(button, GetPlayerId(clicker)), button => this.highlightStage(button?.kind === "stage" ? button.choice : undefined));
     const root = BlzCreateFrameByType("FRAME", "MeleeStageRoot", gameUi(), "", 0);
     this.root = root;
     this.backdrop = createBackdrop("MeleeStageBackdrop", consoleUi(), 800);
@@ -95,8 +96,13 @@ export class StagePanel {
     stageText(root, "MeleeStageGridTitle", f32(0.454), f32(0.48), f32(0.3), f32(0.022), f32(0.012), "CHOOSE A STAGE");
     for (const stage of STAGE_CHOICES) {
       const choice = stage.id;
+      const button = BlzCreateFrameByType("BUTTON", `MeleeStageTileButton${I2S(choice)}`, root, "", 0);
+      placeTopLeft(button, stageTileLeft(choice), stageTileTop(choice));
+      BlzFrameSetSize(button, f32(0.094), choice === RANDOM_STAGE ? f32(0.08) : f32(0.059));
+      this.clicks.add(button, { kind: "stage", choice });
       if (choice !== RANDOM_STAGE) {
         new StageCard(root, `MeleeStageTile${I2S(choice)}`, stageTileLeft(choice), stageTileTop(choice), f32(0.094), f32(0.059), true).show(choice);
+        this.tileNames[choice] = BlzGetFrameByName(`MeleeStageTile${I2S(choice)}Name`, 0);
         continue;
       }
       const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
@@ -104,7 +110,7 @@ export class StagePanel {
       placeTopLeft(tile, stageTileLeft(choice), stageTileTop(choice));
       BlzFrameSetSize(tile, f32(0.094), f32(0.059));
       BlzFrameSetEnable(tile, false);
-      stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.06)), f32(0.094), f32(0.02), f32(0.0075), stageInfo(choice).name);
+      this.tileNames[choice] = stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.06)), f32(0.094), f32(0.02), f32(0.0075), stageInfo(choice).name);
     }
     this.clicks.add(stageButton(root, f32(0.454), f32(0.514), f32(0.3), f32(0.027), "Stage pool"), { kind: "poolOpen" });
     this.poolRoot = BlzCreateFrameByType("FRAME", "MeleeStagePoolRoot", root, "", 0);
@@ -149,7 +155,7 @@ export class StagePanel {
     this.actions = actions;
     bindPrototype(this.clicks, ButtonClicks.prototype);
     bindPrototype(this.preview, StageCard.prototype);
-    this.clicks.bindHandler((button, clicker) => this.click(button, GetPlayerId(clicker)));
+    this.clicks.bindHandler((button, clicker) => this.click(button, GetPlayerId(clicker)), button => this.highlightStage(button?.kind === "stage" ? button.choice : undefined));
     bindSyncHandler("ui.stage.drop", (sender, data) => {
       const choice = S2I(data);
       if (I2S(choice) === data && selectableStageChoice(choice)) this.actions.selectStage(sender, choice);
@@ -163,8 +169,16 @@ export class StagePanel {
     BlzDestroyFrame(this.backdrop);
   }
 
+  private highlightStage(choice: number | undefined): void {
+    for (const stage of STAGE_CHOICES) {
+      const name = this.tileNames[stage.id];
+      if (name !== undefined) BlzFrameSetTextColor(name, stage.id === choice ? -13312 : -1);
+    }
+  }
+
   private click(button: StageButton, actor: number): void {
-    if (button.kind === "start") this.actions.start(actor);
+    if (button.kind === "stage") this.actions.selectStage(actor, button.choice);
+    else if (button.kind === "start") this.actions.start(actor);
     else if (button.kind === "hazards") this.actions.toggleHazards(actor);
     else if (button.kind === "drops") this.actions.toggleDrops(actor);
     else if (button.kind === "back") this.actions.back(actor);
