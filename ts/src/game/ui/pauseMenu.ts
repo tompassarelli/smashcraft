@@ -40,9 +40,9 @@ export class PauseMenu {
     BlzFrameSetText(this.options, title ? "> Play <" : ["Resume", "Character select", "Main menu"].map((text, row) => row === choice ? `|cffffcc00> ${text} <|r` : text).join("\n\n"));
     BlzFrameSetText(this.help, title ? "A / Start: play" : "Stick / arrows: choose    A: select\nStart / Y: resume    Escape: character select\nIJKL: camera    +/-: zoom    O/P: tilt    H: HUD");
     BlzFrameSetVisible(this.controls, !title);
-    BlzFrameSetText(this.controls, "Q: full shield    T: light shield    P: tilt    Z / LB (tom pad): short hop    X / RB (tom pad): meter\n"
+    BlzFrameSetText(this.controls, "Full shield, light shield, tilt, short hop, meter: use your control bindings.\n"
       + "Shield before landing: tech; hold left/right for a tech roll.\n"
-      + "Shield + Special: EX special (one bar segment).\nAttack + Special (A + X): Ultimate (full bar).\nShield + left/right: roll; down: dodge.\n"
+      + "Shield + Special: EX special (one bar segment).\nAttack + Special: Ultimate (full bar).\nShield + left/right: roll; down: dodge.\n"
       + "Knocked down: Attack/Special to strike; Up/Jump/Shield to stand; left/right to roll.\n"
       + "Ledge: Up/toward stage to climb; Jump to leap; Shield to roll; Attack to strike; Down/away to let go."
       + (training ? `\nF2: training hints ${hints ? "On" : "Off"}` : ""));
