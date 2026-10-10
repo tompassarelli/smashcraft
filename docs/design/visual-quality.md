@@ -246,9 +246,9 @@ smashcraft:ts/src/game/assets/stageLighting.tests.ts enforces them:
 5. A light's intensity, which scales key and fill together, is above 0 and at
    most 1.25. Blackrock uses 1.2 against its dark cavern; Ahn'Qiraj's is 0.5,
    pinned, so fighters stay darker than its bright
-   sandstone ring (#267). Frozen Throne's is 0.8, pinned, so its lit key sits
-   below the dimmest stock noon key, Reforged's 0.92 × (0.84, 0.84, 0.98),
-   against its bright glacier backdrop (#265). Both follow "light the play,
+   sandstone ring (#267). Frozen Throne's is 1.25 since #375: the light now tints
+   only scenery, and 0.8 darkened the glacier toward the fighters, so 4 of 8
+   contrast rows fell; 1.25 keeps all 8. Both follow "light the play,
    not the backdrop" ([stage art](stage-art.md), CEDEC 2019): fighters must
    neither dominate nor vanish.
 
@@ -274,7 +274,7 @@ both modes; the three stock skies preserve their stock animation.
 | Stage | Key / fill RGB; intensity | Sky | Distance fog start–end; RGB |
 | --- | --- | --- | --- |
 | Sky Deck | 255,255,255 / 214,214,250; 1 | Original neutral sky | 6,000–12,000; 0.6875,0.8125,0.9375 |
-| Frozen Throne | 226,240,255 / 150,172,220; 0.8 | Original glacier sky | 5,000–11,000; 0.375,0.625,0.875 |
+| Frozen Throne | 226,240,255 / 150,172,220; 1.25 | Original glacier sky | 5,000–11,000; 0.375,0.625,0.875 |
 | Nordrassil | 236,246,232 / 136,178,172; 1 | Stock FelwoodSky aurora | 5,500–11,000; 0.25,0.5,0.375 |
 | Gryphon Aerie | 255,248,226 / 164,182,220; 0.2 | Original mountain sky | 5,500–11,500; 0.25,0.375,0.5 |
 | Durotar Skies | 255,226,180 / 190,152,134; 0.3 | Original dusty sky | 5,000–11,000; 0.75,0.5,0.25 |

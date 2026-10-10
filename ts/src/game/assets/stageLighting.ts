@@ -25,7 +25,7 @@ export const STAGE_LIGHTS: readonly { readonly stage: number; readonly theme: st
   { stage: 0, theme: "Sky", light: { key: [255, 255, 255], ambient: [214, 214, 250] } },
 
 
-  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220], intensity: 0.800000011920929 } },
+  { stage: FROZEN_THRONE_STAGE, theme: "Icecrown", light: { key: [226, 240, 255], ambient: [150, 172, 220], intensity: 1.25 } },
 
   { stage: WIND_TEST_STAGE, theme: "Nordrassil", light: { key: [236, 246, 240], ambient: [150, 178, 190], intensity: 1.25 } },
 
