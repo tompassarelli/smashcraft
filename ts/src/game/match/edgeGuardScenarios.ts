@@ -9,6 +9,7 @@ import { type Controls, createRoster, neutralControls, copyControls } from "../s
 import { mainDeckRight } from "../sim/stage";
 import { squareRoot } from "../sim/warcraftMath";
 import { produceComputerInput } from "./botPlay";
+import { forwardAirTool } from "./botEdgeGuard";
 import { createFrameControls } from "./controls";
 import type { CpuOpponentId, CpuTier } from "./cpuProfiles";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "./frameInput";
@@ -30,7 +31,7 @@ export const EdgeGuardTool = { downAir: 0, forwardAir: 1 } as const;
 export type EdgeGuardTool = (typeof EdgeGuardTool)[keyof typeof EdgeGuardTool];
 
 export function edgeGuardTool(character: Character): EdgeGuardTool {
-  return character === Character.anubarak || character === Character.jaina ? EdgeGuardTool.forwardAir : EdgeGuardTool.downAir;
+  return forwardAirTool(character) ? EdgeGuardTool.forwardAir : EdgeGuardTool.downAir;
 }
 
 export interface EdgeGuardScenario {

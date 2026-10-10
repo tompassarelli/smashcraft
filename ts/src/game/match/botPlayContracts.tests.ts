@@ -67,9 +67,13 @@ test("computerChasesToTheEdgeWithoutLeavingTheStage [spec #56]", () => {
       const edge = side < 0 ? surfaceLeft(0, 0, 0) : surfaceRight(0, 0, 0);
       const game = computerMatch([Character.rifleman, character], [edge - side * 10.0, -side * 200.0], 0, 2);
       const computer = fighterAt(game.world, 1);
+      const opponent = fighterAt(game.world, 0);
+      // Once the opponent is knocked off the deck, edge-guarding it from off stage is play (#387), not a chase.
+      let opponentOff = false;
       for (let frame = 1; frame <= 480; frame++) {
         game.step();
-        assertTrue(computer.motion.grounded || (computer.motion.x >= surfaceLeft(0, 0, 0) && computer.motion.x <= surfaceRight(0, 0, 0)));
+        opponentOff = opponentOff || !opponent.motion.grounded && (opponent.motion.x < surfaceLeft(0, 0, 0) || opponent.motion.x > surfaceRight(0, 0, 0));
+        assertTrue(opponentOff || computer.motion.grounded || (computer.motion.x >= surfaceLeft(0, 0, 0) && computer.motion.x <= surfaceRight(0, 0, 0)));
       }
       assertEquals(computer.status.stocks, 3);
       assertGreaterThan(fighterAt(game.world, 0).visuals.hit, 0);

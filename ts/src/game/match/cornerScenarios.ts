@@ -44,7 +44,7 @@ export interface CornerOutcome {
   readonly cornered: number;
 }
 
-const inLag = (f: Fighter): boolean => f.landing.lag > 0 || attackPhase(f) === AttackPhase.recovery;
+export const inLag = (f: Readonly<Fighter>): boolean => f.landing.lag > 0 || attackPhase(f) === AttackPhase.recovery;
 
 /** Situation `seed`: identities and side vary with the seed; slot 0 starts cornered. */
 export function playCorner(seed: number, opponent: CpuOpponentId, tier: CpuTier): CornerOutcome {

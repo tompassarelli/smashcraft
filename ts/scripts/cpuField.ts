@@ -22,6 +22,9 @@ import { MATCH_TICKS_PER_SECOND, Phase, createMatchState, setParticipants } from
 import { initializeMatchFighters, matchSpawnX } from "../src/game/match/step";
 import { scheduleMeterDrops } from "../src/game/match/meterDrops";
 import { produceComputerInput } from "../src/game/match/botPlay";
+import { CORNER_BAND, cornered, insideLip } from "../src/game/match/botCorner";
+import { recoveringBelow } from "../src/game/match/botEdgeGuard";
+import { inLag } from "../src/game/match/cornerScenarios";
 import { isCpuOpponent, isCpuTier, type CpuOpponentId, type CpuTier } from "../src/game/match/cpuProfiles";
 import { gameplanOf } from "../src/game/match/botGameplan";
 import type { CpuSkill } from "../src/game/match/cpuSkill";
@@ -118,7 +121,20 @@ interface SideRecord {
   approachFrames: number;
   retreatFrames: number;
   readonly punishes: PunishTotals;
+  /** Corner and edge play (#386, #387): lags ended by sliding off a main-deck lip, corners entered and left to the centre unhit, hits on an opponent recovering below the deck, those landed from off stage, and stocks they took. */
+  readonly edges: EdgePlay;
 }
+
+export interface EdgePlay {
+  edgeCancels: number;
+  corners: number;
+  cornerEscapes: number;
+  edgeGuardHits: number;
+  offstageHits: number;
+  edgeGuardKills: number;
+}
+
+const emptyEdgePlay = (): EdgePlay => ({ edgeCancels: 0, corners: 0, cornerEscapes: 0, edgeGuardHits: 0, offstageHits: 0, edgeGuardKills: 0 });
 
 
 
@@ -235,6 +251,11 @@ interface Watch {
   punish: Punish | undefined;
 
   stockFirstHit: boolean;
+  grounded: boolean;
+  lagging: boolean;
+  cornered: boolean;
+  recovering: boolean;
+  edgeGuarded: boolean;
 }
 
 interface Punish {
@@ -252,6 +273,7 @@ interface Punish {
 
 const watchOf = (f: Readonly<Fighter>): Watch => ({
   serial: f.attack.serial, special: f.special.action, specialFrame: f.special.frame, specialForm: f.special.form, mana: f.mana.points, denied: f.visuals.manaDenied, hits: f.visuals.hit, damage: f.status.damage, out: f.status.out, lastHit: undefined, lastSafe: undefined, lastStarted: undefined, lastHitMove: undefined, punish: undefined, stockFirstHit: true,
+  grounded: f.motion.grounded, lagging: false, cornered: false, recovering: false, edgeGuarded: false,
 });
 
 
@@ -335,7 +357,7 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   initializeMatchFighters(match, world);
   const side = (character: Character): SideRecord => ({
     fighter: fighterSlug(character), moves: {}, hitsLanded: 0, damageDealt: 0, manaSpent: 0, specialsStarted: 0, specialsRefused: 0, stocksPlayed: 0, stockLosses: [],
-    damageByMove: {}, kosByMove: {}, rangedDamage: 0, approachFrames: 0, retreatFrames: 0, punishes: emptyPunishes(),
+    damageByMove: {}, kosByMove: {}, rangedDamage: 0, approachFrames: 0, retreatFrames: 0, punishes: emptyPunishes(), edges: emptyEdgePlay(),
   });
   const spam = [options.spam?.[fighterSlug(a)], options.spam?.[fighterSlug(b)]] as const;
   const sides: [SideRecord, SideRecord] = [side(a), side(b)];
@@ -414,7 +436,18 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       if (hit && other !== undefined) {
         other.hitsLanded++;
         seen.lastHit = frame;
+        if (seen.recovering) {
+          other.edges.edgeGuardHits++;
+          seen.edgeGuarded = true;
+          if (!opponent.motion.grounded && insideLip(stage, opponent.motion.x) < 0.0) other.edges.offstageHits++;
+        }
       }
+      const lagging = inLag(f);
+      if (seen.grounded && !f.motion.grounded && seen.lagging && !lagging && f.launch.hitstun <= 0 && !f.special.fall && insideLip(stage, f.motion.x) < 0.0) own.edges.edgeCancels++;
+      const inCorner = !f.status.out && cornered(f, opponent, stage);
+      if (inCorner && !seen.cornered) own.edges.corners++;
+      if (seen.cornered && !inCorner && !hit && !f.status.out && insideLip(stage, f.motion.x) > CORNER_BAND) own.edges.cornerEscapes++;
+      seen.cornered = inCorner && !hit;
       if ((hit || dealt > 0) && other !== undefined) {
         const striking = strikingMove(opponent);
         const move = striking ?? opponentSeen.lastStarted;
@@ -450,11 +483,16 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
 
       if (seen.punish !== undefined && (f.down.state !== DownState.none || f.ledge.state !== LedgeState.none || f.motion.x < mainDeckLeft(stage) || f.motion.x > mainDeckRight(stage) || f.motion.z < 0.0)) seen.punish.disadvantage = true;
 
-      if (!f.status.out && f.launch.hitlag <= 0 && f.launch.hitstun <= 0 && (f.motion.grounded || f.ledge.state !== LedgeState.none)) seen.lastSafe = frame;
+      if (!f.status.out && f.launch.hitlag <= 0 && f.launch.hitstun <= 0 && (f.motion.grounded || f.ledge.state !== LedgeState.none)) {
+        seen.lastSafe = frame;
+        seen.edgeGuarded = false;
+      }
       if (f.status.out && !seen.out) {
         const selfDestruct = seen.lastHit === undefined || (seen.lastSafe !== undefined && seen.lastHit < seen.lastSafe);
         own.stockLosses.push({ frame, sinceHit: seen.lastHit === undefined ? undefined : frame - seen.lastHit, selfDestruct });
         if (!selfDestruct && other !== undefined && seen.lastHitMove !== undefined) other.kosByMove[seen.lastHitMove] = (other.kosByMove[seen.lastHitMove] ?? 0) + 1;
+        if (!selfDestruct && other !== undefined && seen.edgeGuarded) other.edges.edgeGuardKills++;
+        seen.edgeGuarded = false;
         if (seen.punish !== undefined && other !== undefined) closePunish(other.punishes, seen.punish, !selfDestruct, strings, slot, frame);
         seen.punish = undefined;
         seen.stockFirstHit = true;
@@ -470,6 +508,9 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       seen.hits = f.visuals.hit;
       seen.damage = f.status.damage;
       seen.out = f.status.out;
+      seen.grounded = f.motion.grounded;
+      seen.lagging = lagging;
+      seen.recovering = recoveringBelow(f, stage);
     }
   }
   for (const slot of [0, 1] as const) {
@@ -883,6 +924,29 @@ function summarizeField(records: readonly MatchRecord[]): FighterSummary[] {
 
 const percent = (value: number) => (Number.isNaN(value) ? "-" : `${(100 * value).toFixed(0)}%`);
 
+/** Corner and edge play per computer tier, per side-match: the #386 and #387 measures. */
+export function edgePlayLines(records: readonly MatchRecord[]): string[] {
+  const tiers = new Map<string, { sides: number; minutes: number; play: EdgePlay }>();
+  for (const record of records) for (const slot of [0, 1] as const) {
+    const tier = record.tiers[slot];
+    const row = tiers.get(tier) ?? { sides: 0, minutes: 0, play: emptyEdgePlay() };
+    const edges = record.sides[slot].edges;
+    row.sides++;
+    row.minutes += record.frames / MATCH_TICKS_PER_SECOND / 60;
+    row.play.edgeCancels += edges.edgeCancels;
+    row.play.corners += edges.corners;
+    row.play.cornerEscapes += edges.cornerEscapes;
+    row.play.edgeGuardHits += edges.edgeGuardHits;
+    row.play.offstageHits += edges.offstageHits;
+    row.play.edgeGuardKills += edges.edgeGuardKills;
+    tiers.set(tier, row);
+  }
+  return [...tiers].map(([tier, { sides, minutes, play }]) => {
+    const per = (n: number) => (n / sides).toFixed(2);
+    return `Corner and edge play, ${tier} (${sides} sides, ${minutes.toFixed(0)} min): ${per(play.edgeCancels)} edge cancels, ${per(play.corners)} corners with ${play.corners === 0 ? "-" : `${Math.round(100 * play.cornerEscapes / play.corners)}%`} escaped to the centre unhit, ${per(play.edgeGuardHits)} edge-guard hits (${per(play.offstageHits)} from off stage) and ${per(play.edgeGuardKills)} edge-guard kills a side.`;
+  });
+}
+
 function fieldTable(summaries: readonly FighterSummary[], records: readonly MatchRecord[]): string {
   const lines = [
     "| Fighter | Matches | Wins | Losses | Ties | Time-outs | Win rate vs field | Stock losses | Self-destructs (share) | Lost over 3 s after a hit (share) | Damage per hit | Mana spent per stock | Specials refused for mana (share of presses) | Top moves (share of moves started) |",
@@ -1122,6 +1186,8 @@ if (import.meta.main) {
   console.log(`${records.length} computer matches (${options.stocks} stocks, ${options.minutes}-minute clock, ${options.perPair === undefined ? `${options.variants} spawn variant(s) of ${options.seeds} seed(s) per ordered pair and stage` : `spawn variants and ${options.seeds} seed(s) each until each pair has ${options.perPair} matches`}, computer tiers ${(options.tiers ?? ["expert", "expert"]).join(" and ")}), ${((performance.now() - started) / 1000).toFixed(0)} s; win rate over decisive matches; a self-destruct is a stock lost with no hit taken since the fighter last stood on a deck or held the ledge; the fall-time column counts stocks lost over ${NO_HIT_FRAMES / MATCH_TICKS_PER_SECOND} s after the last hit.`);
   console.log("");
   console.log(fieldTable(summaries, records));
+  console.log(edgePlayLines(records).join("\n"));
+  console.log("");
   console.log(balanceTables(summaries, probeResults(values.probe?.split(",").filter(Boolean) ?? []), readProfiles()));
   if (values.json !== undefined) writeFileSync(values.json, `${JSON.stringify({ options, summaries, records }, null, 1)}\n`);
 }

@@ -27,6 +27,7 @@ import { burnedMove, keepClearOfBurn } from "./botBurn";
 import { choosePunish } from "./botPunish";
 import { TRAP_ATTACK, TRAP_NONE, chooseLedgeTrap } from "./botLedgeTrap";
 import { chooseRecoveryInput } from "./botRecovery";
+import { guardOffstage, waitAtLip } from "./botEdgeGuard";
 import { escapeCorner, pokeGoal, pressCorner, pressEdgeCancel, steerEdgeCancel } from "./botCorner";
 import { pressHeroFollowUp } from "./botHeroKit";
 import { dashIn, pressKitOption, pressUltimate, steerHeroBranches, steerRunningSpecial } from "./botKitOptions";
@@ -331,10 +332,12 @@ function decide(game: Readonly<MatchState>, world: Roster, runtime: BotRuntime, 
     return;
   }
   if (skill.basicMoves === undefined && target !== undefined && (steerHeroBranches(fighter, target, skill, input) || pressHeroFollowUp(fighter, target, stage, input))) return;
+  if (skill.basicMoves === undefined && target !== undefined && !game.training && guardOffstage(fighter, target, stage, skill, slot, frame, observationAge, input, commands)) return;
   const recovering = chooseRecoveryInput(fighter, stage, stageFrame, input, target, skill);
   if (steerRunningSpecial(fighter, target, stage, skill, input) || recovering) return;
   if (isSmashAttack(fighter.attack.style) && fighter.attack.smashChargeAllowed) input.attackHeld = fighter.attack.smashChargeFrames < smashChargeGoal(fighter);
   if (target === undefined) return;
+  if (skill.basicMoves === undefined && !game.training && waitAtLip(fighter, target, stage, skill, slot, frame, input)) return;
   if (chooseDefense(fighter, target, stage, input, skill, observationAge)) return;
   const burned = burnedMove(runtime.botStrategies[slot], target, frame, observationAge);
   // An opponent that can't act yet is punished before any pause or idle stretch.

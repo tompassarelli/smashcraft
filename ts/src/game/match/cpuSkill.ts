@@ -45,6 +45,8 @@ export interface CpuSkill {
   readonly platformCancels: boolean;
   /** Whether it edge-cancels toward a cornered opponent, presses the corner and escapes one by a readable option (botCorner.ts); below, it plays the corner as neutral. */
   readonly cornerPlay: boolean;
+  /** Moments, in tenths, it meets an opponent recovering below the deck with its edge-guard tool (botEdgeGuard.ts); 0 never leaves the stage to guard. */
+  readonly edgeGuardTenths: number;
   /** Frames it overestimates a punish window by, so a slow move it throws may come out after the opponent can act. */
   readonly punishMisjudge: number;
   readonly contestTenths: number;
@@ -69,6 +71,7 @@ function mechanics(profile: CpuProfile): CpuSkill {
     punishMisjudge: floorDiv(100 - profile.spacingPercent, 5),
     platformCancels: profile.tier === "advanced" || profile.tier === "expert",
     cornerPlay: profile.tier === "advanced" || profile.tier === "expert",
+    edgeGuardTenths: profile.tier === "expert" ? 8 : profile.tier === "advanced" ? 5 : 0,
     contestTenths: floorDiv(profile.judgmentPercent + 9, 10), contestDelay: profile.reactionFrames,
   };
 }

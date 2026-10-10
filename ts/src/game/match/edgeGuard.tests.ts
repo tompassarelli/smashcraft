@@ -58,6 +58,15 @@ for (const victim of SELECTABLE_CHARACTERS) {
   });
 }
 
+test("Wren Shadow Hunter at Advanced and Expert goes off stage and kills Rifleman's predictable recovery at 40% during its up special; at Intermediate it stays home [spec #387]", () => {
+  for (const tier of ["advanced", "expert"] as const) {
+    const outcome = guardedReturn(Character.rifleman, Character.shadowHunter, 0, tier, PREDICTABLE);
+    check(outcome.killed && outcome.hitFrame >= PREDICTABLE.wait, `${tier} kills, hit frame ${outcome.hitFrame}`);
+  }
+  const home = guardedReturn(Character.rifleman, Character.shadowHunter, 0, "intermediate", PREDICTABLE);
+  check(home.recovered && home.hitFrame < 0, "Intermediate leaves the recovery alone");
+});
+
 test("Mountain King's mixed recovery returns at least half the time against three Wren Expert edge-guarders [spec #387]", () => {
   const guarders = [Character.mountainKing, Character.warden, Character.jaina] as const;
   check(mixedReturns(Character.mountainKing, guarders) * 2 >= guarders.length * MIXED_PLANS.length, "Mountain King mixed returns");
