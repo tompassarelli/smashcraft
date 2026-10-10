@@ -113,9 +113,10 @@ export const PROJECTILE_DRAW_CUES: { readonly [model: string]: { readonly scale:
   "Abilities\\Weapons\\FlyingMachine\\FlyingMachineMissile.mdx": { scale: 1.0, birth: { eachFrame: false } },
 };
 
-export const PROJECTILE_DRAW_OFFSETS: { readonly [model: string]: { readonly x: number; readonly z: number; readonly sequence?: string | undefined; readonly seconds?: number | undefined; readonly width?: number | undefined; readonly height?: number | undefined } | undefined } = {
+export const PROJECTILE_DRAW_OFFSETS: { readonly [model: string]: { readonly x: number; readonly z: number; readonly sequence?: string | undefined; readonly seconds?: number | undefined; readonly width?: number | undefined; readonly height?: number | undefined; readonly fill?: readonly { readonly x: number; readonly z: number }[] | undefined } | undefined } = {
   "Abilities\\Spells\\Other\\CrushingWave\\CrushingWaveMissile.mdx": { x: -20.0, z: -33.0, sequence: "stand", seconds: f32(0.2), width: f32(0.75), height: 2.0 },
   "Abilities\\Spells\\Human\\ManaFlare\\ManaFlareMissile.mdx": { x: 0.0, z: 0.0, sequence: "birth", seconds: f32(0.2) },
+  "Abilities\\Spells\\Undead\\Impale\\ImpaleHitTarget.mdx": { x: 0.0, z: -25.0, width: 1.5, height: 1.25, fill: [{ x: f32(-4.0 / 9.0), z: f32(-4.0 / 9.0) }, { x: f32(-4.0 / 9.0), z: f32(4.0 / 9.0) }, { x: f32(4.0 / 9.0), z: f32(-4.0 / 9.0) }, { x: f32(4.0 / 9.0), z: f32(4.0 / 9.0) }] },
 };
 
 
