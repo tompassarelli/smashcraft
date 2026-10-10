@@ -45,6 +45,13 @@ function releaseFocus(frame: framehandle, clicker: player): void {
   BlzFrameSetFocus(frame, false);
 }
 
+export function highlightText(frame: framehandle, highlighted: boolean): void {
+  const text = BlzFrameGetText(frame);
+  const plain = text.startsWith("|cffffcc00") && text.endsWith("|r") ? text.slice(10, -2) : text;
+  const colored = highlighted && plain !== "" ? `|cffffcc00${plain}|r` : plain;
+  if (colored !== text) BlzFrameSetText(frame, colored);
+}
+
 interface Button<T> {
   readonly id: number;
   readonly frame: framehandle;
@@ -77,9 +84,9 @@ export class ButtonClicks<T> {
         const event = BlzGetTriggerFrameEvent();
         if (event !== FRAMEEVENT_CONTROL_CLICK) {
           if (GetLocalPlayer() !== clicker) return;
-          if (this.hovered !== undefined) BlzFrameSetTextColor(this.hovered.frame, -1);
+          if (this.hovered !== undefined) highlightText(this.hovered.frame, false);
           this.hovered = event === FRAMEEVENT_MOUSE_ENTER ? button : undefined;
-          if (this.hovered !== undefined) BlzFrameSetTextColor(button.frame, -13312);
+          this.refreshHover();
           this.hover?.(this.hovered?.target, clicker);
           return;
         }
@@ -96,6 +103,10 @@ export class ButtonClicks<T> {
     BlzTriggerRegisterFrameEvent(this.trigger, frame, FRAMEEVENT_MOUSE_LEAVE);
     this.buttons.push({ id: GetHandleId(frame), frame, target });
     return frame;
+  }
+
+  refreshHover(): void {
+    if (this.hovered !== undefined) highlightText(this.hovered.frame, true);
   }
 
   destroy(): void {

@@ -12,7 +12,7 @@ import { pointerX, pointerY } from "../menu/pointer";
 import { type StageChoice, clearStageDrag, stageDrag, stageTileLeft, stageTileTop, updateStageDrag } from "../menu/stageSelection";
 import { RANDOM_STAGE, STAGE_CATALOG, STAGE_CHOICES, selectableStageChoice, stageInfo } from "../menu/stageCatalog";
 import { dropsSetting, hazardsSetting, rulesSummary } from "../shell/messages";
-import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, placeTopLeft } from "./frames";
+import { ButtonClicks, type MenuControls, bindSyncHandler, consoleUi, coverScreen, createBackdrop, createSyncTrigger, createText, gameUi, highlightText, placeTopLeft } from "./frames";
 import { MENU_FONT, PANEL_TEXTURE } from "./hudLayout";
 import { StageCard } from "./stageCard";
 
@@ -172,7 +172,7 @@ export class StagePanel {
   private highlightStage(choice: number | undefined): void {
     for (const stage of STAGE_CHOICES) {
       const name = this.tileNames[stage.id];
-      if (name !== undefined) BlzFrameSetTextColor(name, stage.id === choice ? -13312 : -1);
+      if (name !== undefined) highlightText(name, stage.id === choice);
     }
   }
 
@@ -239,6 +239,7 @@ export class StagePanel {
         BlzFrameSetEnable(frame, count > 1 || !stageInPool(pool, stage.id));
       }
       BlzFrameSetText(this.poolSummary, `${I2S(count)} ${count === 1 ? "stage" : "stages"} in the pool.\nEach plays once before the pool repeats.`);
+      this.clicks.refreshHover();
       return;
     }
     let x = stageTileLeft(game.stageChoice) + f32(0.047);
@@ -256,5 +257,6 @@ export class StagePanel {
       }
     }
     placeTopLeft(this.chip, x - f32(0.02), y + f32(0.02));
+    this.clicks.refreshHover();
   }
 }
