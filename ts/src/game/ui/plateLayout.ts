@@ -26,7 +26,7 @@ export const BUST_BOX: PlateBox = { x: -12, y: -96, width: 256, height: 256 };
 
 
 
-export const DAMAGE_BOX: PlateBox = { x: 150, y: -4, width: 300, height: 124 };
+export const DAMAGE_BOX: PlateBox = { x: 150, y: -4, width: 284, height: 124 };
 export const TENTHS_BOX: PlateBox = { x: 450, y: 34, width: 86, height: 70 };
 
 export const MANA_BOX: PlateBox = { x: 256, y: 120, width: 270, height: 16 };
@@ -38,7 +38,7 @@ export const SLOT_BOX: PlateBox = { x: 472, y: 148, width: 40, height: 30 };
 
 export const STOCK_ICON_PX = 64;
 export const STOCK_STEP_PX = 56;
-export const STOCK_ROW: PlateBox = { x: 244, y: -70, width: STOCK_ICON_PX, height: STOCK_ICON_PX };
+export const STOCK_ROW: PlateBox = { x: 244, y: -88, width: STOCK_ICON_PX, height: STOCK_ICON_PX };
 
 export const STOCK_ICONS_SHOWN = 5;
 

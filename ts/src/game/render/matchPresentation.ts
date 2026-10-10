@@ -101,10 +101,10 @@ export class MatchPresentation {
     BlzFrameSetSize(this.panel, f32(0.36), f32(0.05) + PARTICIPANT_CAPACITY * f32(0.04));
     BlzFrameSetEnable(this.panel, false);
     this.title = createText("MatchResultsTitle", this.panel, 0);
-    BlzFrameSetPoint(this.title, FRAMEPOINT_TOP, this.panel, FRAMEPOINT_TOP, 0.0, f32(-0.012));
+    BlzFrameSetPoint(this.title, FRAMEPOINT_TOPLEFT, this.panel, FRAMEPOINT_TOPLEFT, f32(0.018), f32(-0.012));
     BlzFrameSetSize(this.title, f32(0.33), f32(0.03));
     BlzFrameSetFont(this.title, MENU_FONT, f32(0.016), 0);
-    BlzFrameSetTextAlignment(this.title, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_CENTER);
+    BlzFrameSetTextAlignment(this.title, TEXT_JUSTIFY_TOP, TEXT_JUSTIFY_LEFT);
     const lines: framehandle[] = [];
     for (let index = 0; index < PARTICIPANT_CAPACITY; index++) {
       const line = createText(`MatchResultsLine${I2S(index)}`, this.panel, 0);
