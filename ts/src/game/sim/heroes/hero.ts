@@ -16,6 +16,7 @@ export interface NamedMove {
 export interface HeroClip {
   readonly index: number;
   readonly seconds: number;
+  readonly classicStartup?: { readonly index: number; readonly seconds: number } | undefined;
 
   readonly contact?: number | undefined;
 
