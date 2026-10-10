@@ -23,11 +23,12 @@ const compile = (config: string) => Effect.try({
 const run = (name: string, command: string, args: readonly string[]) => Effect.scoped(Effect.gen(function*() {
   const child = yield* ChildProcess.make(command, [...args], { cwd: tsDirectory, stdin: "ignore", stderr: "inherit" });
   const [output, code] = yield* Effect.all([Stream.mkString(Stream.decodeText(child.stdout)), child.exitCode], { concurrency: "unbounded" });
-  return { name, output, code };
+  return { name, output, problem: code === 0 && output.includes("done problems=0") ? undefined : `exited ${code}` };
 })).pipe(
-  Effect.catchTag("PlatformError", (cause) => Effect.fail(new HandleSoakFailure({ problem: `${name}: ${cause.message}` }))),
   Effect.provide(BunServices.layer),
   step(name),
+  // A run that dies (a signal, a lost process) still lets the others report.
+  Effect.catch((cause) => Effect.succeed({ name, output: "", problem: describeCause(cause) })),
 );
 
 // handleBaseline.ts's LOOKS and SOAK_MATCHES; that module is map code, so the host command restates them.
@@ -54,9 +55,9 @@ export const soakHandles: Command = (args) => Effect.gen(function*() {
     run(`${look} in 32-bit Lua, ${rematches}`, lua, [join(tsDirectory, "build/handles.lua"), integrity.bundlePath, declarations, look, String(matches)]),
   ]), { concurrency: "unbounded" });
   const failed: string[] = [];
-  for (const { name, output, code } of runs) {
+  for (const { name, output, problem } of runs) {
     yield* Console.log(`${name}:\n${output.trimEnd()}`);
-    if (code !== 0 || !output.includes("done problems=0")) failed.push(`${name} (exited ${code})`);
+    if (problem !== undefined) failed.push(`${name} (${problem})`);
   }
   if (failed.length > 0) return yield* new HandleSoakFailure({ problem: `live handles left their menu baseline: ${failed.join(", ")}` });
 });

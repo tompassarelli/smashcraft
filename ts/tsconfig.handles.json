@@ -9,6 +9,7 @@
     "scripts/wisp/handleBaselineLua.ts",
     "scripts/wisp/handleBaseline.ts",
     "scripts/wisp/handleCensus.ts",
+    "scripts/wisp/memoryCensus.ts",
     "scripts/wisp/botMatch.ts"
   ],
   "exclude": [],

@@ -5,6 +5,7 @@ import { SMASHCRAFT_NOOPS } from "./headlessNatives";
 import { gameOf } from "./botMatch";
 import { LOOKS, SOAK_MATCHES, handleLine, handleProblems, lookNatives, playHandleBaseline } from "./handleBaseline";
 import { SMASHCRAFT_LOCAL_NATIVES } from "./localNatives";
+import { compactEmulator } from "./memoryCensus";
 
 declare const arg: Readonly<Record<number, string | undefined>>;
 
@@ -18,9 +19,13 @@ const declarationsText = readFile(declarationsPath);
 const { functions } = parseNativeDeclarations(declarationsText);
 const reads: number[] = [];
 const clients = luaLockstep({ filePrefix: "smashcraft", localNatives: SMASHCRAFT_LOCAL_NATIVES, intentionalNoops: SMASHCRAFT_NOOPS, natives: lookNatives(chosen, reads) }, readFile(bundlePath), declarationsText, undefined, syncDelivery(MEASURED_BATTLE_NET, 7));
-const run = playHandleBaseline(clients, functions, matches, gameOf);
+// compactEmulator hands back and clears each client's errors so far.
+const errors: string[] = [];
+const run = playHandleBaseline(clients, functions, matches, gameOf, (client, released) => {
+  for (const error of compactEmulator(client, released)) errors.push(`p${client.slot + 1}: ${error}`);
+});
 const slots = clients.clients.map((client) => client.slot);
-const problems = handleProblems(run, slots);
+const problems = [...handleProblems(run, slots), ...errors];
 clients.clients.forEach((client, index) => {
   const p = `p${client.slot + 1}`;
   if ((reads[client.slot] ?? 0) === 0) problems.push(`${p} never read its graphics mode`);

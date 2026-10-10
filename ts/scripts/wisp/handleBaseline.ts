@@ -85,9 +85,11 @@ export function handleProblems(baseline: HandleBaseline, slots: readonly number[
 
 /**
  * Plays `matches` four-computer matches on one stage from fighter selection and back, counting every client's
- * live handles of each kind before the first and after each. `gameOf` reads a client's shell game state.
+ * live handles of each kind before the first and after each. `gameOf` reads a client's shell game state;
+ * `compact`, after each count, drops what the emulator keeps of each client's released handles and calls so
+ * a long run's memory stays flat.
  */
-export function playHandleBaseline(clients: Lockstep, functions: readonly (readonly [string, string, number])[], matches: number, gameOf: (this: void, client: HeadlessClient) => Game): HandleBaseline {
+export function playHandleBaseline(clients: Lockstep, functions: readonly (readonly [string, string, number])[], matches: number, gameOf: (this: void, client: HeadlessClient) => Game, compact?: (this: void, client: HeadlessClient, released: ReadonlySet<number>) => void): HandleBaseline {
   const censuses = clients.clients.map(client => new HandleCensus(client, functions));
   const host = clients.client(0);
   const live = () => censuses.map(census => census.counts());
@@ -133,6 +135,10 @@ export function playHandleBaseline(clients: Lockstep, functions: readonly (reado
     });
     clients.frames(60);
     afterMatches.push(live());
+    if (compact !== undefined) clients.clients.forEach((client, index) => {
+      const census = censuses[index];
+      if (census !== undefined) compact(client, census.takeReleased());
+    });
   }
   return { cold, afterMatches };
 }
