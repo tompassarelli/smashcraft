@@ -4,7 +4,7 @@ import { cosineTurns, sineTurns } from "../sim/mathTables";
 import { PATTERNED_DECKS_STAGE } from "../sim/stage";
 import type { SceneryPiece, StageScenery } from "./stageScenery";
 
-export const FOG_START_MINIMUM = 5000;
+export const FOG_START_MINIMUM = 3300;
 
 export function fogProblems(name: string, { fog, heightFog }: Pick<StageScenery, "fog" | "heightFog">): readonly string[] {
   const problems: string[] = [];
