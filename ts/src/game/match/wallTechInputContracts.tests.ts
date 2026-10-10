@@ -471,7 +471,7 @@ function stageWallOutcomes(stage: number): readonly [string, string, string] {
 test("on every stage, a launch into its side bounces off it, a trigger wall techs and up adds the wall-tech jump [spec #338]", () => {
   const failures = STAGE_CATALOG.flatMap(({ id, name }) => {
     const [bounce, tech, jump] = stageWallOutcomes(id);
-    return bounce === "" && tech === "" && jump === "" ? [] : [`${name}: bounce ${bounce || "ok"}, tech ${tech || "ok"}, tech jump ${jump || "ok"}`];
+    return bounce === "" && tech === "" && jump === "" ? [] : [`${name}: bounce ${bounce === "" ? "ok" : bounce}, tech ${tech === "" ? "ok" : tech}, tech jump ${jump === "" ? "ok" : jump}`];
   });
   assertEquals(failures.join("; "), "");
 });
