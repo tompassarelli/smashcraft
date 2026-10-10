@@ -12,8 +12,8 @@ import { type Roster, fighterAt, isActive } from "./roster";
 import { mainDeckLeft, mainDeckRight, mainDeckZAt, surfaceZAt } from "./stage";
 import { cancelAttack, cancelSpecialState, clearDownState, clearGrabLinks, clearLedge, clearOwnedFreezeTrap } from "./transitions";
 
-export const RIFLEMAN_BEAR_LIFETIME = 150;
-const RIFLEMAN_BEAR_SWIPE_INTERVAL = 14;
+export const RIFLEMAN_BEAR_LIFETIME = 100;
+const RIFLEMAN_BEAR_SWIPE_INTERVAL = 18;
 const FREEZE_TRAP_ARMING_FRAMES = 20;
 const FREEZE_TRAP_LIFETIME_FRAMES = 480;
 
