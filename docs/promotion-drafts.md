@@ -14,6 +14,24 @@ This is the first public version; it's early, expect rough edges, tell us what f
 
 **Install:** requires Warcraft III 3.0. Download the attached `Smashcraft 0.1.0.w3x`, put it in your Warcraft III Maps folder, and open it through Custom Games. Start with Training to learn the controls, or select computer opponents for a match. [Release downloads](https://github.com/tompassarelli/smashcraft/releases).
 
+**How to use a controller:** install and start the optional [Smashcraft controller helper](https://github.com/tompassarelli/wc3-controller), connect your pad, and open the map through Custom Games. Before a match, press F1, choose **QWERTY** and Save so the helper's keys match the map, including both triggers. Keep the Warcraft window focused. The helper starts with **Melee**; choose **Tom** on the companion's Controller page if you prefer that layout. These are Xbox button labels, with no custom remaps:
+
+| Control | Melee (default) | Tom |
+| --- | --- | --- |
+| A | Attack | Attack |
+| B | Special | Grab |
+| X | Jump | Special |
+| Y | Jump | Jump |
+| LB | Unbound | Short hop, even when held |
+| RB | Grab | Meter: hold with X for an EX special |
+| LT (left trigger) | Shield / air-dodge | Shield / air-dodge |
+| RT (right trigger) | Shield / air-dodge | Shield / air-dodge |
+| Left stick | Move; up aims, down crouches / fast-falls / drops through platforms | Same |
+| Right stick | Directional smash attacks on the ground; aerial attacks in the air | Directional tilts on the ground; aerial attacks in the air |
+| Start | Confirm selections; pause / resume | Same |
+
+Tap a jump button for a short hop or hold it for a full hop. Stick-up does not jump unless you enable Tap jump. In fighter and stage menus, the left stick moves the pointer, A chooses, B goes back and Start confirms. Start with Training and try each trigger separately; either one shields on the ground and air-dodges in the air.
+
 **Known issues:** the guide documents unreliable Ctrl+R restarting and a past F5 hang when returning to the menu. Use New Match after a result; to leave, use Warcraft's ordinary Quit Mission and recreate the custom game. Follow [open reports](https://github.com/tompassarelli/smashcraft/issues) for current problems and workarounds.
 
 ## Discord announcement
