@@ -103,7 +103,7 @@ export function writeMatchMeterDrops(drops: Readonly<MatchMeterDrops>, int: (nam
   int("match.drops.lastTaker", drops.lastTaker);
 }
 
-const POINTS_BY_STAGE: Record<number, DropPoint[] | undefined> = {};
+const POINTS_BY_STAGE: Record<number, readonly DropPoint[] | undefined> = {};
 
 export function meterDropPoints(stage: number): readonly DropPoint[] {
   const cached = POINTS_BY_STAGE[stage];
@@ -116,12 +116,6 @@ export function meterDropPoints(stage: number): readonly DropPoint[] {
   }
   POINTS_BY_STAGE[stage] = points;
   return points;
-}
-
-/** The stage's cached point list itself, which only field drop variants (scripts/dropVariants.ts) rewrite. */
-export function editableMeterDropPoints(stage: number): DropPoint[] {
-  meterDropPoints(stage);
-  return POINTS_BY_STAGE[stage] ?? [];
 }
 
 export const meterDropPoint = (stage: number, index: number): DropPoint => at(meterDropPoints(stage), index);

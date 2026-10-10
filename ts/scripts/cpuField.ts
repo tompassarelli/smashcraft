@@ -34,8 +34,6 @@ import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 import soak from "./wisp/soak";
 import { admitsThroughHelper, runAdmitted } from "./heavyCapacity";
 import { spamOnly } from "./spamPolicy";
-import { campInput, campOf } from "./campPolicy";
-import { type DropVariant, advanceDropVariant, endDropVariant, startDropVariant } from "./dropVariants";
 import baseline from "./balanceBaseline.json";
 import { currentKit, currentComputerCode } from "./balanceKit";
 import { currentFeel } from "./balanceFeel";
@@ -167,8 +165,6 @@ export interface MatchRecord {
   readonly apartOnStageFrames: number;
   readonly bothInFrames: number;
   readonly dropsTaken: readonly [number, number];
-  /** Frames each side spent camping under FieldOptions.camp. */
-  readonly campFrames: readonly [number, number];
   readonly ended?: boolean;
   readonly checksums?: readonly (readonly [number, string])[];
   readonly strings?: readonly ZeroToDeath[];
@@ -206,10 +202,6 @@ export interface FieldOptions {
   readonly frameCap?: number;
 
   readonly checksumEvery?: number;
-  /** A field-only change to the drops (dropVariants.ts); the shipped rule when absent. */
-  readonly dropVariant?: DropVariant;
-  /** The fighter ahead on stocks camps (campPolicy.ts). */
-  readonly camp?: boolean;
 }
 
 interface Watch {
@@ -322,7 +314,6 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
   match.phase = Phase.match;
   match.drops.on = options.drops === true;
   scheduleMeterDrops(match);
-  const dropRule = options.dropVariant === undefined || !match.drops.on ? undefined : startDropVariant(options.dropVariant, match);
   const world = createRoster(3, [createFighter(a, xs[0], 1), createFighter(b, xs[1], -1)]);
   const controls = createFrameControls();
   const produced = createFrameControls();
@@ -352,7 +343,6 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     captureReplaySnapshot(snapshot, world, match, controls, runtime);
     checksums.push([at, stateChecksum(snapshot)]);
   };
-  const camps = options.camp === true ? [campOf(seed, 0, a), campOf(seed, 1, b)] as const : undefined;
   let frame = 0;
   while (match.phase === Phase.match && frame < limit) {
     frame = runtime.simulationFrame + 1;
@@ -362,11 +352,9 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       if (slot === 0 || slot === 1) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot], options.skills?.[slot]);
       const only = slot === 0 || slot === 1 ? spam[slot] : undefined;
       if (only !== undefined) spamOnly(fighterAt(world, slot), fighterAt(world, 1 - slot), only, stage, frame, produced.inputs[slot], produced.commands[slot]);
-      if (camps !== undefined && (slot === 0 || slot === 1)) campInput(camps[slot], fighterAt(world, slot), fighterAt(world, 1 - slot), stage, frame, produced.inputs[slot], produced.commands[slot]);
     }
     if (!captureFrame(row, frame, world.mask, produced, runtime)) throw new Error(`capture refused frame ${frame}`);
     if (!executeMatchFrame(row, match, world, controls, runtime, frame)) throw new Error(`execution refused frame ${frame}`);
-    if (dropRule !== undefined) advanceDropVariant(dropRule, match, world);
     if (match.drops.pickupSerial !== pickups) {
       pickups = match.drops.pickupSerial;
       if (match.drops.lastTaker === 0 || match.drops.lastTaker === 1) takes[match.drops.lastTaker]++;
@@ -468,12 +456,11 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
     if (open !== undefined) closePunish(sides[slot === 0 ? 1 : 0].punishes, open, false);
   }
   if (checksumEvery > 0) checksumNow(frame);
-  if (dropRule !== undefined) endDropVariant(dropRule, match);
   for (const slot of [0, 1] as const) sides[slot].stocksPlayed = sides[slot].stockLosses.length + (fighterAt(world, slot).status.stocks > 0 ? 1 : 0);
   return {
     stage: stageName, variant, seed, opponents, tiers, skillOverrides: options.skills, fighters: [sides[0].fighter, sides[1].fighter],
     winner: match.winner === 0 || match.winner === 1 ? match.winner : null, timedOut: match.timedOut, frames: frame, sides,
-    apartFrames, apartOnStageFrames, bothInFrames, dropsTaken: takes, campFrames: camps === undefined ? [0, 0] : [camps[0].frames, camps[1].frames],
+    apartFrames, apartOnStageFrames, bothInFrames, dropsTaken: takes,
     ended: match.phase !== Phase.match, ...(checksumEvery > 0 ? { checksums } : {}), strings,
   };
 }
