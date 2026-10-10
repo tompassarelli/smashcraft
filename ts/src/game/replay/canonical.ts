@@ -18,12 +18,13 @@ import { HERO_STATUS_GROUPS } from "../sim/codes";
 import { writeMatchItems } from "../match/items";
 import { writeMatchMeterDrops } from "../match/meterDrops";
 import { PROJECTILE_CAPACITY, type Fighter } from "../sim/fighter";
-import { fighterAt, isActive } from "../sim/roster";
+import { CONTROL_FIELDS, fighterAt, isActive } from "../sim/roster";
 import { writeTrainingState } from "../match/trainingState";
 import { writeConfiguredRun } from "../classic/runState";
 import { CPU_OPPONENT_CHOICES, CPU_OPPONENT_IDS, CPU_TIERS } from "../match/cpuProfiles";
 import { botStrategyValues } from "../match/botStrategy";
 import type { ReplayState } from "./snapshot";
+import type { PacingAndPresentation } from "../match/pacingAndPresentation";
 import { HERO_ROSTER } from "../sim/heroes/registry";
 import { RIFLEMAN_MOVES } from "../sim/originalMoves";
 
@@ -1230,12 +1231,19 @@ function foldHash(value: number): void {
   hashLanes.second = floorMod(hashLanes.second * 263 + code + 1, REPLAY_CHECKSUM_MODULUS);
 }
 
-// A value as canonical text has it, with no text built: an integral value as its
-// integer, any other real as its sign, then splitFiniteReal's exponent and mantissa halves.
+// An integer in [-2^31, 2^31) as two 16-bit halves, each below the modulus, so no two integers fold alike.
+function foldHashWide(value: number): void {
+  foldHash(floorDiv(value, 65536) + 32768);
+  foldHash(floorMod(value, 65536));
+}
+
+// A value with nothing reduced (#400): an integral value as its integer, -0
+// marked, any other real as its sign, then splitFiniteReal's exponent and mantissa halves.
 function foldHashValue(value: number): void {
   const whole = Math.floor(value);
   if (whole === value && whole >= -2147483648 && whole <= 2147483647) {
-    foldHash(whole);
+    if (whole === 0 && 1 / value < 0) foldHash(-10);
+    foldHashWide(whole);
     return;
   }
   if (value !== value || !splitFiniteReal(value < 0 ? -value : value)) {
@@ -1244,8 +1252,8 @@ function foldHashValue(value: number): void {
   }
   foldHash(value < 0 ? -4 : -5);
   foldHash(realParts.exponent);
-  foldHash(realParts.high);
-  foldHash(realParts.low);
+  foldHashWide(realParts.high);
+  foldHashWide(realParts.low);
 }
 
 // Text a state holds (kit digests, kit observations) recurs, so each one's own lanes are folded in, computed once.
@@ -1274,26 +1282,67 @@ const HASH_OBSERVATIONS: ObservationWriter = {
   },
 };
 
-// Fields fold untagged too, except where a conditional field could take another's place: each kind folds a marker first.
+// Each field folds its kind's marker and its name, so a conditional field cannot take another's place (#400).
+let hashPrefix: string | undefined;
+
+function foldHashName(prefix: string, name: string): void {
+  if (prefix !== hashPrefix) {
+    hashPrefix = prefix;
+    foldHashText(prefix);
+  }
+  foldHashText(name);
+}
+
 const HASH_SINK: StateSink = {
-  int: (_prefix, _name, value) => { foldHash(-6); foldHashValue(value); },
-  bool: (_prefix, _name, value) => foldHash(value ? -7 : -8),
-  real: (_prefix, _name, value) => { foldHash(-9); foldHashValue(value); },
+  int: (prefix, name, value) => { foldHash(-6); foldHashName(prefix, name); foldHashValue(value); },
+  bool: (prefix, name, value) => { foldHash(value ? -7 : -8); foldHashName(prefix, name); },
+  real: (prefix, name, value) => { foldHash(-9); foldHashName(prefix, name); foldHashValue(value); },
   text: fragment => foldHashText(fragment),
   observation: (_name, sample) => writeObservations(HASH_OBSERVATIONS, sample.opponents),
 };
 
+// Gameplay state the canonical text leaves out: computer decisions and observation counters, which sameReplayState compares.
+function foldHashRuntime(runtime: Readonly<PacingAndPresentation>): void {
+  for (const slot of PARTICIPANT_SLOTS) {
+    foldHash(-11);
+    foldHashValue(runtime.observedLegal[slot]);
+    foldHashValue(runtime.observedStarted[slot]);
+    const decision = runtime.botDecisions[slot];
+    foldHash(decision.decided ? -7 : -8);
+    if (!decision.decided) continue;
+    for (const field of CONTROL_FIELDS) {
+      const value = decision.input[field];
+      if (value === undefined) foldHash(-12);
+      else if (typeof value === "boolean") foldHash(value ? -7 : -8);
+      else foldHashValue(value);
+    }
+    const command = attackBufferCanonicalState(decision.commands);
+    foldHashValue(command.graceFrames);
+    foldHashValue(command.style);
+    foldHashValue(command.facing);
+    foldHashValue(command.targetFrame);
+    foldHashValue(command.consumedFacing);
+    foldHash(command.mayCharge ? -7 : -8);
+    foldHash(command.consumedMayCharge ? -7 : -8);
+  }
+}
+
 /**
  * The per-frame full-state hash (#400): every field the canonical state
- * holds, in its order, folded as numbers rather than text, so it costs a
- * fraction of stateChecksum. Equal states hash equal in one runtime; it is
- * not the replay tape's checksum.
+ * holds, in its order, with its name and its value unreduced (signed zero
+ * apart), then the computer decisions and observation counters
+ * sameReplayState also compares. Presentation is left out, as the sim never
+ * reads it. Folded as numbers rather than text, so it costs a fraction of
+ * stateChecksum. Equal states hash equal in one runtime; it is a diagnostic,
+ * never proof of equality, and not the replay tape's checksum.
  */
 export function stateHash(state: Readonly<ReplayState>): string {
   hashLanes.valid = true;
   hashLanes.first = 0;
   hashLanes.second = 0;
+  hashPrefix = undefined;
   writeState(HASH_SINK, state);
+  foldHashRuntime(state.runtime);
   return checksumText(hashLanes);
 }
 

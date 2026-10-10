@@ -9,10 +9,11 @@ import { Character, ProjectileKind } from "../sim/codes";
 import { type Projectile, createFighter } from "../sim/fighter";
 import { spawnProjectileMotion } from "../sim/projectiles";
 import { createRoster, fighterAt } from "../sim/roster";
-import { stateChecksum, stateHash } from "./canonical";
+import { canonicalState, stateChecksum, stateHash } from "./canonical";
+import { sameReplayState } from "./difference";
 import { ReplayHistory } from "./history";
 import { REPLAY_MAX_CORRECTION_FRAMES } from "./limits";
-import { copyReplayState, createReplaySnapshot } from "./snapshot";
+import { type ReplayState, copyReplayState, createReplaySnapshot } from "./snapshot";
 import { type TapeWorld, createTapeWorld, executeTapeRow } from "./tapeWorld";
 
 // The Lua test runner stops the collector for each test (test/lua/entry.ts), so the heap's growth is what a test allocated.
@@ -84,7 +85,8 @@ test("a rollback snapshot of fighters and projectiles copies fields into tables 
   assertLessThan(bytes, 256);
 });
 
-test("the per-frame state hash agrees with the canonical checksum on which states are equal [invariant]", () => {
+/** Four Riflemen 30 frames into a match, with blasters in flight. */
+function playedRiflemen(): TapeWorld {
   const played = fourRiflemen();
   const row = createMatchFrameInput();
   const inputs = participantInputs();
@@ -94,6 +96,11 @@ test("the per-frame state hash agrees with the canonical checksum on which state
     assertTrue(captureNetworkFrame(row, frame, inputs, played.live.world, 3));
     assertTrue(executeTapeRow(played, row));
   }
+  return played;
+}
+
+test("the per-frame state hash agrees with the canonical checksum on which states are equal [invariant]", () => {
+  const played = playedRiflemen();
   const copy = createReplaySnapshot();
   copyReplayState(copy, played.live);
   assertEquals(stateHash(copy), stateHash(played.live));
@@ -109,4 +116,42 @@ test("the per-frame state hash agrees with the canonical checksum on which state
     assertFalse(stateChecksum(copy) === stateChecksum(played.live));
     assertFalse(stateHash(copy) === stateHash(played.live));
   }
+});
+
+const HASH_MODULUS = 1_000_003;
+
+test("#400 the state hash tells apart states that hashed equal: seeds a modulus apart, lore for classic, -0 for +0, a toggled computer decision [repro #400]", () => {
+  const played = playedRiflemen();
+  const first = createReplaySnapshot();
+  const second = createReplaySnapshot();
+  const differs = (change: (first: ReplayState, second: ReplayState) => void): boolean => {
+    copyReplayState(first, played.live);
+    copyReplayState(second, played.live);
+    change(first, second);
+    assertFalse(sameReplayState(first, second));
+    return stateHash(first) !== stateHash(second);
+  };
+  // Any two seeds a multiple of the old modulus apart, across the 32-bit range.
+  for (let index = 0; index < 16; index++) {
+    const seed = floorMod(index * 1_234_567_891, 2_000_000_000) - 1_000_000_000;
+    for (const multiple of [1, -1, 7]) assertEquals(differs((a, b) => { a.match.matchSeed = seed; b.match.matchSeed = seed + multiple * HASH_MODULUS; }), true, `seed ${seed} + ${multiple}`);
+  }
+  for (const value of [0, 1, 2, 5]) {
+    assertEquals(differs((a, b) => { a.match.classic = true; a.match.classicTier = value; b.match.lore = true; b.match.loreBattle = value; }), true, `${value}`);
+  }
+  // Canonical text keeps folding signed zero and leaves decisions out; only the hash tells them apart.
+  const textUnchanged = (change: (first: ReplayState, second: ReplayState) => void): boolean => {
+    assertTrue(differs(change));
+    return canonicalState(first) === canonicalState(second);
+  };
+  for (const slot of SLOTS) {
+    assertEquals(textUnchanged((a, b) => { fighterAt(a.world, slot).motion.vx = 0.0; fighterAt(b.world, slot).motion.vx = -0.0; }), true, `${slot}`);
+    assertEquals(textUnchanged((_, b) => { b.runtime.botDecisions[slot].decided = !b.runtime.botDecisions[slot].decided; }), true, `${slot}`);
+    assertEquals(textUnchanged((_, b) => { b.runtime.observedLegal[slot] += HASH_MODULUS; }), true, `${slot}`);
+  }
+  // Presentation stays out: the sim never reads it.
+  copyReplayState(first, played.live);
+  copyReplayState(second, played.live);
+  second.runtime.poses[0].clipTime += 1.5;
+  assertEquals(stateHash(first), stateHash(second));
 });

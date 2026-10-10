@@ -198,7 +198,7 @@ export function controlsAt(controls: readonly Readonly<Controls>[], slot: number
   return row;
 }
 
-const CONTROL_FIELDS = [
+export const CONTROL_FIELDS = [
   "driftStickX",
   "direction", "verticalDirection", "diStickValid", "diStickX", "diStickZ", "sdiPulse", "sdiX", "sdiZ", "cStickX", "cStickZ", "attackRequested", "specialPressed", "ultimatePressed", "specialX", "specialZ", "down", "shield", "shieldPressed", "shieldTriggerActive", "shieldStrength", "jumpPressed", "shortHopPressed", "meter", "airDodgePressed", "techPressed", "mashPressed", "attackPressed", "grabMashPressed", "grabThrowX", "grabThrowZ", "groundDodgePressed", "groundDodgeDirection", "getupAttackPressed", "ledgeVerticalPressed", "getupStandPressed", "getupDirectionPressed", "getupDirection", "cStickUpFlick", "cStickSideFlick", "dodgeX", "dodgeZ", "jumpHeld", "walking", "attackHeld", "resetPressed"
 ] as const satisfies readonly (keyof Controls)[];
