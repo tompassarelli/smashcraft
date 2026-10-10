@@ -121,7 +121,7 @@ export async function createNetStandalone(link: LockstepLink, slot: number, opti
         }
         tick++;
         lockstep.frames(1);
-        presses.drawn(tick);
+        presses.drawn(tick, lastPhase === Phase.match);
         if (client.errors.length > 0) throw new Error(client.errors.join("\n"));
         client.run(() => {
           const phase = shell().game.phase;
@@ -217,7 +217,7 @@ function pressStats(slot: number) {
   const pending: { readonly bit: number; readonly tick: number }[] = [];
   const captured: { frame: number; pressed: number; tick: number; frontier: number; drawnTick: number; pressTicks: number[] }[] = [];
   const received: Record<number, Record<number, number>> = {};
-  let conflicts = 0, unmatched = 0, delay = 0;
+  let conflicts = 0, unmatched = 0, delay = 0, endFrame = 0;
   let schedule: NonNullable<NetcodeShell["rollback"]>["schedule"] | undefined;
   return {
     attach(state: NetcodeShell, now: () => number) {
@@ -258,15 +258,16 @@ function pressStats(slot: number) {
       const action = actionFor(BINDINGS, key);
       if (action !== undefined) pending.push({ bit: 1 << action, tick });
     },
-    drawn(tick: number) {
+    drawn(tick: number, playing: boolean) {
       if (schedule === undefined) return;
       const ran = schedule.speculativeFrame();
+      if (playing) endFrame = Math.max(endFrame, ran);
       for (let index = captured.length - 1; index >= 0; index--) {
         const row = captured[index];
         if (row === undefined || row.drawnTick >= 0) break;
         if (row.frame < ran) row.drawnTick = tick;
       }
     },
-    report: () => ({ slot, delay, conflicts, unmatched, lost: pending.length, lostTicks: pending.map((press) => press.tick), captured, received }),
+    report: () => ({ slot, delay, endFrame, conflicts, unmatched, lost: pending.length, lostTicks: pending.map((press) => press.tick), captured, received }),
   };
 }
