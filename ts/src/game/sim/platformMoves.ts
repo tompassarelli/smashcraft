@@ -218,7 +218,7 @@ function finishDescent(f: Fighter): void {
   f.platform.specialQueued = specialQueued;
   f.platform.specialX = specialX;
   f.platform.specialZ = specialZ;
-  if (dodgeQueued) beginAirDodge(f, dodgeX, dodgeZ);
+  if (dodgeQueued) beginAirDodge(f, dodgeX, dodgeZ, false);
 }
 
 

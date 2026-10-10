@@ -795,8 +795,8 @@ test("a stronger aerial dodge keeps retail decay for every digital direction [k4
       const f = airborneFalco();
       const input = controls();
       beginAirDodge(f, horizontal, vertical);
-      const launchX = horizontal * (vertical === 0 ? f32(19.401552200317383) : f32(14.424978256225586));
-      const launchZ = horizontal === 0 ? vertical * f32(20.399999618530273) : vertical === 0 ? -f32(6.303946495056152) : vertical * f32(14.424978256225586);
+      const launchX = horizontal * (vertical === 0 ? f32(20.399999618530273) : f32(14.424978256225586));
+      const launchZ = vertical * (horizontal === 0 ? f32(20.399999618530273) : f32(14.424978256225586));
       assertNear(f.motion.vx, launchX, f32(0.00001));
       assertNear(f.motion.vz, launchZ, f32(0.00001));
 
@@ -826,6 +826,24 @@ test("a stronger aerial dodge keeps retail decay for every digital direction [k4
       assertEquals(f.dodge.airFrame, 4);
       assertNear(f.motion.vx, expectedX * 0.8999999761581421, f32(0.00001));
       assertNear(f.motion.vz, expectedZ * 0.8999999761581421, f32(0.00001));
+    }
+  }
+});
+
+test("outside a jump-squat buffer every digital air dodge is collinear with its stick direction [k2 property]", () => {
+  const upward = airborneFalco();
+  beginAirDodge(upward, 0, 1);
+  const speedSquared = f32(upward.motion.vz * upward.motion.vz);
+  for (const horizontal of [-1, 0, 1]) {
+    for (const vertical of [-1, 0, 1]) {
+      const f = airborneFalco();
+      beginAirDodge(f, horizontal, vertical);
+      const { vx, vz } = f.motion;
+      assertEquals(f32(f32(vx * vertical) - f32(vz * horizontal)), 0.0);
+      assertEquals(Math.sign(vx), horizontal);
+      assertEquals(Math.sign(vz), vertical);
+      const magnitudeSquared = f32(f32(vx * vx) + f32(vz * vz));
+      assertNear(magnitudeSquared, horizontal === 0 && vertical === 0 ? 0.0 : speedSquared, TOLERANCE_4);
     }
   }
 });
