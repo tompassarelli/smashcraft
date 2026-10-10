@@ -49,6 +49,7 @@
     "test/dreadlord-shadow-hunter-gameplans.test.ts",
     "test/farm-guard.test.ts",
     "test/genre-envelope.test.ts",
+    "test/integrity-verdict.test.ts",
     "test/interactions.test.ts",
     "test/live-agency.test.ts",
     "test/melee-oracle.test.ts",
