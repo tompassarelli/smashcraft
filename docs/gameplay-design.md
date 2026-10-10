@@ -1978,7 +1978,10 @@ Tom decided, 9 Oct (delegated in #385):
   `contestTenths`). While the opponent is off the main deck they keep chasing
   it instead. `bun scripts/meterDropField.ts` from ts/ plays a seeded field
   with drops off and on and prints the share of frames the fighters spend more
-  than half a stage apart and each fighter's win rate.
+  than half a stage apart, each fighter's win rate and the win-rate spread
+  (max minus min). `--camp` makes the fighter ahead on stocks retreat to the far
+  side of the stage and wait (measurement only, not default play); `--shard K/N`
+  with `--json` and `--merge` splits the field across cores.
 
 The drop state (schedule, point, serials, last taker) is part of the match
 snapshot, its checksum and its replay

@@ -13,7 +13,7 @@ import { f32 } from "wisp/src/sim/f32";
 import { stateChecksum } from "../src/game/replay/canonical";
 import { captureReplaySnapshot, createReplaySnapshot } from "../src/game/replay/snapshot";
 import { parseArgs } from "node:util";
-import { clearAttackBuffer } from "../src/game/input/attackBuffer";
+import { type AttackBuffer, clearAttackBuffer } from "../src/game/input/attackBuffer";
 import { PARTICIPANT_SLOTS } from "../src/game/input/participants";
 import { createFrameControls } from "../src/game/match/controls";
 import { captureFrame, createMatchFrameInput, executeMatchFrame } from "../src/game/match/frameInput";
@@ -29,7 +29,7 @@ import { type GameplanMove, GameplanSpecial, GameplanThrow } from "../src/game/s
 import { AttackStyle, type Character, DownState, GrabAction, LedgeState, SpecialAction } from "../src/game/sim/codes";
 import { createFighter, type Fighter } from "../src/game/sim/fighter";
 import { SELECTABLE_CHARACTERS, fighterSlug, selectableCharacterBySlug } from "../src/game/sim/heroes/registry";
-import { copyControls, createRoster, fighterAt, neutralControls } from "../src/game/sim/roster";
+import { type Controls, copyControls, createRoster, fighterAt, neutralControls } from "../src/game/sim/roster";
 import { mainDeckLeft, mainDeckRight } from "../src/game/sim/stage";
 import soak from "./wisp/soak";
 import { admitsThroughHelper, runAdmitted } from "./heavyCapacity";
@@ -201,6 +201,9 @@ export interface FieldOptions {
 
   readonly drops?: boolean;
 
+  /** Measurement only: the fighter ahead on stocks retreats to the far side of the stage and waits. */
+  readonly camp?: boolean;
+
   readonly frameCap?: number;
 
   readonly checksumEvery?: number;
@@ -288,6 +291,27 @@ function closePunish(totals: PunishTotals, punish: Punish, kill: boolean, string
 
 const NEUTRAL = neutralControls();
 
+const CAMP_EDGE_MARGIN = 40.0;
+const CAMP_STOP_DISTANCE = 4.0;
+
+/** Horizontal direction (-1, 0 or 1) that walks a camper to the far side of the main deck from its opponent and holds it there. */
+export function campDirection(f: Readonly<Fighter>, opponent: Readonly<Fighter>, stage: number): number {
+  const left = mainDeckLeft(stage), right = mainDeckRight(stage);
+  const middle = f32(f32(left + right) * 0.5);
+  const target = opponent.motion.x >= middle ? f32(left + CAMP_EDGE_MARGIN) : f32(right - CAMP_EDGE_MARGIN);
+  const gap = f32(target - f.motion.x);
+  return Math.abs(gap) <= CAMP_STOP_DISTANCE ? 0 : gap < 0 ? -1 : 1;
+}
+
+function campOnly(f: Readonly<Fighter>, opponent: Readonly<Fighter>, stage: number, input: Controls, commands: AttackBuffer): void {
+  clearAttackBuffer(commands);
+  input.attackHeld = false;
+  input.specialPressed = false;
+  input.specialX = 0;
+  input.specialZ = 0;
+  input.direction = campDirection(f, opponent, stage);
+}
+
 
 const onMainDeck = (f: Readonly<Fighter>, stage: number): boolean =>
   f.motion.x >= mainDeckLeft(stage) && f.motion.x <= mainDeckRight(stage) && f.motion.z >= 0.0;
@@ -356,6 +380,10 @@ export function playCpuMatch(a: Character, b: Character, stageName: string, vari
       if (slot === 0 || slot === 1) produceComputerInput(match, world, runtime, slot, frame, produced.inputs[slot], produced.commands[slot], options.skills?.[slot]);
       const only = slot === 0 || slot === 1 ? spam[slot] : undefined;
       if (only !== undefined) spamOnly(fighterAt(world, slot), fighterAt(world, 1 - slot), only, stage, frame, produced.inputs[slot], produced.commands[slot]);
+      if (options.camp === true && (slot === 0 || slot === 1)) {
+        const self = fighterAt(world, slot), other = fighterAt(world, 1 - slot);
+        if (self.status.stocks > other.status.stocks) campOnly(self, other, stage, produced.inputs[slot], produced.commands[slot]);
+      }
     }
     if (!captureFrame(row, frame, world.mask, produced, runtime)) throw new Error(`capture refused frame ${frame}`);
     if (!executeMatchFrame(row, match, world, controls, runtime, frame)) throw new Error(`execution refused frame ${frame}`);
