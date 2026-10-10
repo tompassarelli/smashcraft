@@ -12,6 +12,7 @@ import { originalClipNamed } from "../../ts/src/game/assets/fighterOriginalClipI
 export function flashableSequences(character: number, sequences: readonly mdx.Sequence[]): mdx.Sequence[] {
 
   const indices = new Set(namedClips(characterClips(character)).map(clip => clip.index));
+  for (const clip of namedClips(characterClips(character))) if (clip.classicStartup !== undefined) indices.add(clip.classicStartup.index);
   for (const clip of contactDamageClips(character) ?? []) indices.add(clip.index);
   const fallback = heroDefinition(character)?.presentation.fallback;
   if (fallback !== undefined) indices.add(fallback.index);
