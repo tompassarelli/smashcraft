@@ -29,8 +29,10 @@ permissions:
   contents: read
 
 env:
-  # A run holds BUN_SHARDS + LUA_JOBS + the four check jobs at once. One Lua test
-  # takes about 140 s, so more than 32 Lua shards would not shorten the run.
+  # A run holds BUN_SHARDS + the lua job's max-parallel + the four check jobs at
+  # once: 3 + 5 + 4 = 12, so Autoland's two test slots and a train (36) fit the
+  # account's 40 concurrent jobs. One Lua test takes about 140 s, so more than
+  # 32 Lua shards would not shorten the run.
   BUN_SHARDS: 3
   # Lua runs one core a process: each Lua job runs LUA_PER_JOB shards at once.
   LUA_JOBS: 8
@@ -141,6 +143,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
+      max-parallel: 5
       matrix:
         job: ${{ fromJSON(needs.plan.outputs.lua) }}
     name: lua32 ${{ matrix.job }}
