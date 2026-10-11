@@ -98,20 +98,11 @@ export class StagePanel {
       const choice = stage.id;
       const button = BlzCreateFrameByType("BUTTON", `MeleeStageTileButton${I2S(choice)}`, root, "", 0);
       placeTopLeft(button, stageTileLeft(choice), stageTileTop(choice));
-      BlzFrameSetSize(button, f32(0.094), choice === RANDOM_STAGE ? f32(0.08) : f32(0.059));
+      BlzFrameSetSize(button, f32(0.094), f32(0.059));
       this.clicks.add(button, { kind: "stage", choice });
-      if (choice !== RANDOM_STAGE) {
-        new StageCard(root, `MeleeStageTile${I2S(choice)}`, stageTileLeft(choice), stageTileTop(choice), f32(0.094), f32(0.059), true).show(choice);
-        this.tileNames[choice] = BlzGetFrameByName(`MeleeStageTile${I2S(choice)}Name`, 0);
-        setFrameText(this.tileNames[choice], stage.name);
-        continue;
-      }
-      const tile = createBackdrop(`MeleeStageTile${I2S(choice)}`, root, choice);
-      BlzFrameSetTexture(tile, stageInfo(choice).texture, 0, true);
-      placeTopLeft(tile, stageTileLeft(choice), stageTileTop(choice));
-      BlzFrameSetSize(tile, f32(0.094), f32(0.059));
-      BlzFrameSetEnable(tile, false);
-      this.tileNames[choice] = stageText(root, `MeleeStageTileName${I2S(choice)}`, stageTileLeft(choice), f32(stageTileTop(choice) - f32(0.06)), f32(0.094), f32(0.02), f32(0.009), stageInfo(choice).name);
+      new StageCard(root, `MeleeStageTile${I2S(choice)}`, stageTileLeft(choice), stageTileTop(choice), f32(0.094), f32(0.059), true).show(choice);
+      this.tileNames[choice] = BlzGetFrameByName(`MeleeStageTile${I2S(choice)}Name`, 0);
+      setFrameText(this.tileNames[choice], stage.name);
     }
     this.clicks.add(stageButton(root, f32(0.454), f32(0.514), f32(0.3), f32(0.027), "Stage pool"), { kind: "poolOpen" });
     this.poolRoot = BlzCreateFrameByType("FRAME", "MeleeStagePoolRoot", root, "", 0);
@@ -136,7 +127,7 @@ export class StagePanel {
     BlzFrameSetEnable(this.chip, false);
     const help = journal
       ? "Click a stage or move the stick.\nAny player can choose.\nA / Click: choose · Start: start · Click BACK: back"
-      : "Click a stage or move the chip.\nAny player can choose.\nMovement controls: change stage · Y: start";
+      : "Click a stage or use movement controls.\nAny player can choose.\nY: start · Click BACK TO FIGHTERS: back";
     stageText(root, "MeleeStageHelp", f32(0.454), f32(0.119), f32(0.3), f32(0.025), f32(0.008), help);
     this.clicks.add(stageButton(root, f32(0.045), f32(0.514), f32(0.21), f32(0.048), journal ? "START MATCH [A]" : "START MATCH"), { kind: "start" });
     this.clicks.add(stageButton(root, f32(0.045), f32(0.082), f32(0.17), f32(0.037), journal ? "BACK" : "BACK TO FIGHTERS"), { kind: "back" });
