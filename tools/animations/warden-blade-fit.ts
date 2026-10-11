@@ -10,10 +10,8 @@ export function fitWardenBlade(motion: mdx.Model, bytes: ArrayBuffer) {
     const classicWeapon = motion.Nodes.find(node => node?.Name === '@weapon');
     if (weapon === undefined || classicWeapon === undefined || weapon.Parent == null) throw new Error('Warden blade attachment is missing');
     const tip = vec3.fromValues(-8.521499633789062, -53.64099884033203, 14.718500137329102);
-    const classicTip = vec3.fromValues(-11.125900268554688, -48.87200164794922, 6.704820156097412);
-    const renderer = new ModelRenderer(source), classicRenderer = new ModelRenderer(motion);
+    const renderer = new ModelRenderer(source);
     const state = Reflect.get(renderer, 'rendererData') as { frame: number; nodes: { matrix: mat4 }[] };
-    const classicState = Reflect.get(classicRenderer, 'rendererData') as typeof state;
     renderer.setSequence(0);
     let samples = 0;
     for (const name of ['neutralAir', 'forwardAir'] as const) {
@@ -23,19 +21,37 @@ export function fitWardenBlade(motion: mdx.Model, bytes: ArrayBuffer) {
         const [start, end] = sequence.Interval;
         const move = WARDEN_MOVES.normals[AttackStyle[name]];
         if (move === undefined) throw new Error(`Warden ${name} timing is missing`);
-        const lastActive = move.startupFrames + move.activeFrames - 1, total = (end - start) * 60 / 1000;
-        classicRenderer.setSequence(index);
+        const activeEnd = move.startupFrames + move.activeFrames, total = (end - start) * 60 / 1000;
+        const strikes = move.regions.map(region => region.hit.strike);
+        if (strikes.some(strike => strike === undefined)) throw new Error(`Warden ${name} blade region is missing`);
+        const joins = strikes.slice(1).map((next, index) => {
+            const previous = strikes[index];
+            if (previous === undefined || next === undefined) throw new Error('Warden blade join is missing');
+            const a = vec3.fromValues(previous.x1, 0, previous.z1), b = vec3.fromValues(next.x1, 0, next.z1);
+            const gap = vec3.distance(a, b), direction = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), b, a));
+            const inset = Math.min(5.5, gap / 2);
+            return { before: vec3.scaleAndAdd(vec3.create(), a, direction, inset), after: vec3.scaleAndAdd(vec3.create(), b, direction, -inset) };
+        });
         const keys: Record<'Translation' | 'Rotation' | 'Scaling', mdx.AnimKeyframe[]> = { Translation: [], Rotation: [], Scaling: [] };
-        for (let frame = start; frame <= end; frame = Math.min(end, frame + 4)) {
+        const pose = (frame: number) => {
             state.frame = frame; renderer.update(0);
-            classicState.frame = frame; classicRenderer.update(0);
             const matrix = state.nodes[weapon.ObjectId].matrix;
             const pivot = vec3.transformMat4(vec3.create(), weapon.PivotPoint, matrix);
             const from = vec3.sub(vec3.create(), vec3.transformMat4(vec3.create(), tip, matrix), pivot);
-            const to = vec3.sub(vec3.create(), vec3.transformMat4(vec3.create(), classicTip, classicState.nodes[classicWeapon.ObjectId].matrix), pivot);
             const localFrame = (frame - start) * 60 / 1000;
+            const activeFrame = Math.max(move.startupFrames, Math.min(activeEnd - 1, Math.floor(localFrame)));
+            const regionIndex = activeFrame - move.startupFrames;
+            const strike = strikes[regionIndex];
+            if (strike === undefined) throw new Error(`Warden ${name} blade region is missing`);
+            const target = vec3.fromValues(strike.x2, pivot[1], strike.z2);
+            const progress = Math.max(0, Math.min(64 / 65, localFrame - activeFrame));
+            const entry = joins[regionIndex - 1]?.after, exit = joins[regionIndex]?.before;
+            if (entry !== undefined && progress < 0.25) vec3.lerp(target, entry, target, progress * 4);
+            if (exit !== undefined && progress > 0.75) vec3.lerp(target, target, exit, (progress - 0.75) / (64 / 65 - 0.75));
+            target[1] = pivot[1];
+            const to = vec3.sub(vec3.create(), target, pivot);
             const weight = localFrame < move.startupFrames ? localFrame / move.startupFrames
-                : localFrame <= lastActive ? 1 : Math.max(0, (total - localFrame) / (total - lastActive));
+                : localFrame <= activeEnd ? 1 : Math.max(0, (total - localFrame) / (total - activeEnd));
             const scale = 1 + (vec3.length(to) / vec3.length(from) - 1) * weight;
             const turn = quat.rotationTo(quat.create(), vec3.normalize(vec3.create(), from), vec3.normalize(vec3.create(), to));
             quat.slerp(turn, quat.create(), turn, weight);
@@ -51,6 +67,23 @@ export function fitWardenBlade(motion: mdx.Model, bytes: ArrayBuffer) {
                 + local[axis] * p[0] + local[axis + 4] * p[1] + local[axis + 8] * p[2]));
             const rotation = quat.normalize(quat.create(), mat4.getRotation(quat.create(), local));
             const scaling = mat4.getScaling(vec3.create(), local);
+            return { Translation: translation, Rotation: rotation, Scaling: scaling };
+        };
+        const overrides = new Map<number, ReturnType<typeof pose>>();
+        for (let boundary = move.startupFrames + 1; boundary < activeEnd; boundary++) {
+            const before = start + (boundary - 1 / 65) * 1000 / 60, after = start + boundary * 1000 / 60;
+            const a = pose(before), b = pose(after);
+            for (let frame = Math.floor(before); frame <= Math.ceil(after); frame++) {
+                const mix = (frame - before) / (after - before);
+                overrides.set(frame, {
+                    Translation: vec3.lerp(vec3.create(), a.Translation, b.Translation, mix),
+                    Rotation: quat.normalize(quat.create(), quat.slerp(quat.create(), a.Rotation, b.Rotation, mix)),
+                    Scaling: vec3.lerp(vec3.create(), a.Scaling, b.Scaling, mix),
+                });
+            }
+        }
+        for (let frame = start; frame <= end; frame = Math.min(end, frame + 1)) {
+            const { Translation: translation, Rotation: rotation, Scaling: scaling } = overrides.get(frame) ?? pose(frame);
             for (const [kind, vector] of [['Translation', translation], ['Rotation', rotation], ['Scaling', scaling]] as const) {
                 keys[kind].push({ Frame: frame, Vector: new Float32Array(vector) });
             }
@@ -63,5 +96,5 @@ export function fitWardenBlade(motion: mdx.Model, bytes: ArrayBuffer) {
             track.Keys = track.Keys.filter(key => key.Frame < start || key.Frame > end).concat(keys[kind]).sort((a, b) => a.Frame - b.Frame);
         }
     }
-    return { bytes: generateHdBody(model), report: { sequences: 2, samples, attachment: 'Fixed weapon pivot; visible blade follows the authored Classic tip.' } };
+    return { bytes: generateHdBody(model), report: { sequences: 2, samples, attachment: 'Fixed weapon pivot; visible blade follows the unchanged aerial blade regions.' } };
 }

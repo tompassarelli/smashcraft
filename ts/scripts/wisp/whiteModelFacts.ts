@@ -397,24 +397,6 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
     },
     "emitters": []
   },
-  "war3mapimported/wardenwhite-dbc0a6e83091df77a0a7fac3948689b39e8a809e901339ee6234ac7d412caed3.mdx": {
-    "geosets": 4,
-    "triangles": 663,
-    "lights": 0,
-    "bounds": {
-      "min": [
-        -300,
-        -300,
-        -200
-      ],
-      "max": [
-        300,
-        300,
-        442.06500244140625
-      ]
-    },
-    "emitters": []
-  },
   "war3mapimported/cairnebloodhoofwhite-0842d447bf2ddb8b3528e32ed461e351e39727e8a44d086bef23229397daee6e.mdx": {
     "geosets": 4,
     "triangles": 457,
@@ -465,6 +447,24 @@ export const WHITE_MODEL_FACTS: Readonly<Record<string, ModelFacts>> = {
         246.98800659179688,
         212.55799865722656,
         447.3089904785156
+      ]
+    },
+    "emitters": []
+  },
+  "war3mapimported/wardenwhite-368d4fd6553fb727712d2997651efaeaba42c703d2ea92fbf58ef8f95291f4cd.mdx": {
+    "geosets": 4,
+    "triangles": 663,
+    "lights": 0,
+    "bounds": {
+      "min": [
+        -300,
+        -300,
+        -200
+      ],
+      "max": [
+        300,
+        300,
+        442.06500244140625
       ]
     },
     "emitters": []
