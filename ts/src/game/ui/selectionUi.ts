@@ -265,10 +265,10 @@ export class SelectionPanel {
       const portrait = tilePortrait(scale);
       const inset = (TILE_PORTRAIT_SLOT * scale - portrait) / 2;
       const tilePortraitFrame = art(root, `MeleeTilePortrait${name}`, portraitTexture(PLAYABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
-      const words = nameText(PLAYABLE_CHARACTERS[choice]).split(" ");
-      const longest = words.reduce((length, word) => Math.max(length, word.length), 1);
-      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.002) * scale, y - f32(0.106) * scale, f32(0.108) * scale, f32(0.023) * scale, f32(f32(0.0064) * scale * Math.min(1.0, f32(9.0 / longest))));
-      setFrameText(tileName, words.join("\n"));
+      const text = nameText(PLAYABLE_CHARACTERS[choice]);
+      const fontScale = f32(Math.min(1.0, f32(8.0 / text.length)));
+      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.002) * scale, y - f32(0.106) * scale, f32(0.108) * scale, f32(0.023) * scale, f32(f32(0.0064) * scale * fontScale));
+      setFrameText(tileName, text);
       this.tiles.push([tileFrame, tilePortraitFrame, tileName]);
       const button = BlzCreateFrameByType("BUTTON", `MeleeTileButton${name}`, root, "", 0);
       placeTopLeft(button, x, y);
