@@ -117,6 +117,7 @@ interface CardFrames {
   readonly chip: framehandle;
   readonly summary: framehandle;
   readonly settings: framehandle;
+  readonly settingsLabel: framehandle;
 }
 
 const portraitTexture = (choice: number | undefined, tile: boolean, slot?: number) => fighterPortrait(choice ?? Character.rifleman, tile ? "Tile" : "Card", slot);
@@ -252,7 +253,6 @@ export class SelectionPanel {
     this.backdrop = createBackdrop(`MeleeSelectBackdrop${suffix}`, consoleUi(), 400 + participantId);
     BlzFrameSetTexture(this.backdrop, "war3mapImported\\SelectionBackdrop.tga", 0, false);
     coverScreen(this.backdrop);
-    setFrameText(label(root, `MeleeGameTitle${suffix}`, f32(0.055), f32(0.589), f32(0.285), f32(0.029), f32(0.024)), "Smashcraft");
     art(root, `MeleeModeArt${suffix}`, "war3mapImported\\SelectionAction.tga", f32(0.05), f32(0.555), f32(0.295), f32(0.032));
     const grid = this.roster.grid;
     const scale = f32(grid.scale);
@@ -265,8 +265,10 @@ export class SelectionPanel {
       const portrait = tilePortrait(scale);
       const inset = (TILE_PORTRAIT_SLOT * scale - portrait) / 2;
       const tilePortraitFrame = art(root, `MeleeTilePortrait${name}`, portraitTexture(PLAYABLE_CHARACTERS[choice], true), x + f32(0.0125) * scale + inset, y - f32(0.013) * scale - inset, portrait, portrait);
-      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.002) * scale, y - f32(0.106) * scale, f32(0.108) * scale, f32(0.023) * scale, f32(0.0064) * scale);
-      setFrameText(tileName, nameText(PLAYABLE_CHARACTERS[choice]));
+      const words = nameText(PLAYABLE_CHARACTERS[choice]).split(" ");
+      const longest = words.reduce((length, word) => Math.max(length, word.length), 1);
+      const tileName = label(root, `MeleeTileName${name}`, x + f32(0.002) * scale, y - f32(0.106) * scale, f32(0.108) * scale, f32(0.023) * scale, f32(f32(0.0064) * scale * Math.min(1.0, f32(9.0 / longest))));
+      setFrameText(tileName, words.join("\n"));
       this.tiles.push([tileFrame, tilePortraitFrame, tileName]);
       const button = BlzCreateFrameByType("BUTTON", `MeleeTileButton${name}`, root, "", 0);
       placeTopLeft(button, x, y);
@@ -291,11 +293,12 @@ export class SelectionPanel {
       const settings = BlzCreateFrame("ScriptDialogButton", root, 0, 0);
       placeTopLeft(settings, box.x, box.y);
       BlzFrameSetSize(settings, box.width, box.height);
-      setFrameText(settings, "Opponent settings");
-      BlzFrameSetFont(settings, MENU_FONT, f32(0.0075), 0);
+      setFrameText(settings, "");
+      const settingsLabel = label(settings, `MeleeCpuSettingsLabel${name}`, box.x + f32(0.004), box.y - f32(0.002), box.width - f32(0.008), box.height - f32(0.004), f32(0.0075));
+      setFrameText(settingsLabel, "Opponent settings");
       this.clicks.add(settings, { kind: "cpuSettings", slot });
       const summary = label(root, `MeleeCpuSummary${name}`, x + f32(0.004), f32(0.139), f32(0.152), f32(0.031), f32(0.009));
-      return { card, tag, mode, portrait, name: name_, status, chip, summary, settings };
+      return { card, tag, mode, portrait, name: name_, status, chip, summary, settings, settingsLabel };
     });
     this.hand = art(root, `MeleeHand${suffix}`, "war3mapImported\\SelectionHandPinch.tga", 0.0, 0.0, HAND_SIZE, HAND_SIZE);
     BlzFrameSetLevel(this.hand, 20);
@@ -512,6 +515,7 @@ export class SelectionPanel {
     for (let slot = 0; slot < this.cards.length; slot++) {
       const card = this.cards[slot];
       if (card !== undefined) highlightText(card.tag, button?.kind === "mode" && button.slot === slot);
+      if (card !== undefined) highlightText(card.settingsLabel, button?.kind === "cpuSettings" && button.slot === slot);
     }
     highlightText(this.confirm, button?.kind === "start");
     highlightText(this.settingsLabel, button?.kind === "settings");
@@ -812,7 +816,7 @@ export class SelectionPanel {
       if (computer) {
         BlzFrameSetVisible(frames.status, false);
         setFrameText(frames.summary, cpuCardSummary(game, slot));
-        setFrameText(frames.settings, this.menuFocus?.kind === "settings" && this.menuFocus.slot === slot ? "> Opponent settings <" : "Opponent settings");
+        setFrameText(frames.settingsLabel, this.menuFocus?.kind === "settings" && this.menuFocus.slot === slot ? "> Opponent settings <" : "Opponent settings");
       } else BlzFrameSetVisible(frames.status, true);
       BlzFrameSetVisible(frames.chip, active);
       BlzFrameSetTexture(frames.chip, `war3mapImported\\SelectionChip${human ? `P${I2S(slot + 1)}` : "CPU"}.tga`, 0, true);

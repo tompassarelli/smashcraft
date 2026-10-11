@@ -556,7 +556,7 @@ export function renderUi(s: ShellState): void {
   ui.pause.update(paused && s.pauseCamera?.using !== true, menu.choice, menu.title, game.training, s.trainingHints === true);
   const local = localParticipantSlot(s);
   const localFighter = local !== undefined && s.participants[local].body !== undefined && isActive(s.world, local) ? fighterAt(s.world, local) : undefined;
-  const showMatch = !pauseHudHidden(s) && !selecting && !(local !== undefined && ui.settings[local].isOpen());
+  const showMatch = !paused && !pauseHudHidden(s) && !selecting && !(local !== undefined && ui.settings[local].isOpen());
   for (const slot of PARTICIPANT_SLOTS) {
     if (s.participants[slot].body !== undefined && isActive(s.world, slot)) {
       const fighter = fighterAt(s.world, slot);

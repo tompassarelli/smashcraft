@@ -87,7 +87,7 @@ export class PauseMenu {
       placeTopLeft(button, f32(0.26), y);
       placeTopLeft(option, f32(0.26), y);
     }
-    BlzFrameSetText(this.help, title ? "A / Start / Click: Play" : "Stick / arrows: choose · A: select · Click: select\nStart / Y: resume · Escape: character select\nIJKL: camera · +/-: zoom · O/P: tilt · H: HUD");
+    BlzFrameSetText(this.help, title ? "A / Start / Click: Play" : "Stick / arrows: choose · A: select · Click: select\nStart / Y: resume · Escape: character select");
     BlzFrameSetVisible(this.controls, !title);
     BlzFrameSetText(this.controls, "Q: full shield · T: light shield · P: tilt · Z: short hop · X: meter\n"
       + "Shield just before landing: tech (hold left/right to roll)\n"
