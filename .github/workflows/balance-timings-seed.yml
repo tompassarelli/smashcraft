@@ -1,0 +1,17 @@
+name: Balance timings seed
+on:
+  push:
+    branches: ["farm/balance-timings-seed"]
+permissions:
+  contents: read
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: balance-timings
+          path: ts/seed/timings.json
+          retention-days: 30
