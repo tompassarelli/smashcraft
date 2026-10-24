@@ -15,8 +15,7 @@ import { PARTICIPANT_SLOTS, type ParticipantSlot, type Slots } from "../../game/
 import { SHOWCASE_PAD_X } from "../../game/session/showcase";
 import type { FighterAgency } from "../../game/presentation/fighterAgency";
 import type { FrameControls } from "../../game/match/controls";
-import type { PacingAndPresentation } from "../../game/match/pacingAndPresentation";
-import { type MatchState, DEFAULT_RESULT_PICK, Phase, fighterColor, humanActive, remainingSeconds, resultChoicesOpen, stageClock, timedMatch } from "../../game/lobby/lobbyState";
+import { DEFAULT_RESULT_PICK, Phase, fighterColor, humanActive, remainingSeconds, resultChoicesOpen, stageClock, timedMatch } from "../../game/lobby/lobbyState";
 import { fighterOffscreen, fitFighterFrames } from "../../game/presentation/fighterFraming";
 import { arenaFarZ, ARENA_CAMERA, FLOOR_HEIGHT, cameraFieldOfView, type ScreenPoint, cameraPoint, extremeCamera, finalCamera, localCamera, resultCamera } from "../../game/presentation/arenaCamera";
 
@@ -44,6 +43,7 @@ import { localParticipantSlot, presentedCueTrace, traceParticipant } from "./dia
 import { colorFighterBody, placeFighterBody, renderDizzy } from "./fighterBody";
 import { concealFighter, concealFighters } from "./fighterCloak";
 import { type ShellState, type StatusFrames, activeRollback, localSlot, playsOnKeyboard } from "./state";
+import { presentedMatch } from "./presentedMatch";
 import { type UiObjects, pauseEffects, views } from "./ui";
 import { loreClears } from "../../game/classic/loreClears";
 import { drawStageScenery, presentDrifters } from "./stageScenery";
@@ -316,25 +316,6 @@ function setMatchPresentationPaused(s: ShellState, paused: boolean): void {
   }
   pauseEffects(s, paused);
 }
-
-interface PresentedMatch {
-  readonly game: MatchState;
-  readonly world: Roster;
-  readonly runtime: PacingAndPresentation;
-  readonly playing: boolean;
-}
-
-
-function presentedMatch(s: ShellState): PresentedMatch {
-  const rollback = activeRollback(s);
-  const confirmedPlaying = s.game.phase === Phase.match;
-  if (s.build.presentation === "pool-predicted" && rollback !== undefined && confirmedPlaying) {
-    const { speculative } = rollback;
-    return { game: speculative.game, world: speculative.world, runtime: speculative.runtime, playing: speculative.game.phase === Phase.match };
-  }
-  return { game: s.game, world: s.world, runtime: s.runtime, playing: confirmedPlaying };
-}
-
 
 const agencyMarks: Slots<FighterAgency> = ["act", "act", "act", "act"];
 const forecastHits: Slots<number> = [-1, -1, -1, -1];

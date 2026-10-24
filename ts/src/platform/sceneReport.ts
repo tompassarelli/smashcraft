@@ -5,6 +5,7 @@ import { installSceneReport, startSceneReport } from "wisp/src/platform/scene";
 import { FLOOR_HEIGHT, HIDDEN_EFFECT_DEPTH } from "../game/presentation/arenaCamera";
 import { HERO_ROSTER } from "../game/sim/heroes/registry";
 import { shellState } from "../host/loop/state";
+import { presentedFrame } from "../host/loop/presentedMatch";
 import { heroLook } from "../game/roster/looks";
 
 export { installSceneReport };
@@ -13,7 +14,8 @@ export { installSceneReport };
 export function startMatchSceneReport(): void {
   startSceneReport({
 
-    frame: () => shellState()?.runtime.simulationFrame ?? 0,
+    // Pool-predicted play places effects at the speculative frame; confirmed frames arrive in bursts with remote input.
+    frame: () => { const s = shellState(); return s === undefined ? 0 : presentedFrame(s); },
     // AddSpecialEffect starts at ground level; hideEffect parks it below ground.
 
     parked: (_x, _y, z) => {
