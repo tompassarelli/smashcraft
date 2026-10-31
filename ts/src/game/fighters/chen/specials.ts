@@ -37,7 +37,8 @@ const breath = (air: boolean): AuthoredSpecial => {
 
 export const BODY_SLAM_FIRST = 10;
 export const BODY_SLAM_LAST = 24;
-const slam = chenHit(9.0, 60.0, 50.0, f32(0.173648), f32(0.984808));
+const BODY_SLAM_GROWTH = 60.0;
+const slam = { ...chenHit(9.0, BODY_SLAM_GROWTH, 50.0, f32(0.173648), f32(0.984808)), damage: f32(9.0 * 1.25), growth: BODY_SLAM_GROWTH };
 export const BODY_SLAM_LANDED_END = 14;
 const slamLanded = (air: boolean): AuthoredSpecial => ({ name: "Body Slam", endFrame: BODY_SLAM_LANDED_END, landingLag: air ? 10 : undefined,
   motion: [{ ...frames(1, 4), velocityX: 0.0, velocityZ: 0.0 }] });
