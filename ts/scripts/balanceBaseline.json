@@ -41693,6 +41693,13 @@
    "authored.specials.side.ground.projectiles.1.effect.base": 0,
    "authored.specials.side.ground.projectiles.1.effect.launchX": 0.08715574443340302,
    "authored.specials.side.ground.projectiles.1.effect.launchZ": 0.9961947202682495,
+   "authored.specials.side.ground.regions.0.firstFrame": 12,
+   "authored.specials.side.ground.regions.0.lastFrame": 16,
+   "authored.specials.side.ground.regions.0.hit.effect.damage": 8,
+   "authored.specials.side.ground.regions.0.hit.effect.growth": 70,
+   "authored.specials.side.ground.regions.0.hit.effect.base": 22,
+   "authored.specials.side.ground.regions.0.hit.effect.launchX": 0.1736481785774231,
+   "authored.specials.side.ground.regions.0.hit.effect.launchZ": 0.9848077297210693,
    "authored.specials.up.ground.endFrame": 40,
    "authored.specials.up.ground.landingLag": 24,
    "authored.specials.up.ground.regions.0.firstFrame": 9,
@@ -41971,7 +41978,7 @@
    "throw.6.contactFrame": 18,
    "throw.6.totalFrames": 42
   },
-  "play": "{\"range\":{\"near\":158.40000915527344,\"far\":316.8000183105469},\"spacing\":[{\"move\":30,\"near\":160,\"far\":420},{\"move\":31,\"near\":90,\"far\":220},{\"move\":6,\"near\":79.20000457763672,\"far\":132},{\"move\":8,\"near\":66,\"far\":118.79999542236328}],\"approach\":[{\"via\":\"shoot\",\"moves\":[30],\"weight\":2},{\"via\":\"run\",\"moves\":[6,5,31],\"weight\":2}],\"defense\":[\"shield\",\"retreat\",\"roll\",\"jump\"],\"combos\":[{\"starter\":8,\"followUps\":[7,13]},{\"starter\":42,\"followUps\":[15]},{\"starter\":43,\"followUps\":[6,31]}],\"kills\":[{\"move\":4,\"fromPercent\":95},{\"move\":2,\"fromPercent\":105},{\"move\":14,\"fromPercent\":115}],\"recovery\":{\"aim\":\"ledge\",\"upSpecial\":\"last\"},\"avoid\":[\"below\",\"edge\"]}",
+  "play": "{\"range\":{\"near\":158.40000915527344,\"far\":316.8000183105469},\"spacing\":[{\"move\":30,\"near\":160,\"far\":420},{\"move\":33,\"near\":70.19999694824219,\"far\":162.60000610351562},{\"move\":31,\"near\":60,\"far\":170},{\"move\":6,\"near\":79.19999694824219,\"far\":132},{\"move\":8,\"near\":66,\"far\":118.80000305175781}],\"approach\":[{\"via\":\"shoot\",\"moves\":[30],\"weight\":2},{\"via\":\"run\",\"moves\":[6,5,19],\"weight\":2}],\"defense\":[\"stance\",\"shield\",\"retreat\",\"roll\",\"jump\"],\"combos\":[{\"starter\":8,\"followUps\":[7,13]},{\"starter\":42,\"followUps\":[15]},{\"starter\":43,\"followUps\":[6,33]}],\"kills\":[{\"move\":4,\"fromPercent\":95},{\"move\":2,\"fromPercent\":105},{\"move\":14,\"fromPercent\":115}],\"recovery\":{\"aim\":\"ledge\",\"upSpecial\":\"last\"},\"avoid\":[\"below\",\"edge\"]}",
   "feel": {
    "normal.0.hit.0": {
     "advantage": -12
@@ -42074,6 +42081,9 @@
    },
    "special.side.ground.projectiles.1": {
     "advantage": -20
+   },
+   "special.side.ground.regions.0": {
+    "advantage": -16
    },
    "special.up.ground.regions.0": {
     "advantage": -25

@@ -2,10 +2,10 @@ import { f32 } from "wisp/src/sim/f32";
 import { Character, HitElement } from "../../sim/codes";
 import { hurtCapsule } from "../../sim/geometry/contactGeometry";
 import { groundHit } from "../../sim/heroes/groundNormals";
-import { HERO_REFERENCE_HEIGHT } from "../../sim/heroMoves";
+import { HERO_REFERENCE_HEIGHT, heroRegion } from "../../sim/heroMoves";
 import { type AimByMotion, type AuthoredSpecial, type SpecialKit, type SpecialProjectile, frames } from "../../sim/specials/schema";
 import type { StickMotion } from "../../sim/stickMotion";
-import { standinCastBody } from "../standin/moves";
+import { standinCastBody, standinHit, strike } from "../standin/moves";
 
 const h = (multiple: number): number => f32(HERO_REFERENCE_HEIGHT * f32(multiple));
 
@@ -98,7 +98,7 @@ const dust = (spawnFrame: number): SpecialProjectile => ({
 
 export const SUBMERGE: SpecialKit = {
   name: "Submerge",
-  description: "He sinks into the ground and resurfaces at the newest crater his Lava Raze left in the last three seconds, or a short step ahead if there is none. Underground he cannot be hit.",
+  description: "He sinks into the ground and resurfaces at the newest crater his Lava Raze left in the last three seconds, or a short step ahead if there is none. Underground he cannot be hit, and he comes up with a small pop-up hit.",
   ground: {
     name: "Submerge", endFrame: SUBMERGE_END_FRAME, groundOnly: true, cooldownFrames: SUBMERGE_COOLDOWN, defensiveUse: true,
     intangible: SUBMERGE_INTANGIBLE, hurt: standinCastBody(Character.firelord, 0, SUBMERGE_SINK_FRAMES - 1),
@@ -107,5 +107,6 @@ export const SUBMERGE: SpecialKit = {
       { ...frames(SUBMERGE_SURFACE_FRAME, SUBMERGE_INTANGIBLE.last), velocityX: 0.0, velocityZ: 0.0, resurface: { at: CRATER, fallbackReach: SUBMERGE_FALLBACK_REACH } },
     ],
     projectiles: [dust(SUBMERGE_SINK_FRAMES - 1), dust(SUBMERGE_SURFACE_FRAME + 1)],
+    regions: [heroRegion(SUBMERGE_SURFACE_FRAME + 1, SUBMERGE_SURFACE_FRAME + 5, strike(-20.0, 30.0, 70.0, 70.0, 44.0), standinHit(8.0, 80, 70.0, 22.0))],
   },
 };
