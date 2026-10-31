@@ -22,8 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ref: [35bc52f89d54781fd099a6380cbce797502a0f0f, 1576b52d4e]
-        attempt: [1, 2, 3]
+        ref: [35bc52f89d54781fd099a6380cbce797502a0f0f, 1576b52d4e037d89c1bf3489a19ac9aaa531cb29]
+        attempt: [1]
     name: net pair four humans ${{ matrix.ref }} ${{ matrix.attempt }}
     steps:
       - uses: actions/checkout@v4
@@ -40,4 +40,6 @@ jobs:
           export WISP_RELAY_BIN="$PWD/node_modules/wisp/relay/target/release/relay"
           ls -la "$WISP_RELAY_BIN"
           git log --oneline -1
+          sed -i 's|if (!line.startsWith("net:")) return;||; s|const stdout = yield\* Effect.forkScoped(handle.stdout.pipe(Stream.decodeText(), Stream.mkString));|const stdout = yield* Effect.forkScoped(handle.stdout.pipe(Stream.decodeText(), Stream.mkString, Effect.tap((text) => Effect.sync(() => process.stderr.write(`${label} stdout: ${text.slice(-3000)}\n`)))));|' node_modules/wisp/host/commands/net.ts
+          grep -n 'stdout:' node_modules/wisp/host/commands/net.ts
           bun wisp net pair --humans 4 --relay local --script test/native/pads/trailer/online-rollback.pad --frames 600
