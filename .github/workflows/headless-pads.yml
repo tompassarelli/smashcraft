@@ -1,145 +1,43 @@
 name: Headless pads
 
-# Every native check script (smashcraft:ts/test/native/pads/*.pad) played
-# through the real wc3-journal helper into headless clients on free hosted
-# runners, one job a script; each must land its edges on their frames and
-# hold its own `#!` expectations. `bun wisp farm pads` dispatches it, for a
-# change that moves hit timing.
 on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Commit to check
         default: main
       lane:
-        description: The claude/ lane or farm/ scratch branch that holds the commit; empty for main
         default: ""
       dirs:
-        description: Script files or folders under ts/test/native/pads, space-separated (. is the top level)
         default: "."
       tag:
-        description: Names the run so `bun wisp farm` can find the one it dispatched
         default: ""
-
-run-name: Headless pads ${{ inputs.ref }} ${{ inputs.lane }} ${{ inputs.tag }}
 
 permissions:
   contents: read
-  actions: write
-
-env:
-  CARGO_TERM_COLOR: always
 
 jobs:
-  plan:
+  pair:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      sha: ${{ steps.plan.outputs.sha }}
-      pads: ${{ steps.plan.outputs.pads }}
-      key: ${{ steps.key.outputs.key }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref }}
-      - id: key
-        env:
-          DIRS: ${{ inputs.dirs }}
-        # GitHub rejects a concurrency group over 400 characters, so the script set is keyed by its hash.
-        run: echo "key=$(printf '%s' "$DIRS" | sha256sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
-      - id: plan
-        run: |
-          set -o pipefail
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          pads=$(cd ts/test/native/pads && for dir in $DIRS; do if [ -f "$dir" ]; then printf '%s\n' "$dir"; else ls "$dir"/*.pad; fi; done | sed "s#^\./##" | jq -R . | jq -sc .)
-          echo "pads=$pads" >> "$GITHUB_OUTPUT"
-        env:
-          DIRS: ${{ inputs.dirs }}
-
-  helper:
-    needs: plan
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.plan.outputs.sha }}
-      - run: |
-          dependency_options=(-o Acquire::Retries=1 -o Acquire::http::Timeout=10 -o Acquire::https::Timeout=10)
-          sudo apt-get "${dependency_options[@]}" update -q
-          sudo apt-get "${dependency_options[@]}" install -y -q libudev-dev libxkbcommon-dev
-        timeout-minutes: 3
-      - run: rustup toolchain install
-        working-directory: controller
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: controller
-      - run: cargo build --release --locked --bin wc3-journal
-        working-directory: controller
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wc3-journal
-          path: controller/target/release/wc3-journal
-          retention-days: 3
-
-  pad:
-    needs: [plan, helper]
-    runs-on: ubuntu-latest
-    concurrency:
-      group: headless-pads ${{ inputs.lane || inputs.ref }} ${{ needs.plan.outputs.key }} ${{ matrix.pad }}
-      cancel-in-progress: true
-    timeout-minutes: 6
+    timeout-minutes: 45
     strategy:
       fail-fast: false
-      # The account runs 20 jobs at once across every repository.
-      max-parallel: 6
       matrix:
-        pad: ${{ fromJSON(needs.plan.outputs.pads) }}
+        ref: [35bc52f89d54781fd099a6380cbce797502a0f0f, 1576b52d4e]
+        attempt: [1, 2, 3]
+    name: net pair four humans ${{ matrix.ref }} ${{ matrix.attempt }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.plan.outputs.sha }}
+          ref: ${{ matrix.ref }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
       - run: bun install --frozen-lockfile
         working-directory: ts
-      - name: Stop when the commit has left main and the lane
-        working-directory: ts
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SHA: ${{ needs.plan.outputs.sha }}
-          LANE: ${{ inputs.lane }}
+      - working-directory: ts
         run: |
-          git fetch -q --depth 1 origin "$GITHUB_SHA" && git checkout -q FETCH_HEAD -- scripts/farmGuard.ts
-          bun scripts/farmGuard.ts --workflow pads --sha "$SHA" --lane "$LANE"
-      - uses: actions/download-artifact@v4
-        with:
-          name: wc3-journal
-          path: helper
-      # The helper reads a uinput pad the script drives (as controller.yml's tests do).
-      - name: Virtual pads
-        run: |
-          chmod +x helper/wc3-journal
-          sudo modprobe uinput && sudo chmod 0666 /dev/uinput
-          echo 'SUBSYSTEM=="input", KERNEL=="event*", MODE="0666"' | sudo tee /etc/udev/rules.d/99-ci-pads.rules
-          sudo udevadm control --reload-rules
-      # The journal accepts control timestamps only from btrfs, XFS or tmpfs;
-      # the runner's disk is ext4, /dev/shm is tmpfs.
-      - name: Play ${{ matrix.pad }}
-        working-directory: ts
-        run: bun wisp pad "test/native/pads/${{ matrix.pad }}" --headless --helper "$GITHUB_WORKSPACE/helper/wc3-journal" --out "/dev/shm/pad/${{ matrix.pad }}"
-        env:
-          WC3_TAP_JUMP: ${{ matrix.pad == '203/tap-jump.pad' && 'on' || 'off' }}
-          WC3_PAD_PRESET: ${{ matrix.pad == 'controls/z-jump.pad' && 'z-jump' || 'script' }}
-      - if: ${{ !cancelled() }}
-        run: |
-          mkdir -p "pad-out/${{ matrix.pad }}"
-          cp -r "/dev/shm/pad/${{ matrix.pad }}/." "pad-out/${{ matrix.pad }}/" 2>/dev/null || true
-      # Every run keeps its traces, so a new script can take its `#! expect` lines from them.
-      - if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: pad-${{ strategy.job-index }}
-          path: pad-out
-          retention-days: 7
+          (cd node_modules/wisp/relay && cargo build --release -p relay 2>&1 | tail -2)
+          export WISP_RELAY_BIN="$PWD/node_modules/wisp/relay/target/release/relay"
+          ls -la "$WISP_RELAY_BIN"
+          git log --oneline -1
+          bun wisp net pair --humans 4 --relay local --script test/native/pads/trailer/online-rollback.pad --frames 600
