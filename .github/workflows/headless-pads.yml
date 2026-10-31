@@ -22,8 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ref: [35bc52f89d54781fd099a6380cbce797502a0f0f, 1576b52d4e037d89c1bf3489a19ac9aaa531cb29]
-        attempt: [1]
+        ref: [601079f8135b7f33c185f8272fc482ed07e9762f]
+        attempt: [1, 2, 3]
     name: net pair four humans ${{ matrix.ref }} ${{ matrix.attempt }}
     steps:
       - uses: actions/checkout@v4
