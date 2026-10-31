@@ -100,7 +100,7 @@ export const SUBMERGE: SpecialKit = {
   name: "Submerge",
   description: "He sinks into the ground and resurfaces at the newest crater his Lava Raze left in the last three seconds, or a short step ahead if there is none. Underground he cannot be hit.",
   ground: {
-    name: "Submerge", endFrame: SUBMERGE_END_FRAME, groundOnly: true, cooldownFrames: SUBMERGE_COOLDOWN,
+    name: "Submerge", endFrame: SUBMERGE_END_FRAME, groundOnly: true, cooldownFrames: SUBMERGE_COOLDOWN, defensiveUse: true,
     intangible: SUBMERGE_INTANGIBLE, hurt: standinCastBody(Character.firelord, 0, SUBMERGE_SINK_FRAMES - 1),
     motion: [
       { ...frames(0, SUBMERGE_SURFACE_FRAME - 1), velocityX: 0.0, velocityZ: 0.0 },
