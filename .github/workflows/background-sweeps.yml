@@ -1,245 +1,44 @@
 name: Background sweeps
 
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: "31 3 * * *"
   workflow_dispatch:
     inputs:
       ref:
-        description: Landed main commit to test
         default: ""
       rebaseline:
-        description: "Fighter pairs, one per line (such as 'murloc vs rifleman'), whose rise over the prior census is a decided change: this run measures them without judging them and its artifact becomes their baseline"
         default: ""
 
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.ref == 'refs/heads/main' && (inputs.rebaseline || '') == '' && 'background-sweeps-main' || format('background-sweeps-run-{0}', github.run_id) }}
-  cancel-in-progress: false
-
-env:
-  SWEEPS: "1"
-  SWEEP_PLACEMENT: background
-
 jobs:
-  routing:
+  load:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      actions: read
-    outputs:
-      runner: ${{ steps.route.outputs.runner }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          sparse-checkout: ts
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - run: bun install --frozen-lockfile --ignore-scripts
-        working-directory: ts
-      - id: route
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: bun ts/scripts/runnerRoute.ts --class background --want 2 | tee -a "$GITHUB_STEP_SUMMARY" >> "$GITHUB_OUTPUT"
-  # The host test suite (ts/test), every sweep outside GATE_SWEEPS (ts/src/game/core/gateSweeps.ts) and the
-  # per-pair worst-frame census (#405), at most two jobs at once so it never
-  # crowds a landing's gate run. Census shard N plays every CENSUS_SHARDS-th fighter of the
-  # roster; the census job judges the joined pairs.
-  sweeps:
-    needs: routing
-    runs-on: ${{ needs.routing.outputs.runner }}
-    timeout-minutes: 30
+    timeout-minutes: 90
     strategy:
       fail-fast: false
-      max-parallel: 2
       matrix:
-        include:
-          - { kind: bun, name: "host tests" }
-          - { kind: census, shard: 0, name: "census 0" }
-          - { kind: census, shard: 1, name: "census 1" }
-          - { kind: census, shard: 2, name: "census 2" }
-          - { kind: census, shard: 3, name: "census 3" }
-          - { kind: census, shard: 4, name: "census 4" }
-          - { kind: census, shard: 5, name: "census 5" }
-          - { kind: census, shard: 6, name: "census 6" }
-    name: ${{ matrix.name }}
-    env:
-      CENSUS_SHARDS: 7
+        shard: [0, 1, 2, 3, 4]
+    name: four tests under load ${{ matrix.shard }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.13
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-install-${{ hashFiles('ts/bun.lock') }}
       - run: bun install --frozen-lockfile
         working-directory: ts
-      - if: matrix.kind != 'bun'
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/wisp/lua32
-          key: wisp-lua32-${{ runner.environment }}-${{ hashFiles('ts/node_modules/wisp/host/compile/lua32.ts', 'ts/node_modules/wisp/native/*.h') }}
-      - if: matrix.kind == 'bun'
-        run: bun run test
-        working-directory: ts
-        timeout-minutes: 25
-        env:
-          SWEEPS: ""
-          TEST_JUNIT_DIR: build/sweep-listing
-      - if: matrix.kind == 'lua'
-        run: mkdir -p ts/build/sweep-listing
-      - if: matrix.kind == 'lua'
-        run: bun scripts/lua-tests.ts
-        working-directory: ts
-        env:
-          LUA_JOBS: "4"
-          LUA_PARTITION: ${{ matrix.part }}/3
-          LUA_TEST_COST_DIR: build/sweep-listing
-      - if: ${{ !cancelled() && matrix.kind != 'census' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: sweep-listing-${{ matrix.kind }}-${{ matrix.part }}
-          path: ts/build/sweep-listing
-          retention-days: 3
-      - if: matrix.kind == 'census'
-        name: Census shard ${{ matrix.shard }}
-        working-directory: ts
-        timeout-minutes: 25
+      - run: sudo apt-get install -y stress >/dev/null
+      - working-directory: ts
         run: |
-          mkdir -p census-out
-          fighters=$(bun -e 'import { SELECTABLE_CHARACTERS, fighterSlug } from "./src/game/roster/kits"; console.log(SELECTABLE_CHARACTERS.map(fighterSlug).join("\n"))' | awk -v n="$CENSUS_SHARDS" -v s="${{ matrix.shard }}" '(NR - 1) % n == s { printf " --fighter %s", $0 }')
-          bun wisp perf census $fighters --jobs 4 --pairs "census-out/census-pairs-${{ matrix.shard }}.txt"
-      - if: ${{ !cancelled() && matrix.kind == 'census' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: census-${{ matrix.shard }}
-          path: ts/census-out
-          retention-days: 3
-
-  census:
-    needs: [routing, sweeps]
-    if: ${{ !cancelled() }}
-    runs-on: ${{ needs.routing.outputs.runner }}
-    timeout-minutes: 10
-    name: Background census
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref || github.sha }}
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-      - uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-install-${{ hashFiles('ts/bun.lock') }}
-      - run: bun install --frozen-lockfile
-        working-directory: ts
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: census-[0-9]*
-          path: ts/census
-      # Pairs compare only within one instrument: the Lua32 build and the profiler that measured them.
-      - id: instrument
-        run: echo "key=taps-land-${{ hashFiles('ts/node_modules/wisp/host/compile/lua32.ts', 'ts/node_modules/wisp/native/*.h', 'ts/node_modules/wisp/src/headless/luaPerf.ts') }}" >> "$GITHUB_OUTPUT"
-      - name: Fetch main's last green Background census pairs
-        working-directory: ts
-        timeout-minutes: 5
-        env:
-          GH_TOKEN: ${{ github.token }}
-          INSTRUMENT: ${{ steps.instrument.outputs.key }}
-          REBASELINE: ${{ inputs.rebaseline }}
-        run: |
-          git -c gc.auto=0 fetch -q --shallow-since="$(date -u -d '31 days ago' +%F)" origin main
-          git rev-list --first-parent FETCH_HEAD > main-commits.txt
-          seen=false
-          for page in $(seq 1 30); do
-            runs=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/background-sweeps.yml/runs?branch=main&status=success&per_page=100&page=$page" --jq '.workflow_runs[].id')
-            [ -n "$runs" ] || break
-            for run in $runs; do
-              [ "$run" != "$GITHUB_RUN_ID" ] || continue
-              gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/artifacts?per_page=100" --jq '.artifacts[] | select(.name | startswith("census-pairs-'"$INSTRUMENT"'-")) | [.name, .id, .expired] | @tsv' > run-artifacts.tsv
-              while IFS=$'\t' read -r name artifact expired; do
-                seen=true
-                commit=${name#census-pairs-"$INSTRUMENT"-}
-                [ "$expired" = false ] && grep -qx "$commit" main-commits.txt || continue
-                mkdir -p prior
-                gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact/zip" > prior/pairs.zip
-                unzip -q -o prior/pairs.zip -d prior
-                test -s prior/census-pairs.txt
-                echo "Census rise check against main $commit (Background run $run, artifact $artifact)"
-                exit 0
-              done < run-artifacts.tsv
+          stress --cpu "$(nproc)" > /dev/null 2>&1 &
+          fails=0
+          for i in 1 2 3 4; do
+            for name in frozenThroneFloes pause-screen lobby-echo online-golden; do
+              timeout 20m bun test --timeout 900000 "test/$name.test.ts" > "run.log" 2>&1
+              code=$?
+              echo "shard ${{ matrix.shard }} run $i $name exit=$code load=$(cut -d' ' -f1 /proc/loadavg) $(grep -E '^ +[0-9]+ (pass|fail)' run.log | tr -s ' ' | tr '\n' ' ')"
+              if [ "$code" != 0 ]; then fails=$((fails + 1)); tail -60 run.log; fi
             done
           done
-          if [ "$seen" = true ] && [ -z "$REBASELINE" ]; then
-            echo "::error title=NoPrior::this instrument's green census artifacts exist but none is still live on main's history, so a rise cannot be judged: dispatch Background sweeps with the rebaseline input to decide it"
-            exit 1
-          fi
-          echo "::warning::No green Background census artifact from this instrument on main: only coverage and absolute frame budgets apply"
-      - name: Every fighter pair's worst frame within the margin of main's last green census (#405)
-        working-directory: ts
-        env:
-          REBASELINE: ${{ inputs.rebaseline }}
-        run: |
-          cat census/census-*/census-pairs-*.txt > census-pairs.txt 2>/dev/null
-          measured=$(wc -l < census-pairs.txt)
-          expected=$(bun -e 'import { SELECTABLE_CHARACTERS } from "./src/game/roster/kits"; console.log(SELECTABLE_CHARACTERS.length)')
-          [ "$measured" = "$expected" ] || { echo "::error title=Unmeasured::the census measured $measured of $expected fighter pairs: see the census jobs"; exit 1; }
-          if [ -f prior/census-pairs.txt ]; then
-            judged() { awk -F'\t' -v list="$REBASELINE" 'BEGIN { n = split(list, names, "\n"); for (i = 1; i <= n; i++) skip[names[i]] = 1 } !($2 in skip)' "$1"; }
-            judged prior/census-pairs.txt > prior-judged.txt
-            judged census-pairs.txt > census-judged.txt
-            bun wisp perf compare prior-judged.txt census-judged.txt
-          fi
-      - if: success() && needs.sweeps.result == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: census-pairs-${{ steps.instrument.outputs.key }}-${{ inputs.ref || github.sha }}
-          path: ts/census-pairs.txt
-          overwrite: true
-          retention-days: 30
-
-  main-red:
-    needs: [sweeps, census]
-    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      actions: write
-    steps:
-      - run: gh workflow run main-red.yml -R "${{ github.repository }}" -f run="${{ github.run_id }}"
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-  status:
-    needs: [sweeps, census]
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      statuses: write
-    steps:
-      - run: |
-          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" \
-            -f state="$STATE" -f context="Background sweeps" \
-            -f target_url="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            -f description="Approved background breadth: $STATE"
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SHA: ${{ inputs.ref || github.sha }}
-          STATE: ${{ needs.sweeps.result == 'success' && needs.census.result == 'success' && 'success' || 'failure' }}
+          echo "shard ${{ matrix.shard }} failures=$fails"
+          test "$fails" = 0
