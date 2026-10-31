@@ -19,7 +19,7 @@ export const firelordStrikeMoments = {
   19: { clip: 4, seconds: f32(0.583), end: f32(1.167) },
   20: { clip: 4, seconds: f32(0.583), end: f32(1.167) },
   100: { clip: 6, seconds: f32(0.500), end: f32(1.167) },
-  101: { clip: 3, seconds: f32(0.000), end: f32(1.167) },
+  101: { clip: 3, seconds: f32(0.500), end: f32(1.167) },
   102: { clip: 6, seconds: f32(0.383), end: f32(1.167) },
   103: { clip: 6, seconds: f32(0.383), end: f32(1.167) },
 };

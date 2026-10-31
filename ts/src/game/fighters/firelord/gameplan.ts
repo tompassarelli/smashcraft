@@ -9,6 +9,7 @@ export const FIRELORD_GAMEPLAN: FighterGameplan = {
   spacing: [
     { move: GameplanSpecial.neutral, near: 160.0, far: 420.0 },
     { move: GameplanSpecial.down, near: f32(RAZE_REACH.near - RAZE_RADIUS), far: f32(RAZE_REACH.near + RAZE_RADIUS) },
+    { move: GameplanSpecial.side, near: 60.0, far: 170.0 },
     { move: AttackStyle.forwardTilt, near: f32(79.2), far: 132.0 },
     { move: AttackStyle.downTilt, near: 66.0, far: f32(118.8) },
   ],
