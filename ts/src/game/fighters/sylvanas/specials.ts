@@ -6,7 +6,7 @@ import { hurtPose } from "../../sim/hurtboxes";
 import { sylvanasHit, sylvanasReach, sylvanasStrike } from "./moves";
 
 const BLACK_ARROW: AuthoredSpecial = {
-  endFrame: 34,
+  endFrame: 34, cooldownFrames: 52,
   projectiles: [{
     model: "Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl",
     spawnFrame: 10, offsetX: 44.0, offsetZ: 60.0, velocityX: 17.0, velocityZ: 0.0, upVelocityX: 17.0, upVelocityZ: 5.0,
@@ -32,7 +32,7 @@ const LIFE_DRAIN: AuthoredSpecial = {
 };
 
 export const SYLVANAS_SPECIALS: FighterSpecials = {
-  neutral: { name: "Black Arrow", description: "A dark arrow that charges her next bow strike. It leaves on frame 10 of 34, on the ground or in the air, so a short hop fires it before she lands. Hold up to fire upward.", ground: BLACK_ARROW, air: { ...BLACK_ARROW, landingLag: 16 } },
+  neutral: { name: "Black Arrow", description: "A dark arrow that charges her next bow strike. It leaves on frame 10 of 34, on the ground or in the air, so a short hop fires it before she lands, and she can fire again 52 frames after the last cast. Hold up to fire upward.", ground: BLACK_ARROW, air: { ...BLACK_ARROW, landingLag: 16 } },
   side: { name: "Silence", description: "A short curse that stops offensive specials. Movement, attacks and recovery still work.", ground: SILENCE, air: { ...SILENCE, landingLag: 20 } },
   up: { name: "Banshee Flight", description: "Rise as a spirit, steering toward the stage, then fall helpless.", ground: flight(f32(2.6), f32(2.6)) },
   down: { name: "Life Drain", description: "Catch a nearby foe through their shield and drain a little life. A missed reach leaves her open.", ground: LIFE_DRAIN, air: { ...LIFE_DRAIN, groundOnly: false } },

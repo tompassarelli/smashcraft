@@ -66,7 +66,7 @@ export const FLAME_STRIKE_ORB: SpecialProjectile = {
 };
 export const FLAME_STRIKE_STEER: SpecialHeldOrb = { frame: FLAME_STRIKE_ORB.spawnFrame, acceleration: 0.375, maxSpeed: 12.0, climbSpeed: 5.0, erupts: FLAME_STRIKE_BURST };
 const flameStrike = (landingLag: number | undefined): AuthoredSpecial => ({
-  endFrame: FLAME_STRIKE_RELEASE_FRAME + 28, landingLag, hurt: kaelCastBody(4, FLAME_STRIKE_RELEASE_FRAME + 18, 40.0, 66.0), projectiles: [FLAME_STRIKE_ORB], heldOrb: FLAME_STRIKE_STEER, replacesLive: true,
+  endFrame: FLAME_STRIKE_RELEASE_FRAME + 28, cooldownFrames: 72, landingLag, hurt: kaelCastBody(4, FLAME_STRIKE_RELEASE_FRAME + 18, 40.0, 66.0), projectiles: [FLAME_STRIKE_ORB], heldOrb: FLAME_STRIKE_STEER, replacesLive: true,
 });
 
 export const BANISH_FRAMES = 60;

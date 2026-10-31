@@ -11,7 +11,7 @@ export const sylvanasHit = (damage: number, angle: Parameters<typeof groundHit>[
   groundHit(damage, angle, growth, base, HitElement.dark, behind);
 const bow = (first: number, active: number, recovery: number, landing: number, strike: StrikeCapsule, effect: Readonly<HitEffect>, groundedEffect?: Readonly<HitEffect>): AuthoredMove =>
   heroMove(first, active, recovery, landing, [heroRegion(first, first + active - 1, strike, effect, groundedEffect)]);
-const frontTilt = (height: number): AuthoredMove => bow(9, 3, 18, 0, sylvanasStrike(22.0, 54.0, 104.0, height), sylvanasHit(8.748000144958496, 40));
+const frontTilt = (height: number): AuthoredMove => bow(9, 3, 15, 0, sylvanasStrike(22.0, 54.0, 104.0, height, 26.0), sylvanasHit(8.748000144958496, 40));
 const NOTHING = { damage: 0.0, growth: 0.0, base: 0.0, launchX: 0.0, launchZ: 0.0, electric: false } as const;
 const SPIKE = { ...sylvanasHit(10.692000389099121, 90, 103.0999984741211, 24.0), launchZ: -1.0 };
 
@@ -24,8 +24,8 @@ const NORMALS: FighterMoves["normals"] = {
   [AttackStyle.forwardTiltDown]: frontTilt(18.0),
   [AttackStyle.upTilt]: bow(8, 4, 19, 0, sylvanasStrike(8.0, 68.0, 14.0, 132.0), sylvanasHit(6.803999900817871, 85, 67.01499938964844, 38.0)),
   [AttackStyle.downTilt]: bow(7, 3, 17, 0, sylvanasStrike(18.0, 18.0, 84.0, 10.0), sylvanasHit(6.803999900817871, 75, 61.86000061035156, 38.0)),
-  [AttackStyle.dashAttack]: heroMove(6, 8, 22, 0, [heroRegion(6, 13, sylvanasStrike(18.0, 55.0, 102.0, 48.0), sylvanasHit(9.720000267028809, 50, 92.79000091552734, 24.0))], 55.0, true),
-  [AttackStyle.forwardSmash]: tipperMove(bow(16, 3, 29, 0, sylvanasStrike(22.0, 60.0, 134.0, 58.0), sylvanasHit(16.038000106811523, 40, 113.41000366210938, 28.0)), 0.25),
+  [AttackStyle.dashAttack]: heroMove(6, 8, 19, 0, [heroRegion(6, 13, sylvanasStrike(18.0, 55.0, 102.0, 48.0, 34.0), sylvanasHit(9.720000267028809, 50, 92.79000091552734, 24.0))], 55.0, true),
+  [AttackStyle.forwardSmash]: tipperMove(bow(16, 3, 26, 0, sylvanasStrike(22.0, 60.0, 134.0, 58.0, 34.0), sylvanasHit(16.038000106811523, 40, 113.41000366210938, 28.0)), 0.25),
   [AttackStyle.upSmash]: bow(15, 4, 29, 0, sylvanasStrike(0.0, 82.0, 0.0, 158.0, 12.0), sylvanasHit(12.63599967956543, 90, 113.41000366210938, 28.0)),
   [AttackStyle.downSmash]: heroMove(14, 6, 28, 0, [
     heroRegion(14, 16, sylvanasStrike(18.0, 24.0, 100.0, 10.0), sylvanasHit(11.663999557495117, 25, 103.0999984741211, 25.0)),
