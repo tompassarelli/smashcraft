@@ -5,7 +5,7 @@ export const ladyVashjStrikeMoments = {
   0: { clip: 14, seconds: f32(0.083), end: f32(0.267) },
   2: { clip: 23, seconds: f32(0.233), end: f32(0.567) },
   3: { clip: 24, seconds: f32(0.267), end: f32(0.567) },
-  4: { clip: 22, seconds: f32(0.417), end: f32(0.600) },
+  4: { clip: 22, seconds: f32(0.350), end: f32(0.600) },
   6: { clip: 16, seconds: f32(0.200), end: f32(0.400) },
   7: { clip: 19, seconds: f32(0.067), end: f32(0.367) },
   8: { clip: 20, seconds: f32(0.150), end: f32(0.333) },

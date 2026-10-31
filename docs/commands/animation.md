@@ -416,6 +416,7 @@ smashcraft:docs/design/animation-reference.md. Reference pixels remain private.
   whose regions are all pass-through paths or whose motion stops at the first body, strikes with something other than the traced weapon: it is
   reported as `prop` or `body`, never failed or fitted, printed as `excluded`, listed in build/anim-score/weapon-fit.json, and any fit it
   already had is dropped from weaponRegions.ts (the file and its kit.ts wiring go when it was the last).
+  A move listed in `LIMB_STRIKES` (smashcraft:ts/scripts/wisp/animStrikeKinds.ts) strikes with a limb the bow or axe does not reach (Lady Vashj's tail lashes and upper-arm smash, Peon's belly-flop dash) and is treated the same way, as `limb` (#864).
 
 - Key jitter (from ts/): `bun wisp anim jitter [--fighter NAME]...`
   fails when a curved key segment between keys at most 50 ms apart leaves its keys (#479);

@@ -161,7 +161,7 @@ async function fitFlagged(traced: readonly (Traced & { readonly character: Chara
   };
   const excluded: string[] = [];
   for (const { row, sampled, edges, character } of traced) {
-    if (row.by === 'prop' || row.by === 'body') {
+    if (row.by === 'prop' || row.by === 'body' || row.by === 'limb') {
       const owner = sampled.regionOwners[row.frames[0] ?? 0], key = owner === undefined ? undefined : ownerKey(character, sampled.move, owner);
       excluded.push(`${row.fighter} ${row.move}`);
       console.log(`excluded: ${row.fighter} ${row.move} strikes with its ${row.by}, not the traced weapon`);

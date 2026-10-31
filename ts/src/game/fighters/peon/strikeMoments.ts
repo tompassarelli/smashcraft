@@ -18,7 +18,7 @@ export const peonStrikeMoments = {
   15: { clip: 36, seconds: f32(0.117), end: f32(0.550) },
   16: { clip: 37, seconds: f32(0.000), end: f32(0.750) },
   17: { clip: 62, seconds: f32(0.200), end: f32(0.817) },
-  19: { clip: 29, seconds: f32(0.250), end: f32(0.633) },
+  19: { clip: 29, seconds: f32(0.283), end: f32(0.633) },
   20: { clip: 23, seconds: f32(0.067), end: f32(0.417) },
   101: { clip: 39, seconds: f32(0.233), end: f32(0.500) },
   103: { clip: 41, seconds: f32(0.000), end: f32(0.633) },
